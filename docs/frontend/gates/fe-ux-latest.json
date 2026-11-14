@@ -1,14 +1,18 @@
 {
   "phase": "fe-ux",
-  "time": "2026-11-14T20:10:40Z",
+  "time": "2026-11-14T23:25:39Z",
   "project": "/Users/apple/Desktop/Hackathon/Local_AI_Hackathon",
   "run_dir": "docs/frontend",
-  "overall": "pass",
-  "consecutive_failures": 0,
-  "failed_runs": 0,
+  "overall": "fail",
+  "consecutive_failures": 2,
+  "failed_runs": 2,
   "fix_round_cap": 2,
   "escalate": false,
-  "fail_by_owner": {},
+  "fail_by_owner": {
+    "fe-ux": [
+      "FE1.flow-length"
+    ]
+  },
   "checks": [
     {
       "id": "ALL.state",
@@ -55,14 +59,14 @@
     {
       "id": "FE1.coverage",
       "status": "pass",
-      "message": "6 active REQs each served by a page",
+      "message": "11 active REQs each served by a page",
       "owner": "fe-ux",
       "details": []
     },
     {
       "id": "FE1.flows",
       "status": "pass",
-      "message": "3 flows with steps, success, failure, cancel, recovery, boundary",
+      "message": "7 flows with steps, success, failure, cancel, recovery, boundary",
       "owner": "fe-ux",
       "details": []
     },
@@ -82,10 +86,13 @@
     },
     {
       "id": "FE1.flow-length",
-      "status": "pass",
-      "message": "Every FLOW within 80 words",
+      "status": "fail",
+      "message": "FLOW longer than 80 words (code excluded)",
       "owner": "fe-ux",
-      "details": []
+      "details": [
+        "FLOW-001: 83 words",
+        "FLOW-002: 84 words"
+      ]
     },
     {
       "id": "FE1.page-length",
@@ -110,15 +117,15 @@
     },
     {
       "id": "CTX.codemap",
-      "status": "unavailable",
-      "message": "docs/codemap.md is checked once a role that reads code has worked",
-      "owner": "orchestrator",
+      "status": "pass",
+      "message": "docs/codemap.md paths exist, within its cap",
+      "owner": "fe-engineer",
       "details": []
     },
     {
       "id": "CTX.handoff",
       "status": "pass",
-      "message": "handoff.md: 2 current sections",
+      "message": "handoff.md: 5 current sections",
       "owner": "orchestrator",
       "details": []
     }
@@ -130,7 +137,11 @@
     "flows": [
       "FLOW-001",
       "FLOW-002",
-      "FLOW-003"
+      "FLOW-003",
+      "FLOW-004",
+      "FLOW-005",
+      "FLOW-006",
+      "FLOW-007"
     ]
   }
 }

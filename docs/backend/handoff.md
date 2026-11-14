@@ -24,3 +24,15 @@ Next agent must know:
 - Left open: after 20 turns the 40-entry window slides every turn → prompt prefix changes → every turn is cold (6.4–8.7 s + STT ≈ 10 s). Not redesigned this round; 02 §5 row 1 names the fallback (block-wise window or 4B), measured at build step 4.
 Read beyond the list: docs/backend/logs/be-architect-1-bench.log, bench-scripts.log:254-277 (history20 = 979 chars); ~/.claude/gates/gatelib/docs.py (word counting).
 Next agent reads: docs/backend/03-detailed-design.md §9, DES-002, DES-007, DES-013; 02 §4 rows 简体/截止/line 上限, §5 rows 1, 7, 8
+
+## fe-ux #3 · Phase 1 (frontend, increment) · round 2 · increment 1 · 2026-11-14T23:25:12Z
+Task: fix FE1.flows (FLOW-005 missing Boundary); apply the orchestrator's structure ruling (markers in their blocks, PAGE-001 detail under its own heading).
+Changed: docs/frontend/01-ux.md — FLOW-005 Boundary starts "hold under 0.5 s" (was "< 0.5 s"); FLOW-005 Failure merged (80 words); FLOW-001/002 retirement markers moved into their headings (§3 line removed); increment state table now under "### PAGE-001 — Talk with the companion (increment 1)". Round 1 (unchanged): Increment 1 flows FLOW-004..007, states, health table, Codes, 43-row zh/en Words, contract §2 rows; DFB-004 in 06-feedback.md.
+Feedback: DFB-004 (to fe-ui, English "Hold to talk" ≈151 px vs 124 px phone button) still pending.
+Result: self-measured with gatelib docs.words/field: all 7 flows have every field; FLOW-001 83, FLOW-002 84 words (over 80: markers); PAGE-001 blocks 196 and 432 words (second over 200; gate reads only the first block). Gate not re-run by me.
+Next agent must know:
+- Pitfalls: gatelib docs.field treats a value starting with "<" or "{" as a template placeholder → a field reads as missing. Never start a field value with "<".
+- Pitfalls: FLOW-001/002 and PAGE-001 cap overruns are for the orchestrator's cap ruling, not to be trimmed out of confirmed text.
+- Left open: contract §2 rows (01-ux Increment 1, last section); fe-ui draws the 中文 | EN switch and decides DFB-004; deferred.md D-005 can close.
+Read beyond the list: ~/.claude/gates/gatelib/docs.py:115-119 — field() placeholder rule.
+Next agent reads: docs/frontend/01-ux.md § Increment 1 (PAGE-001 increment block, Codes, Words); docs/frontend/06-feedback.md DFB-004
