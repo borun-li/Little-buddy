@@ -73,6 +73,24 @@
       "q": "Reply language for mixed zh/en lines?",
       "default": "majority language of the line (A3)",
       "show_at": "Plan"
+    },
+    {
+      "q": "FX-005 exact words in test_audio/hello.wav?",
+      "default": "\"Hello, this is a fully offline test for the local AI hackathon.\" [unverified, only whisperkit's own transcript]",
+      "by": "be-analyst #2",
+      "show_at": "Plan"
+    },
+    {
+      "q": "FX-005 uses the 16 kHz PCM16 converted copy instead of the 24 kHz Float32 original?",
+      "default": "yes — same speech, the format the page sends",
+      "by": "be-analyst #2",
+      "show_at": "Plan"
+    },
+    {
+      "q": "REQ-005 'UI set to the other language' part checked on the page, not at /api/respond?",
+      "default": "yes — UI language is never sent to the backend",
+      "by": "be-analyst #2",
+      "show_at": "Plan"
     }
   ],
   "notes": [

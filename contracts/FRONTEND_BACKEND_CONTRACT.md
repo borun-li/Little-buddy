@@ -64,27 +64,27 @@ Seam (the client layer's interface, kept when the fake is replaced):
 | browser `NotReadableError` | mic-busy hint | same |
 | browser `NotAllowedError` | refused hint | same |
 
-### Seam for run `companion-full-dev` (be-architect #1, `docs/backend/03-detailed-design.md` §9, DES-013..015; copied by orchestrator 2026-11-14)
-Frontend keeps the function names; only `web/js/companion-client.js` (DES-013), `web/js/mic.js` (DES-014) and the UI-language switch (DES-015) change on the frontend side.
+### Seam for run `companion-full-dev` (be-architect #2, `docs/backend/03-detailed-design.md` §9, DES-013..015; copied by orchestrator 2026-11-14)
+Frontend keeps the function names; only `web/js/companion-client.js` (DES-013), `web/js/mic.js` (DES-014) and the UI-language switch (DES-015) change on the frontend side. Where §2 PAGE-001 above disagrees (e.g. reply "Chinese, ≤120 characters", "failure: none"), this table wins; fe-ux/fe-engineer update §2 in this run.
 
 Transport：同源，页面与接口都在 `http://127.0.0.1:4317`（`PORT` 可改），无 CORS（O-4）。浏览器从不直连 llama-server。
 
 | Name | Type | Nullable | Who computes | Endpoint / field |
 |---|---|---|---|---|
-| `respond(line, history)` in | `line` 字符串，去空白后 1–500；`history` 至多最后 40 条 `{role: user\|companion, text 1–1000}` | no | frontend | `POST /api/respond`，`Content-Type: application/json`，体 ≤ 131072 B |
+| `respond(line, history)` in | `line` 字符串，去空白后 1–1500（JS `.length`）；`history` 至多最后 40 条 `{role: user\|companion, text 1–1500}`；后端只用合计 ≤ 6000 字符的最近若干条 | no | frontend | `POST /api/respond`，`Content-Type: application/json`，体 ≤ 262144 B |
 | `reply` out | 字符串，`line` 的语言（zh/en），≤ 2 句、≤ 1 问，zh ≤ 120 字、en ≤ 40 词 | no | backend（Bonsai 2 9B） | 200 `{reply, mood}` |
 | `mood` out | `pleasant-high`\|`pleasant-low`\|`unpleasant-high`\|`unpleasant-low`\|`neutral` | no（拿不准为 `neutral`） | backend，同一响应（O-3） | 同上 |
 | `transcribe(audio)` in | WAV：PCM 16-bit LE、单声道、16000 Hz，≤ 2,000,000 B（60 s = 1,920,044 B）；只在内存，转写后丢弃（O-2） | no | frontend 录 | `POST /api/transcribe`，`Content-Type: audio/wav`，体 = WAV 字节 |
-| `text` out | 所说语言的文字 | 空串 = 没听到：不成一轮、不调 `respond` | backend（WhisperKit） | 200 `{text}` |
+| `text` out | 所说语言的文字；中文为简体 | 空串 = 没听到：不成一轮、不调 `respond` | backend（WhisperKit） | 200 `{text}` |
 | `health()` out | `{ready: boolean, stt, bonsai}`，后两者 `starting`\|`ready`\|`down` | no | backend | `GET /api/health`，总是 200 |
-| failure / slow | `.code` ∈ 下表 | — | backend 码；前端 `fetch` 失败记 `unavailable`、30 s 记 `timeout` | 体 `{"error": code}` |
+| failure / slow | `.code` ∈ 下表 | — | backend 码；前端 `fetch` 失败记 `unavailable`；`transcribe` 13 s、`respond` 16 s 未完成自停记 `timeout` | 体 `{"error": code}` |
 | UI copy language | `zh`\|`en` | no | frontend only | 不发给后端 |
 
 | Code | HTTP | Meaning (for fe-ux words, O-1) |
 |---|---|---|
 | `not_ready` | 503 | 还在预热（启动后约数秒到 2 分钟） |
 | `unavailable` | 503 | 后端没起或刚崩，正在重启；页面也用于网络失败 |
-| `timeout` | 504 | 太慢：回复 25 s / 转写 20 s 未完成；页面 30 s 自己也会停 |
+| `timeout` | 504 | 太慢：回复 15 s / 转写 12 s 未完成；页面 16 s / 13 s 自己也会停（语音一轮 ≤ 29 s 必有交代） |
 | `failed` | 502 | 这次没成功，可再发 |
 | `bad_request` | 400 | 请求不合格（页面缺陷） |
 | `too_large` | 413 | 录音或前文太大（页面缺陷） |
@@ -105,3 +105,4 @@ Transport：同源，页面与接口都在 `http://127.0.0.1:4317`（`PORT` 可�
 | 2026-11-14 | Seam implemented as `web/js/companion-client.js` (fake: preset replies, keyword moods, preset voice lines; reply after 600 ms); §2 fields and states unchanged | fe-engineer #3 | none this round; the real layer replaces that one file |
 | 2026-11-14 | Run `companion-full-dev`: C-005 added (reply/transcript follow the user's language); seam for this run written (mood from backend with reply; `transcribe` takes audio); O-1/O-2/O-4 left to be-architect | orchestrator | frontend keeps `respond`/`transcribe` names; replaces only `companion-client.js`, records audio in `mic.js`, adds zh/en UI switch |
 | 2026-11-14 | Seam replaced by be-architect #1's final text (same-origin `/api/respond`, `/api/transcribe`, `/api/health` on 4317; WAV 16 kHz mono ≤ 2 MB; six error codes); O-1..O-4 answered; C-001..C-005 linked to DES | orchestrator | frontend: DES-013/014/015; fe-ux owes words/states for the six codes, warming, empty transcript, voice tag copy, zh/en switch |
+| 2026-11-14 | Seam re-copied after be-architect #2: line/history text 1–1500, body ≤ 262144 B, server deadlines STT 12 s / respond 15 s, page aborts at 13 s / 16 s; zh transcripts forced Simplified | orchestrator | frontend DES-013 timing and limits changed |

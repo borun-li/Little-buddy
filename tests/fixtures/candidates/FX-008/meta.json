@@ -1,0 +1,7 @@
+{
+  "req": "REQ-003",
+  "source": "input: 2 s of digital zeros, 16 kHz mono 16-bit PCM WAV, written by python3 wave (01 §7 FX-008). Expected: REQ-003 (transcription empty) in the seam's shape 200 {text: \"\"} ('empty = nothing heard', 03 §9).",
+  "compare": "exact",
+  "compare_note": "Whole response (status + JSON body) exact. REQ-003's 'record does not grow, no reply request' is the page's part (DES-013 step 3) and is not visible at this endpoint.",
+  "runs": 1
+}

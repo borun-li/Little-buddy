@@ -1,8 +1,8 @@
 # Detailed design — 离线小伙伴：真实转写、Bonsai 回复与情绪、中英文
 
-- Author: be-architect #1 (Phase 2, same dispatch as `02-architecture.md`) · Input: `01-requirements.md`, `02-architecture.md` · 2026-11-14
+- Author: be-architect #1 (Phase 2, same dispatch as `02-architecture.md`)；revised be-architect #2（round 2：上限、截止、截断、简体） · Input: `01-requirements.md`, `02-architecture.md` · 2026-11-14
 - 代码 ESM JavaScript（Node ≥ 18，本机 v24.13.0，无 npm 依赖）+ Swift 5.10 包。文档中文，代码与标识符英文。
-- 证据：`docs/backend/logs/be-architect-1-bench.log`、`docs/backend/logs/be-architect-1-stt-check.log`。
+- 证据：`docs/backend/logs/be-architect-1-bench.log`、`docs/backend/logs/be-architect-1-stt-check.log`、`docs/backend/logs/be-architect-2-stt60.log`。
 
 ## 1. Files
 | Path | Responsibility | New / changed |
@@ -37,8 +37,8 @@ async function main(argv: string[]): Promise<void>
 function route(req: http.IncomingMessage, res: http.ServerResponse): void
 async function readBody(req: http.IncomingMessage, limit: number): Promise<Buffer> // throws ApiError('too_large')
 function parseTurn(body: Buffer): { line: string, history: HistoryEntry[] }        // throws ApiError('bad_request')
-// parseTurn: line trimmed 1–500 chars; history array of { role: 'user'|'companion', text: 1–1000 chars }; keep the last 40
-// routes: GET /api/health | POST /api/respond (application/json, ≤ 131072 B) | POST /api/transcribe (audio/wav, ≤ 2,000,000 B)
+// parseTurn: line trimmed 1–1500 chars (JS .length); history array of { role: 'user'|'companion', text: 1–1500 chars }; keep the last 40
+// routes: GET /api/health | POST /api/respond (application/json, ≤ 262144 B) | POST /api/transcribe (audio/wav, ≤ 2,000,000 B)
 ```
 - **Behaviour:**
   1. `missingFiles()` 非空 → 打印每个缺失路径和"联网时运行一次 `npm run setup`"，退出 1。
@@ -59,8 +59,8 @@ export const CONFIG: {
   host: '127.0.0.1', port: number,                       // PORT, default 4317
   bonsai: { size: '2B'|'4B'|'9B', port: number, dir: string },   // BONSAI_MODEL '9B', BONSAI_PORT 4318, <repo>/samples/bonsai-models/gguf
   stt: { bin: string, modelDir: string, tokenizerDir: string },  // <repo>/stt/.build/release/companion-stt, STT_MODEL_DIR, STT_TOKENIZER_DIR
-  limits: { lineChars: 500, historyEntries: 40, historyTextChars: 1000, jsonBytes: 131072, wavBytes: 2000000 },
-  deadlines: { respondMs: 25000, transcribeMs: 20000, sttBootMs: 600000, bonsaiBootMs: 60000 },
+  limits: { lineChars: 1500, historyEntries: 40, historyTextChars: 1500, historyBudgetChars: 6000, jsonBytes: 262144, wavBytes: 2000000 },
+  deadlines: { respondMs: 15000, transcribeMs: 12000, sttBootMs: 600000, bonsaiBootMs: 60000 },   // 12 s + 15 s < 30 s (A11)
   restarts: { max: 5, delayMs: 2000 },
 }
 export function bonsaiFiles(cfg = CONFIG): { bin: string, model: string } // bin/macos-arm64/llama-server, models/Ternary-Bonsai-2-<size>-PQ2_0.gguf
@@ -139,7 +139,7 @@ export function createStt(cfg = CONFIG): {
   1. `supervise('stt', stt.bin, ['--model-folder', modelDir, '--tokenizer-folder', tokenizerDir], stdio ['pipe','pipe','inherit'])`；`warm` 等 stdout 出现 `{"event":"ready"}`（≤ 600 s）。
   2. stdout 按行切，只解析以 `{` 开头的行；其他行丢弃。
   3. `transcribe`：`starting` → `not_ready`；`down` → `unavailable`。
-  4. 递增 `id`（本进程内计数，不持久），写 `{"id","pcm16": base64}\n`，登记待答与 20 s 计时器。
+  4. 递增 `id`（本进程内计数，不持久），写 `{"id","pcm16": base64}\n`，登记待答与 `transcribeMs`（12 s）计时器。
   5. 同 `id` 回答：有 `error` → `failed`；否则 `text.trim()`。超时 → `timeout`，删登记，迟到回答丢弃。
   6. 子进程退出 → 所有待答 `unavailable`。
   7. 记 `stt_done {ms, audio_ms, empty, lang}`。
@@ -156,11 +156,17 @@ export function createBonsai(cfg = CONFIG): {
 }
 export function toMessages(line: string, history: HistoryEntry[], lang: 'zh'|'en'): { role: 'system'|'user'|'assistant', content: string }[]
 export function shapeReply(text: string, lang: 'zh'|'en'): string   // '' when nothing usable
+export function windowOf(history: HistoryEntry[], cfg = CONFIG): HistoryEntry[]
+// windowOf: last 40, then drop the oldest until Σ text.length ≤ historyBudgetChars (6000; fires: 40 entries of 200 chars; not: the bench 20-turn history, 979 chars)
+//   bound: ≤ 6000 + 1500 + system ≈ 8k tokens worst case (zh ≈ 1 token/char, estimate) < 16384 per slot (-c 32768 / -np 2)
+// llama-server args: ['-m',model,'-ngl','99','-fa','on','-c','32768','-np','2','--host','127.0.0.1','--port',BONSAI_PORT,'--no-webui']
+// warm: respond('Hello', []) sends the reply AND the mood call, so REPLY_SYSTEM and MOOD_SYSTEM are both prefix-cached;
+//       LANG_RULE is the system message's last line, so a zh turn re-processes only LANG_RULE.zh
 ```
 - **Behaviour:**
-  1. `supervise('bonsai', bin, ['-m',model,'-ngl','99','-fa','on','-c','32768','-np','2','--host','127.0.0.1','--port',BONSAI_PORT,'--no-webui'], stdio ignore)`；`warm` = 每 500 ms 查 `/health` 到 200（≤ 60 s），再跑一次 `respond('Hello', [])`。
-  2. `respond`：状态映射同 DES-006；`lang = languageOf(line)`；`win = history.slice(-40)`。
-  3. 同一 `AbortSignal.timeout(25000)` 下并行：回复调用（`toMessages`，`REPLY_SAMPLING`，`enable_thinking:false`）与情绪调用（`MOOD_SYSTEM` + 只这句话，`MOOD_SAMPLING`，`response_format` = `MOOD_SCHEMA`）。
+  1. `supervise('bonsai', bin, 上面的参数, stdio ignore)`；`warm` = 每 500 ms 查 `/health` 到 200（≤ 60 s），再跑一次 `respond('Hello', [])`。
+  2. `respond`：状态映射同 DES-006；`lang = languageOf(line)`；`win = windowOf(history)`。
+  3. 同一 `AbortSignal.timeout(respondMs)`（15 s）下并行：回复调用（`toMessages`，`REPLY_SAMPLING`，`enable_thinking:false`）与情绪调用（`MOOD_SYSTEM` + 只这句话，`MOOD_SAMPLING`，`response_format` = `MOOD_SCHEMA`）。
   4. 回复调用：超时 → `timeout`；连不上 → `unavailable`；非 200 → `failed`；`shapeReply` 为空 → `failed`。
   5. 情绪：解析出的值在 `MOODS` 中才用，其余（失败、超时、不在集合）→ `neutral`。
   6. 记 `respond_done {ms, reply_ms, mood_ms, lang, mood_fallback, history_n}`。
@@ -175,8 +181,9 @@ export function shapeReply(text: string, lang: 'zh'|'en'): string   // '' when n
   2. `shapeReply` 去掉 `<think>…</think>`（含未闭合到结尾）、首尾空白和包裹引号。
   3. 在 `。！？!?.…` 连续标点后切句，标点和紧随的 emoji 留在前一句。
   4. 依次保留，至多 2 句；已有一个问句时跳过含 `?`/`？` 的句子。
-  5. zh 用 `''`、en 用 `' '` 连接；仍超上限（zh > 120 码点，en > 40 词）→ 只留第一句；再超 → 截到上限加 `…`。
-  6. 触发：3 句回复 → 2 句；"A? B?" → "A?"；不触发："That is amazing news! Congratulations!" 原样。
+  5. zh 用 `''`、en 用 `' '` 连接；仍超上限（zh > 120 码点，en > 40 空白分隔词）→ 只留第一句。
+  6. 再超 → zh 前 119 码点加 `…`；en 前 40 词加紧贴的 `…`（仍 ≤ 120 / ≤ 40）。
+  7. 触发：3 句 → 2 句；"A? B?" → "A?"；不触发："That is amazing news! Congratulations!"。
 - **Errors:** 返回 `''` 由 DES-007 变 `failed`。
 
 ### DES-009 — `server/lang.js`
@@ -240,17 +247,20 @@ struct Reply: Encodable { let id: Int; let text: String?; let lang: String?; let
 func samples(fromBase64 b64: String) -> [Float]?                       // Int16 LE / 32768
 func hasSpeech(_ s: [Float]) -> Bool                                     // EnergyVAD(frameLength: 0.1, energyThreshold: 0.02): ≥ 3 voiced frames
 func transcribe(_ kit: WhisperKit, _ s: [Float], language: String) async throws -> (text: String, avgLogprob: Float)
+func simplified(_ s: String) -> String   // s.applyingTransform(StringTransform("Hant-Hans"), reverse: false) ?? s  (Foundation, ICU)
+//   fires: 有點難過 -> 有点难过 (be-architect-2-stt60.log); not: Simplified or Latin text unchanged
 // DecodingOptions(task: .transcribe, language: language, temperature: 0, usePrefillPrompt: true, detectLanguage: false,
 //                 skipSpecialTokens: true, withoutTimestamps: true, chunkingStrategy: .vad)
 // config: WhisperKitConfig(modelFolder:, tokenizerFolder:, verbose: false, logLevel: .error, prewarm: false, load: true, download: false)
 ```
 - **Behaviour:**
   1. 按上面的 config 加载（`download: false`，从不联网）。
-  2. 预热：1 s 全零直接 `transcribe(language:"en")` 和 `detectLangauge(audioArray:)`，绕过 `hasSpeech`；然后打印 `{"event":"ready","load_ms","warm_ms"}`。
+  2. 预热：1 s 全零直接 `transcribe(language:"en")` 与 `detectLangauge(audioArray:)`，绕过 `hasSpeech`；再打印 `{"event":"ready","load_ms","warm_ms"}`。
   3. 循环 `readLine()`：解码失败 → `error:"bad_request"`；`samples` 为 nil → `error:"bad_audio"`。
   4. `!hasSpeech` → `text:""`、`lang:null`，不解码（触发：FX-008、底噪；不触发：正常音量 ≥ 0.3 s 的话）。
   5. 判出 `zh`/`en` → 用它转写；其他 → 两种各转一次，取平均 `avgLogprob` 高者。
-  6. 分段以 zh `""`、en `" "` 连接、去空白；只剩标点 → `""`。每个回答一行 stdout 并 flush；stderr 只写耗时。
+  6. 分段以 zh `""`、en `" "` 连接、去空白；zh 再过 `simplified`；只剩标点 → `""`。
+  7. 每个回答一行 stdout 并 flush；stderr 只写耗时。
 - **Errors:** `bad_request`、`bad_audio`、WhisperKit 抛错 → `error` 行（DES-006 映射成 `failed`）。
 
 ### DES-012 — `package.json` 脚本
@@ -278,7 +288,7 @@ health(): Promise<{ ready: boolean, stt: 'starting'|'ready'|'down', bonsai: 'sta
 ```
 - **Behaviour:**
   1. 同源相对路径；`history` 只发最后 40 条；不发界面语言。
-  2. 30 s 未完成 → 中止，`code: 'timeout'`；`fetch` 本身失败 → `unavailable`；非 2xx → 响应体 `error`，未知 → `failed`。
+  2. `transcribe` 13 s、`respond` 16 s 未完成 → 中止，`code: 'timeout'`（语音一轮最坏 29 s ≤ 30 s，A11）；`fetch` 失败 → `unavailable`；非 2xx → 响应体 `error`，未知 → `failed`。
   3. `text === ''` = 没听到：不加一轮、不调 `respond`（REQ-003）。
   4. 各码对应的话和状态由 fe-ux 定（O-1）。
 - **Errors:** 见 §3。
@@ -310,10 +320,10 @@ Blob type 'audio/wav': RIFF/WAVE, fmt PCM (1), 1 channel, 16000 Hz, 16-bit littl
 |---|---|---|---|---|
 | `not_ready` | 子进程 `starting`（加载或预热中） | 是，`health().ready` 后再发 | DES-006/007 抛，DES-001 返回 | 503 `{"error":"not_ready"}` |
 | `unavailable` | 子进程 `down`、连不上 llama-server、请求中子进程退出；前端：`fetch` 失败 | 是，恢复后 | 同上；前端 DES-013 | 503 `{"error":"unavailable"}` |
-| `timeout` | 回复 25 s / 转写 20 s 截止；前端：30 s 中止 | 是 | DES-006/007；DES-013 | 504 `{"error":"timeout"}` |
+| `timeout` | 回复 15 s / 转写 12 s 截止；前端：16 s / 13 s 中止 | 是 | DES-006/007；DES-013 | 504 `{"error":"timeout"}` |
 | `failed` | llama-server 非 200、回复整形后为空、助手 `error` 行、任何未预期异常 | 是，一次 | DES-003 兜底 | 502 `{"error":"failed"}` |
-| `bad_request` | Content-Type 不对、JSON 坏、`line` 空或 > 500、`history` 不合法、WAV 不是 16 kHz 单声道 16-bit | 否 | DES-001、DES-005 | 400 `{"error":"bad_request"}` |
-| `too_large` | `/api/respond` 体 > 131072 B 或 `/api/transcribe` 体 > 2,000,000 B | 否 | DES-001 `readBody` | 413 `{"error":"too_large"}` |
+| `bad_request` | Content-Type 不对、JSON 坏、`line` 空或 > 1500、`history` 不合法、WAV 不是 16 kHz 单声道 16-bit | 否 | DES-001、DES-005 | 400 `{"error":"bad_request"}` |
+| `too_large` | `/api/respond` 体 > 262144 B 或 `/api/transcribe` 体 > 2,000,000 B | 否 | DES-001 `readBody` | 413 `{"error":"too_large"}` |
 | 情绪失败 | 情绪调用失败、超时或值不在 `MOODS` | — | DES-007 | 不报错，`mood: "neutral"` |
 
 ## 4. State
@@ -361,7 +371,7 @@ Node 每行一条 JSON 到 stdout；从不记 `line`、`history`、`reply`、转
 | npm 包 | — | 无 |
 
 ## 8. Build order
-1. `stt/` 助手：编译、预热（最险：ANE 编译约 390 s、离线加载）；断网用 FX-006/007/008 喂 stdin，`lsof -i` 只见回环。
+1. `stt/` 助手：编译、预热（最险：ANE 编译约 390 s、离线加载）；断网用 FX-006/007/008 和一段约 60 s 的话喂 stdin（`ms` < 8000），`lsof -i` 只见回环。
 2. `config.js`、`errors.js`、`supervisor.js`、`static.js`、`main.js` 骨架：`npm start` 出页面与 `/api/health`。
 3. `wav.js`、`stt.js`、`/api/transcribe`：curl 发 FX-006/007/008。
 4. `lang.js`、`prompts.js`、`bonsai.js`、`/api/respond`：用真实流程攒 20 轮后计时（REQ-008）。
@@ -372,20 +382,20 @@ Transport：同源，页面与接口都在 `http://127.0.0.1:4317`（`PORT` 可�
 
 | Name | Type | Nullable | Who computes | Endpoint / field |
 |---|---|---|---|---|
-| `respond(line, history)` in | `line` 字符串，去空白后 1–500；`history` 至多最后 40 条 `{role: user\|companion, text 1–1000}` | no | frontend | `POST /api/respond`，`Content-Type: application/json`，体 ≤ 131072 B |
+| `respond(line, history)` in | `line` 字符串，去空白后 1–1500（JS `.length`）；`history` 至多最后 40 条 `{role: user\|companion, text 1–1500}`；后端只用合计 ≤ 6000 字符的最近若干条 | no | frontend | `POST /api/respond`，`Content-Type: application/json`，体 ≤ 262144 B |
 | `reply` out | 字符串，`line` 的语言（zh/en），≤ 2 句、≤ 1 问，zh ≤ 120 字、en ≤ 40 词 | no | backend（Bonsai 2 9B） | 200 `{reply, mood}` |
 | `mood` out | `pleasant-high`\|`pleasant-low`\|`unpleasant-high`\|`unpleasant-low`\|`neutral` | no（拿不准为 `neutral`） | backend，同一响应（O-3） | 同上 |
 | `transcribe(audio)` in | WAV：PCM 16-bit LE、单声道、16000 Hz，≤ 2,000,000 B（60 s = 1,920,044 B）；只在内存，转写后丢弃（O-2） | no | frontend 录 | `POST /api/transcribe`，`Content-Type: audio/wav`，体 = WAV 字节 |
-| `text` out | 所说语言的文字 | 空串 = 没听到：不成一轮、不调 `respond` | backend（WhisperKit） | 200 `{text}` |
+| `text` out | 所说语言的文字；中文为简体 | 空串 = 没听到：不成一轮、不调 `respond` | backend（WhisperKit） | 200 `{text}` |
 | `health()` out | `{ready: boolean, stt, bonsai}`，后两者 `starting`\|`ready`\|`down` | no | backend | `GET /api/health`，总是 200 |
-| failure / slow | `.code` ∈ 下表 | — | backend 码；前端 `fetch` 失败记 `unavailable`、30 s 记 `timeout` | 体 `{"error": code}` |
+| failure / slow | `.code` ∈ 下表 | — | backend 码；前端 `fetch` 失败记 `unavailable`；`transcribe` 13 s、`respond` 16 s 未完成自停记 `timeout` | 体 `{"error": code}` |
 | UI copy language | `zh`\|`en` | no | frontend only | 不发给后端 |
 
 | Code | HTTP | Meaning (for fe-ux words, O-1) |
 |---|---|---|
 | `not_ready` | 503 | 还在预热（启动后约数秒到 2 分钟） |
 | `unavailable` | 503 | 后端没起或刚崩，正在重启；页面也用于网络失败 |
-| `timeout` | 504 | 太慢：回复 25 s / 转写 20 s 未完成；页面 30 s 自己也会停 |
+| `timeout` | 504 | 太慢：回复 15 s / 转写 12 s 未完成；页面 16 s / 13 s 自己也会停（语音一轮 ≤ 29 s 必有交代） |
 | `failed` | 502 | 这次没成功，可再发 |
 | `bad_request` | 400 | 请求不合格（页面缺陷） |
 | `too_large` | 413 | 录音或前文太大（页面缺陷） |

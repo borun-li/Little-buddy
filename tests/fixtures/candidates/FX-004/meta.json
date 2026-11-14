@@ -1,0 +1,15 @@
+{
+  "req": "REQ-006",
+  "reqs": [
+    "REQ-005",
+    "REQ-006"
+  ],
+  "source": "lines: 01 §7 FX-004 (presets.js voiceLines[0..4], demo-plan.json, 01 §7 English lines). Labels from REQ-006 + 01 §1 mood ids + A7 + idea.md § 情绪模型, per case: 01: presets.js voiceLines[0]; states 开心 (01 §1 pleasant-high 开心/兴奋) | 02: voiceLines[1]; stated feeling 难过 (01 §1 unpleasant-low 难过/疲惫); the quarrel is the event, A7 dominant/last = 难过 | 03: voiceLines[2]; states 焦虑 (01 §1 unpleasant-high 焦虑/生气) | 04: voiceLines[3]; states 放松 (01 §1 pleasant-low 平静/满足) | 05: voiceLines[4]; no feeling stated, REQ-006 '拿不准为 neutral' | 06: FX-001 line; demo goal 'a happy English line' | 07: FX-002 line; states lonely; demo goal 'a sad line' | 08: 01 §7 English of voiceLines[2]; states anxious | 09: 01 §7 English of voiceLines[3]; states relaxed | 10: 01 §7 English of voiceLines[4]; no feeling stated. reply_language: REQ-005 (= language of the line, A3).",
+  "compare": "exact",
+  "compare_note": "Per case: mood exact; reply_language computed from the actual reply with rules.language and compared exactly. Pass (REQ-006): in each of 3 rounds >= 8/10 cases have the expected mood. Pass (REQ-005): reply_language matches in 30/30 replies over the 3 rounds. REQ-005's 'Given 界面设为另一语言' cannot be set at this endpoint (03 §9: UI language is never sent); it is checked on the page.",
+  "rules": {
+    "language": "en = at least one Latin letter and no \\p{Script=Han} character; zh = at least one Han character and no Latin word of 2+ letters; anything else = 'other'"
+  },
+  "runs": 3,
+  "risk": "case 05/10 (刚到家 / just got home) came back pleasant-low in every bench variant (02 §5 risk row; be-architect handoff): REQ-006 then has 1 case of margin. The label stays neutral, from the requirement."
+}

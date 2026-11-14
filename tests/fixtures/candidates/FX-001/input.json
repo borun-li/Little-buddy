@@ -1,0 +1,8 @@
+{
+  "endpoint": "POST /api/respond",
+  "content_type": "application/json",
+  "body": {
+    "line": "I just got the internship!",
+    "history": []
+  }
+}

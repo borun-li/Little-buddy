@@ -1,0 +1,76 @@
+{
+  "endpoint": "POST /api/respond",
+  "content_type": "application/json",
+  "cases": [
+    {
+      "id": "FX-004-01",
+      "body": {
+        "line": "今天考试过了，好开心！",
+        "history": []
+      }
+    },
+    {
+      "id": "FX-004-02",
+      "body": {
+        "line": "可是晚上和朋友吵架了，有点难过。",
+        "history": []
+      }
+    },
+    {
+      "id": "FX-004-03",
+      "body": {
+        "line": "明天还要汇报，我有点焦虑。",
+        "history": []
+      }
+    },
+    {
+      "id": "FX-004-04",
+      "body": {
+        "line": "现在泡了杯茶，感觉挺放松的。",
+        "history": []
+      }
+    },
+    {
+      "id": "FX-004-05",
+      "body": {
+        "line": "嗯，刚到家。",
+        "history": []
+      }
+    },
+    {
+      "id": "FX-004-06",
+      "body": {
+        "line": "I just got the internship!",
+        "history": []
+      }
+    },
+    {
+      "id": "FX-004-07",
+      "body": {
+        "line": "But I'll have to move away from all my friends, and I feel really lonely about it.",
+        "history": []
+      }
+    },
+    {
+      "id": "FX-004-08",
+      "body": {
+        "line": "I have to give a presentation tomorrow and I'm a bit anxious.",
+        "history": []
+      }
+    },
+    {
+      "id": "FX-004-09",
+      "body": {
+        "line": "I just made a cup of tea and I feel pretty relaxed.",
+        "history": []
+      }
+    },
+    {
+      "id": "FX-004-10",
+      "body": {
+        "line": "Hmm, just got home.",
+        "history": []
+      }
+    }
+  ]
+}

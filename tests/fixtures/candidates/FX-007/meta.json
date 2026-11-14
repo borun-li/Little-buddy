@@ -1,0 +1,12 @@
+{
+  "req": "REQ-001",
+  "reqs": [
+    "REQ-001",
+    "REQ-002"
+  ],
+  "source": "input: `say -v \"Flo (Chinese (China mainland))\" -o zh.wav --data-format=LEI16@16000 \"可是晚上和朋友吵架了，有点难过。\"` then `afconvert -f WAVE -d LEI16@16000 -c 1` (01 §7 FX-007, A15). text_reference = the text given to say (presets.js voiceLines[1]); Simplified per A4.",
+  "compare": "numeric:0.15",
+  "compare_note": "Send input.wav as the body with Content-Type audio/wav (03 §9); response 200 {text}. CER of text vs text_reference after lowercasing and removing punctuation (en tokens = words; zh tokens = characters, whitespace ignored) must be within 0.15 of 0 (REQ-001). language: computed from text with the rule 'en = Latin letters, no Han; zh = Han characters, no Latin word; no other script (Cyrillic, kana, Hangul…)' and compared exactly (REQ-002).",
+  "runs": 3,
+  "pass": "REQ-001: error rate <= 0.15 (after warm-up); REQ-002: language matches in 3/3 runs (FX-006 + FX-007 = 6/6)"
+}

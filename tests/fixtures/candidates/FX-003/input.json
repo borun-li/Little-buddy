@@ -1,0 +1,17 @@
+{
+  "endpoint": "POST /api/respond",
+  "content_type": "application/json",
+  "body": {
+    "line": "可是晚上和朋友吵架了，有点难过。",
+    "history": [
+      {
+        "role": "user",
+        "text": "今天考试过了，好开心！"
+      },
+      {
+        "role": "companion",
+        "text": "太棒了！这真值得庆祝。你准备去庆祝吗？"
+      }
+    ]
+  }
+}
