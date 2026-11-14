@@ -20,3 +20,14 @@ Next agent must know:
 - Left open for the user: voice turns tagged "语音 · 示例文字"; unpleasant-high reads "worried with you", never "angry at you"; privacy line in the empty state.
 Read beyond the list: ~/.claude/gates/gatelib/frontend.py ux() — to match what the gate parses.
 Next agent reads: docs/frontend/01-ux.md §4 (PAGE-001 table, wireframe, Companion moods).
+
+## fe-ui #1 · Phase 2 · round 1 · 2026-11-14T20:23:30Z
+Task: write `docs/frontend/02-ui.md` (visual style, tokens, components, mood visuals) and draw PAGE-001 as Figma frames for the single UI stop.
+Changed: docs/frontend/02-ui.md (new) — plan (6 colours, WenKai + system sans), self-check (8 rows), 34 tokens, CMP-001..005, FRAME-001..010, a11y ratios, motion table; Figma file https://www.figma.com/design/foHz6I49GOMa5owcWtW7vG/Companion-P0-UI (new, drafts); docs/frontend/evidence/design/FRAME-001..010.png.
+Result: gate not run by me; dry-checked with gatelib parsers: 6 palette hexes, no hex outside plan/tokens, every CMP has focus, no prose unit > 50. Figma calls: 28 of 30.
+Next agent must know:
+- Pitfalls: mood changes only when the reply appears (FRAME-007 keeps the last mood while typing). Only the latest reply has `data-testid=reply`. Phone companion caption is a separate 14 px text (scaled instance text shrank to 9.6 px).
+- Tried, did not work: SVG with duplicate stroke-width attributes fails createNodeFromSvg; Ember focus ring vanishes on the Ember button (now Cocoa).
+- Left open for the user at the UI stop: palette and typefaces (brand proposal); the visible mood caption under the companion; the three defaults from fe-ux.
+Read beyond the list: ~/.claude/gates/gatelib/frontend.py ui() — to match what the gate parses.
+Next agent reads: docs/frontend/02-ui.md §3–§7; FRAME-009 for the five expressions.

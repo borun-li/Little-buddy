@@ -1,0 +1,55 @@
+{
+  "phase": "baseline",
+  "time": "2026-11-14T20:15:54Z",
+  "project": "/Users/apple/Desktop/Hackathon/Local_AI_Hackathon",
+  "run_dir": "docs/frontend",
+  "overall": "pass",
+  "consecutive_failures": 0,
+  "failed_runs": 0,
+  "fix_round_cap": 2,
+  "escalate": false,
+  "fail_by_owner": {},
+  "checks": [
+    {
+      "id": "BASE.clean-tree",
+      "status": "pass",
+      "message": "Tree clean",
+      "owner": "orchestrator",
+      "details": []
+    },
+    {
+      "id": "CMD.test",
+      "status": "waived",
+      "message": "Baseline is already red: No test command configured, and it is required (fix separately or waive)",
+      "owner": "user",
+      "details": [
+        "waived by user on 2026-11-14: Baseline only: no code exists yet. fe-engineer adds a real test command in Phase 2b; then this waiver is removed."
+      ]
+    },
+    {
+      "id": "LOG.valid",
+      "status": "pass",
+      "message": "Run log intact",
+      "owner": "orchestrator",
+      "details": []
+    },
+    {
+      "id": "CTX.codemap",
+      "status": "unavailable",
+      "message": "docs/codemap.md is checked once a role that reads code has worked",
+      "owner": "orchestrator",
+      "details": []
+    },
+    {
+      "id": "CTX.handoff",
+      "status": "pass",
+      "message": "handoff.md: 2 current sections",
+      "owner": "orchestrator",
+      "details": []
+    }
+  ],
+  "data": {
+    "head": "672924259a9a5fe1639981952c2b8039b94fc3cc",
+    "counts": null
+  }
+}
