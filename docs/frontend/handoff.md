@@ -21,16 +21,19 @@ Next agent must know:
 Read beyond the list: ~/.claude/gates/gatelib/frontend.py ux() — to match what the gate parses.
 Next agent reads: docs/frontend/01-ux.md §4 (PAGE-001 table, wireframe, Companion moods).
 
-## fe-ui #1 · Phase 2 · round 1 · 2026-11-14T20:23:30Z
-Task: write `docs/frontend/02-ui.md` (visual style, tokens, components, mood visuals) and draw PAGE-001 as Figma frames for the single UI stop.
-Changed: docs/frontend/02-ui.md (new) — plan (6 colours, WenKai + system sans), self-check (8 rows), 34 tokens, CMP-001..005, FRAME-001..010, a11y ratios, motion table; Figma file https://www.figma.com/design/foHz6I49GOMa5owcWtW7vG/Companion-P0-UI (new, drafts); docs/frontend/evidence/design/FRAME-001..010.png.
-Result: gate not run by me; dry-checked with gatelib parsers: 6 palette hexes, no hex outside plan/tokens, every CMP has focus, no prose unit > 50. Figma calls: 28 of 30.
+## fe-ui #2 · Phase 2 · round 2 · 2026-11-14T20:42:13Z
+Task: decide DFB-001 and DFB-002, draw the phone listening frame if accepted, export CMP-001 Companion as one SVG per mood.
+Changed: docs/frontend/02-ui.md — CMP-003 listening/overflow (phone: icon + "N 秒" + bars), CMP-004 paused (editable, focused, Enter ignored, no fade), §5 FRAME-011 row and export note, 2 plan-revision lines; docs/frontend/06-feedback.md — DFB-001/002 decided; Figma FRAME-011 node 13:305 (clone of FRAME-006, talk button swapped to State=listening, 124×48, hint text hidden); docs/frontend/evidence/design/FRAME-011.png (390×844); docs/frontend/evidence/design/companion/{neutral,pleasant-high,pleasant-low,unpleasant-high,unpleasant-low}.svg (new).
+Feedback: DFB-001 accepted (needs user: no). DFB-002 accepted (needs user: no).
+Result: gate not run by me. Phone button content at "60 秒" = 92 px of 124 px (Figma read-back); 5 SVGs rendered with rsvg-convert and checked by eye: each mood distinct and matching FRAME-009. Figma calls: 10 of 17.
 Next agent must know:
-- Pitfalls: mood changes only when the reply appears (FRAME-007 keeps the last mood while typing). Only the latest reply has `data-testid=reply`. Phone companion caption is a separate 14 px text (scaled instance text shrank to 9.6 px).
-- Tried, did not work: SVG with duplicate stroke-width attributes fails createNodeFromSvg; Ember focus ring vanishes on the Ember button (now Cocoa).
-- Left open for the user at the UI stop: palette and typefaces (brand proposal); the visible mood caption under the companion; the three defaults from fe-ux.
-Read beyond the list: ~/.claude/gates/gatelib/frontend.py ui() — to match what the gate parses.
-Next agent reads: docs/frontend/02-ui.md §3–§7; FRAME-009 for the five expressions.
+- Pitfalls: mood ids 4:19 neutral, 4:45 pleasant-high, 4:67 pleasant-low, 4:92 unpleasant-high, 4:115 unpleasant-low. SVGs come from REST export (has layer-name ids), cleaned: background rects and the caption path removed, viewBox 0 0 400 400; glow is translucent (alpha fill), ids repeat across files (Vector_n) — inline one mood at a time or prefix ids.
+- FRAME-011 is built by no queue row yet: FE2.coverage fails until fe-engineer adds FRAME-011 to Q-004 (hold to talk) in 03-queue.md.
+- Phone listening keeps aria-label "在听，N 秒，松开发送"; paused input must not get the `disabled` attribute.
+- Tried, did not work: exportAsync SVG_STRING via use_figma would return ~194 KB through context; download_assets svg gives the same ids and saves straight to disk.
+- Left open: text layer in FRAME-011 still named "在听… 4 秒" (characters are "4 秒"); cosmetic.
+Read beyond the list: ~/.claude/gates/gatelib/frontend.py ui()/queue() — frame rows must be built by a queue row.
+Next agent reads: docs/frontend/02-ui.md §4 CMP-003, CMP-004; §5 FRAME-011 and export note.
 
 ## fe-engineer #1 · Phase 2 (feasibility + queue) · round 1 · 2026-11-14T20:33:49Z
 Task: feasibility check and build queue for PAGE-001 (REQ-001..008, FRAME-001..010); contract §2 draft; stack and build/test commands for Phase 2b; code map.

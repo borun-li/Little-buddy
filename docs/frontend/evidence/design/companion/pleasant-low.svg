@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400" fill="none"><g id="companion-pleasant-low">
+<g id="stage">
+<circle id="glow" cx="200" cy="200" r="180" fill="#F2B25C" fill-opacity="0.24" />
+<ellipse id="ground" opacity="0.1" cx="200" cy="340" rx="110" ry="9" fill="black" />
+<g id="character">
+<path id="Vector" d="M134.4 154C128 114 136 90 152 85.2C166.4 90 182.4 114 185.6 136.4L134.4 154Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" />
+<path id="Vector_2" d="M265.6 154C272 114 264 90 248 85.2C233.6 90 217.6 114 214.4 136.4L265.6 154Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" />
+<path id="Vector_3" d="M145.6 136.4C144 117.2 148.8 104.4 154.4 101.2C161.6 107.6 168 118.8 169.6 130L145.6 136.4Z" fill="#A9442A" fill-opacity="0.35" />
+<path id="Vector_4" d="M254.4 136.4C256 117.2 251.2 104.4 245.6 101.2C238.4 107.6 232 118.8 230.4 130L254.4 136.4Z" fill="#A9442A" fill-opacity="0.35" />
+<path id="Vector_5" d="M294.4 259.6C321.6 254.8 329.6 230.8 316.8 219.6" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" />
+<path id="Vector_6" d="M104 234C104 162 152 123.6 200 123.6C248 123.6 296 162 296 234C296 286 256 306 200 306C144 306 104 286 104 234Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" />
+<path id="Vector_7" d="M200 299.6C230.928 299.6 256 285.273 256 267.6C256 249.927 230.928 235.6 200 235.6C169.072 235.6 144 249.927 144 267.6C144 285.273 169.072 299.6 200 299.6Z" fill="#F7F1E8" />
+<path id="Vector_8" d="M168 314C178.604 314 187.2 308.986 187.2 302.8C187.2 296.615 178.604 291.6 168 291.6C157.396 291.6 148.8 296.615 148.8 302.8C148.8 308.986 157.396 314 168 314Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" />
+<path id="Vector_9" d="M232 314C242.604 314 251.2 308.986 251.2 302.8C251.2 296.615 242.604 291.6 232 291.6C221.396 291.6 212.8 296.615 212.8 302.8C212.8 308.986 221.396 314 232 314Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" />
+<path id="Vector_10" opacity="0.8" d="M142.4 237.2C149.911 237.2 156 233.618 156 229.2C156 224.782 149.911 221.2 142.4 221.2C134.889 221.2 128.8 224.782 128.8 229.2C128.8 233.618 134.889 237.2 142.4 237.2Z" fill="#A9442A" fill-opacity="0.35" />
+<path id="Vector_11" opacity="0.8" d="M257.6 237.2C265.111 237.2 271.2 233.618 271.2 229.2C271.2 224.782 265.111 221.2 257.6 221.2C250.089 221.2 244 224.782 244 229.2C244 233.618 250.089 237.2 257.6 237.2Z" fill="#A9442A" fill-opacity="0.35" />
+<path id="Vector_12" d="M187.2 226C195.733 233.467 204.267 233.467 212.8 226" stroke="#2F2724" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
+</g>
+<g id="eyes-content">
+<path id="Vector_13" d="M156 198.8C164 207.333 172 207.333 180 198.8" stroke="#2F2724" stroke-width="6" stroke-linecap="round" />
+<path id="Vector_14" d="M220 198.8C228 207.333 236 207.333 244 198.8" stroke="#2F2724" stroke-width="6" stroke-linecap="round" />
+</g>
+</g>
+</g>
+</svg>

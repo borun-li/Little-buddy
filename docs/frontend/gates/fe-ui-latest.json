@@ -1,14 +1,18 @@
 {
   "phase": "fe-ui",
-  "time": "2026-11-14T20:37:33Z",
+  "time": "2026-11-14T20:42:39Z",
   "project": "/Users/apple/Desktop/Hackathon/Local_AI_Hackathon",
   "run_dir": "docs/frontend",
-  "overall": "pass",
-  "consecutive_failures": 0,
-  "failed_runs": 0,
+  "overall": "fail",
+  "consecutive_failures": 1,
+  "failed_runs": 1,
   "fix_round_cap": 2,
   "escalate": false,
-  "fail_by_owner": {},
+  "fail_by_owner": {
+    "fe-ui": [
+      "FE2.prose"
+    ]
+  },
   "checks": [
     {
       "id": "ALL.state",
@@ -21,6 +25,13 @@
       "id": "ALL.upstream",
       "status": "pass",
       "message": "02-ui.md present",
+      "owner": "fe-ui",
+      "details": []
+    },
+    {
+      "id": "ROLE.designer-scope",
+      "status": "pass",
+      "message": "fe-ui changed only design documents",
       "owner": "fe-ui",
       "details": []
     },
@@ -55,23 +66,25 @@
     {
       "id": "FE2.frames",
       "status": "pass",
-      "message": "10 frames; every UX page has one",
+      "message": "11 frames; every UX page has one",
       "owner": "fe-ui",
       "details": []
     },
     {
       "id": "FE.figma",
       "status": "pass",
-      "message": "56 of 73 Figma calls used (raised by the user)",
+      "message": "66 of 73 Figma calls used (raised by the user)",
       "owner": "fe-ui",
       "details": []
     },
     {
       "id": "FE2.prose",
-      "status": "pass",
-      "message": "No paragraph or bullet over 50 words",
+      "status": "fail",
+      "message": "Prose longer than 50 words: split into bullets or a table",
       "owner": "fe-ui",
-      "details": []
+      "details": [
+        "54 words: - **States:** default, hover (pressed tone), focus (Cocoa 3 px outline…"
+      ]
     },
     {
       "id": "LOG.valid",
@@ -106,7 +119,8 @@
       "FRAME-007",
       "FRAME-008",
       "FRAME-009",
-      "FRAME-010"
+      "FRAME-010",
+      "FRAME-011"
     ]
   }
 }

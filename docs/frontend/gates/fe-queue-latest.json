@@ -1,14 +1,18 @@
 {
   "phase": "fe-queue",
-  "time": "2026-11-14T20:34:43Z",
+  "time": "2026-11-14T20:42:39Z",
   "project": "/Users/apple/Desktop/Hackathon/Local_AI_Hackathon",
   "run_dir": "docs/frontend",
-  "overall": "pass",
-  "consecutive_failures": 0,
-  "failed_runs": 0,
+  "overall": "fail",
+  "consecutive_failures": 1,
+  "failed_runs": 1,
   "fix_round_cap": 2,
   "escalate": false,
-  "fail_by_owner": {},
+  "fail_by_owner": {
+    "fe-engineer": [
+      "FE2.coverage"
+    ]
+  },
   "checks": [
     {
       "id": "ALL.state",
@@ -47,10 +51,12 @@
     },
     {
       "id": "FE2.coverage",
-      "status": "pass",
-      "message": "Every page, state row and frame is delivered by a row",
+      "status": "fail",
+      "message": "Pages, states or frames no row delivers",
       "owner": "fe-engineer",
-      "details": []
+      "details": [
+        "FRAME-011: no row builds it"
+      ]
     },
     {
       "id": "FE2.contract",
@@ -62,7 +68,7 @@
     {
       "id": "FE2.feedback",
       "status": "pass",
-      "message": "0 design-feedback items decided",
+      "message": "2 design-feedback items decided",
       "owner": "fe-engineer",
       "details": []
     },
