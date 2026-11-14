@@ -8,3 +8,15 @@ Next agent must know:
 - Left open: A1 (held-to-talk turn = next preset fake transcript line, audio discarded) and A2 (keyword moods, last keyword wins, no mood buttons) await the user at the Prototype stop.
 Read beyond the list: MDN getUserMedia — localhost is a secure context; NotAllowedError / NotFoundError for mic refused / absent.
 Next agent reads: docs/frontend/00-requirements.md §1 (REQ-001..008), §3 A1–A4, §6.
+
+## fe-ux #1 · Phase 1 · round 1 · 2026-11-14T20:10:14Z
+Task: write `docs/frontend/01-ux.md` (flows, the single page, state table, text wireframe) for the P0 companion page so gate fe-ux passes.
+Changed: docs/frontend/01-ux.md (new) — 1 page (PAGE-001, serves REQ-001..008), 3 flows (type, hold to talk, first mic use), 6 state rows incl. offline, laptop + phone text wireframes, mood table (what each `data-mood` should read as).
+Result: gate not run by me; measured with gatelib.docs: FLOW-001/002/003 = 79/80/68 words (≤ 80), PAGE-001 = 190 (≤ 200), no prose unit > 50, all 5 required states present; Figma calls 0.
+Next agent must know:
+- Pitfalls: FLOW-002 sits at 80 words exactly; any added word fails FE1.flow-length. `reply` hook only on the latest companion reply, none at open (empty-state hint is not a turn). Mood switches when the reply appears, not at send.
+- Hooks: `fake-input` = the text input (focused at open); `companion` with `data-mood`; both fixed by demo-plan.json.
+- Tried, did not work: nothing.
+- Left open for the user: voice turns tagged "语音 · 示例文字"; unpleasant-high reads "worried with you", never "angry at you"; privacy line in the empty state.
+Read beyond the list: ~/.claude/gates/gatelib/frontend.py ux() — to match what the gate parses.
+Next agent reads: docs/frontend/01-ux.md §4 (PAGE-001 table, wireframe, Companion moods).
