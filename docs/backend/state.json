@@ -7,7 +7,7 @@
     "check": "关掉 Wi-Fi，npm start 打开页面，按住说一句开心的英文（如 \"I just got the internship!\"）：几秒内出现 Bonsai 现场生成的英文回复（不是预设句），小伙伴变开心；再说一句难过的，回复接得上前文，小伙伴变难过。"
   },
   "started_at": "2026-11-14T22:19:00Z",
-  "updated_at": "2026-11-14T22:29:51Z",
+  "updated_at": "2026-11-14T23:46:52Z",
   "status": "in_progress",
   "tier": "full",
   "risk": "normal",
@@ -25,30 +25,36 @@
     "be-review-reliability": "opus",
     "be-review-security": "opus"
   },
-  "current_phase": 2,
+  "current_phase": "plan-stop",
   "phases": [
     {
       "phase": 1,
       "gate": "p1",
       "verdict": "pass",
       "at": "2026-11-14T22:29:51Z"
+    },
+    {
+      "phase": 2,
+      "gate": "p2",
+      "verdict": "pass",
+      "at": "2026-11-14T23:46:52Z"
     }
   ],
   "frontend_items": [
     {
       "des": "DES-013",
-      "queue_row": null,
-      "status": "designed"
+      "queue_row": "Q-010, Q-011, Q-012, Q-014, Q-018",
+      "status": "queued"
     },
     {
       "des": "DES-014",
-      "queue_row": null,
-      "status": "designed"
+      "queue_row": "Q-013, Q-019",
+      "status": "queued"
     },
     {
       "des": "DES-015",
-      "queue_row": null,
-      "status": "designed"
+      "queue_row": "Q-015, Q-016, Q-017",
+      "status": "queued"
     }
   ],
   "increments": [],
@@ -90,6 +96,17 @@
       "q": "REQ-005 'UI set to the other language' part checked on the page, not at /api/respond?",
       "default": "yes — UI language is never sent to the backend",
       "by": "be-analyst #2",
+      "show_at": "Plan"
+    },
+    {
+      "q": "DFB-005: listening + seconds start when the mic opens (hint after 0.2 s)",
+      "default": "yes",
+      "by": "fe-ux #4",
+      "show_at": "Plan"
+    },
+    {
+      "q": "UX defaults: failed line returns to input; 中文|EN at stage top-right; stillDown hint names npm start; Figma budget 15 this run",
+      "default": "accept",
       "show_at": "Plan"
     }
   ],

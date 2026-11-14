@@ -1,5 +1,6 @@
 [PASS] ALL.state: state.json valid  (orchestrator)
 [PASS] ALL.upstream: 01-ux.md present  (fe-ux)
+[PASS] ROLE.designer-scope: fe-ux changed only design documents  (fe-ux)
 [PASS] FE1.user: Named user: the builder themself first: alone at a laptop, wants to say how the day went, out loud or typed, with Wi‑Fi off and nothing leaving the machine; later anyone in the same spot (plane, no signal)  (fe-ux)
 [PASS] FE1.surface: Surface: web  (fe-ux)
 [PASS] FE1.pages: 1 pages, each serving a REQ  (fe-ux)

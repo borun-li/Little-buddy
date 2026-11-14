@@ -19,47 +19,60 @@ Draft by fe-engineer #1, 2026-11-14, from `01-ux.md` PAGE-001 and `00-requiremen
 
 Seam (the client layer's interface, kept when the fake is replaced):
 - `respond(line, history)` → `{ reply, mood }` (C-002, C-003, C-004)
-- `transcribe()` → `{ text }` (C-001; this round returns the next preset line, A1; the real version will need the audio, see O-2)
+- `transcribe(audio)` → `{ text }` (C-001; audio = WAV from `mic.js`, O-2 answered) · `health()` → `{ ready, stt, bonsai }` (increment 1; the seam table below is the truth)
 
 ### PAGE-001 · send a line (typed, or a transcribed voice line)  (states and words from `01-ux.md`)
 | Field | Meaning (business terms) | Capability | Required | Empty / absent shape |
 |---|---|---|---|---|
-| `line` | what the user said or typed, trimmed, 1–500 characters | — (client input) | yes | empty line is never sent (FLOW-001 boundary) |
+| `line` | what the user said or typed, trimmed, 1–1500 characters (seam); the input still caps at 500 | — (client input) | yes | empty line is never sent (FLOW-001 boundary) |
 | `history` | earlier turns in order, each `{ role: user \| companion, text }`, page memory only (A5) | C-004 | yes | `[]` at the first turn |
-| `reply` | the companion's answer: Chinese, warm, ≤ 2 sentences, ≤ 1 question, ≤ 120 characters (REQ-003, A3) | C-002 | yes | never empty; the fake layer always returns one |
-| `mood` | the mood of the user's line: `pleasant-high` \| `pleasant-low` \| `unpleasant-high` \| `unpleasant-low` \| `neutral` (REQ-004) | C-003 | yes | `neutral` when nothing matches (A2) |
-| `voice` | the turn came from hold-to-talk, so it is tagged "语音 · 示例文字" | — (client state) | no | absent → typed turn |
+| `reply` | the companion's answer in the line's language (zh/en), warm, ≤ 2 sentences, ≤ 1 question, zh ≤ 120 characters, en ≤ 40 words (REQ-004, REQ-005) | C-002, C-005 | yes | never empty in a 200, otherwise a code |
+| `mood` | the mood of the user's line: `pleasant-high` \| `pleasant-low` \| `unpleasant-high` \| `unpleasant-low` \| `neutral` (REQ-006) | C-003 | yes | `neutral` when unsure |
+| `voice` | the turn came from hold-to-talk, so it is tagged "语音" / "Voice" | — (client state) | no | absent → typed turn |
 
 | State | What renders | Copy |
 |---|---|---|
-| loading | own turn, typing dots under it; send and hold paused ≤ 1 s; input keeps its text | screen reader: "小伙伴正在回复" |
+| loading | own turn, typing dots under it; send and hold paused until the reply or a code (page stops at 16 s); input keeps its text | screen reader: "小伙伴正在回复" / "Little Buddy is replying" |
 | empty | companion `neutral`; empty log with a hint; input focused; no `reply` hook | "想说什么都可以。按住说话，或者直接打字。" · "聊天只留在这台电脑上，刷新就清空。" |
-| success | turns in order, newest in view; latest reply carries `reply`; companion shows that turn's `mood` | reply text; voice turns tagged "语音 · 示例文字" |
-| failure | none this round: the fake layer cannot fail (FLOW-001 failure: none) | — (O-1) |
+| success | turns in order, newest in view; latest reply carries `reply`; companion shows that turn's `mood` | reply text; voice turns tagged "语音" / "Voice" |
+| failure | own turn leaves the log, its text back in the input, hint per code (`01-ux.md` Increment 1, Codes, send column) | `hints.sendUnavailable` · `sendTimeout` · `sendFailed` · `sendDefect` · `warming` |
+| warming | reply side not ready: Enter keeps the text, warming hint, caption 还在醒来 | `hints.warming`; `moods.waking` |
 | permission-denied | n/a for this action | — |
 | conflict | n/a: one user, page memory only | — |
 | boundary | empty line → nothing; Enter during a pending reply → ignored, text kept | — |
 
 | Error | User sees | Raw value (admin only, where) |
 |---|---|---|
-| none this round | — | — |
+| `not_ready` | `hints.warming`; checks resume | never on the page |
+| `unavailable` | `hints.sendUnavailable`; checks resume | never on the page |
+| `timeout` | `hints.sendTimeout` | never on the page |
+| `failed` | `hints.sendFailed` | never on the page |
+| `bad_request` | `hints.sendDefect` | never on the page |
+| `too_large` | `hints.sendDefect` | never on the page |
 
-### PAGE-001 · hold to talk (mic in the browser; no backend call this round)
+### PAGE-001 · hold to talk — `transcribe(audio)`
 | Field | Meaning (business terms) | Capability | Required | Empty / absent shape |
 |---|---|---|---|---|
-| `text` | the words of the held utterance; this round the next line of a preset list covering all 5 moods, audio discarded (A1) | C-001 | yes | never empty in the fake |
+| `text` | the real words of the held utterance in the spoken language, zh Simplified (REQ-001, REQ-002); audio is the WAV from `mic.js`, dropped after the call (A9) | C-001, C-005 | yes | empty = nothing heard: no turn, no `respond` (REQ-003) |
 
 | State | What renders | Copy |
 |---|---|---|
-| loading | button shows listening with seconds and level bars | "在听… N 秒" · "松开发送 · 移开或 Esc 取消" (laptop; phone see DFB on CMP-003) |
-| success | the line becomes a voice turn, then as "send a line" | "语音 · 示例文字" |
-| failure | mic absent or busy: hint by the button, typing works | "没找到麦克风，打字也一样能聊。" / "麦克风被别的程序占用了，关掉再试，或者先打字。" |
+| loading | pressed: button held, nothing recorded; listening and its seconds start when the mic stream opens, `hints.micOpening` until then (DFB-005); button shows seconds and level bars; after release, own turn "正在转成文字…", send and hold paused ≤ 13 s | "在听… N 秒" · "松开发送 · 移开或 Esc 取消" (laptop; phone see DFB on CMP-003) · `transcribing` · `hints.micOpening` |
+| success | the placeholder becomes the voice turn, then as "send a line" | "语音" / "Voice" |
+| warming | voice not ready: nothing recorded | `hints.voiceNotReady` |
+| failure | nothing heard → `hints.nothingHeard`; a code → the voice-column key in Codes; mic absent or busy: hint by the button, typing works | "没找到麦克风，打字也一样能聊。" / "麦克风被别的程序占用了，关掉再试，或者先打字。" |
 | permission-denied | prompt open: hint, no recording; refused: hint on each press | "请在浏览器弹窗里允许麦克风，再按住说话。" / "麦克风没打开。可在地址栏左侧允许，或者直接打字。" |
 | conflict | n/a | — |
 | boundary | hold < 0.5 s → hint; 60 s → sends itself; release off the button or Esc → nothing added | "说得太快啦，按住久一点。" |
 
 | Error | User sees | Raw value (admin only, where) |
 |---|---|---|
+| `not_ready` | `hints.voiceNotReady`; checks resume | never on the page |
+| `unavailable` | `hints.voiceUnavailable`; checks resume | never on the page |
+| `timeout` | `hints.voiceTimeout` | never on the page |
+| `failed` | `hints.voiceFailed` | never on the page |
+| `bad_request` | `hints.voiceFailed` | never on the page |
+| `too_large` | `hints.voiceFailed` | never on the page |
 | browser `NotFoundError` | no-mic hint | none shown; not logged (no observability this round) |
 | browser `NotReadableError` | mic-busy hint | same |
 | browser `NotAllowedError` | refused hint | same |
@@ -106,3 +119,4 @@ Transport：同源，页面与接口都在 `http://127.0.0.1:4317`（`PORT` 可�
 | 2026-11-14 | Run `companion-full-dev`: C-005 added (reply/transcript follow the user's language); seam for this run written (mood from backend with reply; `transcribe` takes audio); O-1/O-2/O-4 left to be-architect | orchestrator | frontend keeps `respond`/`transcribe` names; replaces only `companion-client.js`, records audio in `mic.js`, adds zh/en UI switch |
 | 2026-11-14 | Seam replaced by be-architect #1's final text (same-origin `/api/respond`, `/api/transcribe`, `/api/health` on 4317; WAV 16 kHz mono ≤ 2 MB; six error codes); O-1..O-4 answered; C-001..C-005 linked to DES | orchestrator | frontend: DES-013/014/015; fe-ux owes words/states for the six codes, warming, empty transcript, voice tag copy, zh/en switch |
 | 2026-11-14 | Seam re-copied after be-architect #2: line/history text 1–1500, body ≤ 262144 B, server deadlines STT 12 s / respond 15 s, page aborts at 13 s / 16 s; zh transcripts forced Simplified | orchestrator | frontend DES-013 timing and limits changed |
+| 2026-11-14 | §2 PAGE-001 rows replaced per `01-ux.md` Increment 1 (line 1–1500, reply language/limits, mood REQ-006, voice tag, loading/failure/warming states, six-code error tables, `transcribe(audio)` and nothing-heard); seam table untouched | fe-engineer #5 | none; fields now match the seam; `Backend DES` column unchanged |

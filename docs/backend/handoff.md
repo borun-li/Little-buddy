@@ -25,17 +25,18 @@ Next agent must know:
 Read beyond the list: docs/backend/logs/be-architect-1-bench.log, bench-scripts.log:254-277 (history20 = 979 chars); ~/.claude/gates/gatelib/docs.py (word counting).
 Next agent reads: docs/backend/03-detailed-design.md §9, DES-002, DES-007, DES-013; 02 §4 rows 简体/截止/line 上限, §5 rows 1, 7, 8
 
-## fe-ux #3 · Phase 1 (frontend, increment) · round 2 · increment 1 · 2026-11-14T23:25:12Z
-Task: fix FE1.flows (FLOW-005 missing Boundary); apply the orchestrator's structure ruling (markers in their blocks, PAGE-001 detail under its own heading).
-Changed: docs/frontend/01-ux.md — FLOW-005 Boundary starts "hold under 0.5 s" (was "< 0.5 s"); FLOW-005 Failure merged (80 words); FLOW-001/002 retirement markers moved into their headings (§3 line removed); increment state table now under "### PAGE-001 — Talk with the companion (increment 1)". Round 1 (unchanged): Increment 1 flows FLOW-004..007, states, health table, Codes, 43-row zh/en Words, contract §2 rows; DFB-004 in 06-feedback.md.
-Feedback: DFB-004 (to fe-ui, English "Hold to talk" ≈151 px vs 124 px phone button) still pending.
-Result: self-measured with gatelib docs.words/field: all 7 flows have every field; FLOW-001 83, FLOW-002 84 words (over 80: markers); PAGE-001 blocks 196 and 432 words (second over 200; gate reads only the first block). Gate not re-run by me.
+## fe-ux #4 · step 2 (frontend feedback, increment) · round 1 · increment 1 · 2026-11-14T23:43:51Z
+Task: decide DFB-005 (listening starts when the mic stream opens) and, if accepted, update FLOW-005 / PAGE-001 (increment 1) listening rows.
+Changed: docs/frontend/06-feedback.md — DFB-005 decision, decided-by, needs-user filled. docs/frontend/01-ux.md § Increment 1 — FLOW-005 step "Mic open → listening + seconds", Boundary "under 0.5 s listening" (80 words); PAGE-001 (increment 1) rows "loading · mic opening" and "listening"; hint rule for `hints.micOpening`; Words row `hints.micOpening` zh/en; contract §2 "hold to talk" state-loading row.
+Feedback: DFB-005 accepted, pending user at Plan; needs user: yes (changes the listening moment confirmed at the Prototype stop 2026-11-14). One-line recommendation is in the DFB-005 decision cell.
+Result: gatelib docs.words: FLOW-005 80, first PAGE-001 block 196 (unchanged); prose units > 50 words = []; DFB-005 row parses to 9 cells — evidence: scratchpad wc.py run in this session. Gate not run by me. 0 Figma calls.
 Next agent must know:
-- Pitfalls: gatelib docs.field treats a value starting with "<" or "{" as a template placeholder → a field reads as missing. Never start a field value with "<".
-- Pitfalls: FLOW-001/002 and PAGE-001 cap overruns are for the orchestrator's cap ruling, not to be trimmed out of confirmed text.
-- Left open: contract §2 rows (01-ux Increment 1, last section); fe-ui draws the 中文 | EN switch and decides DFB-004; deferred.md D-005 can close.
-Read beyond the list: ~/.claude/gates/gatelib/docs.py:115-119 — field() placeholder rule.
-Next agent reads: docs/frontend/01-ux.md § Increment 1 (PAGE-001 increment block, Codes, Words); docs/frontend/06-feedback.md DFB-004
+- Pitfalls: the 0.5 s and 60 s rules now count from the stream opening, not the press; release before it opens → `hints.tooShort`; `hints.micOpening` shows only if the stream is still closed 0.2 s after press (no flash on fast opens).
+- Pitfalls: codemap mic trap "no permission query → stream slower than 600 ms is treated as a prompt" may now misread a slow granted first open; fe-engineer decides how Q-013 tells them apart (FLOW-003 rule stands: a hold that raised the prompt never records).
+- Tried, did not work: keeping the stream open between holds (would keep the mic indicator on; Q-013 needs it off at release) — rejected.
+- Left open: user's answer at the Plan stop; fe-ui may need to check the English hint width (hint line wraps, so likely none); Q-013 "Depends on DFB-005" clears once the user answers.
+Read beyond the list: ~/.claude/gates/gatelib/frontend.py:57,150-199,308-383 — block, length and feedback parsers.
+Next agent reads: docs/frontend/06-feedback.md DFB-005; docs/frontend/01-ux.md § Increment 1 FLOW-005, PAGE-001 (increment 1) rows "loading · mic opening" / "listening", Words `hints.micOpening`
 
 ## fe-ui #5 · step 2 (frontend UI, increment) · round 2 · increment 1 · 2026-11-14T23:36:23Z
 Task: fix FE2.components (CMP-006 focus state readable) and FE2.prose (5 units over 50 words in 02-ui.md § Increment 1); round 1: switch, English frames, DFB-004, D-004.
@@ -49,3 +50,22 @@ Next agent must know:
 - Left open: FRAME-001..011 do not show the switch (not redrawn, budget); English laptop listening and laptop warming not drawn (words/caption swap only); longest English caption width is an estimate.
 Read beyond the list: ~/.claude/gates/gatelib/docs.py:54-70, 115-119 — prose and field parsers.
 Next agent reads: docs/frontend/02-ui.md § Increment 1 (CMP-006, CMP-003 increment 1, Frames (increment 1)); docs/frontend/06-feedback.md DFB-004
+
+## fe-engineer #5 · step 2 (frontend feasibility + queue, increment) · round 2 · increment 1 · 2026-11-14T23:46:03Z
+Task: FE2.row-length — shorten every Increment 1 row to ≤ 80 words; reflect DFB-005 (accepted) in the queue and contract.
+Changed: docs/frontend/03-queue.md — rows Q-010..Q-017 cut to ≤ 80 words, detail moved to new "Notes the rows point to"; split: Q-018 (silence and voice failures, from Q-014), Q-019 (listening starts when the mic opens, DFB-005, from Q-013); "Changed by" lines removed from Q-002/004/005 (the earlier-rows table says it). contracts/FRONTEND_BACKEND_CONTRACT.md — hold-to-talk loading row now has the mic-opening text.
+Feedback: DFB-005 accepted by fe-ux #4 (pending user at Plan); reflected in Q-019 and note Q-013.
+Result: every Q row ≤ 80 words by gatelib docs.words (script run by me, 0 over); `npm test` 23 pass / 0 fail. Gate not re-run by me. 0 Figma calls.
+Next agent must know:
+- Pitfalls: `hints.micOpening` shows at 0.2 s but browsers without the permission query treat a stream slower than 600 ms as an open prompt (codemap mic.js trap): show the hint first, then let 600 ms decide "prompt".
+- Pitfalls: Q-010 moves createFakeCompanion to web/js/fake/fake-companion.js; keep data-testid fake-input, reply, companion. No server/ yet.
+- Tried, did not work: nothing.
+- Left open: font Latin-1 (Q-017, P3) needs the TTF; English caption width is an estimate.
+Read beyond the list: ~/.claude/gates/gatelib/docs.py words().
+Next agent reads: docs/frontend/03-queue.md § Increment 1 (rows and Notes); contracts/FRONTEND_BACKEND_CONTRACT.md §2
+
+## orchestrator · Phase 2 · Plan stop · 2026-11-14T23:46:52Z
+State: p1 pass, p2 pass; frontend increment 1 gates fe-ux (user waiver FE1.flow-length FLOW-001/002 only), fe-ui, fe-queue, fe-plan pass. Branch companion-full-dev. Figma 12/15 this run.
+Decided: risk normal (user, kickoff); 9B, setup step, argmax-oss-swift 1.1.1, port 4317 = be-architect recommendations, pending user; DFB-004 by fe-ui #5; DFB-005 accepted by fe-ux #4 pending user; PAGE-001 increment block accepted as increment structure (orchestrator).
+Open: Plan answers (design + 4 decisions, fixtures FX-001..008 lock, DFB-005, defaults in state.json open_questions).
+Next: on yes → gate.py fixtures-approve --by user; log human --stop Plan; Phase 4 build: baseline, mark be-tester then be-developer, dispatch be-developer (DES-001..012, build order 03 §8; stt first for the ~390 s warm-up) and be-tester (plan) in one message; frontend rows Q-015/016/017/013/019 can follow once backend writer is back (one team's writers at a time).

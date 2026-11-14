@@ -1,6 +1,6 @@
 {
   "phase": "fe-ux",
-  "time": "2026-11-14T23:27:51Z",
+  "time": "2026-11-14T23:44:25Z",
   "project": "/Users/apple/Desktop/Hackathon/Local_AI_Hackathon",
   "run_dir": "docs/frontend",
   "overall": "pass",
@@ -21,6 +21,13 @@
       "id": "ALL.upstream",
       "status": "pass",
       "message": "01-ux.md present",
+      "owner": "fe-ux",
+      "details": []
+    },
+    {
+      "id": "ROLE.designer-scope",
+      "status": "pass",
+      "message": "fe-ux changed only design documents",
       "owner": "fe-ux",
       "details": []
     },

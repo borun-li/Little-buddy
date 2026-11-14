@@ -18,6 +18,6 @@
 [PASS] PLAN.meta: Every fixture names its REQ, source and compare rule  (be-analyst)
 [PASS] LOG.valid: Run log intact  (orchestrator)
 [PASS] CTX.codemap: docs/codemap.md paths exist, within its cap  (be-architect)
-[PASS] CTX.handoff: handoff.md: 2 current sections  (orchestrator)
+[PASS] CTX.handoff: handoff.md: 5 current sections  (orchestrator)
 
 [gate] p2: PASS  report: docs/backend/gates/p2-latest.json
