@@ -21,7 +21,7 @@ Source of truth for the product idea: `idea.md`. This file records only what the
 
 ## Frontend/backend line
 
-Draft (default line, `~/.claude/route/FRONTEND_BACKEND_LINE.md` §1) — **not yet signed by the user**:
+Default line (`~/.claude/route/FRONTEND_BACKEND_LINE.md` §1) — **signed by the user, 2026-11-14**:
 
 | Side | Covers |
 |---|---|
