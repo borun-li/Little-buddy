@@ -1,0 +1,128 @@
+{
+  "demo": "after",
+  "time": "2026-11-14T21:15:24Z",
+  "fingerprint": "faa24ec655896c00",
+  "surface": "web",
+  "entries": [
+    {
+      "id": "open",
+      "row": "goal",
+      "state": "after",
+      "size": "laptop",
+      "width": 1440,
+      "height": 900,
+      "url": "http://localhost:4317/",
+      "files": {
+        "dom.html": "open@laptop.dom.html",
+        "styles.json": "open@laptop.styles.json",
+        "aria.yml": "open@laptop.aria.yml",
+        "png": "open@laptop.png"
+      },
+      "ok": true,
+      "instrument": "playwright-core + Chrome: DOM, computed styles, ARIA snapshot, screenshot",
+      "time": "2026-11-14T21:15:24Z",
+      "fingerprint": "faa24ec655896c00",
+      "surface": "web"
+    },
+    {
+      "id": "open",
+      "row": "goal",
+      "state": "after",
+      "size": "phone",
+      "width": 390,
+      "height": 844,
+      "url": "http://localhost:4317/",
+      "files": {
+        "dom.html": "open@phone.dom.html",
+        "styles.json": "open@phone.styles.json",
+        "aria.yml": "open@phone.aria.yml",
+        "png": "open@phone.png"
+      },
+      "ok": true,
+      "instrument": "playwright-core + Chrome: DOM, computed styles, ARIA snapshot, screenshot",
+      "time": "2026-11-14T21:15:24Z",
+      "fingerprint": "faa24ec655896c00",
+      "surface": "web"
+    },
+    {
+      "id": "happy-turn",
+      "row": "goal",
+      "state": "after",
+      "size": "laptop",
+      "width": 1440,
+      "height": 900,
+      "url": "http://localhost:4317/",
+      "files": {
+        "dom.html": "happy-turn@laptop.dom.html",
+        "styles.json": "happy-turn@laptop.styles.json",
+        "aria.yml": "happy-turn@laptop.aria.yml",
+        "png": "happy-turn@laptop.png"
+      },
+      "ok": true,
+      "instrument": "playwright-core + Chrome: DOM, computed styles, ARIA snapshot, screenshot",
+      "time": "2026-11-14T21:15:24Z",
+      "fingerprint": "faa24ec655896c00",
+      "surface": "web"
+    },
+    {
+      "id": "happy-turn",
+      "row": "goal",
+      "state": "after",
+      "size": "phone",
+      "width": 390,
+      "height": 844,
+      "url": "http://localhost:4317/",
+      "files": {
+        "dom.html": "happy-turn@phone.dom.html",
+        "styles.json": "happy-turn@phone.styles.json",
+        "aria.yml": "happy-turn@phone.aria.yml",
+        "png": "happy-turn@phone.png"
+      },
+      "ok": true,
+      "instrument": "playwright-core + Chrome: DOM, computed styles, ARIA snapshot, screenshot",
+      "time": "2026-11-14T21:15:24Z",
+      "fingerprint": "faa24ec655896c00",
+      "surface": "web"
+    },
+    {
+      "id": "sad-turn",
+      "row": "goal",
+      "state": "after",
+      "size": "laptop",
+      "width": 1440,
+      "height": 900,
+      "url": "http://localhost:4317/",
+      "files": {
+        "dom.html": "sad-turn@laptop.dom.html",
+        "styles.json": "sad-turn@laptop.styles.json",
+        "aria.yml": "sad-turn@laptop.aria.yml",
+        "png": "sad-turn@laptop.png"
+      },
+      "ok": true,
+      "instrument": "playwright-core + Chrome: DOM, computed styles, ARIA snapshot, screenshot",
+      "time": "2026-11-14T21:15:24Z",
+      "fingerprint": "faa24ec655896c00",
+      "surface": "web"
+    },
+    {
+      "id": "sad-turn",
+      "row": "goal",
+      "state": "after",
+      "size": "phone",
+      "width": 390,
+      "height": 844,
+      "url": "http://localhost:4317/",
+      "files": {
+        "dom.html": "sad-turn@phone.dom.html",
+        "styles.json": "sad-turn@phone.styles.json",
+        "aria.yml": "sad-turn@phone.aria.yml",
+        "png": "sad-turn@phone.png"
+      },
+      "ok": true,
+      "instrument": "playwright-core + Chrome: DOM, computed styles, ARIA snapshot, screenshot",
+      "time": "2026-11-14T21:15:24Z",
+      "fingerprint": "faa24ec655896c00",
+      "surface": "web"
+    }
+  ]
+}

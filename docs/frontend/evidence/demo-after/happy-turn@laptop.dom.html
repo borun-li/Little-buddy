@@ -1,0 +1,258 @@
+<!DOCTYPE html><html lang="zh-CN"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>小伙伴</title>
+<link rel="icon" href="data:,">
+<link rel="preload" href="fonts/lxgw-wenkai-subset.woff2" as="font" type="font/woff2" crossorigin="">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/page.css">
+<link rel="stylesheet" href="css/companion.css">
+<script type="module" src="js/app.js"></script>
+</head>
+<body>
+<!--
+  Icons: Lucide 1.73.0 (mic, mic-off, info, lock), inlined as symbols.
+  ISC License. Copyright (c) 2026 Lucide Icons and Contributors.
+  Permission to use, copy, modify, and/or distribute this software for any purpose with or without
+  fee is hereby granted, provided that the above copyright notice and this permission notice appear
+  in all copies. THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD
+  TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
+  THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+  WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
+  OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+  info and lock are derived from Feather: The MIT License (MIT), Copyright (c) 2013-present Cole Bemis.
+  Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+  associated documentation files (the "Software"), to deal in the Software without restriction,
+  including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
+  and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so,
+  subject to the following conditions: The above copyright notice and this permission notice shall be
+  included in all copies or substantial portions of the Software. THE SOFTWARE IS PROVIDED "AS IS",
+  WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
+  OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+  CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+  OTHER DEALINGS IN THE SOFTWARE.
+-->
+<svg class="sprite" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <symbol id="i-mic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 19v3"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><rect x="9" y="2" width="6" height="13" rx="3"></rect>
+  </symbol>
+  <symbol id="i-mic-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 19v3"></path><path d="M15 9.34V5a3 3 0 0 0-5.68-1.33"></path><path d="M16.95 16.95A7 7 0 0 1 5 12v-2"></path><path d="M18.89 13.23A7 7 0 0 0 19 12v-2"></path><path d="m2 2 20 20"></path><path d="M9 9v3a3 3 0 0 0 5.12 2.12"></path>
+  </symbol>
+  <symbol id="i-info" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path>
+  </symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+  </symbol>
+</svg>
+
+<!-- Companion art, one template per mood: docs/frontend/evidence/design/companion/<mood>.svg,
+     ids prefixed "<mood>--" so two moods can share the DOM during the crossfade. -->
+<template id="mood-neutral">
+<svg class="companion__art" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400" fill="none"><g id="companion-neutral">
+<g id="neutral--stage">
+<circle id="neutral--glow" cx="200" cy="200" r="180" fill="#E6DACA"></circle>
+<ellipse id="neutral--ground" opacity="0.1" cx="200" cy="340" rx="110" ry="9" fill="black"></ellipse>
+<g id="neutral--character">
+<path id="neutral--Vector" d="M134.4 154C128 114 136 90 152 85.2C166.4 90 182.4 114 185.6 136.4L134.4 154Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="neutral--Vector_2" d="M265.6 154C272 114 264 90 248 85.2C233.6 90 217.6 114 214.4 136.4L265.6 154Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="neutral--Vector_3" d="M145.6 136.4C144 117.2 148.8 104.4 154.4 101.2C161.6 107.6 168 118.8 169.6 130L145.6 136.4Z" fill="#A9442A" fill-opacity="0.35"></path>
+<path id="neutral--Vector_4" d="M254.4 136.4C256 117.2 251.2 104.4 245.6 101.2C238.4 107.6 232 118.8 230.4 130L254.4 136.4Z" fill="#A9442A" fill-opacity="0.35"></path>
+<path id="neutral--Vector_5" d="M294.4 259.6C321.6 254.8 329.6 230.8 316.8 219.6" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="neutral--Vector_6" d="M104 234C104 162 152 123.6 200 123.6C248 123.6 296 162 296 234C296 286 256 306 200 306C144 306 104 286 104 234Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="neutral--Vector_7" d="M200 299.6C230.928 299.6 256 285.273 256 267.6C256 249.927 230.928 235.6 200 235.6C169.072 235.6 144 249.927 144 267.6C144 285.273 169.072 299.6 200 299.6Z" fill="#F7F1E8"></path>
+<path id="neutral--Vector_8" d="M168 314C178.604 314 187.2 308.986 187.2 302.8C187.2 296.615 178.604 291.6 168 291.6C157.396 291.6 148.8 296.615 148.8 302.8C148.8 308.986 157.396 314 168 314Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="neutral--Vector_9" d="M232 314C242.604 314 251.2 308.986 251.2 302.8C251.2 296.615 242.604 291.6 232 291.6C221.396 291.6 212.8 296.615 212.8 302.8C212.8 308.986 221.396 314 232 314Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="neutral--Vector_10" opacity="0.5" d="M142.4 237.2C149.911 237.2 156 233.618 156 229.2C156 224.782 149.911 221.2 142.4 221.2C134.889 221.2 128.8 224.782 128.8 229.2C128.8 233.618 134.889 237.2 142.4 237.2Z" fill="#A9442A" fill-opacity="0.35"></path>
+<path id="neutral--Vector_11" opacity="0.5" d="M257.6 237.2C265.111 237.2 271.2 233.618 271.2 229.2C271.2 224.782 265.111 221.2 257.6 221.2C250.089 221.2 244 224.782 244 229.2C244 233.618 250.089 237.2 257.6 237.2Z" fill="#A9442A" fill-opacity="0.35"></path>
+<path id="neutral--Vector_12" d="M168 215.6C173.744 215.6 178.4 210.944 178.4 205.2C178.4 199.456 173.744 194.8 168 194.8C162.256 194.8 157.6 199.456 157.6 205.2C157.6 210.944 162.256 215.6 168 215.6Z" fill="#2F2724"></path>
+<path id="neutral--Vector_13" d="M171.2 204.4C172.967 204.4 174.4 202.967 174.4 201.2C174.4 199.433 172.967 198 171.2 198C169.433 198 168 199.433 168 201.2C168 202.967 169.433 204.4 171.2 204.4Z" fill="#F7F1E8"></path>
+<path id="neutral--Vector_14" d="M232 215.6C237.744 215.6 242.4 210.944 242.4 205.2C242.4 199.456 237.744 194.8 232 194.8C226.256 194.8 221.6 199.456 221.6 205.2C221.6 210.944 226.256 215.6 232 215.6Z" fill="#2F2724"></path>
+<path id="neutral--Vector_15" d="M235.2 204.4C236.967 204.4 238.4 202.967 238.4 201.2C238.4 199.433 236.967 198 235.2 198C233.433 198 232 199.433 232 201.2C232 202.967 233.433 204.4 235.2 204.4Z" fill="#F7F1E8"></path>
+<path id="neutral--Vector_16" d="M188.8 227.6C192.533 231.867 196.267 232.133 200 228.4C203.733 232.133 207.467 231.867 211.2 227.6" stroke="#2F2724" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"></path>
+</g>
+</g>
+</g>
+</svg>
+</template>
+<template id="mood-pleasant-high">
+<svg class="companion__art" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400" fill="none"><g id="companion-pleasant-high">
+<g id="pleasant-high--stage">
+<circle id="pleasant-high--glow" cx="200" cy="200" r="180" fill="#F2B25C" fill-opacity="0.5"></circle>
+<ellipse id="pleasant-high--ground" opacity="0.1" cx="200" cy="340" rx="110" ry="9" fill="black"></ellipse>
+<g id="pleasant-high--character">
+<path id="pleasant-high--Vector" d="M134.4 154C128 114 136 90 152 85.2C166.4 90 182.4 114 185.6 136.4L134.4 154Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="pleasant-high--Vector_2" d="M265.6 154C272 114 264 90 248 85.2C233.6 90 217.6 114 214.4 136.4L265.6 154Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="pleasant-high--Vector_3" d="M145.6 136.4C144 117.2 148.8 104.4 154.4 101.2C161.6 107.6 168 118.8 169.6 130L145.6 136.4Z" fill="#A9442A" fill-opacity="0.35"></path>
+<path id="pleasant-high--Vector_4" d="M254.4 136.4C256 117.2 251.2 104.4 245.6 101.2C238.4 107.6 232 118.8 230.4 130L254.4 136.4Z" fill="#A9442A" fill-opacity="0.35"></path>
+<path id="pleasant-high--Vector_5" d="M294.4 259.6C321.6 254.8 329.6 230.8 316.8 219.6" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="pleasant-high--Vector_6" d="M104 234C104 162 152 123.6 200 123.6C248 123.6 296 162 296 234C296 286 256 306 200 306C144 306 104 286 104 234Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="pleasant-high--Vector_7" d="M200 299.6C230.928 299.6 256 285.273 256 267.6C256 249.927 230.928 235.6 200 235.6C169.072 235.6 144 249.927 144 267.6C144 285.273 169.072 299.6 200 299.6Z" fill="#F7F1E8"></path>
+<path id="pleasant-high--Vector_8" d="M129.6 261.2C138.437 261.2 145.6 253.32 145.6 243.6C145.6 233.88 138.437 226 129.6 226C120.763 226 113.6 233.88 113.6 243.6C113.6 253.32 120.763 261.2 129.6 261.2Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="pleasant-high--Vector_9" d="M270.4 261.2C279.237 261.2 286.4 253.32 286.4 243.6C286.4 233.88 279.237 226 270.4 226C261.563 226 254.4 233.88 254.4 243.6C254.4 253.32 261.563 261.2 270.4 261.2Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="pleasant-high--Vector_10" d="M168 314.8C178.604 314.8 187.2 310.144 187.2 304.4C187.2 298.656 178.604 294 168 294C157.396 294 148.8 298.656 148.8 304.4C148.8 310.144 157.396 314.8 168 314.8Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="pleasant-high--Vector_11" d="M232 314.8C242.604 314.8 251.2 310.144 251.2 304.4C251.2 298.656 242.604 294 232 294C221.396 294 212.8 298.656 212.8 304.4C212.8 310.144 221.396 314.8 232 314.8Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="pleasant-high--Vector_12" d="M142.4 237.2C149.911 237.2 156 233.618 156 229.2C156 224.782 149.911 221.2 142.4 221.2C134.889 221.2 128.8 224.782 128.8 229.2C128.8 233.618 134.889 237.2 142.4 237.2Z" fill="#A9442A" fill-opacity="0.35"></path>
+<path id="pleasant-high--Vector_13" d="M257.6 237.2C265.111 237.2 271.2 233.618 271.2 229.2C271.2 224.782 265.111 221.2 257.6 221.2C250.089 221.2 244 224.782 244 229.2C244 233.618 250.089 237.2 257.6 237.2Z" fill="#A9442A" fill-opacity="0.35"></path>
+<path id="pleasant-high--Vector_14" d="M155.2 211.6C163.733 198.8 172.267 198.8 180.8 211.6" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="pleasant-high--Vector_15" d="M219.2 211.6C227.733 198.8 236.267 198.8 244.8 211.6" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="pleasant-high--Vector_16" d="M184 224.4C194.667 244.667 205.333 244.667 216 224.4H184Z" fill="#2F2724" stroke="#2F2724" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="pleasant-high--Vector_17" d="M200 244.4C203.976 244.4 207.2 242.609 207.2 240.4C207.2 238.191 203.976 236.4 200 236.4C196.024 236.4 192.8 238.191 192.8 240.4C192.8 242.609 196.024 244.4 200 244.4Z" fill="#A9442A" fill-opacity="0.35"></path>
+<path id="pleasant-high--Vector_18" d="M113.6 124.24C114.773 130.107 118.293 133.627 124.16 134.8C118.293 135.973 114.773 139.493 113.6 145.36C112.427 139.493 108.907 135.973 103.04 134.8C108.907 133.627 112.427 130.107 113.6 124.24Z" fill="#F2B25C" stroke="#2F2724" stroke-width="3" stroke-linejoin="round"></path>
+<path id="pleasant-high--Vector_19" d="M294.4 107.6C295.467 112.933 298.667 116.133 304 117.2C298.667 118.267 295.467 121.467 294.4 126.8C293.333 121.467 290.133 118.267 284.8 117.2C290.133 116.133 293.333 112.933 294.4 107.6Z" fill="#F2B25C" stroke="#2F2724" stroke-width="3" stroke-linejoin="round"></path>
+<path id="pleasant-high--Vector_20" d="M312 169.68C312.747 173.413 314.987 175.653 318.72 176.4C314.987 177.147 312.747 179.387 312 183.12C311.253 179.387 309.013 177.147 305.28 176.4C309.013 175.653 311.253 173.413 312 169.68Z" fill="#F2B25C" stroke="#2F2724" stroke-width="3" stroke-linejoin="round"></path>
+</g>
+</g>
+</g>
+</svg>
+</template>
+<template id="mood-pleasant-low">
+<svg class="companion__art" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400" fill="none"><g id="companion-pleasant-low">
+<g id="pleasant-low--stage">
+<circle id="pleasant-low--glow" cx="200" cy="200" r="180" fill="#F2B25C" fill-opacity="0.24"></circle>
+<ellipse id="pleasant-low--ground" opacity="0.1" cx="200" cy="340" rx="110" ry="9" fill="black"></ellipse>
+<g id="pleasant-low--character">
+<path id="pleasant-low--Vector" d="M134.4 154C128 114 136 90 152 85.2C166.4 90 182.4 114 185.6 136.4L134.4 154Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="pleasant-low--Vector_2" d="M265.6 154C272 114 264 90 248 85.2C233.6 90 217.6 114 214.4 136.4L265.6 154Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="pleasant-low--Vector_3" d="M145.6 136.4C144 117.2 148.8 104.4 154.4 101.2C161.6 107.6 168 118.8 169.6 130L145.6 136.4Z" fill="#A9442A" fill-opacity="0.35"></path>
+<path id="pleasant-low--Vector_4" d="M254.4 136.4C256 117.2 251.2 104.4 245.6 101.2C238.4 107.6 232 118.8 230.4 130L254.4 136.4Z" fill="#A9442A" fill-opacity="0.35"></path>
+<path id="pleasant-low--Vector_5" d="M294.4 259.6C321.6 254.8 329.6 230.8 316.8 219.6" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="pleasant-low--Vector_6" d="M104 234C104 162 152 123.6 200 123.6C248 123.6 296 162 296 234C296 286 256 306 200 306C144 306 104 286 104 234Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="pleasant-low--Vector_7" d="M200 299.6C230.928 299.6 256 285.273 256 267.6C256 249.927 230.928 235.6 200 235.6C169.072 235.6 144 249.927 144 267.6C144 285.273 169.072 299.6 200 299.6Z" fill="#F7F1E8"></path>
+<path id="pleasant-low--Vector_8" d="M168 314C178.604 314 187.2 308.986 187.2 302.8C187.2 296.615 178.604 291.6 168 291.6C157.396 291.6 148.8 296.615 148.8 302.8C148.8 308.986 157.396 314 168 314Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="pleasant-low--Vector_9" d="M232 314C242.604 314 251.2 308.986 251.2 302.8C251.2 296.615 242.604 291.6 232 291.6C221.396 291.6 212.8 296.615 212.8 302.8C212.8 308.986 221.396 314 232 314Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="pleasant-low--Vector_10" opacity="0.8" d="M142.4 237.2C149.911 237.2 156 233.618 156 229.2C156 224.782 149.911 221.2 142.4 221.2C134.889 221.2 128.8 224.782 128.8 229.2C128.8 233.618 134.889 237.2 142.4 237.2Z" fill="#A9442A" fill-opacity="0.35"></path>
+<path id="pleasant-low--Vector_11" opacity="0.8" d="M257.6 237.2C265.111 237.2 271.2 233.618 271.2 229.2C271.2 224.782 265.111 221.2 257.6 221.2C250.089 221.2 244 224.782 244 229.2C244 233.618 250.089 237.2 257.6 237.2Z" fill="#A9442A" fill-opacity="0.35"></path>
+<path id="pleasant-low--Vector_12" d="M187.2 226C195.733 233.467 204.267 233.467 212.8 226" stroke="#2F2724" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"></path>
+</g>
+<g id="pleasant-low--eyes-content">
+<path id="pleasant-low--Vector_13" d="M156 198.8C164 207.333 172 207.333 180 198.8" stroke="#2F2724" stroke-width="6" stroke-linecap="round"></path>
+<path id="pleasant-low--Vector_14" d="M220 198.8C228 207.333 236 207.333 244 198.8" stroke="#2F2724" stroke-width="6" stroke-linecap="round"></path>
+</g>
+</g>
+</g>
+</svg>
+</template>
+<template id="mood-unpleasant-high">
+<svg class="companion__art" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400" fill="none"><g id="companion-unpleasant-high">
+<g id="unpleasant-high--stage">
+<circle id="unpleasant-high--glow" cx="200" cy="200" r="180" fill="#587489" fill-opacity="0.34"></circle>
+<ellipse id="unpleasant-high--ground" opacity="0.1" cx="200" cy="340" rx="110" ry="9" fill="black"></ellipse>
+<g id="unpleasant-high--character">
+<path id="unpleasant-high--Vector" d="M132.8 160.4C116.8 128.4 120 102.8 132.8 94.8C148.8 99.6 169.6 120.4 177.6 139.6L132.8 160.4Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="unpleasant-high--Vector_2" d="M267.2 160.4C283.2 128.4 280 102.8 267.2 94.8C251.2 99.6 230.4 120.4 222.4 139.6L267.2 160.4Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="unpleasant-high--Vector_3" d="M139.2 142.8C131.2 125.2 132.8 112.4 137.6 107.6C147.2 112.4 158.4 123.6 163.2 134.8L139.2 142.8Z" fill="#A9442A" fill-opacity="0.35"></path>
+<path id="unpleasant-high--Vector_4" d="M260.8 142.8C268.8 125.2 267.2 112.4 262.4 107.6C252.8 112.4 241.6 123.6 236.8 134.8L260.8 142.8Z" fill="#A9442A" fill-opacity="0.35"></path>
+<path id="unpleasant-high--Vector_5" d="M294.4 259.6C321.6 254.8 329.6 230.8 316.8 219.6" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="unpleasant-high--Vector_6" d="M104 234C104 162 152 123.6 200 123.6C248 123.6 296 162 296 234C296 286 256 306 200 306C144 306 104 286 104 234Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="unpleasant-high--Vector_7" d="M200 299.6C230.928 299.6 256 285.273 256 267.6C256 249.927 230.928 235.6 200 235.6C169.072 235.6 144 249.927 144 267.6C144 285.273 169.072 299.6 200 299.6Z" fill="#F7F1E8"></path>
+<path id="unpleasant-high--Vector_8" d="M168 314C178.604 314 187.2 308.986 187.2 302.8C187.2 296.615 178.604 291.6 168 291.6C157.396 291.6 148.8 296.615 148.8 302.8C148.8 308.986 157.396 314 168 314Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="unpleasant-high--Vector_9" d="M232 314C242.604 314 251.2 308.986 251.2 302.8C251.2 296.615 242.604 291.6 232 291.6C221.396 291.6 212.8 296.615 212.8 302.8C212.8 308.986 221.396 314 232 314Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="unpleasant-high--Vector_10" d="M187.2 273.2C195.595 273.2 202.4 267.827 202.4 261.2C202.4 254.573 195.595 249.2 187.2 249.2C178.805 249.2 172 254.573 172 261.2C172 267.827 178.805 273.2 187.2 273.2Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="unpleasant-high--Vector_11" d="M212.8 273.2C221.195 273.2 228 267.827 228 261.2C228 254.573 221.195 249.2 212.8 249.2C204.405 249.2 197.6 254.573 197.6 261.2C197.6 267.827 204.405 273.2 212.8 273.2Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="unpleasant-high--Vector_12" d="M168 218.8C174.627 218.8 180 213.427 180 206.8C180 200.173 174.627 194.8 168 194.8C161.373 194.8 156 200.173 156 206.8C156 213.427 161.373 218.8 168 218.8Z" fill="#2F2724"></path>
+<path id="unpleasant-high--Vector_13" d="M171.2 206C173.409 206 175.2 204.209 175.2 202C175.2 199.791 173.409 198 171.2 198C168.991 198 167.2 199.791 167.2 202C167.2 204.209 168.991 206 171.2 206Z" fill="#F7F1E8"></path>
+<path id="unpleasant-high--Vector_14" d="M232 218.8C238.627 218.8 244 213.427 244 206.8C244 200.173 238.627 194.8 232 194.8C225.373 194.8 220 200.173 220 206.8C220 213.427 225.373 218.8 232 218.8Z" fill="#2F2724"></path>
+<path id="unpleasant-high--Vector_15" d="M235.2 206C237.409 206 239.2 204.209 239.2 202C239.2 199.791 237.409 198 235.2 198C232.991 198 231.2 199.791 231.2 202C231.2 204.209 232.991 206 235.2 206Z" fill="#F7F1E8"></path>
+<path id="unpleasant-high--Vector_16" d="M152 187.6C160.533 184.4 169.067 180.133 177.6 174.8" stroke="#2F2724" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="unpleasant-high--Vector_17" d="M248 187.6C239.467 184.4 230.933 180.133 222.4 174.8" stroke="#2F2724" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="unpleasant-high--Vector_18" d="M185.6 235.6C190.4 231.333 195.2 231.333 200 235.6C204.8 239.867 209.6 239.867 214.4 235.6" stroke="#2F2724" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="unpleasant-high--Vector_19" d="M272 154C278.16 162.8 279.92 167.2 279.92 170.72C279.92 176 276.4 178.64 272 178.64C267.6 178.64 264.08 176 264.08 170.72C264.08 167.2 265.84 162.8 272 154Z" fill="#587489" stroke="#2F2724" stroke-width="3"></path>
+</g>
+</g>
+</g>
+</svg>
+</template>
+<template id="mood-unpleasant-low">
+<svg class="companion__art" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400" fill="none"><g id="companion-unpleasant-low">
+<g id="unpleasant-low--stage">
+<circle id="unpleasant-low--glow" cx="200" cy="200" r="180" fill="#587489" fill-opacity="0.2"></circle>
+<ellipse id="unpleasant-low--ground" opacity="0.1" cx="200" cy="340" rx="110" ry="9" fill="black"></ellipse>
+<g id="unpleasant-low--character">
+<path id="unpleasant-low--Vector" d="M129.6 171.6C105.6 155.6 97.6 133.2 107.2 120.4C123.2 117.2 147.2 130 161.6 146L129.6 171.6Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="unpleasant-low--Vector_2" d="M270.4 171.6C294.4 155.6 302.4 133.2 292.8 120.4C276.8 117.2 252.8 130 238.4 146L270.4 171.6Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="unpleasant-low--Vector_3" d="M131.2 154C118.4 144.4 113.6 133.2 118.4 126.8C128 126.8 140.8 134.8 148.8 144.4L131.2 154Z" fill="#A9442A" fill-opacity="0.35"></path>
+<path id="unpleasant-low--Vector_4" d="M268.8 154C281.6 144.4 286.4 133.2 281.6 126.8C272 126.8 259.2 134.8 251.2 144.4L268.8 154Z" fill="#A9442A" fill-opacity="0.35"></path>
+<path id="unpleasant-low--Vector_5" d="M294.4 259.6C321.6 254.8 329.6 230.8 316.8 219.6" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="unpleasant-low--Vector_6" d="M104 234C104 162 152 123.6 200 123.6C248 123.6 296 162 296 234C296 286 256 306 200 306C144 306 104 286 104 234Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="unpleasant-low--Vector_7" d="M200 299.6C230.928 299.6 256 285.273 256 267.6C256 249.927 230.928 235.6 200 235.6C169.072 235.6 144 249.927 144 267.6C144 285.273 169.072 299.6 200 299.6Z" fill="#F7F1E8"></path>
+<path id="unpleasant-low--Vector_8" d="M168 314C178.604 314 187.2 308.986 187.2 302.8C187.2 296.615 178.604 291.6 168 291.6C157.396 291.6 148.8 296.615 148.8 302.8C148.8 308.986 157.396 314 168 314Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="unpleasant-low--Vector_9" d="M232 314C242.604 314 251.2 308.986 251.2 302.8C251.2 296.615 242.604 291.6 232 291.6C221.396 291.6 212.8 296.615 212.8 302.8C212.8 308.986 221.396 314 232 314Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="unpleasant-low--Vector_10" d="M168 222.8C173.302 222.8 177.6 218.502 177.6 213.2C177.6 207.898 173.302 203.6 168 203.6C162.698 203.6 158.4 207.898 158.4 213.2C158.4 218.502 162.698 222.8 168 222.8Z" fill="#2F2724"></path>
+<path id="unpleasant-low--Vector_11" d="M170.4 218.8C172.167 218.8 173.6 217.367 173.6 215.6C173.6 213.833 172.167 212.4 170.4 212.4C168.633 212.4 167.2 213.833 167.2 215.6C167.2 217.367 168.633 218.8 170.4 218.8Z" fill="#F7F1E8"></path>
+<path id="unpleasant-low--Vector_12" d="M232 222.8C237.302 222.8 241.6 218.502 241.6 213.2C241.6 207.898 237.302 203.6 232 203.6C226.698 203.6 222.4 207.898 222.4 213.2C222.4 218.502 226.698 222.8 232 222.8Z" fill="#2F2724"></path>
+<path id="unpleasant-low--Vector_13" d="M234.4 218.8C236.167 218.8 237.6 217.367 237.6 215.6C237.6 213.833 236.167 212.4 234.4 212.4C232.633 212.4 231.2 213.833 231.2 215.6C231.2 217.367 232.633 218.8 234.4 218.8Z" fill="#F7F1E8"></path>
+<path id="unpleasant-low--Vector_14" d="M153.6 194C162.133 191.867 170.133 188.667 177.6 184.4" stroke="#2F2724" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="unpleasant-low--Vector_15" d="M246.4 194C237.867 191.867 229.867 188.667 222.4 184.4" stroke="#2F2724" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="unpleasant-low--Vector_16" d="M190.4 238.8C196.8 233.467 203.2 233.467 209.6 238.8" stroke="#2F2724" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="unpleasant-low--Vector_17" d="M156.8 226C160.16 230.8 161.12 233.2 161.12 235.12C161.12 238 159.2 239.44 156.8 239.44C154.4 239.44 152.48 238 152.48 235.12C152.48 233.2 153.44 230.8 156.8 226Z" fill="#587489" stroke="#2F2724" stroke-width="3"></path>
+</g>
+</g>
+</g>
+</svg>
+</template>
+
+<main class="page">
+  <section class="stage">
+    <div class="companion" data-testid="companion" data-mood="pleasant-high" role="img" aria-label="小伙伴，开心">
+      <div class="companion__layers"><div class="companion__layer" data-mood-layer="pleasant-high">
+<svg class="companion__art" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400" fill="none"><g id="companion-pleasant-high">
+<g id="pleasant-high--stage">
+<circle id="pleasant-high--glow" cx="200" cy="200" r="180" fill="#F2B25C" fill-opacity="0.5"></circle>
+<ellipse id="pleasant-high--ground" opacity="0.1" cx="200" cy="340" rx="110" ry="9" fill="black"></ellipse>
+<g id="pleasant-high--character">
+<path id="pleasant-high--Vector" d="M134.4 154C128 114 136 90 152 85.2C166.4 90 182.4 114 185.6 136.4L134.4 154Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="pleasant-high--Vector_2" d="M265.6 154C272 114 264 90 248 85.2C233.6 90 217.6 114 214.4 136.4L265.6 154Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="pleasant-high--Vector_3" d="M145.6 136.4C144 117.2 148.8 104.4 154.4 101.2C161.6 107.6 168 118.8 169.6 130L145.6 136.4Z" fill="#A9442A" fill-opacity="0.35"></path>
+<path id="pleasant-high--Vector_4" d="M254.4 136.4C256 117.2 251.2 104.4 245.6 101.2C238.4 107.6 232 118.8 230.4 130L254.4 136.4Z" fill="#A9442A" fill-opacity="0.35"></path>
+<path id="pleasant-high--Vector_5" d="M294.4 259.6C321.6 254.8 329.6 230.8 316.8 219.6" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="pleasant-high--Vector_6" d="M104 234C104 162 152 123.6 200 123.6C248 123.6 296 162 296 234C296 286 256 306 200 306C144 306 104 286 104 234Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="pleasant-high--Vector_7" d="M200 299.6C230.928 299.6 256 285.273 256 267.6C256 249.927 230.928 235.6 200 235.6C169.072 235.6 144 249.927 144 267.6C144 285.273 169.072 299.6 200 299.6Z" fill="#F7F1E8"></path>
+<path id="pleasant-high--Vector_8" d="M129.6 261.2C138.437 261.2 145.6 253.32 145.6 243.6C145.6 233.88 138.437 226 129.6 226C120.763 226 113.6 233.88 113.6 243.6C113.6 253.32 120.763 261.2 129.6 261.2Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="pleasant-high--Vector_9" d="M270.4 261.2C279.237 261.2 286.4 253.32 286.4 243.6C286.4 233.88 279.237 226 270.4 226C261.563 226 254.4 233.88 254.4 243.6C254.4 253.32 261.563 261.2 270.4 261.2Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="pleasant-high--Vector_10" d="M168 314.8C178.604 314.8 187.2 310.144 187.2 304.4C187.2 298.656 178.604 294 168 294C157.396 294 148.8 298.656 148.8 304.4C148.8 310.144 157.396 314.8 168 314.8Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="pleasant-high--Vector_11" d="M232 314.8C242.604 314.8 251.2 310.144 251.2 304.4C251.2 298.656 242.604 294 232 294C221.396 294 212.8 298.656 212.8 304.4C212.8 310.144 221.396 314.8 232 314.8Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="pleasant-high--Vector_12" d="M142.4 237.2C149.911 237.2 156 233.618 156 229.2C156 224.782 149.911 221.2 142.4 221.2C134.889 221.2 128.8 224.782 128.8 229.2C128.8 233.618 134.889 237.2 142.4 237.2Z" fill="#A9442A" fill-opacity="0.35"></path>
+<path id="pleasant-high--Vector_13" d="M257.6 237.2C265.111 237.2 271.2 233.618 271.2 229.2C271.2 224.782 265.111 221.2 257.6 221.2C250.089 221.2 244 224.782 244 229.2C244 233.618 250.089 237.2 257.6 237.2Z" fill="#A9442A" fill-opacity="0.35"></path>
+<path id="pleasant-high--Vector_14" d="M155.2 211.6C163.733 198.8 172.267 198.8 180.8 211.6" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="pleasant-high--Vector_15" d="M219.2 211.6C227.733 198.8 236.267 198.8 244.8 211.6" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="pleasant-high--Vector_16" d="M184 224.4C194.667 244.667 205.333 244.667 216 224.4H184Z" fill="#2F2724" stroke="#2F2724" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="pleasant-high--Vector_17" d="M200 244.4C203.976 244.4 207.2 242.609 207.2 240.4C207.2 238.191 203.976 236.4 200 236.4C196.024 236.4 192.8 238.191 192.8 240.4C192.8 242.609 196.024 244.4 200 244.4Z" fill="#A9442A" fill-opacity="0.35"></path>
+<path id="pleasant-high--Vector_18" d="M113.6 124.24C114.773 130.107 118.293 133.627 124.16 134.8C118.293 135.973 114.773 139.493 113.6 145.36C112.427 139.493 108.907 135.973 103.04 134.8C108.907 133.627 112.427 130.107 113.6 124.24Z" fill="#F2B25C" stroke="#2F2724" stroke-width="3" stroke-linejoin="round"></path>
+<path id="pleasant-high--Vector_19" d="M294.4 107.6C295.467 112.933 298.667 116.133 304 117.2C298.667 118.267 295.467 121.467 294.4 126.8C293.333 121.467 290.133 118.267 284.8 117.2C290.133 116.133 293.333 112.933 294.4 107.6Z" fill="#F2B25C" stroke="#2F2724" stroke-width="3" stroke-linejoin="round"></path>
+<path id="pleasant-high--Vector_20" d="M312 169.68C312.747 173.413 314.987 175.653 318.72 176.4C314.987 177.147 312.747 179.387 312 183.12C311.253 179.387 309.013 177.147 305.28 176.4C309.013 175.653 311.253 173.413 312 169.68Z" fill="#F2B25C" stroke="#2F2724" stroke-width="3" stroke-linejoin="round"></path>
+</g>
+</g>
+</g>
+</svg>
+</div></div>
+    </div>
+    <p class="companion__caption" aria-hidden="true">小伙伴 · 替你开心</p>
+  </section>
+
+  <section class="talk">
+    <div class="log">
+      
+      <ol class="log__turns" role="log" aria-label="聊天记录"><li class="turn turn--you"><span class="turn__text">今天考试过了，好开心！</span></li><li class="turn turn--reply" data-testid="reply">太好了，努力真的有回报！你最想先跟谁分享这个好消息？</li></ol>
+    </div>
+
+    <div class="composer">
+      <p class="hint" role="status"><svg class="icon hint__icon" aria-hidden="true"><use href="#i-info"></use></svg><span class="hint__text"></span></p>
+      <div class="field">
+        <input class="field__input" data-testid="fake-input" type="text" maxlength="500" autocomplete="off" enterkeyhint="send" placeholder="打字也可以，Enter 发送" aria-label="想对小伙伴说的话">
+        <span class="field__note" aria-hidden="true">（发送中，文字先留着）</span>
+      </div>
+      <button class="talk-button" type="button" aria-disabled="false">
+        <svg class="icon" aria-hidden="true"><use href="#i-mic"></use></svg>
+        <span class="talk-button__label">按住说话</span>
+        <span class="talk-button__bars" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span class="talk-button__help" aria-hidden="true"></span>
+      </button>
+    </div>
+  </section>
+</main>
+
+
+</body></html>

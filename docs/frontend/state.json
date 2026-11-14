@@ -18,8 +18,8 @@
  "primary_user_role": "想在没网或不想上传隐私时倾诉心情的人（先是用户自己）",
  "figma": {
   "file": "https://www.figma.com/design/foHz6I49GOMa5owcWtW7vG/Companion-P0-UI",
-  "budget": 73,
-  "_note": "user 2026-11-14: real calls <= 45; +28 duplicate logged returns (#22) => logged budget 73"
+  "budget": 88,
+  "_note": "user 2026-11-14: real calls <= 60 (raised twice); +28 duplicate logged => 88"
  },
  "models": {
   "orchestrator": "opus",
@@ -41,6 +41,11 @@
    "by": "user",
    "date": "2026-11-14",
    "note": "frames 001-011, palette+type; defaults accepted (interpreted: only item 3 commented); English later -> deferred D-001"
+  },
+  "Prototype": {
+   "decision": "changes",
+   "date": "2026-11-14",
+   "note": "DFB-003 expressions; reply quality -> next Full development run"
   }
  },
  "preview": null,

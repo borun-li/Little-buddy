@@ -1,0 +1,6 @@
+{
+  "selector": "[data-testid=companion]",
+  "elements": [
+    {}
+  ]
+}
