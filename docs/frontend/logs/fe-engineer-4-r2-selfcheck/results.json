@@ -1,0 +1,462 @@
+{
+ "laptop": {
+  "open": {
+   "mood": "neutral",
+   "name": "小伙伴，在听",
+   "caption": "小伙伴 · 在听呢",
+   "layers": 1,
+   "glow": "rgb(230, 218, 202)",
+   "running": [
+    "neutral--tail:sway-8",
+    "neutral--ear-left:twitch-left",
+    "neutral--ear-right:twitch-right",
+    "neutral--body:breathe",
+    "neutral--eyes:blink-4-6"
+   ]
+  },
+  "pleasant-high": {
+   "mood": "pleasant-high",
+   "name": "小伙伴，开心",
+   "caption": "小伙伴 · 替你开心",
+   "layers": 1,
+   "glow": "rgba(242, 178, 92, 0.64)",
+   "mood_at_send": "neutral",
+   "prev": "neutral",
+   "glow_t0": "rgb(230, 218, 202)",
+   "glow_300ms": "rgba(239, 189, 122, 0.71)",
+   "running": [
+    "pleasant-high--arm-left:wave",
+    "pleasant-high--arm-right:wave",
+    "pleasant-high--character:bounce",
+    "pleasant-high--sparkle-1:twinkle",
+    "pleasant-high--sparkle-2:twinkle",
+    "pleasant-high--sparkle-3:twinkle",
+    "pleasant-high--sparkle-4:twinkle",
+    "pleasant-high--sparkle-5:twinkle",
+    "pleasant-high--tail:wag"
+   ],
+   "pivot_drift_px": [
+    {
+     "tail": 0,
+     "arm-left": 0,
+     "arm-right": 0
+    },
+    {
+     "tail": 0,
+     "arm-left": 0,
+     "arm-right": 0
+    },
+    {
+     "tail": 0,
+     "arm-left": 0,
+     "arm-right": 0
+    },
+    {
+     "tail": 0,
+     "arm-left": 0,
+     "arm-right": 0
+    }
+   ]
+  },
+  "pleasant-low": {
+   "mood": "pleasant-low",
+   "name": "小伙伴，安心",
+   "caption": "小伙伴 · 安心陪着你",
+   "layers": 1,
+   "glow": "rgba(242, 178, 92, 0.3)",
+   "mood_at_send": "pleasant-high",
+   "prev": "pleasant-high",
+   "glow_t0": "rgba(242, 178, 92, 0.64)",
+   "glow_300ms": "rgba(242, 178, 92, 0.37)",
+   "running": [
+    "pleasant-low--blush-left:blush",
+    "pleasant-low--blush-right:blush",
+    "pleasant-low--character:sway-3",
+    "pleasant-low--heart:heart-rise",
+    "pleasant-low--tail:flick"
+   ],
+   "pivot_drift_px": [
+    {
+     "tail": 0
+    },
+    {
+     "tail": 0
+    },
+    {
+     "tail": 0
+    },
+    {
+     "tail": 0
+    }
+   ]
+  },
+  "unpleasant-high": {
+   "mood": "unpleasant-high",
+   "name": "小伙伴，担心",
+   "caption": "小伙伴 · 有点替你担心",
+   "layers": 1,
+   "glow": "rgba(88, 116, 137, 0.46)",
+   "mood_at_send": "pleasant-low",
+   "prev": "pleasant-low",
+   "glow_t0": "rgba(242, 178, 92, 0.3)",
+   "glow_300ms": "rgba(109, 125, 131, 0.427)",
+   "running": [
+    "unpleasant-high--character:fidget",
+    "unpleasant-high--eye-left-pupil:glance",
+    "unpleasant-high--eye-right-pupil:glance",
+    "unpleasant-high--paw-left:rub",
+    "unpleasant-high--paw-right:rub",
+    "unpleasant-high--sweat-1:sweat",
+    "unpleasant-high--sweat-2:sweat",
+    "unpleasant-high--tremble:tremble"
+   ]
+  },
+  "unpleasant-low": {
+   "mood": "unpleasant-low",
+   "name": "小伙伴，难过",
+   "caption": "小伙伴 · 陪你难过一会儿",
+   "layers": 1,
+   "glow": "rgba(88, 116, 137, 0.3)",
+   "mood_at_send": "unpleasant-high",
+   "prev": "unpleasant-high",
+   "glow_t0": "rgba(88, 116, 137, 0.46)",
+   "glow_300ms": "rgba(88, 116, 137, 0.333)",
+   "running": [
+    "unpleasant-low--character:slow-breath",
+    "unpleasant-low--ear-left:droop-left",
+    "unpleasant-low--ear-right:droop-right",
+    "unpleasant-low--eyes:blink-slow",
+    "unpleasant-low--tear-drop:tear"
+   ],
+   "pivot_drift_px": [
+    {
+     "ear-left": 0,
+     "ear-right": 0
+    },
+    {
+     "ear-left": 0,
+     "ear-right": 0
+    },
+    {
+     "ear-left": 0.001,
+     "ear-right": 0.001
+    },
+    {
+     "ear-left": 0.001,
+     "ear-right": 0.001
+    }
+   ]
+  },
+  "neutral": {
+   "mood": "neutral",
+   "name": "小伙伴，在听",
+   "caption": "小伙伴 · 在听呢",
+   "layers": 1,
+   "glow": "rgb(230, 218, 202)",
+   "mood_at_send": "unpleasant-low",
+   "prev": "unpleasant-low",
+   "glow_t0": "rgba(88, 116, 137, 0.3)",
+   "glow_300ms": "rgba(220, 211, 198, 0.863)",
+   "running": [
+    "neutral--body:breathe",
+    "neutral--ear-left:twitch-left",
+    "neutral--ear-right:twitch-right",
+    "neutral--eyes:blink-4-6",
+    "neutral--tail:sway-8"
+   ],
+   "pivot_drift_px": [
+    {
+     "tail": 0,
+     "ear-left": 0,
+     "ear-right": 0
+    },
+    {
+     "tail": 0,
+     "ear-left": 0,
+     "ear-right": 0
+    },
+    {
+     "tail": 0,
+     "ear-left": 0,
+     "ear-right": 0
+    },
+    {
+     "tail": 0,
+     "ear-left": 0,
+     "ear-right": 0
+    }
+   ]
+  },
+  "hosts": [
+   "127.0.0.1:4318"
+  ],
+  "console_errors": []
+ },
+ "phone": {
+  "open": {
+   "mood": "neutral",
+   "name": "小伙伴，在听",
+   "caption": "小伙伴 · 在听呢",
+   "layers": 1,
+   "glow": "rgb(230, 218, 202)",
+   "running": [
+    "neutral--tail:sway-8",
+    "neutral--ear-left:twitch-left",
+    "neutral--ear-right:twitch-right",
+    "neutral--body:breathe",
+    "neutral--eyes:blink-4-6"
+   ]
+  },
+  "pleasant-high": {
+   "mood": "pleasant-high",
+   "name": "小伙伴，开心",
+   "caption": "小伙伴 · 替你开心",
+   "layers": 1,
+   "glow": "rgba(242, 178, 92, 0.64)",
+   "mood_at_send": "neutral",
+   "prev": "neutral",
+   "glow_t0": "rgb(230, 218, 202)",
+   "glow_300ms": "rgba(239, 189, 123, 0.71)",
+   "running": [
+    "pleasant-high--arm-left:wave",
+    "pleasant-high--arm-right:wave",
+    "pleasant-high--character:bounce",
+    "pleasant-high--sparkle-1:twinkle",
+    "pleasant-high--sparkle-2:twinkle",
+    "pleasant-high--sparkle-3:twinkle",
+    "pleasant-high--sparkle-4:twinkle",
+    "pleasant-high--sparkle-5:twinkle",
+    "pleasant-high--tail:wag"
+   ],
+   "pivot_drift_px": [
+    {
+     "tail": 0,
+     "arm-left": 0,
+     "arm-right": 0
+    },
+    {
+     "tail": 0,
+     "arm-left": 0,
+     "arm-right": 0
+    },
+    {
+     "tail": 0,
+     "arm-left": 0,
+     "arm-right": 0
+    },
+    {
+     "tail": 0,
+     "arm-left": 0,
+     "arm-right": 0
+    }
+   ]
+  },
+  "pleasant-low": {
+   "mood": "pleasant-low",
+   "name": "小伙伴，安心",
+   "caption": "小伙伴 · 安心陪着你",
+   "layers": 1,
+   "glow": "rgba(242, 178, 92, 0.3)",
+   "mood_at_send": "pleasant-high",
+   "prev": "pleasant-high",
+   "glow_t0": "rgba(242, 178, 92, 0.64)",
+   "glow_300ms": "rgba(242, 178, 92, 0.37)",
+   "running": [
+    "pleasant-low--blush-left:blush",
+    "pleasant-low--blush-right:blush",
+    "pleasant-low--character:sway-3",
+    "pleasant-low--heart:heart-rise",
+    "pleasant-low--tail:flick"
+   ],
+   "pivot_drift_px": [
+    {
+     "tail": 0
+    },
+    {
+     "tail": 0
+    },
+    {
+     "tail": 0
+    },
+    {
+     "tail": 0
+    }
+   ]
+  },
+  "unpleasant-high": {
+   "mood": "unpleasant-high",
+   "name": "小伙伴，担心",
+   "caption": "小伙伴 · 有点替你担心",
+   "layers": 1,
+   "glow": "rgba(88, 116, 137, 0.46)",
+   "mood_at_send": "pleasant-low",
+   "prev": "pleasant-low",
+   "glow_t0": "rgba(242, 178, 92, 0.3)",
+   "glow_300ms": "rgba(109, 125, 131, 0.427)",
+   "running": [
+    "unpleasant-high--character:fidget",
+    "unpleasant-high--eye-left-pupil:glance",
+    "unpleasant-high--eye-right-pupil:glance",
+    "unpleasant-high--paw-left:rub",
+    "unpleasant-high--paw-right:rub",
+    "unpleasant-high--sweat-1:sweat",
+    "unpleasant-high--sweat-2:sweat",
+    "unpleasant-high--tremble:tremble"
+   ]
+  },
+  "unpleasant-low": {
+   "mood": "unpleasant-low",
+   "name": "小伙伴，难过",
+   "caption": "小伙伴 · 陪你难过一会儿",
+   "layers": 1,
+   "glow": "rgba(88, 116, 137, 0.3)",
+   "mood_at_send": "unpleasant-high",
+   "prev": "unpleasant-high",
+   "glow_t0": "rgba(88, 116, 137, 0.46)",
+   "glow_300ms": "rgba(88, 116, 137, 0.333)",
+   "running": [
+    "unpleasant-low--character:slow-breath",
+    "unpleasant-low--ear-left:droop-left",
+    "unpleasant-low--ear-right:droop-right",
+    "unpleasant-low--eyes:blink-slow",
+    "unpleasant-low--tear-drop:tear"
+   ],
+   "pivot_drift_px": [
+    {
+     "ear-left": 0,
+     "ear-right": 0
+    },
+    {
+     "ear-left": 0,
+     "ear-right": 0
+    },
+    {
+     "ear-left": 0,
+     "ear-right": 0
+    },
+    {
+     "ear-left": 0,
+     "ear-right": 0
+    }
+   ]
+  },
+  "neutral": {
+   "mood": "neutral",
+   "name": "小伙伴，在听",
+   "caption": "小伙伴 · 在听呢",
+   "layers": 1,
+   "glow": "rgb(230, 218, 202)",
+   "mood_at_send": "unpleasant-low",
+   "prev": "unpleasant-low",
+   "glow_t0": "rgba(88, 116, 137, 0.3)",
+   "glow_300ms": "rgba(220, 211, 198, 0.863)",
+   "running": [
+    "neutral--body:breathe",
+    "neutral--ear-left:twitch-left",
+    "neutral--ear-right:twitch-right",
+    "neutral--eyes:blink-4-6",
+    "neutral--tail:sway-8"
+   ],
+   "pivot_drift_px": [
+    {
+     "tail": 0,
+     "ear-left": 0,
+     "ear-right": 0
+    },
+    {
+     "tail": 0,
+     "ear-left": 0,
+     "ear-right": 0
+    },
+    {
+     "tail": 0,
+     "ear-left": 0,
+     "ear-right": 0
+    },
+    {
+     "tail": 0,
+     "ear-left": 0,
+     "ear-right": 0
+    }
+   ]
+  },
+  "hosts": [
+   "127.0.0.1:4318"
+  ],
+  "console_errors": []
+ },
+ "laptop-reduce": {
+  "open": {
+   "mood": "neutral",
+   "name": "小伙伴，在听",
+   "caption": "小伙伴 · 在听呢",
+   "layers": 1,
+   "glow": "rgb(230, 218, 202)",
+   "running": []
+  },
+  "pleasant-high": {
+   "mood": "pleasant-high",
+   "name": "小伙伴，开心",
+   "caption": "小伙伴 · 替你开心",
+   "layers": 1,
+   "glow": "rgba(242, 178, 92, 0.64)",
+   "mood_at_send": "neutral",
+   "prev": "neutral",
+   "glow_t0": "rgba(242, 178, 92, 0.64)",
+   "glow_300ms": "rgba(242, 178, 92, 0.64)",
+   "running": []
+  },
+  "pleasant-low": {
+   "mood": "pleasant-low",
+   "name": "小伙伴，安心",
+   "caption": "小伙伴 · 安心陪着你",
+   "layers": 1,
+   "glow": "rgba(242, 178, 92, 0.3)",
+   "mood_at_send": "pleasant-high",
+   "prev": "pleasant-high",
+   "glow_t0": "rgba(242, 178, 92, 0.3)",
+   "glow_300ms": "rgba(242, 178, 92, 0.3)",
+   "running": []
+  },
+  "unpleasant-high": {
+   "mood": "unpleasant-high",
+   "name": "小伙伴，担心",
+   "caption": "小伙伴 · 有点替你担心",
+   "layers": 1,
+   "glow": "rgba(88, 116, 137, 0.46)",
+   "mood_at_send": "pleasant-low",
+   "prev": "pleasant-low",
+   "glow_t0": "rgba(88, 116, 137, 0.46)",
+   "glow_300ms": "rgba(88, 116, 137, 0.46)",
+   "running": []
+  },
+  "unpleasant-low": {
+   "mood": "unpleasant-low",
+   "name": "小伙伴，难过",
+   "caption": "小伙伴 · 陪你难过一会儿",
+   "layers": 1,
+   "glow": "rgba(88, 116, 137, 0.3)",
+   "mood_at_send": "unpleasant-high",
+   "prev": "unpleasant-high",
+   "glow_t0": "rgba(88, 116, 137, 0.3)",
+   "glow_300ms": "rgba(88, 116, 137, 0.3)",
+   "running": []
+  },
+  "neutral": {
+   "mood": "neutral",
+   "name": "小伙伴，在听",
+   "caption": "小伙伴 · 在听呢",
+   "layers": 1,
+   "glow": "rgb(230, 218, 202)",
+   "mood_at_send": "unpleasant-low",
+   "prev": "unpleasant-low",
+   "glow_t0": "rgb(230, 218, 202)",
+   "glow_300ms": "rgb(230, 218, 202)",
+   "running": []
+  },
+  "hosts": [
+   "127.0.0.1:4318"
+  ],
+  "console_errors": []
+ }
+}

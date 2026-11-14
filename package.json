@@ -1,0 +1,10 @@
+{
+  "name": "companion-page",
+  "private": true,
+  "type": "module",
+  "description": "Offline emotional companion page (P0 prototype, fake data)",
+  "scripts": {
+    "start": "python3 -m http.server 4317 --bind 127.0.0.1 --directory web",
+    "test": "mkdir -p test-results && node --test --test-reporter=spec --test-reporter-destination=stdout --test-reporter=junit --test-reporter-destination=test-results/junit.xml tests/mood.test.js tests/fake-companion.test.js tests/offline.test.js tests/companion.test.js"
+  }
+}

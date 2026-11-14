@@ -1,0 +1,30 @@
+
+> test
+> mkdir -p test-results && node --test --test-reporter=spec --test-reporter-destination=stdout --test-reporter=junit --test-reporter-destination=test-results/junit.xml tests/mood.test.js tests/fake-companion.test.js tests/offline.test.js
+
+✔ Q-005 respond returns the line mood and a reply from that mood (4.531166ms)
+✔ Q-005 REQ-003 the default layer replies within 1 s (602.393667ms)
+✔ Q-005 A3 at least 2 replies per mood, each <= 2 sentences, <= 1 question, <= 120 chars (1.348042ms)
+✔ Q-005 A3 never the same reply twice in a row (17.369041ms)
+✔ Q-005 A1 transcribe walks the voice lines and covers all 5 moods (1.42425ms)
+✔ Q-005 REQ-007 app.js is the only importer of companion-client.js (1.972209ms)
+✔ Q-005 REQ-007 nothing outside companion-client.js and fake/ imports fake/ (0.59375ms)
+✔ Q-005 every keyword maps to its own mood (1.25ms)
+✔ Q-005 the four keyword moods and neutral are the 5 demo mood ids (0.315125ms)
+✔ Q-005 no keyword -> neutral (0.071792ms)
+✔ Q-005 the last keyword in the line wins (0.046458ms)
+✔ Q-005 a longer keyword ending at the same place wins (不开心 is sad, not happy) (0.043958ms)
+✔ Q-005 demo lines: happy line smiles, sad line is sad (0.042292ms)
+✔ Q-006 REQ-008 there are page files to check (0.2975ms)
+✔ Q-006 REQ-008 no page file names a host other than localhost (1.319541ms)
+✔ Q-006 REQ-008 every src, href and CSS url() points to a local file that exists (0.870042ms)
+✔ Q-006 the voice font is the bundled WenKai subset, shipped with its licence (0.547375ms)
+✔ Q-006 icons referenced with <use href="#..."> are inline symbols (0.752958ms)
+ℹ tests 18
+ℹ suites 0
+ℹ pass 18
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 670.862459

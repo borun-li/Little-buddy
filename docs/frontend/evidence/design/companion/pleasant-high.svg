@@ -1,0 +1,69 @@
+<svg width="400" height="400" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="companion-pleasant-high">
+<g id="stage">
+<path id="glow" d="M380 200C380 299.4 299.4 380 200 380C100.6 380 20 299.4 20 200C20 100.6 100.6 20 200 20C299.4 20 380 100.6 380 200Z" fill="#F2B25C" fill-opacity="0.64"/>
+<path id="ground" opacity="0.06" d="M272 340C272 345 239.8 349 200 349C160.2 349 128 345 128 340C128 335 160.2 331 200 331C239.8 331 272 335 272 340Z" fill="black"/>
+<g id="character">
+<g id="tail">
+<path id="tail-line" d="M288 220C330 210 338 156 318 136" stroke="#2F2724" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="tail-fur" d="M288 220C330 210 338 156 318 136" stroke="#F2B25C" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+<g id="arms">
+<g id="arm-left">
+<path id="arm-left-line" d="M122 192C106 166 98 140 96 110" stroke="#2F2724" stroke-width="30" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="arm-left-fur" d="M122 192C106 166 98 140 96 110" stroke="#F2B25C" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="paw-left" d="M112 102C112 110.8 104.8 118 96 118C87.2 118 80 110.8 80 102C80 93.2 87.2 86 96 86C104.8 86 112 93.2 112 102Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+<g id="arm-right">
+<path id="arm-right-line" d="M278 192C294 166 302 140 304 110" stroke="#2F2724" stroke-width="30" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="arm-right-fur" d="M278 192C294 166 302 140 304 110" stroke="#F2B25C" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="paw-right" d="M320 102C320 110.8 312.8 118 304 118C295.2 118 288 110.8 288 102C288 93.2 295.2 86 304 86C312.8 86 320 93.2 320 102Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+</g>
+<g id="ears">
+<g id="ear-left">
+<path id="ear-left-fur" d="M132.6 126.7C114.8 85 117 56.7 133.1 47.2C150.1 48.5 173.9 70.1999 183.5 93.6999L132.6 126.7Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="ear-left-inner" d="M140 104.6C133.1 84.0999 134.8 68.8999 140 63.8999C149.6 68.8999 159.6 79.3999 164.4 91.0999L140 104.6Z" fill="#A9442A" fill-opacity="0.35"/>
+</g>
+<g id="ear-right">
+<path id="ear-right-fur" d="M267.4 126.7C285.2 85 283 56.7 266.9 47.2C249.9 48.5 226.1 70.1999 216.5 93.6999L267.4 126.7Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="ear-right-inner" d="M260 104.6C266.9 84.0999 265.2 68.8999 260 63.8999C250.4 68.8999 240.4 79.3999 235.6 91.0999L260 104.6Z" fill="#A9442A" fill-opacity="0.35"/>
+</g>
+</g>
+<g id="body">
+<path id="body-fur" d="M106 204C106 126.1 153 86 200 86C247 86 294 126.1 294 204C294 255.8 254.8 276 200 276C145.2 276 106 255.8 106 204Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="belly" d="M256 238C256 255.7 230.9 270 200 270C169.1 270 144 255.7 144 238C144 220.3 169.1 206 200 206C230.9 206 256 220.3 256 238Z" fill="#F7F1E8"/>
+</g>
+<g id="face">
+<g id="brows">
+<path id="brow-left" d="M152 142C160.7 135.3 169.3 134 178 138" stroke="#2F2724" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="brow-right" d="M222 138C230.7 134 239.3 135.3 248 142" stroke="#2F2724" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+<g id="eyes">
+<path id="eye-left" d="M152 176C161.3 160 170.7 160 180 176" stroke="#2F2724" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="eye-right" d="M220 176C229.3 160 238.7 160 248 176" stroke="#2F2724" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+<g id="mouth">
+<path id="mouth-open" d="M176 190H224C224 214 214 228 200 228C186 228 176 214 176 190Z" fill="#2F2724" stroke="#2F2724" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="tongue" d="M187 221C190 212 210 212 213 221C206 227 194 227 187 221Z" fill="#A9442A"/>
+</g>
+<g id="blush">
+<path id="blush-left" d="M155 228C155 233.5 147.4 238 138 238C128.6 238 121 233.5 121 228C121 222.5 128.6 218 138 218C147.4 218 155 222.5 155 228Z" fill="#A9442A" fill-opacity="0.6"/>
+<path id="blush-right" d="M279 228C279 233.5 271.4 238 262 238C252.6 238 245 233.5 245 228C245 222.5 252.6 218 262 218C271.4 218 279 222.5 279 228Z" fill="#A9442A" fill-opacity="0.6"/>
+</g>
+</g>
+<g id="paws">
+<path id="foot-left" d="M182.2 268.7C184 274.5 178.3 281.6 169.4 284.5C160.5 287.4 151.7 285 149.8 279.3C148 273.5 153.7 266.4 162.6 263.5C171.5 260.6 180.3 263 182.2 268.7Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="foot-right" d="M250.2 279.3C248.3 285 239.5 287.4 230.6 284.5C221.7 281.6 216 274.5 217.8 268.7C219.7 263 228.5 260.6 237.4 263.5C246.3 266.4 252 273.5 250.2 279.3Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+<g id="sparkles">
+<path id="sparkle-1" d="M58 77C60.2 84.8 65.2 89.8 73 92C65.2 94.2 60.2 99.2 58 107C55.8 99.2 50.8 94.2 43 92C50.8 89.8 55.8 84.8 58 77Z" fill="#2F2724"/>
+<path id="sparkle-2" d="M340 52C342.6 61.4 348.6 67.4 358 70C348.6 72.6 342.6 78.6 340 88C337.4 78.6 331.4 72.6 322 70C331.4 67.4 337.4 61.4 340 52Z" fill="#2F2724"/>
+<path id="sparkle-3" d="M82 201C83.3 205.7 86.3 208.7 91 210C86.3 211.3 83.3 214.3 82 219C80.7 214.3 77.7 211.3 73 210C77.7 208.7 80.7 205.7 82 201Z" fill="#2F2724"/>
+<path id="sparkle-4" d="M352 176C353.5 181.2 356.8 184.5 362 186C356.8 187.5 353.5 190.8 352 196C350.5 190.8 347.2 187.5 342 186C347.2 184.5 350.5 181.2 352 176Z" fill="#2F2724"/>
+<path id="sparkle-5" d="M200 33C201.6 38.7 205.3 42.4 211 44C205.3 45.6 201.6 49.3 200 55C198.4 49.3 194.7 45.6 189 44C194.7 42.4 198.4 38.7 200 33Z" fill="#2F2724"/>
+</g>
+</g>
+</g>
+</g>
+</svg>

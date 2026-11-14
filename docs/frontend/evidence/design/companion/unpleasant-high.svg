@@ -1,0 +1,69 @@
+<svg width="400" height="400" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="companion-unpleasant-high">
+<g id="stage">
+<path id="glow" d="M380 200C380 299.4 299.4 380 200 380C100.6 380 20 299.4 20 200C20 100.6 100.6 20 200 20C299.4 20 380 100.6 380 200Z" fill="#587489" fill-opacity="0.46"/>
+<path id="ground" opacity="0.12" d="M316 340C316 345 264.1 349 200 349C135.9 349 84 345 84 340C84 335 135.9 331 200 331C264.1 331 316 335 316 340Z" fill="black"/>
+<g id="character">
+<g id="tail">
+<path id="tail-line" d="M286 290C302 296 310 306 306 318" stroke="#2F2724" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="tail-fur" d="M286 290C302 296 310 306 306 318" stroke="#F2B25C" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+<g id="ears">
+<g id="ear-left">
+<path id="ear-left-fur" d="M138.6 170.2C139.2 131.7 150.6 110.6 166.4 108.7C179.1 115.6 190.1 140.7 189.4 162.2L138.6 170.2Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="ear-left-inner" d="M151.9 155.6C153.6 137.4 160.2 126.2 166 124.1C171.7 131.3 175.8 142.8 175.5 153.6L151.9 155.6Z" fill="#A9442A" fill-opacity="0.35"/>
+</g>
+<g id="ear-right">
+<path id="ear-right-fur" d="M261.4 170.2C260.8 131.7 249.4 110.6 233.6 108.7C220.9 115.6 209.9 140.7 210.6 162.2L261.4 170.2Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="ear-right-inner" d="M248.1 155.6C246.4 137.4 239.8 126.2 234 124.1C228.3 131.3 224.2 142.8 224.5 153.6L248.1 155.6Z" fill="#A9442A" fill-opacity="0.35"/>
+</g>
+</g>
+<g id="body">
+<path id="body-fur" d="M96 244C96 179.3 148 146 200 146C252 146 304 179.3 304 244C300 288.6 258.3 306 200 306C141.7 306 100 288.6 96 244Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="belly" d="M256 276C256 291.5 230.9 304 200 304C169.1 304 144 291.5 144 276C144 260.5 169.1 248 200 248C230.9 248 256 260.5 256 276Z" fill="#F7F1E8"/>
+</g>
+<g id="face">
+<g id="brows">
+<path id="brow-left" d="M148 192C158.7 188 169.3 181.3 180 172" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="brow-right" d="M220 172C230.7 181.3 241.3 188 252 192" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+<g id="eyes">
+<g id="eye-left">
+<path id="eye-left-white" d="M188 214C188 224.5 179.9 233 170 233C160.1 233 152 224.5 152 214C152 203.5 160.1 195 170 195C179.9 195 188 203.5 188 214Z" fill="#F7F1E8" stroke="#2F2724" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="eye-left-pupil" d="M178.5 212C178.5 215.6 175.6 218.5 172 218.5C168.4 218.5 165.5 215.6 165.5 212C165.5 208.4 168.4 205.5 172 205.5C175.6 205.5 178.5 208.4 178.5 212Z" fill="#2F2724"/>
+</g>
+<g id="eye-right">
+<path id="eye-right-white" d="M248 214C248 224.5 239.9 233 230 233C220.1 233 212 224.5 212 214C212 203.5 220.1 195 230 195C239.9 195 248 203.5 248 214Z" fill="#F7F1E8" stroke="#2F2724" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="eye-right-pupil" d="M234.5 212C234.5 215.6 231.6 218.5 228 218.5C224.4 218.5 221.5 215.6 221.5 212C221.5 208.4 224.4 205.5 228 205.5C231.6 205.5 234.5 208.4 234.5 212Z" fill="#2F2724"/>
+</g>
+</g>
+<g id="mouth">
+<path id="mouth-line" d="M182 244C184.7 240 187.7 240 191 244C194 248 197 248 200 244C203 240 206 240 209 244C212.3 248 215.3 248 218 244" stroke="#2F2724" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+</g>
+<g id="paws">
+<path id="paw-left" d="M206 270C206 279.4 197 287 186 287C175 287 166 279.4 166 270C166 260.6 175 253 186 253C197 253 206 260.6 206 270Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="paw-right" d="M234 270C234 279.4 225 287 214 287C203 287 194 279.4 194 270C194 260.6 203 253 214 253C225 253 234 260.6 234 270Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="foot-left" d="M188 306C188 311.5 179.9 316 170 316C160.1 316 152 311.5 152 306C152 300.5 160.1 296 170 296C179.9 296 188 300.5 188 306Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="foot-right" d="M248 306C248 311.5 239.9 316 230 316C220.1 316 212 311.5 212 306C212 300.5 220.1 296 230 296C239.9 296 248 300.5 248 306Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+<g id="sweat">
+<g id="sweat-1">
+<path id="sweat-1-fill" d="M286 138.9C291.5 148.8 297 154.3 297 162C297 168.1 292.1 173 286 173C279.9 173 275 168.1 275 162C275 154.3 280.5 148.8 286 138.9Z" fill="#587489" stroke="#2F2724" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="sweat-1-shine" d="M284.6 160.3C284.6 162.2 283.5 163.7 282.1 163.7C280.8 163.7 279.7 162.2 279.7 160.3C279.7 158.5 280.8 157 282.1 157C283.5 157 284.6 158.5 284.6 160.3Z" fill="#F7F1E8"/>
+</g>
+<g id="sweat-2">
+<path id="sweat-2-fill" d="M120 170.2C123.8 177 127.5 180.8 127.5 186C127.5 190.1 124.1 193.5 120 193.5C115.9 193.5 112.5 190.1 112.5 186C112.5 180.8 116.2 177 120 170.2Z" fill="#587489" stroke="#2F2724" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="sweat-2-shine" d="M119 184.9C119 186.1 118.3 187.1 117.4 187.1C116.5 187.1 115.7 186.1 115.7 184.9C115.7 183.6 116.5 182.6 117.4 182.6C118.3 182.6 119 183.6 119 184.9Z" fill="#F7F1E8"/>
+</g>
+</g>
+<g id="tremble">
+<path id="tremble-left-1" d="M80 222C74.7 234 74.7 246 80 258" stroke="#2F2724" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="tremble-left-2" d="M64 214C57.3 231.3 57.3 248.7 64 266" stroke="#2F2724" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="tremble-right-1" d="M320 222C325.3 234 325.3 246 320 258" stroke="#2F2724" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="tremble-right-2" d="M336 214C342.7 231.3 342.7 248.7 336 266" stroke="#2F2724" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+</g>
+</g>
+</g>
+</svg>

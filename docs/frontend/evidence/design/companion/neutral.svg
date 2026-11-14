@@ -1,0 +1,55 @@
+<svg width="400" height="400" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="companion-neutral">
+<g id="stage">
+<path id="glow" d="M380 200C380 299.4 299.4 380 200 380C100.6 380 20 299.4 20 200C20 100.6 100.6 20 200 20C299.4 20 380 100.6 380 200Z" fill="#E6DACA"/>
+<path id="ground" opacity="0.1" d="M310 340C310 345 260.8 349 200 349C139.2 349 90 345 90 340C90 335 139.2 331 200 331C260.8 331 310 335 310 340Z" fill="black"/>
+<g id="character">
+<g id="tail">
+<path id="tail-line" d="M290 262C322 258 334 230 318 214" stroke="#2F2724" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="tail-fur" d="M290 262C322 258 334 230 318 214" stroke="#F2B25C" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+<g id="ears">
+<g id="ear-left">
+<path id="ear-left-fur" d="M134.4 154C128 114 136 90 152 85.2C166.4 90 182.4 114 185.6 136.4L134.4 154Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="ear-left-inner" d="M145.6 136.4C144 117.2 148.8 104.4 154.4 101.2C161.6 107.6 168 118.8 169.6 130L145.6 136.4Z" fill="#A9442A" fill-opacity="0.35"/>
+</g>
+<g id="ear-right">
+<path id="ear-right-fur" d="M265.6 154C272 114 264 90 248 85.2C233.6 90 217.6 114 214.4 136.4L265.6 154Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="ear-right-inner" d="M254.4 136.4C256 117.2 251.2 104.4 245.6 101.2C238.4 107.6 232 118.8 230.4 130L254.4 136.4Z" fill="#A9442A" fill-opacity="0.35"/>
+</g>
+</g>
+<g id="body">
+<path id="body-fur" d="M104 234C104 161.1 152 123.6 200 123.6C248 123.6 296 161.1 296 234C296 285.8 256 306 200 306C144 306 104 285.8 104 234Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="belly" d="M256 267.6C256 285.3 230.9 299.6 200 299.6C169.1 299.6 144 285.3 144 267.6C144 249.9 169.1 235.6 200 235.6C230.9 235.6 256 249.9 256 267.6Z" fill="#F7F1E8"/>
+</g>
+<g id="face">
+<g id="brows">
+<path id="brow-left" d="M156 182C162.7 178 169.3 177.3 176 180" stroke="#2F2724" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="brow-right" d="M224 180C230.7 177.3 237.3 178 244 182" stroke="#2F2724" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+<g id="eyes">
+<g id="eye-left">
+<path id="eye-left-pupil" d="M178.4 205.2C178.4 210.9 173.7 215.6 168 215.6C162.3 215.6 157.6 210.9 157.6 205.2C157.6 199.5 162.3 194.8 168 194.8C173.7 194.8 178.4 199.5 178.4 205.2Z" fill="#2F2724"/>
+<path id="eye-left-shine" d="M174.4 201.2C174.4 203 173 204.5 171.2 204.5C169.4 204.5 168 203 168 201.2C168 199.5 169.4 198 171.2 198C173 198 174.4 199.5 174.4 201.2Z" fill="#F7F1E8"/>
+</g>
+<g id="eye-right">
+<path id="eye-right-pupil" d="M242.4 205.2C242.4 210.9 237.7 215.6 232 215.6C226.3 215.6 221.6 210.9 221.6 205.2C221.6 199.5 226.3 194.8 232 194.8C237.7 194.8 242.4 199.5 242.4 205.2Z" fill="#2F2724"/>
+<path id="eye-right-shine" d="M238.4 201.2C238.4 203 237 204.5 235.2 204.5C233.4 204.5 232 203 232 201.2C232 199.5 233.4 198 235.2 198C237 198 238.4 199.5 238.4 201.2Z" fill="#F7F1E8"/>
+</g>
+</g>
+<g id="mouth">
+<path id="mouth-line" d="M188.8 227.6C192.5 231.9 196.3 232.1 200 228.4C203.7 232.1 207.5 231.9 211.2 227.6" stroke="#2F2724" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+<g id="blush">
+<path id="blush-left" d="M156 229.2C156 233.6 149.9 237.2 142.4 237.2C134.9 237.2 128.8 233.6 128.8 229.2C128.8 224.8 134.9 221.2 142.4 221.2C149.9 221.2 156 224.8 156 229.2Z" fill="#A9442A" fill-opacity="0.2"/>
+<path id="blush-right" d="M271.2 229.2C271.2 233.6 265.1 237.2 257.6 237.2C250.1 237.2 244 233.6 244 229.2C244 224.8 250.1 221.2 257.6 221.2C265.1 221.2 271.2 224.8 271.2 229.2Z" fill="#A9442A" fill-opacity="0.2"/>
+</g>
+</g>
+<g id="paws">
+<path id="paw-left" d="M187.2 302.8C187.2 309 178.6 314 168 314C157.4 314 148.8 309 148.8 302.8C148.8 296.6 157.4 291.6 168 291.6C178.6 291.6 187.2 296.6 187.2 302.8Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="paw-right" d="M251.2 302.8C251.2 309 242.6 314 232 314C221.4 314 212.8 309 212.8 302.8C212.8 296.6 221.4 291.6 232 291.6C242.6 291.6 251.2 296.6 251.2 302.8Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+</g>
+</g>
+</g>
+</svg>

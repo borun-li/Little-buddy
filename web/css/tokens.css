@@ -1,0 +1,51 @@
+/* docs/frontend/02-ui.md §3 tokens. Components use the semantic layer only. */
+
+@font-face {
+  /* LXGW WenKai Regular, local subset (OFL-1.1, see ../fonts/OFL.txt). Built by tools/subset-font.sh. */
+  font-family: "LXGW WenKai Web";
+  src: url("../fonts/lxgw-wenkai-subset.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  /* primitives */
+  --color-oat: #F7F1E8;
+  --color-cocoa: #2F2724;
+  --color-linen: #E6DACA;
+  --color-ember: #A9442A;
+  --color-honey: #F2B25C;
+  --color-tide: #587489;
+  --color-cocoa-72: rgb(47 39 36 / 0.72);
+  --color-cocoa-55: rgb(47 39 36 / 0.55);
+  --color-ember-pressed: #8A3D28;
+  --color-ember-35: rgb(169 68 42 / 0.35);
+
+  /* semantic */
+  --color-surface-page: var(--color-oat);
+  --color-text-primary: var(--color-cocoa);
+  --color-text-muted: var(--color-cocoa-72);
+  --color-text-on-action: var(--color-oat);
+  --color-border-default: var(--color-linen);
+  --color-border-control: var(--color-cocoa-55);
+  --color-turn-you-bg: var(--color-linen);
+  --color-turn-reply-rule: var(--color-honey);
+  --color-action-primary: var(--color-ember);
+  --color-action-pressed: var(--color-ember-pressed);
+  --color-focus-ring: var(--color-cocoa);
+  --color-hint-icon: var(--color-tide);
+
+  --space-4: 4px;
+  --space-8: 8px;
+  --space-12: 12px;
+  --space-16: 16px;
+  --space-24: 24px;
+  --space-32: 32px;
+  --space-40: 40px;
+  --space-48: 48px;
+  --radius-control: 6px;
+
+  --font-voice: "LXGW WenKai Web", "Kaiti SC", "STKaiti", serif;
+  --font-ui: "PingFang SC", "Noto Sans SC", system-ui, sans-serif;
+}

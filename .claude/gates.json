@@ -1,0 +1,16 @@
+{
+ "stack": "static html + vanilla js (node:test)",
+ "commands": {
+  "build": null,
+  "lint": null,
+  "typecheck": null,
+  "test": "npm test"
+ },
+ "confirmed": true,
+ "confirmed_on": "2026-11-14",
+ "_note": "test command added 2026-11-14 per user approval (baseline waiver of CMD.test removed); confirmed by orchestrator after running it green.",
+ "junit": "test-results/junit.xml",
+ "git": {
+  "push": true
+ }
+}

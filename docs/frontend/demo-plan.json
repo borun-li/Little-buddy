@@ -1,0 +1,98 @@
+{
+ "_goal": "Local web page walks 'talk -> reply appears -> companion mood follows' with fake data; a happy line makes it smile, a sad line makes it sad with you.",
+ "_selectors": "fe-engineer must expose these data-testid hooks: fake-input (text fallback for the utterance), reply (latest companion reply), companion (the character, with data-mood=<pleasant-high|pleasant-low|unpleasant-high|unpleasant-low|neutral>).",
+ "surface": "web",
+ "base_url": "http://localhost:4317",
+ "sizes": [
+  {
+   "name": "laptop",
+   "width": 1440,
+   "height": 900
+  },
+  {
+   "name": "phone",
+   "width": 390,
+   "height": 844
+  }
+ ],
+ "captures": [
+  {
+   "id": "open",
+   "url": "/",
+   "steps": [
+    {
+     "action": "wait",
+     "ms": 800
+    }
+   ],
+   "styles": {
+    "selector": "[data-testid=companion]",
+    "props": [
+     "background-color"
+    ]
+   }
+  },
+  {
+   "id": "happy-turn",
+   "url": "/",
+   "steps": [
+    {
+     "action": "fill",
+     "selector": "[data-testid=fake-input]",
+     "value": "今天考试过了，好开心！"
+    },
+    {
+     "action": "press",
+     "selector": "[data-testid=fake-input]",
+     "key": "Enter"
+    },
+    {
+     "action": "waitFor",
+     "selector": "[data-testid=reply]"
+    },
+    {
+     "action": "wait",
+     "ms": 1500
+    }
+   ]
+  },
+  {
+   "id": "sad-turn",
+   "url": "/",
+   "steps": [
+    {
+     "action": "fill",
+     "selector": "[data-testid=fake-input]",
+     "value": "今天考试过了，好开心！"
+    },
+    {
+     "action": "press",
+     "selector": "[data-testid=fake-input]",
+     "key": "Enter"
+    },
+    {
+     "action": "waitFor",
+     "selector": "[data-testid=reply]"
+    },
+    {
+     "action": "wait",
+     "ms": 1500
+    },
+    {
+     "action": "fill",
+     "selector": "[data-testid=fake-input]",
+     "value": "可是晚上和朋友吵架了，有点难过。"
+    },
+    {
+     "action": "press",
+     "selector": "[data-testid=fake-input]",
+     "key": "Enter"
+    },
+    {
+     "action": "wait",
+     "ms": 2500
+    }
+   ]
+  }
+ ]
+}

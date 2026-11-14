@@ -1,0 +1,33 @@
+{
+  "time": "2026-11-14T20:15:54Z",
+  "head": "672924259a9a5fe1639981952c2b8039b94fc3cc",
+  "snapshot": {
+    ".claude/gates.json": "23879234e5a4d8028f5fced98ae83066890c367b",
+    ".claude/project-context.md": "95ffb2189fb6577ab35c4bddf715298a2b47bcff",
+    ".gitignore": "5307701c55ddcac68e14c93df554c0ea9b4fa052",
+    "contracts/FRONTEND_BACKEND_CONTRACT.md": "be1c6b821465ddbf8eb07848585c05c5f09c89a1",
+    "docs/frontend/00-requirements.md": "565273b1c7e9870a08c46b71478b9bbe84447094",
+    "docs/frontend/01-ux.md": "56a16d16fb23f3db7819654db37b9604ac41bff7",
+    "docs/frontend/02-ui.md": "3f21c263cb5b07106935112154e394ee67b82cb7",
+    "docs/frontend/demo-plan.json": "122592e9cd33e5a1749c172f4eb18e34b25c11fc",
+    "docs/frontend/evidence/demo-before/happy-turn@laptop.png": "ae8dc53bc9f41495bffa0f01487e51f09ff3019b",
+    "docs/frontend/evidence/demo-before/happy-turn@phone.png": "de48a6ec3e206ad7f9bc723092ac3eb4726c36f6",
+    "docs/frontend/evidence/demo-before/manifest.json": "65590d90aa9d0a4603b3d46e19b3be1a329e027f",
+    "docs/frontend/evidence/demo-before/manifest.md": "4f3fa9e5f66329c7b036789c15656cc7561e505c",
+    "docs/frontend/evidence/demo-before/open@laptop.png": "ae8dc53bc9f41495bffa0f01487e51f09ff3019b",
+    "docs/frontend/evidence/demo-before/open@phone.png": "de48a6ec3e206ad7f9bc723092ac3eb4726c36f6",
+    "docs/frontend/evidence/demo-before/sad-turn@laptop.png": "ae8dc53bc9f41495bffa0f01487e51f09ff3019b",
+    "docs/frontend/evidence/demo-before/sad-turn@phone.png": "de48a6ec3e206ad7f9bc723092ac3eb4726c36f6",
+    "docs/frontend/handoff.md": "626181d0c5652fc69d2d2ec07b48bfef0a73c8be",
+    "docs/frontend/run-log.jsonl": "bd1e5e2a61e7d0c6c79db5ad4b091006ab877344",
+    "docs/frontend/state.json": "24d09ecf2994de1b43cd898ea476d00cfca0d7bc",
+    "idea.md": "6c6892a341baa85c44782bfdab3d9e8b0e8e8915",
+    "spikes/argmax-swift/Package.resolved": "98e24b069e5820ef7e17006fd3c3af3d692980bd",
+    "spikes/argmax-swift/Package.swift": "1be53234e577a5913529c03513432ab4a74635b5",
+    "spikes/argmax-swift/Sources/ArgmaxSpike/main.swift": "565c93dd92a78139d02c5934ccd80d83d14e1a3e",
+    "test_audio/hello.wav": "6f715db9fb76481a39c0603ae76fc244c0119128"
+  },
+  "counts": null,
+  "failed_tests": [],
+  "test_files": {}
+}
