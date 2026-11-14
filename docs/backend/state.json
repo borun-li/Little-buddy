@@ -7,7 +7,7 @@
     "check": "关掉 Wi-Fi，npm start 打开页面，按住说一句开心的英文（如 \"I just got the internship!\"）：几秒内出现 Bonsai 现场生成的英文回复（不是预设句），小伙伴变开心；再说一句难过的，回复接得上前文，小伙伴变难过。"
   },
   "started_at": "2026-11-14T22:19:00Z",
-  "updated_at": "2026-11-14T22:19:00Z",
+  "updated_at": "2026-11-14T22:29:51Z",
   "status": "in_progress",
   "tier": "full",
   "risk": "normal",
@@ -15,12 +15,50 @@
   "prototype": "reused",
   "prototype_ref": "docs/frontend (confirmed by user 2026-11-14)",
   "language": "documents zh, code en",
-  "models": {"be-analyst": "opus", "be-architect": "opus", "be-developer": "opus", "be-tester": "sonnet", "be-reviewer": "opus", "be-review-behavior": "opus", "be-review-reliability": "opus", "be-review-security": "opus"},
-  "current_phase": 1,
-  "phases": [],
+  "models": {
+    "be-analyst": "opus",
+    "be-architect": "opus",
+    "be-developer": "opus",
+    "be-tester": "sonnet",
+    "be-reviewer": "opus",
+    "be-review-behavior": "opus",
+    "be-review-reliability": "opus",
+    "be-review-security": "opus"
+  },
+  "current_phase": 2,
+  "phases": [
+    {
+      "phase": 1,
+      "gate": "p1",
+      "verdict": "pass",
+      "at": "2026-11-14T22:29:51Z"
+    }
+  ],
   "frontend_items": [],
   "increments": [],
-  "open_questions": [],
+  "open_questions": [
+    {
+      "q": "REQ-013 988 safety pointer this round?",
+      "default": "no — below the cut (demo, not real-user use); required before real users",
+      "by": "be-analyst #1",
+      "show_at": "Plan"
+    },
+    {
+      "q": "'几秒内' = 10 s from release to reply?",
+      "default": "10 s (A1)",
+      "show_at": "Plan"
+    },
+    {
+      "q": "UI language at page open?",
+      "default": "follow browser: zh* → zh, else en (A12)",
+      "show_at": "Plan"
+    },
+    {
+      "q": "Reply language for mixed zh/en lines?",
+      "default": "majority language of the line (A3)",
+      "show_at": "Plan"
+    }
+  ],
   "notes": [
     "Cross-stack: backend drives; frontend runs inside per FRONTEND_BACKEND_LINE §4. Evidence: no backend service (package.json:7 static server), fake layer web/js/companion-client.js:1-4.",
     "Language: replies follow the user's language (zh/en); UI copy gets a zh/en switch (user, kickoff 2026-11-14).",
