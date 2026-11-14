@@ -31,3 +31,17 @@ Next agent must know:
 - Left open for the user at the UI stop: palette and typefaces (brand proposal); the visible mood caption under the companion; the three defaults from fe-ux.
 Read beyond the list: ~/.claude/gates/gatelib/frontend.py ui() — to match what the gate parses.
 Next agent reads: docs/frontend/02-ui.md §3–§7; FRAME-009 for the five expressions.
+
+## fe-engineer #1 · Phase 2 (feasibility + queue) · round 1 · 2026-11-14T20:33:49Z
+Task: feasibility check and build queue for PAGE-001 (REQ-001..008, FRAME-001..010); contract §2 draft; stack and build/test commands for Phase 2b; code map.
+Changed: docs/frontend/03-queue.md (new, 182 lines) — stack, § Scaffold (22 planned files), Dependencies (no npm; vendored WenKai subset + 4 Lucide SVGs), feasibility notes, 2 DFBs, Q-001..Q-009 (6 P1, 3 P2, all frontend); contracts/FRONTEND_BACKEND_CONTRACT.md (+52) — §1 C-001/C-002 status cells made bare, §2 PAGE-001 send a line / hold to talk, O-1..O-4; docs/codemap.md (new, planned layout).
+Feedback: DFB-001 → fe-ui: phone listening "N 秒 · 松开发送" is 130.9 px of text for a 124 px button. DFB-002 → fe-ui: CMP-004 "disabled (paused)" vs 01-ux loading "keep typing".
+Result: gate not run by me; dry-checked with gatelib: 9 rows, no field missing, max 79 words (Q-002), all 10 frames and 6 state rows covered, 4 capabilities parse as verified/new. Figma calls 0.
+Next agent must know:
+- Pitfalls: `node --test` with a glob matching nothing exits 0 ("tests 0") — test files are named one by one; the junit dir must exist (`mkdir -p`). Paused input stays editable if DFB-002 is accepted. Q-002 sits at 79 of 80 words.
+- Companion art lives only in Figma: Phase 2b needs 1 `use_figma` call on FRAME-009 (node 7:305) exporting SVG_STRING with `svgIdAttribute` per mood, or a redraw fe-ui checks. 2 calls left.
+- Font: LXGW WenKai v1.530 Regular TTF (OFL-1.1; WOFF2 web subsets explicitly allowed) → `pyftsubset` (installed, with brotli) → web/fonts/; ship OFL.txt. Download is build-time only.
+- Tried, did not work: `node --test tests/` (treats the dir as a file, fails).
+- Left open: E1 (768 px uses the phone layout, no frame); O-1..O-4 for the backend run; fe-plan needs fe-ui green (it failed on FE.figma double count).
+Read beyond the list: ~/.claude/gates/gatelib/frontend.py queue(), runner.py run_tests() — to match what the gates parse.
+Next agent reads: docs/frontend/03-queue.md § Stack, § Scaffold, Q-001..Q-005; contracts/FRONTEND_BACKEND_CONTRACT.md §2.

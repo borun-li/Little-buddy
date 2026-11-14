@@ -17,8 +17,9 @@
  "delivery_surface": "local web page (localhost, offline)",
  "primary_user_role": "想在没网或不想上传隐私时倾诉心情的人（先是用户自己）",
  "figma": {
-  "file": null,
-  "budget": 30
+  "file": "https://www.figma.com/design/foHz6I49GOMa5owcWtW7vG/Companion-P0-UI",
+  "budget": 73,
+  "_note": "user 2026-11-14: real calls <= 45; +28 duplicate logged returns (#22) => logged budget 73"
  },
  "models": {
   "orchestrator": "opus",
@@ -32,7 +33,7 @@
   "fe-review-accessibility": "opus",
   "fe-review-integration": "opus"
  },
- "current_phase": 0,
+ "current_phase": 2,
  "phases": [],
  "stops": {},
  "preview": null,
