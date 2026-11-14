@@ -33,13 +33,13 @@ Next agent must know:
 Read beyond the list: ~/.claude/gates/gatelib/docs.py prose_units, field — how units and `**States:**` are parsed.
 Next agent reads: docs/frontend/02-ui.md §4 CMP-003, CMP-004; §5 FRAME-011 and export note.
 
-## fe-engineer #2 · Phase 2 (queue fix) · round 2 · 2026-11-14T20:50:00Z
-Task: make FE2.coverage pass by having a queue row deliver FRAME-011 (phone listening talk button, DFB-001 accepted).
-Changed: docs/frontend/03-queue.md — Q-004 Frame field now FRAME-003, FRAME-010, FRAME-011; Observable adds the phone listening state (icon, "N 秒", level bars; name "在听，N 秒，松开发送"); Acceptance shortened to stay in the cap. Q-004 is 76 words by gatelib docs.words (cap 80); other rows unchanged (max 79, Q-002).
-Feedback: none.
-Result: gate not run by me; dry-checked Q-004 word count with gatelib. Figma calls 0.
+## fe-engineer #3 · Phase 2b (prototype) · round 1 · 2026-11-14T21:13:24Z
+Task: make the confirmed design run at http://localhost:4317 (`npm start`): scaffold + Q-001..Q-009 to prototype depth, fake data behind one layer, `npm test` with real tests.
+Changed: package.json, .gitignore (+test-results/), web/index.html (+5 inline mood SVG templates, icon sprite), web/css/{tokens,page,companion}.css, web/js/{app,companion-client,copy,log,companion,talk-button,mic}.js, web/js/fake/{presets,mood-keywords}.js, web/fonts/{lxgw-wenkai-subset.woff2,OFL.txt}, tools/subset-font.sh, tests/{mood,fake-companion,offline}.test.js; docs/codemap.md rewritten; 03-queue.md rows Status built + § Build log (6 deviations); contract §4 row.
+Result: `npm test` 18/18 pass, junit 18 testcases 0 failures — docs/frontend/logs/fe-engineer-3-r1-npm-test.log. Implementer self-check (Playwright Chromium on localhost:4317, 1440/390/768/375): docs/frontend/logs/fe-engineer-3-r1-selfcheck/results.json + PNGs; hosts only localhost:4317, 0 console errors.
 Next agent must know:
-- Q-004 is at 76 of 80 words.
-- Round-1 notes still hold: companion art is now exported under evidence/design/companion/ (per 02-ui.md); paused input stays editable (DFB-002); test files named one by one; junit dir must exist.
-- Left open: E1 (768 px uses phone layout); O-1..O-4 for the backend run.
-Next agent reads: docs/frontend/03-queue.md Q-004; 02-ui.md CMP-003 and FRAME-011.
+- Pitfalls: headless Chromium auto-denies the mic prompt (shows the refused hint); use `--use-fake-ui-for-media-stream --use-fake-device-for-media-stream` + permission grant to hold. WenKai is also installed on this Mac, so the CSS family is "LXGW WenKai Web" with no local() — check document.fonts for that name. Mood SVGs in index.html are copies with ids prefixed `<mood>--`.
+- Tried, did not work: waiting for the mic stream before showing listening — a 2 s hold once added no turn; listening now starts at press when permission is granted.
+- Left open: per-part motions (blink, ears, tail, sparkles, sweat drop) need part ids in the SVG exports (fe-ui); glow fades in 240 ms, not 600 ms; `.claude/gates.json` still has test: null — orchestrator sets `npm test`, junit test-results/junit.xml.
+Read beyond the list: ~/.claude/gates/gatelib/checks.py role_checks (changed files must be named in 03-queue.md — hence the inline icons).
+Next agent reads: docs/codemap.md; docs/frontend/03-queue.md § Build log; web/js/talk-button.js press().

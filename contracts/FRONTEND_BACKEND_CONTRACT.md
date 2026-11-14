@@ -75,3 +75,4 @@ Seam (the client layer's interface, kept when the fake is replaced):
 |---|---|---|---|
 | 2026-11-14 | Capability table seeded by /route recon | orchestrator | none yet (prototype uses fake data) |
 | 2026-11-14 | §1 C-001/C-002 status cell reduced to the bare status (qualifier moved to Source, meaning unchanged) so the gate parses it; §2 drafted for PAGE-001 (send a line, hold to talk), seam `respond`/`transcribe`, O-1..O-4 | fe-engineer #1 | none this round; O-1..O-4 are the backend team's inputs for the next run |
+| 2026-11-14 | Seam implemented as `web/js/companion-client.js` (fake: preset replies, keyword moods, preset voice lines; reply after 600 ms); §2 fields and states unchanged | fe-engineer #3 | none this round; the real layer replaces that one file |

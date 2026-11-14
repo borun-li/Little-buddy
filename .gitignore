@@ -8,3 +8,5 @@ node_modules/
 __pycache__/
 .venv/
 .DS_Store
+# Test reports
+test-results/

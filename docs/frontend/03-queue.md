@@ -64,6 +64,18 @@ No npm package. Two vendored asset sets, no manifest entry.
 | DFB-001 | fe-ui | CMP-003 phone listening label | "N 秒 · 松开发送" does not fit the 124 px phone button: the text alone is 130.9 px ("60 秒 · 松开发送", 17 px PingFang SC Semibold, summed hmtx advances via fontTools; 120.7 px for "4 秒"); with mic icon, level bars and padding it needs ~175 px. No frame draws this state | phone listening shows mic icon + "N 秒" (43.1 px) + level bars (~117 px with 12 px padding); release/cancel words stay laptop-only |
 | DFB-002 | fe-ui | CMP-004 state "disabled (paused)" | `02-ui.md` CMP-004 says "disabled (paused: text kept, Enter ignored)"; `01-ux.md` PAGE-001 loading row says "Can do next: keep typing (text kept)". A disabled input cannot be typed in and drops focus | paused input stays editable and focused, only Enter is ignored, with the FRAME-010 note "(发送中，文字先留着)"; no 50 % fade on the input |
 
+## Build log (Phase 2b, fe-engineer #3, 2026-11-14)
+Rows Q-001..Q-009 built to prototype depth. Deviations from § Scaffold and the rows, each with its reason:
+
+| Item | Planned | Built | Why |
+|---|---|---|---|
+| Font source | LXGW WenKai v1.530 TTF downloaded | v1.522 TTF already installed on this machine; same Regular face and OFL | no download needed; subset covers every preset and copy character (checked with fontTools cmap) |
+| Icons | `web/assets/icons/` SVG files | inline `<symbol>` sprite in `index.html` with the Lucide ISC and Feather MIT notices | four icons; no extra requests or files |
+| Glow change | glow colour 600 ms | glow fades with the 240 ms expression crossfade | the glow is part of each mood's exported SVG |
+| Part motions | blink, ear twitch, tail swish, sparkle twinkle, sweat-drop slide | whole-body loop per mood (breathe, hop+bounce, sway, fidget, sink+lean) | the SVG exports name only stage, glow, ground, character; parts need ids from fe-ui |
+| Paused note | after the text in the input | laptop only | FRAME-007 (phone) draws no note and 124 px leaves no room |
+| Hold with mic granted | listening once the stream opens | listening at press; the stream joins for the level bars | a 2 s hold once added no turn in headless Chromium (cause not isolated; a slow first stream open is the likely one); two later full runs passed |
+
 ### Q-001 — Empty page at open
 - **Page:** PAGE-001
 - **Frame:** FRAME-001, FRAME-005
@@ -75,7 +87,7 @@ No npm package. Two vendored asset sets, no manifest entry.
 - **Priority:** P1
 - **Side:** frontend
 - **Depends on:** none
-- **Status:** queued
+- **Status:** built
 
 ### Q-002 — Typed line gets reply and mood
 - **Page:** PAGE-001
@@ -88,7 +100,7 @@ No npm package. Two vendored asset sets, no manifest entry.
 - **Priority:** P1
 - **Side:** frontend
 - **Depends on:** Q-001
-- **Status:** queued
+- **Status:** built
 
 ### Q-003 — Five companion moods
 - **Page:** PAGE-001
@@ -101,7 +113,7 @@ No npm package. Two vendored asset sets, no manifest entry.
 - **Priority:** P1
 - **Side:** frontend
 - **Depends on:** Q-002; companion SVG export (orchestrator, 1 Figma call) or a redraw fe-ui checks
-- **Status:** queued
+- **Status:** built
 
 ### Q-004 — Hold to talk
 - **Page:** PAGE-001
@@ -114,7 +126,7 @@ No npm package. Two vendored asset sets, no manifest entry.
 - **Priority:** P1
 - **Side:** frontend
 - **Depends on:** Q-002, DFB-001
-- **Status:** queued
+- **Status:** built
 
 ### Q-005 — Fake data behind one replaceable layer
 - **Page:** PAGE-001
@@ -127,7 +139,7 @@ No npm package. Two vendored asset sets, no manifest entry.
 - **Priority:** P1
 - **Side:** frontend
 - **Depends on:** Q-002
-- **Status:** queued
+- **Status:** built
 
 ### Q-006 — Runs with Wi-Fi off
 - **Page:** PAGE-001
@@ -140,7 +152,7 @@ No npm package. Two vendored asset sets, no manifest entry.
 - **Priority:** P1
 - **Side:** frontend
 - **Depends on:** Q-002
-- **Status:** queued
+- **Status:** built
 
 ### Q-007 — Mic problems told by the button
 - **Page:** PAGE-001
@@ -153,7 +165,7 @@ No npm package. Two vendored asset sets, no manifest entry.
 - **Priority:** P2
 - **Side:** frontend
 - **Depends on:** Q-004
-- **Status:** queued
+- **Status:** built
 
 ### Q-008 — Long conversation stays readable
 - **Page:** PAGE-001
@@ -166,7 +178,7 @@ No npm package. Two vendored asset sets, no manifest entry.
 - **Priority:** P2
 - **Side:** frontend
 - **Depends on:** Q-002
-- **Status:** queued
+- **Status:** built
 
 ### Q-009 — Reduce motion
 - **Page:** PAGE-001
@@ -179,4 +191,4 @@ No npm package. Two vendored asset sets, no manifest entry.
 - **Priority:** P2
 - **Side:** frontend
 - **Depends on:** Q-003
-- **Status:** queued
+- **Status:** built

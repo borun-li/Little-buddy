@@ -1,12 +1,13 @@
 {
- "stack": "unknown",
+ "stack": "static html + vanilla js (node:test)",
  "commands": {
   "build": null,
   "lint": null,
   "typecheck": null,
-  "test": null
+  "test": "npm test"
  },
  "confirmed": true,
  "confirmed_on": "2026-11-14",
- "_note": "No code yet: no build/lint/test commands detected. Confirmed by orchestrator (nothing to run); fe-engineer adds commands with the prototype."
+ "_note": "test command added 2026-11-14 per user approval (baseline waiver of CMD.test removed); confirmed by orchestrator after running it green.",
+ "junit": "test-results/junit.xml"
 }
