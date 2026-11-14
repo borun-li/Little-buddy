@@ -34,7 +34,23 @@
       "at": "2026-11-14T22:29:51Z"
     }
   ],
-  "frontend_items": [],
+  "frontend_items": [
+    {
+      "des": "DES-013",
+      "queue_row": null,
+      "status": "designed"
+    },
+    {
+      "des": "DES-014",
+      "queue_row": null,
+      "status": "designed"
+    },
+    {
+      "des": "DES-015",
+      "queue_row": null,
+      "status": "designed"
+    }
+  ],
   "increments": [],
   "open_questions": [
     {
@@ -64,6 +80,7 @@
     "Language: replies follow the user's language (zh/en); UI copy gets a zh/en switch (user, kickoff 2026-11-14).",
     "Bonsai 4B vs 9B: benchmark both on a production-shaped prompt before build (PLAYBOOK §2.2); default 9B.",
     "WhisperKit: first transcribe in a new binary ~390 s (ANE compile); plan warm-up early.",
-    "Demo instance runs on 127.0.0.1:4399 (isolated from the user's 4317)."
+    "Demo instance runs on 127.0.0.1:4399 (isolated from the user's 4317).",
+    "be-architect #1 (2026-11-14): 9B recommended (bench docs/backend/logs/be-architect-1-bench.log); new dep argmax-oss-swift 1.1.1 exact; new `npm run setup` (online, one-time); npm start = node server on 127.0.0.1:4317. All four for the Plan stop."
   ]
 }
