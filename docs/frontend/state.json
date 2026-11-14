@@ -1,0 +1,49 @@
+{
+ "harness_version": "12.1.0",
+ "feature": "离线情绪陪伴小伙伴 P0 原型（本地网页，假数据）",
+ "slug": "companion-p0-prototype",
+ "goal": {
+  "change": "本地网页能完整走一遍「按住说话 → 出现回复 → 小伙伴表情/颜色随情绪（4象限+中性）变化」，多轮，回复和情绪是预设假数据",
+  "check": "说/输入一句开心的话看到它笑，一句难过的话看到它陪你难过"
+ },
+ "started_at": "2026-11-14T15:01:00-05:00",
+ "updated_at": "2026-11-14T15:01:00-05:00",
+ "status": "in_progress",
+ "tier": "prototype",
+ "risk": "high",
+ "design": "new",
+ "design_stops": 1,
+ "requirements": "docs/frontend/00-requirements.md",
+ "delivery_surface": "local web page (localhost, offline)",
+ "primary_user_role": "想在没网或不想上传隐私时倾诉心情的人（先是用户自己）",
+ "figma": {
+  "file": null,
+  "budget": 30
+ },
+ "models": {
+  "orchestrator": "opus",
+  "be-analyst": "opus",
+  "fe-ux": "opus",
+  "fe-ui": "opus",
+  "fe-engineer": "sonnet",
+  "fe-tester": "sonnet",
+  "fe-reviewer": "opus",
+  "fe-review-experience": "opus",
+  "fe-review-accessibility": "opus",
+  "fe-review-integration": "opus"
+ },
+ "current_phase": 0,
+ "phases": [],
+ "stops": {},
+ "preview": null,
+ "increments": [],
+ "open_questions": [
+  "前后端分界线（project-context.md 草稿）待用户签字",
+  "demo-plan 要求的 data-testid 与文字兜底输入框 fake-input（假设：作为无麦克风时的输入方式）"
+ ],
+ "notes": [
+  "risk high: emotional content = personal data; future new deps (WhisperKit) — evidence idea.md",
+  "design stops merged to 1 (single page), previewed at kickoff, not changed by user",
+  "git: local commits only; push asked later"
+ ]
+}

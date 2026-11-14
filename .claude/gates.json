@@ -1,0 +1,12 @@
+{
+  "stack": "unknown",
+  "commands": {
+    "build": null,
+    "lint": null,
+    "typecheck": null,
+    "test": null
+  },
+  "confirmed": false,
+  "confirmed_on": null,
+  "_note": "Draft from gate.py profile. Edit, then set confirmed true and confirmed_on once the user approves. Any key from ~/.claude/gates/config.json may be overridden here (frontend_globs, test_globs, ...)."
+}
