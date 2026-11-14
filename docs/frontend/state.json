@@ -7,8 +7,8 @@
   "check": "说/输入一句开心的话看到它笑，一句难过的话看到它陪你难过"
  },
  "started_at": "2026-11-14T15:01:00-05:00",
- "updated_at": "2026-11-14T15:47:20-05:00",
- "status": "prototyping",
+ "updated_at": "2026-11-14T17:02:50-05:00",
+ "status": "prototype_confirmed",
  "tier": "prototype",
  "risk": "high",
  "design": "new",
@@ -33,7 +33,7 @@
   "fe-review-accessibility": "opus",
   "fe-review-integration": "opus"
  },
- "current_phase": 2,
+ "current_phase": "2b",
  "phases": [],
  "stops": {
   "UI": {
@@ -43,19 +43,19 @@
    "note": "frames 001-011, palette+type; defaults accepted (interpreted: only item 3 commented); English later -> deferred D-001"
   },
   "Prototype": {
-   "decision": "changes",
+   "decision": "approved",
+   "by": "user",
    "date": "2026-11-14",
-   "note": "DFB-003 expressions; reply quality -> next Full development run"
+   "note": "after DFB-003 round 2"
   }
  },
- "preview": null,
+ "preview": "http://localhost:4317 (npm start, orchestrator PID 23738)",
  "increments": [],
- "open_questions": [
-  "demo-plan 要求的 data-testid 与文字兜底输入框 fake-input（假设：作为无麦克风时的输入方式）"
- ],
+ "open_questions": [],
  "notes": [
   "risk high: emotional content = personal data; future new deps (WhisperKit) — evidence idea.md",
   "design stops merged to 1 (single page), previewed at kickoff, not changed by user",
-  "git: local commits only; push asked later"
+  "git: local commits only; push asked later",
+  "Next: Full development run reusing this confirmed prototype; deferred D-001..D-005 in docs/frontend/deferred.md"
  ]
 }

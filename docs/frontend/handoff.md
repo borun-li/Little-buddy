@@ -47,3 +47,9 @@ Next agent must know:
 - Left open: paw-rub 600 ms is an assumption (no duration in §7); §3/§6 stale glow values (D-004) untouched.
 Read beyond the list: ~/.claude/gates/gatelib/checks.py role_checks — new test file allowed, existing tests not.
 Next agent reads: docs/frontend/03-queue.md § Build log round 2; web/css/companion.css.
+
+## orchestrator · Prototype stop approved · 2026-11-14
+- Tier prototype, status prototype_confirmed. Preview: `npm start` → http://localhost:4317 (static, fake data).
+- Decided for the user since kickoff: gates.json confirmed with test=`npm test`; CMD.test baseline waiver (removed); default frontend/backend line signed; DFB-001/002 by fe-ui; Figma budget raised twice (real ≤60, 56 used; logged sum double-counts 28 from my hand-logged duplicates).
+- Deferred: `docs/frontend/deferred.md` D-001 English, D-002 real STT/Bonsai/emotion, D-003 reply quality, D-004/005 stale doc rows.
+- Next: Full development (cross-stack, backend team drives), reusing this prototype; seam `respond(line, history) → {reply, mood}`, `transcribe() → {text}` in `web/js/companion-client.js`; contract open items O-1..O-4.
