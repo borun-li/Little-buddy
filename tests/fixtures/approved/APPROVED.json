@@ -1,0 +1,108 @@
+{
+  "cases": {
+    "FX-001": {
+      "req": "REQ-006",
+      "source": "line: docs/backend/demo-plan.json captures[happy-en] (01 §7 FX-001). mood: REQ-006 + 01 §1 mood ids (pleasant-high = 开心/兴奋) + goal 'say a happy English line -> companion turns happy'. reply_checks: REQ-004 (<=2 sentences, <=1 question, en <=40 words, not presets.js, no thinking), REQ-005 (language of the line = en).",
+      "compare": "exact",
+      "approved_by": "user",
+      "date": "2026-11-14",
+      "files": {
+        "expected.json": "16b4befadb0a5de2a9c08e31307d84a7fdd93238f8410309ad4020d02cda07f8",
+        "input.json": "d33ff67c332026ac196138e5b7247a9a0241e0ef03974251eb0ed36d55e8cc27",
+        "meta.json": "36d6163b933b9492b18c6d580a31213ffa7a63d966ecebc6ea320245ac9ea008"
+      },
+      "history": []
+    },
+    "FX-002": {
+      "req": "REQ-007",
+      "source": "line: docs/backend/demo-plan.json captures[sad-en-followup] (01 §7 FX-002). history[1] = real Bonsai 2 9B reply, verbatim (before reply shaping), docs/backend/logs/be-architect-1-bench-raw-9B.log:146 (section bench-9B-two, tag ctx-first). mood: REQ-006 + 01 §1 (unpleasant-low = 难过/疲惫; the line states loneliness) + goal 'a sad line -> companion turns sad'. language: REQ-005.",
+      "compare": "exact",
+      "approved_by": "user",
+      "date": "2026-11-14",
+      "files": {
+        "expected.json": "9e88763e39564846364573f6e0634c9c05c6e867461f45290f1a53c44375ff98",
+        "input.json": "ff4abf829422c39d2261148a26e1c0a92f2cbe4a2a83664c5b60280d96830b52",
+        "meta.json": "1615de8e703fdde597c3076330d7a7834c37fbd5bdb692b29fb02f217f9e4078"
+      },
+      "history": []
+    },
+    "FX-003": {
+      "req": "REQ-007",
+      "source": "line and history[0]: web/js/fake/presets.js voiceLines[1] and [0] (01 §7 FX-003). history[1] = real Bonsai 2 9B reply, verbatim (before reply shaping), docs/backend/logs/be-architect-1-bench-raw-9B.log:148 (section bench-9B-two, tag ctx-first). reply_checks: REQ-004 (zh <=120 chars) and the line's language. Mood is not scored here (FX-003 is not a REQ-006 fixture; the same line is scored in FX-004 case 02); only membership in the 5 contract ids (03 §9) is checked.",
+      "compare": "exact",
+      "approved_by": "user",
+      "date": "2026-11-14",
+      "files": {
+        "expected.json": "57b801b7e486e9c15a7159dbaaff79fd2cf30718618dbb21def918fcc85b6c2a",
+        "input.json": "06dd52c3a174fe8b0c49d8672b3aa6eedda26ae43c06ffbeed5fe32579002591",
+        "meta.json": "74b936b25c8361d1f8e0466b8ce0acbb271def5d6aa580d7159305f32a2ae54d"
+      },
+      "history": []
+    },
+    "FX-004": {
+      "req": "REQ-006",
+      "source": "lines: 01 §7 FX-004 (presets.js voiceLines[0..4], demo-plan.json, 01 §7 English lines). Labels from REQ-006 + 01 §1 mood ids + A7 + idea.md § 情绪模型, per case: 01: presets.js voiceLines[0]; states 开心 (01 §1 pleasant-high 开心/兴奋) | 02: voiceLines[1]; stated feeling 难过 (01 §1 unpleasant-low 难过/疲惫); the quarrel is the event, A7 dominant/last = 难过 | 03: voiceLines[2]; states 焦虑 (01 §1 unpleasant-high 焦虑/生气) | 04: voiceLines[3]; states 放松 (01 §1 pleasant-low 平静/满足) | 05: voiceLines[4]; no feeling stated, REQ-006 '拿不准为 neutral' | 06: FX-001 line; demo goal 'a happy English line' | 07: FX-002 line; states lonely; demo goal 'a sad line' | 08: 01 §7 English of voiceLines[2]; states anxious | 09: 01 §7 English of voiceLines[3]; states relaxed | 10: 01 §7 English of voiceLines[4]; no feeling stated. reply_language: REQ-005 (= language of the line, A3).",
+      "compare": "exact",
+      "approved_by": "user",
+      "date": "2026-11-14",
+      "files": {
+        "expected.json": "376f168d0121489881026e903869348472b6750d333c51ec0606a53f60ef8b7e",
+        "input.json": "5d4263d840bb4616a475476e6289a8669fe4c39d6011e8cc70ac07f107183b7f",
+        "meta.json": "949f6fd641418f409be37f44ac896f6309d39ad8794b9b282803145c62477377"
+      },
+      "history": []
+    },
+    "FX-005": {
+      "req": "REQ-001",
+      "source": "input: test_audio/hello.wav (5.6 s, 24 kHz mono Float32) converted with `afconvert -f WAVE -d LEI16@16000 -c 1` to the seam format (03 §9; DES-005 rejects the original — see design_contradictions). text_reference [unverified]: no script for this recording exists in the project; taken from whisperkit-cli's transcript in docs/backend/logs/be-analyst-1-whisperkit-hello.log:3 (a captured output, not an independent source) — the user should confirm the spoken words at Plan.",
+      "compare": "numeric:0.15",
+      "approved_by": "user",
+      "date": "2026-11-14",
+      "files": {
+        "expected.json": "03f55a31db2444646dd5d519180b19609e26a8882036f5b5003283d1ed0cb463",
+        "input.wav": "7b37d08f396d64fb3bfdf6713cb3beb8e2911b46649bcf9f52f06918a871d7ce",
+        "meta.json": "11a90ed1738f6f0fd8c33f72619a843e806bcadc678601de361e5b1892ac6b28"
+      },
+      "history": []
+    },
+    "FX-006": {
+      "req": "REQ-001",
+      "source": "input: `say -v Samantha -o en.wav --data-format=LEI16@16000 \"I just got the internship!\"` then `afconvert -f WAVE -d LEI16@16000 -c 1` (01 §7 FX-006, A15). text_reference = the text given to say (demo-plan.json captures[happy-en]).",
+      "compare": "numeric:0.15",
+      "approved_by": "user",
+      "date": "2026-11-14",
+      "files": {
+        "expected.json": "1be32c3f56881947e965f48614e8bb67c411bad76bb7a1f225e98218204ae130",
+        "input.wav": "27775f3f373ba6ff8087a815d679749fe5e1b5c0ade4984b543be526d5001ba3",
+        "meta.json": "729f7d4a4daf0a88de50fd954571470e4434c657f8390355909aa64a10b27249"
+      },
+      "history": []
+    },
+    "FX-007": {
+      "req": "REQ-001",
+      "source": "input: `say -v \"Flo (Chinese (China mainland))\" -o zh.wav --data-format=LEI16@16000 \"可是晚上和朋友吵架了，有点难过。\"` then `afconvert -f WAVE -d LEI16@16000 -c 1` (01 §7 FX-007, A15). text_reference = the text given to say (presets.js voiceLines[1]); Simplified per A4.",
+      "compare": "numeric:0.15",
+      "approved_by": "user",
+      "date": "2026-11-14",
+      "files": {
+        "expected.json": "31ada3cdc7147dbee5b12edc1650270dbf8f0bf8c4899ee01db1cf752e3bd096",
+        "input.wav": "743dd0796e3f6a713b3f41c98e7adeb34c4631295a3708958eefe8f3985dd2c2",
+        "meta.json": "755c5424d23371bcd4a4b40ca35e202c80fb2dfe792afe56ddcc2099dc4d7d81"
+      },
+      "history": []
+    },
+    "FX-008": {
+      "req": "REQ-003",
+      "source": "input: 2 s of digital zeros, 16 kHz mono 16-bit PCM WAV, written by python3 wave (01 §7 FX-008). Expected: REQ-003 (transcription empty) in the seam's shape 200 {text: \"\"} ('empty = nothing heard', 03 §9).",
+      "compare": "exact",
+      "approved_by": "user",
+      "date": "2026-11-14",
+      "files": {
+        "expected.json": "28aab0bb10fa2ff39f16717346feb13809344bac300d315cc0a04939240ab592",
+        "input.wav": "20eaebffe1816e0ffa6f7f854f5ef4ea80d5349faaf0ce1fec1b713e7fde58fa",
+        "meta.json": "3ee2aba49135f7b3cfbb88875a2227a1f22493fe581d126eeaeead1b4e875697"
+      },
+      "history": []
+    }
+  }
+}
