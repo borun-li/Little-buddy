@@ -1,0 +1,4 @@
+[
+ {"check": "FE1.flow-length", "approved_by": "user", "date": "2026-11-14",
+  "reason": "Scope: only FLOW-001 (83 words) and FLOW-002 (84 words), retired in increment 1; overrun is the in-place retirement marker on text the user confirmed. Any other FLOW over 80 words is NOT covered; orchestrator checks the per-flow counts at every fe-ux run."}
+]

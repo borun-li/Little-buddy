@@ -1,18 +1,14 @@
 {
   "phase": "fe-ux",
-  "time": "2026-11-14T23:25:39Z",
+  "time": "2026-11-14T23:27:51Z",
   "project": "/Users/apple/Desktop/Hackathon/Local_AI_Hackathon",
   "run_dir": "docs/frontend",
-  "overall": "fail",
-  "consecutive_failures": 2,
-  "failed_runs": 2,
+  "overall": "pass",
+  "consecutive_failures": 0,
+  "failed_runs": 0,
   "fix_round_cap": 2,
   "escalate": false,
-  "fail_by_owner": {
-    "fe-ux": [
-      "FE1.flow-length"
-    ]
-  },
+  "fail_by_owner": {},
   "checks": [
     {
       "id": "ALL.state",
@@ -25,13 +21,6 @@
       "id": "ALL.upstream",
       "status": "pass",
       "message": "01-ux.md present",
-      "owner": "fe-ux",
-      "details": []
-    },
-    {
-      "id": "ROLE.designer-scope",
-      "status": "pass",
-      "message": "fe-ux changed only design documents",
       "owner": "fe-ux",
       "details": []
     },
@@ -86,12 +75,13 @@
     },
     {
       "id": "FE1.flow-length",
-      "status": "fail",
+      "status": "waived",
       "message": "FLOW longer than 80 words (code excluded)",
       "owner": "fe-ux",
       "details": [
         "FLOW-001: 83 words",
-        "FLOW-002: 84 words"
+        "FLOW-002: 84 words",
+        "waived by user on 2026-11-14: Scope: only FLOW-001 (83 words) and FLOW-002 (84 words), retired in increment 1; overrun is the in-place retirement marker on text the user confirmed. Any other FLOW over 80 words is NOT covered; orchestrator checks the per-flow counts at every fe-ux run."
       ]
     },
     {

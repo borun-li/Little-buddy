@@ -1,6 +1,6 @@
 {
   "phase": "baseline",
-  "time": "2026-11-14T20:15:54Z",
+  "time": "2026-11-14T23:26:12Z",
   "project": "/Users/apple/Desktop/Hackathon/Local_AI_Hackathon",
   "run_dir": "docs/frontend",
   "overall": "pass",
@@ -19,11 +19,13 @@
     },
     {
       "id": "CMD.test",
-      "status": "waived",
-      "message": "Baseline is already red: No test command configured, and it is required (fix separately or waive)",
+      "status": "pass",
+      "message": "tests green",
       "owner": "user",
       "details": [
-        "waived by user on 2026-11-14: Baseline only: no code exists yet. fe-engineer adds a real test command in Phase 2b; then this waiver is removed."
+        "$ npm test -> exit 0 (0.9s), log: /Users/apple/Desktop/Hackathon/Local_AI_Hackathon/docs/frontend/gates/logs/2026-11-14T232611Z-test.log",
+        "counts: {'xfailed': 0, 'xpassed': 0, 'passed': 23, 'errors': 0, 'failed': 0, 'skipped': 0}",
+        "per-test results: report from gates.json junit: test-results/junit.xml"
       ]
     },
     {
@@ -35,21 +37,28 @@
     },
     {
       "id": "CTX.codemap",
-      "status": "unavailable",
-      "message": "docs/codemap.md is checked once a role that reads code has worked",
-      "owner": "orchestrator",
+      "status": "pass",
+      "message": "docs/codemap.md paths exist, within its cap",
+      "owner": "fe-engineer",
       "details": []
     },
     {
       "id": "CTX.handoff",
       "status": "pass",
-      "message": "handoff.md: 2 current sections",
+      "message": "handoff.md: 5 current sections",
       "owner": "orchestrator",
       "details": []
     }
   ],
   "data": {
-    "head": "672924259a9a5fe1639981952c2b8039b94fc3cc",
-    "counts": null
+    "head": "15bf82a1faaddc8e327af3fc62fae037cbfa6976",
+    "counts": {
+      "xfailed": 0,
+      "xpassed": 0,
+      "passed": 23,
+      "errors": 0,
+      "failed": 0,
+      "skipped": 0
+    }
   }
 }

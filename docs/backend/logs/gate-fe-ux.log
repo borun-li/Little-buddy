@@ -1,6 +1,5 @@
 [PASS] ALL.state: state.json valid  (orchestrator)
 [PASS] ALL.upstream: 01-ux.md present  (fe-ux)
-[PASS] ROLE.designer-scope: fe-ux changed only design documents  (fe-ux)
 [PASS] FE1.user: Named user: the builder themself first: alone at a laptop, wants to say how the day went, out loud or typed, with Wi‑Fi off and nothing leaving the machine; later anyone in the same spot (plane, no signal)  (fe-ux)
 [PASS] FE1.surface: Surface: web  (fe-ux)
 [PASS] FE1.pages: 1 pages, each serving a REQ  (fe-ux)
@@ -8,15 +7,14 @@
 [PASS] FE1.flows: 7 flows with steps, success, failure, cancel, recovery, boundary  (fe-ux)
 [PASS] FE1.states: Every page states loading, empty, success, error, permission  (fe-ux)
 [PASS] FE1.wireframes: Every page has a wireframe  (fe-ux)
-[FAIL] FE1.flow-length: FLOW longer than 80 words (code excluded)  (fe-ux)
+[WAIV] FE1.flow-length: FLOW longer than 80 words (code excluded)  (fe-ux)
          FLOW-001: 83 words
          FLOW-002: 84 words
+         waived by user on 2026-11-14: Scope: only FLOW-001 (83 words) and FLOW-002 (84 words), retired in increment 1; overrun is the in-place retirement marker on text the user confirmed. Any other FLOW over 80 words is NOT covered; orchestrator checks the per-flow counts at every fe-ux run.
 [PASS] FE1.page-length: Every PAGE block within 200 words  (fe-ux)
 [PASS] FE1.prose: No paragraph or bullet over 50 words  (fe-ux)
 [PASS] LOG.valid: Run log intact  (orchestrator)
 [PASS] CTX.codemap: docs/codemap.md paths exist, within its cap  (fe-engineer)
 [PASS] CTX.handoff: handoff.md: 5 current sections  (orchestrator)
 
-[gate] fe-ux: FAIL  report: docs/frontend/gates/fe-ux-latest.json
-[gate] owners to fix: {'fe-ux': ['FE1.flow-length']}
-[gate] fix round 2 of 2 (2 failed runs on 2 distinct trees): send each failure to its owner, then re-run.
+[gate] fe-ux: PASS  report: docs/frontend/gates/fe-ux-latest.json
