@@ -33,13 +33,17 @@ Next agent must know:
 Read beyond the list: nothing.
 Next agent reads: docs/frontend/02-ui.md §4 CMP-001, §5 part table, §7 companion rows.
 
-## fe-engineer #3 · Phase 2b (prototype) · round 1 · 2026-11-14T21:13:24Z
-Task: make the confirmed design run at http://localhost:4317 (`npm start`): scaffold + Q-001..Q-009 to prototype depth, fake data behind one layer, `npm test` with real tests.
-Changed: package.json, .gitignore (+test-results/), web/index.html (+5 inline mood SVG templates, icon sprite), web/css/{tokens,page,companion}.css, web/js/{app,companion-client,copy,log,companion,talk-button,mic}.js, web/js/fake/{presets,mood-keywords}.js, web/fonts/{lxgw-wenkai-subset.woff2,OFL.txt}, tools/subset-font.sh, tests/{mood,fake-companion,offline}.test.js; docs/codemap.md rewritten; 03-queue.md rows Status built + § Build log (6 deviations); contract §4 row.
-Result: `npm test` 18/18 pass, junit 18 testcases 0 failures — docs/frontend/logs/fe-engineer-3-r1-npm-test.log. Implementer self-check (Playwright Chromium on localhost:4317, 1440/390/768/375): docs/frontend/logs/fe-engineer-3-r1-selfcheck/results.json + PNGs; hosts only localhost:4317, 0 console errors.
+## fe-engineer #4 · Phase 2b (prototype) · round 3 · 2026-11-14T21:58:41Z
+Round 3 (CTX.codemap fix): docs/codemap.md line 33 had glow in backticks → plain words "SVG glow path"; every backticked item in the codemap now exists (checked with test -e). Nothing else changed.
+Round 2 entry follows.
+Task: bring the companion to the redrawn, user-confirmed moods (DFB-003): new mood SVGs, per-part motions and poses from 02-ui.md; fe-build stays green.
+Changed: web/index.html (+281/-102) 5 templates = current exports, ids `<mood>--`; web/css/companion.css (+105/-25) glow disc 600 ms + per-part motions per §7; web/js/companion.js (+6/-1) entry fade ends only on the layer's own animationend; tests/companion.test.js (new, 5 tests); package.json (+1/-1) names it; docs/codemap.md; 03-queue.md § Build log round 2.
+Feedback: DFB-003 built (no new DFB).
+Result: npm test 23/23 pass — docs/frontend/logs/fe-engineer-4-r2-npm-test.log. Self-check on own 127.0.0.1:4318 (1440, 390, 1440 reduce): 5/9/5/8/5 running part animations per mood, 0 with reduced motion, pivot drift 0 px, mood at send = previous, 1 layer after swap, hosts 4318 only, 0 console errors — docs/frontend/logs/fe-engineer-4-r2-selfcheck.log, …-selfcheck/ (PNGs, results.json, selfcheck.py). fe-build gate not run by me.
 Next agent must know:
-- Pitfalls: headless Chromium auto-denies the mic prompt (shows the refused hint); use `--use-fake-ui-for-media-stream --use-fake-device-for-media-stream` + permission grant to hold. WenKai is also installed on this Mac, so the CSS family is "LXGW WenKai Web" with no local() — check document.fonts for that name. Mood SVGs in index.html are copies with ids prefixed `<mood>--`.
-- Tried, did not work: waiting for the mic stream before showing listening — a 2 s hold once added no turn; listening now starts at press when permission is granted.
-- Left open: per-part motions (blink, ears, tail, sparkles, sweat drop) need part ids in the SVG exports (fe-ui); glow fades in 240 ms, not 600 ms; `.claude/gates.json` still has test: null — orchestrator sets `npm test`, junit test-results/junit.xml.
-Read beyond the list: ~/.claude/gates/gatelib/checks.py role_checks (changed files must be named in 03-queue.md — hence the inline icons).
-Next agent reads: docs/codemap.md; docs/frontend/03-queue.md § Build log; web/js/talk-button.js press().
+- Pitfalls: glow is now the companion's own background (SVG glow path hidden), so demo-plan `open` background-color reads rgb(230,218,202). Rotating parts use fill-box % origins measured with getBBox; re-measure if fe-ui re-exports (tests/companion.test.js turns red on a stale copy or a missing part id, not on a moved pivot). Part animations bubble animationend.
+- Still true from #3: headless Chromium auto-denies the mic prompt (use --use-fake-ui-for-media-stream --use-fake-device-for-media-stream + grant); the voice font family is "LXGW WenKai Web".
+- Tried, did not work: nothing.
+- Left open: paw-rub 600 ms is an assumption (no duration in §7); §3/§6 stale glow values (D-004) untouched.
+Read beyond the list: ~/.claude/gates/gatelib/checks.py role_checks — new test file allowed, existing tests not.
+Next agent reads: docs/frontend/03-queue.md § Build log round 2; web/css/companion.css.

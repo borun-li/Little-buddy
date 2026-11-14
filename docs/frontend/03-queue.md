@@ -76,6 +76,20 @@ Rows Q-001..Q-009 built to prototype depth. Deviations from § Scaffold and the 
 | Paused note | after the text in the input | laptop only | FRAME-007 (phone) draws no note and 124 px leaves no room |
 | Hold with mic granted | listening once the stream opens | listening at press; the stream joins for the level bars | a 2 s hold once added no turn in headless Chromium (cause not isolated; a slow first stream open is the likely one); two later full runs passed |
 
+## Build log (Phase 2b round 2, fe-engineer #4, 2026-11-14) — DFB-003, Q-003
+Rows "Glow change" and "Part motions" above are now built (new art has part ids). Files: `index.html` (5 templates re-copied), `companion.css`, `companion.js`, new `tests/companion.test.js` (named in `package.json` script test). Deviations:
+
+| Item | Planned (02-ui §7, CMP-001) | Built | Why |
+|---|---|---|---|
+| Glow | each export's `glow` disc, colour change 600 ms | one disc = background of `[data-testid=companion]` (5 % inset, content-box), 600 ms transition; the SVG `glow` paths are hidden | layers crossfade in 240 ms, so a per-layer glow cannot take 600 ms. Side effect: demo-plan `open` capture of background-color now reads the glow (rgb 230 218 202), not transparent |
+| Neutral blink | every 4–6 s | 10 s loop, blinks 4 s then 6 s apart | no JS randomness for a loop |
+| Wave | ±12°, alternating, 600 ms | one full swing −12°→12°→−12° per 600 ms, arms half a cycle apart | §7 does not say whether 600 ms is one way or a full swing |
+| Paw rub | ±1.5 px, no duration | 600 ms loop, paws opposite | assumption [unverified]; FRAME-009 gives no duration |
+| Tremble | flashes with each burst | opacity 1 during the 3-move burst, 0.2 between, same 1.6 s clock | reading of "flashes"; reduced motion keeps the marks fully visible |
+| unpleasant-low | sink 8 px + scaleY 0.97, slow breath | as planned; round-1 1° lean removed | §7 has no lean |
+| Neutral breath | `body` 1→1.02 | `body` group only; face and paws do not scale | literal §7; ~2 px at 540 px |
+| Mood entry | fade 240 ms | `is-entering` removed only on the layer's own animationend | bug found: the 150 ms squash's bubbling animationend cut the 240 ms fade short (round 1) |
+
 ### Q-001 — Empty page at open
 - **Page:** PAGE-001
 - **Frame:** FRAME-001, FRAME-005

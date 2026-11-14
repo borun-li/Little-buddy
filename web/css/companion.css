@@ -1,5 +1,5 @@
-/* CMP-001 companion: size, mood crossfade, per-mood loops (02-ui.md §4, §7).
-   Each mood is its own SVG layer; only the active layer's loop runs. */
+/* CMP-001 companion: size, glow, mood crossfade, per-part motion (02-ui.md §4 CMP-001, §5 part table, §7).
+   Each mood is its own SVG layer (ids "<mood>--<part>"); only the active layer's parts move. */
 
 .companion { position: relative; width: 240px; aspect-ratio: 1 / 1; flex: none; }
 @media (min-width: 960px) {
@@ -8,7 +8,23 @@
 .companion__layer { position: absolute; inset: 0; }
 .companion__art { display: block; width: 100%; height: 100%; overflow: visible; }
 
-/* Mood change: expression and glow crossfade 240 ms, one 0.96 -> 1 squash 150 ms. */
+/* Glow: one disc behind the layers so its colour can change over 600 ms while the faces crossfade in 240 ms.
+   Same disc as each export's `glow` (r 180 in 400 = 5 % inset), colours from CMP-001 Glow (supersede §3). */
+.companion {
+  padding: 5%;
+  border-radius: 50%;
+  background-clip: content-box;
+  background-color: var(--glow);
+  transition: background-color 600ms ease;
+}
+.companion[data-mood="neutral"] { --glow: #E6DACA; }                     /* Linen, solid */
+.companion[data-mood="pleasant-high"] { --glow: rgb(242 178 92 / 0.64); } /* Honey 64 % */
+.companion[data-mood="pleasant-low"] { --glow: rgb(242 178 92 / 0.30); }  /* Honey 30 % */
+.companion[data-mood="unpleasant-high"] { --glow: rgb(88 116 137 / 0.46); } /* Tide 46 % */
+.companion[data-mood="unpleasant-low"] { --glow: rgb(88 116 137 / 0.30); }  /* Tide 30 % */
+.companion__art [id$="--glow"] { display: none; }
+
+/* Mood change: expression crossfade 240 ms, one 0.96 -> 1 squash 150 ms. */
 .companion__layer.is-entering { animation: mood-in 240ms ease-out both; }
 .companion__layer.is-entering .companion__art { animation: squash 150ms ease-out; transform-origin: 50% 85%; }
 .companion__layer.is-leaving { animation: mood-out 240ms ease-in forwards; }
@@ -16,42 +32,106 @@
 @keyframes mood-out { to { opacity: 0; } }
 @keyframes squash { from { transform: scale(0.96); } }
 
-.companion__layer [id$="--character"] { transform-box: fill-box; transform-origin: 50% 100%; }
+/* Pivots (§7 pivot row): character at its bottom centre, body at its base, ears at their base, arms at the
+   shoulder (path start), tail at the body end. Percentages = pivot point inside the part's fill-box,
+   measured with getBBox() on the inlined art. */
+.companion__art g { transform-box: fill-box; transform-origin: 50% 50%; }
+.companion__art [id$="--character"], .companion__art [id$="--body"] { transform-origin: 50% 100%; }
+.companion__art [id$="--sparkles"] path { transform-box: fill-box; transform-origin: 50% 50%; }
 
-/* neutral: breathing 1 -> 1.02, 4 s loop */
-[data-mood-layer="neutral"] [id$="--character"] { animation: breathe 4s ease-in-out infinite; }
+/* ---------- neutral: here, listening ---------- */
+#neutral--body { animation: breathe 4s ease-in-out infinite; }
+#neutral--eyes { animation: blink-4-6 10s linear infinite; }       /* 120 ms blink, 4 s then 6 s apart */
+#neutral--ear-left { transform-origin: 52.1% 87.2%; animation: twitch-left 8s ease-in-out infinite; }
+#neutral--ear-right { transform-origin: 47.9% 87.2%; animation: twitch-right 8s ease-in-out infinite; }
+#neutral--tail { transform-origin: 0% 100%; animation: sway-8 3s ease-in-out infinite; }
 @keyframes breathe { 50% { transform: scale(1.02); } }
-
-/* pleasant-high: two 14 px hops (360 ms each), then a 6 px bounce every 1.2 s */
-[data-mood-layer="pleasant-high"] [id$="--character"] {
-  animation: hop 360ms ease-out 2, bounce 1.2s ease-in-out 720ms infinite;
+@keyframes blink-4-6 {
+  0%, 38.8%, 40%, 98.8%, 100% { transform: scaleY(1); }
+  39.4%, 99.4% { transform: scaleY(0.1); }
 }
-@keyframes hop { 50% { transform: translateY(-14px); } }
-@keyframes bounce { 15% { transform: translateY(-6px); } 30%, 100% { transform: translateY(0); } }
+@keyframes twitch-left { 0%, 50%, 53% { transform: rotate(0); } 51.5% { transform: rotate(-8deg); } }
+@keyframes twitch-right { 0%, 50%, 53% { transform: rotate(0); } 51.5% { transform: rotate(8deg); } }
+@keyframes sway-8 { 25% { transform: rotate(8deg); } 75% { transform: rotate(-8deg); } }
 
-/* pleasant-low: sway +-3 deg from the base, 3.2 s loop */
-[data-mood-layer="pleasant-low"] [id$="--character"] { animation: sway 3.2s ease-in-out infinite; }
-@keyframes sway { 25% { transform: rotate(3deg); } 75% { transform: rotate(-3deg); } }
+/* ---------- pleasant-high: jumps for joy ---------- */
+#pleasant-high--character { animation: hop 360ms ease-out 2, bounce 1.2s ease-in-out 720ms infinite; }
+#pleasant-high--arm-left { transform-origin: 100% 100%; animation: wave 600ms ease-in-out infinite; }
+#pleasant-high--arm-right { transform-origin: 0% 100%; animation: wave 600ms ease-in-out -300ms infinite; }
+#pleasant-high--tail { transform-origin: 0% 100%; animation: wag 400ms ease-in-out infinite; }
+#pleasant-high--sparkles path { animation: twinkle 900ms ease-in-out infinite; }
+#pleasant-high--sparkles #pleasant-high--sparkle-2 { animation-delay: -180ms; }
+#pleasant-high--sparkles #pleasant-high--sparkle-3 { animation-delay: -360ms; }
+#pleasant-high--sparkles #pleasant-high--sparkle-4 { animation-delay: -540ms; }
+#pleasant-high--sparkles #pleasant-high--sparkle-5 { animation-delay: -720ms; }
+@keyframes hop { 50% { transform: translateY(-20px); } }
+@keyframes bounce { 15% { transform: translateY(-8px); } 30%, 100% { transform: translateY(0); } }
+@keyframes wave { 0%, 100% { transform: rotate(-12deg); } 50% { transform: rotate(12deg); } }
+@keyframes wag { 25% { transform: rotate(15deg); } 75% { transform: rotate(-15deg); } }
+@keyframes twinkle { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(0.6); opacity: 0.35; } }
 
-/* unpleasant-high: fidget +-2 px, bursts of three 180 ms moves every 1.6 s */
-[data-mood-layer="unpleasant-high"] [id$="--character"] { animation: fidget 1.6s linear infinite; }
+/* ---------- pleasant-low: content, leaning on you ---------- */
+#pleasant-low--character { animation: sway-3 3.2s ease-in-out infinite; }
+#pleasant-low--tail { transform-origin: 0% 82.3%; animation: flick 2.5s ease-in-out infinite; }
+#pleasant-low--heart { animation: heart-rise 4s ease-in-out infinite; }
+#pleasant-low--blush path { animation: blush 3.2s ease-in-out infinite; }
+@keyframes sway-3 { 25% { transform: rotate(3deg); } 75% { transform: rotate(-3deg); } }
+@keyframes flick { 0%, 24%, 100% { transform: rotate(0); } 8% { transform: rotate(10deg); } 16% { transform: rotate(-10deg); } }
+@keyframes heart-rise {
+  0% { transform: translateY(0); opacity: 1; }
+  70% { transform: translateY(-10px); opacity: 0; }
+  71% { transform: translateY(0); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+@keyframes blush { 0%, 100% { fill-opacity: 0.5; } 50% { fill-opacity: 0.7; } }
+
+/* ---------- unpleasant-high: worried with you (never angry) ---------- */
+#unpleasant-high--character { animation: fidget 1.6s linear infinite; }
+#unpleasant-high--tremble { animation: tremble 1.6s linear infinite; }  /* same clock as the fidget bursts */
+#unpleasant-high--sweat-1 { animation: sweat 2s ease-in infinite; }
+#unpleasant-high--sweat-2 { animation: sweat 2s ease-in 1s infinite; }
+#unpleasant-high--eye-left-pupil, #unpleasant-high--eye-right-pupil { animation: glance 2.4s ease-in-out infinite; }
+#unpleasant-high--paw-left { animation: rub 600ms ease-in-out infinite; }
+#unpleasant-high--paw-right { animation: rub 600ms ease-in-out -300ms infinite; }
 @keyframes fidget {
   0%, 33.75%, 100% { transform: translateX(0); }
   5.6%, 16.9%, 28.1% { transform: translateX(-2px); }
   11.25%, 22.5% { transform: translateX(2px); }
 }
-
-/* unpleasant-low: sinks 6 px in 600 ms, then slow breathing leaning 1 deg toward the log, 5 s loop */
-[data-mood-layer="unpleasant-low"] [id$="--character"] {
-  animation: sink 600ms ease-out forwards, lean 5s ease-in-out 600ms infinite;
+@keyframes tremble { 0%, 33.75%, 100% { opacity: 1; } 40%, 95% { opacity: 0.2; } }
+@keyframes sweat {
+  0% { transform: translateY(0); opacity: 1; }
+  75% { transform: translateY(6px); opacity: 1; }
+  90% { transform: translateY(6px); opacity: 0; }
+  91% { transform: translateY(0); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
 }
-@keyframes sink { to { transform: translateY(6px); } }
-@keyframes lean {
-  0%, 100% { transform: translateY(6px); }
-  50% { transform: translateY(6px) rotate(1deg) scale(1.01); }
-}
+@keyframes glance { 0%, 20%, 100% { transform: translateX(0); } 30%, 50% { transform: translateX(-2px); } 60%, 80% { transform: translateX(2px); } }
+@keyframes rub { 0%, 100% { transform: translateX(-1.5px); } 50% { transform: translateX(1.5px); } }
 
-/* REQ-006: reduce motion -> expression and glow swap at once, nothing keeps moving. */
+/* ---------- unpleasant-low: sad with you ---------- */
+#unpleasant-low--character { animation: sink 600ms ease-out forwards, slow-breath 5s ease-in-out 600ms infinite; }
+#unpleasant-low--tear-drop { animation: tear 3s ease-in infinite; }
+#unpleasant-low--ear-left { transform-origin: 71.4% 30.7%; animation: droop-left 5s ease-in-out infinite; }
+#unpleasant-low--ear-right { transform-origin: 28.6% 30.7%; animation: droop-right 5s ease-in-out infinite; }
+#unpleasant-low--eyes { animation: blink-slow 6s linear infinite; }
+@keyframes sink { to { transform: translateY(8px) scaleY(0.97); } }
+@keyframes slow-breath {
+  0%, 100% { transform: translateY(8px) scaleY(0.97); }
+  50% { transform: translateY(8px) scaleY(0.985); }
+}
+@keyframes tear {
+  0% { transform: translateY(0); opacity: 1; }
+  70% { transform: translateY(10px); opacity: 0; }
+  71% { transform: translateY(0); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+@keyframes droop-left { 50% { transform: rotate(-3deg); } }
+@keyframes droop-right { 50% { transform: rotate(3deg); } }
+@keyframes blink-slow { 0%, 92%, 100% { transform: scaleY(1); } 96% { transform: scaleY(0.1); } }
+
+/* REQ-006: reduce motion -> the drawn pose, face and glow swap at once; nothing keeps moving. */
 @media (prefers-reduced-motion: reduce) {
   .companion *, .companion__layer { animation: none !important; }
+  .companion { transition: none; }
 }

@@ -1,0 +1,41 @@
+== laptop hosts ['127.0.0.1:4318'] errors []
+  open             mood=neutral         at_send=-               layers=1 glow=rgb(230, 218, 202) glow@0/300ms=-/- running=5
+      neutral--tail:sway-8, neutral--ear-left:twitch-left, neutral--ear-right:twitch-right, neutral--body:breathe, neutral--eyes:blink-4-6
+  pleasant-high    mood=pleasant-high   at_send=neutral         layers=1 glow=rgba(242, 178, 92, 0.64) glow@0/300ms=rgb(230, 218, 202)/rgba(239, 189, 122, 0.71) running=9
+      pleasant-high--arm-left:wave, pleasant-high--arm-right:wave, pleasant-high--character:bounce, pleasant-high--sparkle-1:twinkle, pleasant-high--sparkle-2:twinkle, pleasant-high--sparkle-3:twinkle, pleasant-high--sparkle-4:twinkle, pleasant-high--sparkle-5:twinkle, pleasant-high--tail:wag
+      pivot drift px: [{'tail': 0, 'arm-left': 0, 'arm-right': 0}, {'tail': 0, 'arm-left': 0, 'arm-right': 0}, {'tail': 0, 'arm-left': 0, 'arm-right': 0}, {'tail': 0, 'arm-left': 0, 'arm-right': 0}]
+  pleasant-low     mood=pleasant-low    at_send=pleasant-high   layers=1 glow=rgba(242, 178, 92, 0.3) glow@0/300ms=rgba(242, 178, 92, 0.64)/rgba(242, 178, 92, 0.37) running=5
+      pleasant-low--blush-left:blush, pleasant-low--blush-right:blush, pleasant-low--character:sway-3, pleasant-low--heart:heart-rise, pleasant-low--tail:flick
+      pivot drift px: [{'tail': 0}, {'tail': 0}, {'tail': 0}, {'tail': 0}]
+  unpleasant-high  mood=unpleasant-high at_send=pleasant-low    layers=1 glow=rgba(88, 116, 137, 0.46) glow@0/300ms=rgba(242, 178, 92, 0.3)/rgba(109, 125, 131, 0.427) running=8
+      unpleasant-high--character:fidget, unpleasant-high--eye-left-pupil:glance, unpleasant-high--eye-right-pupil:glance, unpleasant-high--paw-left:rub, unpleasant-high--paw-right:rub, unpleasant-high--sweat-1:sweat, unpleasant-high--sweat-2:sweat, unpleasant-high--tremble:tremble
+  unpleasant-low   mood=unpleasant-low  at_send=unpleasant-high layers=1 glow=rgba(88, 116, 137, 0.3) glow@0/300ms=rgba(88, 116, 137, 0.46)/rgba(88, 116, 137, 0.333) running=5
+      unpleasant-low--character:slow-breath, unpleasant-low--ear-left:droop-left, unpleasant-low--ear-right:droop-right, unpleasant-low--eyes:blink-slow, unpleasant-low--tear-drop:tear
+      pivot drift px: [{'ear-left': 0, 'ear-right': 0}, {'ear-left': 0, 'ear-right': 0}, {'ear-left': 0.001, 'ear-right': 0.001}, {'ear-left': 0.001, 'ear-right': 0.001}]
+  neutral          mood=neutral         at_send=unpleasant-low  layers=1 glow=rgb(230, 218, 202) glow@0/300ms=rgba(88, 116, 137, 0.3)/rgba(220, 211, 198, 0.863) running=5
+      neutral--body:breathe, neutral--ear-left:twitch-left, neutral--ear-right:twitch-right, neutral--eyes:blink-4-6, neutral--tail:sway-8
+      pivot drift px: [{'tail': 0, 'ear-left': 0, 'ear-right': 0}, {'tail': 0, 'ear-left': 0, 'ear-right': 0}, {'tail': 0, 'ear-left': 0, 'ear-right': 0}, {'tail': 0, 'ear-left': 0, 'ear-right': 0}]
+== phone hosts ['127.0.0.1:4318'] errors []
+  open             mood=neutral         at_send=-               layers=1 glow=rgb(230, 218, 202) glow@0/300ms=-/- running=5
+      neutral--tail:sway-8, neutral--ear-left:twitch-left, neutral--ear-right:twitch-right, neutral--body:breathe, neutral--eyes:blink-4-6
+  pleasant-high    mood=pleasant-high   at_send=neutral         layers=1 glow=rgba(242, 178, 92, 0.64) glow@0/300ms=rgb(230, 218, 202)/rgba(239, 189, 123, 0.71) running=9
+      pleasant-high--arm-left:wave, pleasant-high--arm-right:wave, pleasant-high--character:bounce, pleasant-high--sparkle-1:twinkle, pleasant-high--sparkle-2:twinkle, pleasant-high--sparkle-3:twinkle, pleasant-high--sparkle-4:twinkle, pleasant-high--sparkle-5:twinkle, pleasant-high--tail:wag
+      pivot drift px: [{'tail': 0, 'arm-left': 0, 'arm-right': 0}, {'tail': 0, 'arm-left': 0, 'arm-right': 0}, {'tail': 0, 'arm-left': 0, 'arm-right': 0}, {'tail': 0, 'arm-left': 0, 'arm-right': 0}]
+  pleasant-low     mood=pleasant-low    at_send=pleasant-high   layers=1 glow=rgba(242, 178, 92, 0.3) glow@0/300ms=rgba(242, 178, 92, 0.64)/rgba(242, 178, 92, 0.37) running=5
+      pleasant-low--blush-left:blush, pleasant-low--blush-right:blush, pleasant-low--character:sway-3, pleasant-low--heart:heart-rise, pleasant-low--tail:flick
+      pivot drift px: [{'tail': 0}, {'tail': 0}, {'tail': 0}, {'tail': 0}]
+  unpleasant-high  mood=unpleasant-high at_send=pleasant-low    layers=1 glow=rgba(88, 116, 137, 0.46) glow@0/300ms=rgba(242, 178, 92, 0.3)/rgba(109, 125, 131, 0.427) running=8
+      unpleasant-high--character:fidget, unpleasant-high--eye-left-pupil:glance, unpleasant-high--eye-right-pupil:glance, unpleasant-high--paw-left:rub, unpleasant-high--paw-right:rub, unpleasant-high--sweat-1:sweat, unpleasant-high--sweat-2:sweat, unpleasant-high--tremble:tremble
+  unpleasant-low   mood=unpleasant-low  at_send=unpleasant-high layers=1 glow=rgba(88, 116, 137, 0.3) glow@0/300ms=rgba(88, 116, 137, 0.46)/rgba(88, 116, 137, 0.333) running=5
+      unpleasant-low--character:slow-breath, unpleasant-low--ear-left:droop-left, unpleasant-low--ear-right:droop-right, unpleasant-low--eyes:blink-slow, unpleasant-low--tear-drop:tear
+      pivot drift px: [{'ear-left': 0, 'ear-right': 0}, {'ear-left': 0, 'ear-right': 0}, {'ear-left': 0, 'ear-right': 0}, {'ear-left': 0, 'ear-right': 0}]
+  neutral          mood=neutral         at_send=unpleasant-low  layers=1 glow=rgb(230, 218, 202) glow@0/300ms=rgba(88, 116, 137, 0.3)/rgba(220, 211, 198, 0.863) running=5
+      neutral--body:breathe, neutral--ear-left:twitch-left, neutral--ear-right:twitch-right, neutral--eyes:blink-4-6, neutral--tail:sway-8
+      pivot drift px: [{'tail': 0, 'ear-left': 0, 'ear-right': 0}, {'tail': 0, 'ear-left': 0, 'ear-right': 0}, {'tail': 0, 'ear-left': 0, 'ear-right': 0}, {'tail': 0, 'ear-left': 0, 'ear-right': 0}]
+== laptop-reduce hosts ['127.0.0.1:4318'] errors []
+  open             mood=neutral         at_send=-               layers=1 glow=rgb(230, 218, 202) glow@0/300ms=-/- running=0
+  pleasant-high    mood=pleasant-high   at_send=neutral         layers=1 glow=rgba(242, 178, 92, 0.64) glow@0/300ms=rgba(242, 178, 92, 0.64)/rgba(242, 178, 92, 0.64) running=0
+  pleasant-low     mood=pleasant-low    at_send=pleasant-high   layers=1 glow=rgba(242, 178, 92, 0.3) glow@0/300ms=rgba(242, 178, 92, 0.3)/rgba(242, 178, 92, 0.3) running=0
+  unpleasant-high  mood=unpleasant-high at_send=pleasant-low    layers=1 glow=rgba(88, 116, 137, 0.46) glow@0/300ms=rgba(88, 116, 137, 0.46)/rgba(88, 116, 137, 0.46) running=0
+  unpleasant-low   mood=unpleasant-low  at_send=unpleasant-high layers=1 glow=rgba(88, 116, 137, 0.3) glow@0/300ms=rgba(88, 116, 137, 0.3)/rgba(88, 116, 137, 0.3) running=0
+  neutral          mood=neutral         at_send=unpleasant-low  layers=1 glow=rgb(230, 218, 202) glow@0/300ms=rgb(230, 218, 202)/rgb(230, 218, 202) running=0

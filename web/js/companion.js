@@ -19,7 +19,12 @@ export function createCompanion(root, caption) {
     const old = [...layers.children];
     if (animate && !reduceMotion()) {
       layer.classList.add('is-entering');
-      layer.addEventListener('animationend', () => layer.classList.remove('is-entering'), { once: true });
+      // Part animations (squash, hops) bubble animationend too; only the layer's own fade ends the entry.
+      layer.addEventListener('animationend', function done(e) {
+        if (e.target !== layer) return;
+        layer.classList.remove('is-entering');
+        layer.removeEventListener('animationend', done);
+      });
       old.forEach((el) => {
         el.classList.add('is-leaving');
         setTimeout(() => el.remove(), FADE_MS);

@@ -1,7 +1,7 @@
 {
   "demo": "after",
-  "time": "2026-11-14T21:15:24Z",
-  "fingerprint": "faa24ec655896c00",
+  "time": "2026-11-14T21:59:31Z",
+  "fingerprint": "8c29b5c48b2adab0",
   "surface": "web",
   "entries": [
     {
@@ -20,8 +20,8 @@
       },
       "ok": true,
       "instrument": "playwright-core + Chrome: DOM, computed styles, ARIA snapshot, screenshot",
-      "time": "2026-11-14T21:15:24Z",
-      "fingerprint": "faa24ec655896c00",
+      "time": "2026-11-14T21:59:31Z",
+      "fingerprint": "8c29b5c48b2adab0",
       "surface": "web"
     },
     {
@@ -40,8 +40,8 @@
       },
       "ok": true,
       "instrument": "playwright-core + Chrome: DOM, computed styles, ARIA snapshot, screenshot",
-      "time": "2026-11-14T21:15:24Z",
-      "fingerprint": "faa24ec655896c00",
+      "time": "2026-11-14T21:59:31Z",
+      "fingerprint": "8c29b5c48b2adab0",
       "surface": "web"
     },
     {
@@ -60,8 +60,8 @@
       },
       "ok": true,
       "instrument": "playwright-core + Chrome: DOM, computed styles, ARIA snapshot, screenshot",
-      "time": "2026-11-14T21:15:24Z",
-      "fingerprint": "faa24ec655896c00",
+      "time": "2026-11-14T21:59:31Z",
+      "fingerprint": "8c29b5c48b2adab0",
       "surface": "web"
     },
     {
@@ -80,8 +80,8 @@
       },
       "ok": true,
       "instrument": "playwright-core + Chrome: DOM, computed styles, ARIA snapshot, screenshot",
-      "time": "2026-11-14T21:15:24Z",
-      "fingerprint": "faa24ec655896c00",
+      "time": "2026-11-14T21:59:31Z",
+      "fingerprint": "8c29b5c48b2adab0",
       "surface": "web"
     },
     {
@@ -100,8 +100,8 @@
       },
       "ok": true,
       "instrument": "playwright-core + Chrome: DOM, computed styles, ARIA snapshot, screenshot",
-      "time": "2026-11-14T21:15:24Z",
-      "fingerprint": "faa24ec655896c00",
+      "time": "2026-11-14T21:59:31Z",
+      "fingerprint": "8c29b5c48b2adab0",
       "surface": "web"
     },
     {
@@ -120,8 +120,8 @@
       },
       "ok": true,
       "instrument": "playwright-core + Chrome: DOM, computed styles, ARIA snapshot, screenshot",
-      "time": "2026-11-14T21:15:24Z",
-      "fingerprint": "faa24ec655896c00",
+      "time": "2026-11-14T21:59:31Z",
+      "fingerprint": "8c29b5c48b2adab0",
       "surface": "web"
     }
   ]

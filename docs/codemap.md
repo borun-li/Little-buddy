@@ -5,7 +5,7 @@ Created by fe-engineer #1, 2026-11-14; rewritten by fe-engineer #3 (Phase 2b) wi
 ## `web/`
 Does: the companion page, static files served by `package.json` script start (python3 http.server, 127.0.0.1:4317). No build step, no npm dependency.  Entry: `web/index.html`, `web/js/app.js`  Used by: the browser; demo capture via `docs/frontend/demo-plan.json`
 Invariants: no request to any host but localhost (REQ-008); hooks data-testid fake-input (input), reply (latest companion reply only, none at open), companion with data-mood in the 5 mood ids; mood changes when the reply appears, never at send.  Tests: `tests/offline.test.js`
-Traps: `web/index.html` holds the 5 companion SVGs inline as <template id="mood-<mood>">, copied from `docs/frontend/evidence/design/companion/` with every id prefixed <mood>-- (ids repeat across the exports); re-copy by hand if fe-ui re-exports. Icons are an inline Lucide sprite (#i-mic, #i-mic-off, #i-info, #i-lock) with the ISC/MIT notice in a comment. No autofocus attribute: app.js focuses the input.
+Traps: `web/index.html` holds the 5 companion SVGs inline as <template id="mood-<mood>">, copied from `docs/frontend/evidence/design/companion/` with every id prefixed <mood>-- (ids repeat across the exports); re-copy by hand if fe-ui re-exports; `tests/companion.test.js` turns red when a copy is stale. Icons are an inline Lucide sprite (#i-mic, #i-mic-off, #i-info, #i-lock) with the ISC/MIT notice in a comment. No autofocus attribute: app.js focuses the input.
 
 ## `web/js/app.js`
 Does: turn flow idle → pending → idle; Enter (not while an IME composes) sends; Enter while pending is ignored and keeps the text; pauses the talk button ≤ 1 s.  Entry: module top level  Used by: `web/index.html`
@@ -23,14 +23,14 @@ Invariants: ≥ 2 replies per mood, never the same twice in a row, ≤ 2 sentenc
 Does: every user-visible word (hints, captions, accessible names, placeholder), keyed by language (zh only).  Used by: app, log, companion, talk-button
 
 ## `web/js/log.js`, `web/js/companion.js`
-Does: log renders you / you-voice / typing / reply turns, moves data-testid=reply to the newest reply, scrolls to newest. Companion clones the mood template into a layer, crossfades 240 ms, sets data-mood, caption and name "小伙伴，<心情>".  Used by: `web/js/app.js`
+Does: log renders you / you-voice / typing / reply turns, moves data-testid=reply to the newest reply, scrolls to newest. Companion clones the mood template into a layer, crossfades 240 ms, sets data-mood (the glow colour follows it in CSS), caption and name "小伙伴，<心情>".  Used by: `web/js/app.js`
 
 ## `web/js/talk-button.js`, `web/js/mic.js`
 Does: hold by pointer or Space; release on the button sends, off it or Esc cancels; < 0.5 s too-short hint; 60 s sends itself; drives the role=status hint line. mic.js reads the permission state, opens the stream only for the level bars and stops every track on release (audio never kept), maps NotAllowedError / NotFoundError / NotReadableError to hint keys.
 Traps: permission granted → listening shows at press and the stream joins later (first open can take > 1 s); prompt → that hold never records; browsers without the permission query → a stream slower than 600 ms is treated as an open prompt. Headless Chromium auto-denies the prompt, so it shows the refused hint there.
 
 ## `web/css/`
-Does: tokens.css (02-ui §3 tokens, @font-face "LXGW WenKai Web" → the local subset, no local() source), page.css (phone below 960 px incl. 768, laptop at 960+, turns, composer, hint, focus, talk-button states), companion.css (per-mood loops on [id$="--character"], crossfade, squash).
+Does: tokens.css (02-ui §3 tokens, @font-face "LXGW WenKai Web" → the local subset, no local() source), page.css (phone below 960 px incl. 768, laptop at 960+, turns, composer, hint, focus, talk-button states), companion.css (glow disc = background of [data-testid=companion], 600 ms; each SVG glow path hidden; per-part motions on #<mood>--<part> per 02-ui §7, pivots as fill-box % measured with getBBox; crossfade, squash).
 Invariants: prefers-reduced-motion: reduce stops every animation; .tab-hidden (set on hidden tab) pauses them.
 
 ## `web/fonts/`
@@ -38,7 +38,7 @@ Does: `web/fonts/lxgw-wenkai-subset.woff2` (LXGW WenKai Regular v1.522, 7,233 gl
 Traps: rerun the script after adding preset or copy characters outside GB2312.
 
 ## `tests/`
-Does: node:test unit tests: `tests/mood.test.js`, `tests/fake-companion.test.js`, `tests/offline.test.js`.  Entry: npm test (files named one by one; a glob matching nothing exits 0). JUnit at test-results/junit.xml (git-ignored).
+Does: node:test unit tests: `tests/mood.test.js`, `tests/fake-companion.test.js`, `tests/offline.test.js`, `tests/companion.test.js` (inlined art = export, every §7 part animated and present, reduced-motion block).  Entry: npm test (files named one by one; a glob matching nothing exits 0). JUnit at test-results/junit.xml (git-ignored).
 
 ## `contracts/`
 Does: the frontend/backend contract; seam for the next run's real backend.
