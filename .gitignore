@@ -1,0 +1,10 @@
+# Large / third-party, not ours
+samples/
+*.pdf
+*.gguf
+# Build output
+.build/
+node_modules/
+__pycache__/
+.venv/
+.DS_Store
