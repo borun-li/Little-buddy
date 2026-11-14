@@ -3,12 +3,14 @@
 - Owner: fe-engineer drafts (scaffold, feasibility), copying each state's words from `01-ux.md`; the Backend team confirms · The single shared truth between the teams.
 - Nothing is invented: every capability is `verified` (with source), `unverified` or `new`.
 - Prototype round (2026-11-14): the page uses fake data behind one client-side layer; no capability below is called yet.
+- Full development run `companion-full-dev` (2026-11-14, cross-stack, backend drives): every `new` capability gets a backend `DES`; the seam below is fixed before either team builds. Re-checked by orchestrator 2026-11-14: still no backend service (`package.json:7` serves `web/` statically), seam still fake (`web/js/companion-client.js:1-4`).
 
 ## 1. Capabilities
 | # | Capability | Status | Source | Needed by | Backend DES |
 |---|---|---|---|---|---|
 | C-001 | Speech-to-text of a recorded utterance (Argmax OSS / WhisperKit) | new | only a one-shot CLI spike exists, no service: `spikes/argmax-swift/Sources/ArgmaxSpike/main.swift:5-13`, orchestrator, 2026-11-14 | companion page | — |
 | C-002 | Chat completion from Bonsai (OpenAI-style `/v1/chat/completions` on llama-server :8080, sampling params sent per request) | verified | sample only, not wrapped: `samples/bonsai-models/gguf/start.sh:10,47`; `samples/bonsai-models/shared/index.html:54-55,117`, orchestrator, 2026-11-14 | companion page | — |
+| C-005 | Reply in the language the user spoke (zh or en), and transcription that keeps that language | new | user, /route kickoff 2026-11-14 ("跟着用户说的语言"); D-001 | companion page | — |
 | C-003 | Emotion of the user's turn: one of 4 quadrants (pleasant/unpleasant × high/low energy) + neutral | new | `idea.md` § 情绪模型, orchestrator, 2026-11-14 | companion page | — |
 | C-004 | Multi-turn conversation context | new | `idea.md` § 范围 P0, orchestrator, 2026-11-14 | companion page | — |
 
@@ -62,6 +64,19 @@ Seam (the client layer's interface, kept when the fake is replaced):
 | browser `NotReadableError` | mic-busy hint | same |
 | browser `NotAllowedError` | refused hint | same |
 
+### Seam for run `companion-full-dev` (orchestrator, 2026-11-14 — before either team starts)
+The client functions keep their names; only `web/js/companion-client.js` changes on the frontend side. Transport (endpoint, port, CORS vs same-origin, O-4) and audio format (O-2) are the architect's to fix in `03-detailed-design.md`, then copied here.
+
+| Name | Type | Nullable | Who computes | Notes |
+|---|---|---|---|---|
+| `respond(line, history)` in | `line`: string 1–500 chars; `history`: `[{role: user\|companion, text}]` | no | frontend (client input, page memory) | as §2 PAGE-001 |
+| `reply` out | string, in the language of `line` (zh or en) | no | backend: Bonsai (C-002, C-005) | replaces the §2 "Chinese, ≤120 characters" limit for English; length cap set in REQs |
+| `mood` out | `pleasant-high` \| `pleasant-low` \| `unpleasant-high` \| `unpleasant-low` \| `neutral` | no (`neutral` on doubt) | backend, per user line, returned with `reply` (answers O-3 as the seam assumed) | C-003 |
+| `transcribe(audio)` in | recorded utterance from the browser mic | no | frontend records (`web/js/mic.js`), backend transcribes | format/size cap: O-2, architect |
+| `text` out | string in the spoken language | yes (empty = nothing heard) | backend: WhisperKit (C-001, C-005) | |
+| failure / slow | error code + user words | — | backend codes (architect), words and states (fe-ux) | O-1 |
+| UI copy language | `zh` \| `en` switch | no | frontend only | no backend involvement |
+
 ## 3. Open items
 | # | Question | Owner | Impact | Status |
 |---|---|---|---|---|
@@ -76,3 +91,4 @@ Seam (the client layer's interface, kept when the fake is replaced):
 | 2026-11-14 | Capability table seeded by /route recon | orchestrator | none yet (prototype uses fake data) |
 | 2026-11-14 | §1 C-001/C-002 status cell reduced to the bare status (qualifier moved to Source, meaning unchanged) so the gate parses it; §2 drafted for PAGE-001 (send a line, hold to talk), seam `respond`/`transcribe`, O-1..O-4 | fe-engineer #1 | none this round; O-1..O-4 are the backend team's inputs for the next run |
 | 2026-11-14 | Seam implemented as `web/js/companion-client.js` (fake: preset replies, keyword moods, preset voice lines; reply after 600 ms); §2 fields and states unchanged | fe-engineer #3 | none this round; the real layer replaces that one file |
+| 2026-11-14 | Run `companion-full-dev`: C-005 added (reply/transcript follow the user's language); seam for this run written (mood from backend with reply; `transcribe` takes audio); O-1/O-2/O-4 left to be-architect | orchestrator | frontend keeps `respond`/`transcribe` names; replaces only `companion-client.js`, records audio in `mic.js`, adds zh/en UI switch |

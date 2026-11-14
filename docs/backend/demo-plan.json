@@ -1,0 +1,23 @@
+{
+ "_goal": "Wi-Fi off: say a happy English line -> a Bonsai-generated English reply (not a preset) appears and the companion turns happy; then a sad line -> a reply that follows the context and the companion turns sad.",
+ "_selectors": "The page keeps these data-testid hooks: fake-input (text path for the utterance; voice goes through the same respond seam), reply (latest companion reply), companion (data-mood=<pleasant-high|pleasant-low|unpleasant-high|unpleasant-low|neutral>). Typed input stands in for voice because a script cannot speak into the mic.",
+ "surface": "web",
+ "base_url": "http://127.0.0.1:4399",
+ "sizes": [{"name": "laptop", "width": 1440, "height": 900}],
+ "captures": [
+  {"id": "open", "url": "/", "steps": [{"action": "wait", "ms": 800}]},
+  {"id": "happy-en", "url": "/", "steps": [
+   {"action": "fill", "selector": "[data-testid=fake-input]", "value": "I just got the internship!"},
+   {"action": "press", "selector": "[data-testid=fake-input]", "key": "Enter"},
+   {"action": "waitFor", "selector": "[data-testid=reply]"},
+   {"action": "wait", "ms": 2000}]},
+  {"id": "sad-en-followup", "url": "/", "steps": [
+   {"action": "fill", "selector": "[data-testid=fake-input]", "value": "I just got the internship!"},
+   {"action": "press", "selector": "[data-testid=fake-input]", "key": "Enter"},
+   {"action": "waitFor", "selector": "[data-testid=reply]"},
+   {"action": "wait", "ms": 8000},
+   {"action": "fill", "selector": "[data-testid=fake-input]", "value": "But I'll have to move away from all my friends, and I feel really lonely about it."},
+   {"action": "press", "selector": "[data-testid=fake-input]", "key": "Enter"},
+   {"action": "wait", "ms": 12000}]}
+ ]
+}
