@@ -21,17 +21,17 @@ Next agent must know:
 Read beyond the list: ~/.claude/gates/gatelib/frontend.py ux() — to match what the gate parses.
 Next agent reads: docs/frontend/01-ux.md §4 (PAGE-001 table, wireframe, Companion moods).
 
-## fe-ui #2 · Phase 2 · round 3 · 2026-11-14T20:48:13Z
-Task: fix FE2.prose (54-word CMP-003 States bullet) with no content change; confirm the 11 frame PNGs are current exports of the confirmed frames.
-Changed: docs/frontend/02-ui.md — CMP-003 States split into a short States line (keeps "focus") plus 4 sub-bullets; same words. Round 2 changes stand: CMP-003/CMP-004, FRAME-011 (node 13:305), FRAME-011.png, companion/<mood>.svg ×5, DFB-001/002 accepted (needs user: no).
-Result: gate not run by me; gatelib docs.prose_units on 02-ui.md: longest unit 48 words (limit 50), none over; docs.field(CMP-003, States) still contains "focus". PNGs: none re-exported, figma_calls this round 0 (round 2: 10).
+## fe-ui #3 · Phase 2b (prototype) · round 2 · 2026-11-14T21:45:05Z
+Task: decide and draw DFB-003 — exaggerated, distinct companion moods; redraw CMP-001 + FRAME-009; re-export mood SVGs with named part groups.
+Changed: Figma CMP-001 stage frames 4:20/4:46/4:68/4:93/4:116 (new art), FRAME-009 motion notes; companion/<mood>.svg ×5 (part ids); FRAME-001…009, 011 PNGs; 02-ui.md CMP-001, §5 part table, §7 companion rows; 06-feedback.md DFB-003.
+Feedback: DFB-003 accepted (needs user: yes).
+Result: gate not run by me; gatelib prose max 48 words; each SVG renders (rsvg-convert, looked at), ids unique per file. figma_calls 18 (total 88-cap: 66+18=84).
 Next agent must know:
-- PNG currency evidence: FRAME-006.png vs FRAME-011.png (a clone of 6:304 made this run) differ by 1 pixel in the top 760 rows and 0 in the left 230 columns (`magick compare -metric AE`), so FRAME-006's export matches the canvas. FRAME-011.png was exported after its last edit. My Figma writes touched only 13:305. FRAME-001..005 and 007..010 were not re-read from Figma (budget); no agent wrote to them after fe-ui #1 exported them. Edits the user made in Figma by hand would not show up in this check.
-- Pitfalls: mood ids 4:19 neutral, 4:45 pleasant-high, 4:67 pleasant-low, 4:92 unpleasant-high, 4:115 unpleasant-low; SVG ids `Vector_n` repeat across files — inline one mood at a time. Paused input must not get `disabled`; phone listening aria-label "在听，N 秒，松开发送".
-- Tried, did not work: exportAsync via use_figma returns ~194 KB through context; download_assets svg saves to disk with the same ids.
-- Left open: FRAME-011 text layer still named "在听… 4 秒" (cosmetic).
-Read beyond the list: ~/.claude/gates/gatelib/docs.py prose_units, field — how units and `**States:**` are parsed.
-Next agent reads: docs/frontend/02-ui.md §4 CMP-003, CMP-004; §5 FRAME-011 and export note.
+- Pitfalls: Figma export of a nested stage frame adds ancestor groups and two background rects; I trimmed them to `companion-<mood>` > `stage`. Arms/ears/tail pivots: §7 row "part pivots". Glow alphas in CMP-001 supersede §3 `color.mood.*`; §3 and §6 row "companion.line … 8.5:1" are stale (Cocoa on Tide 46 % = 7.2:1, still ≥ 3:1) — outside this round's edit scope.
+- Tried, did not work: nothing failed; art was drafted as SVG locally (scratch gen.py), imported with createNodeFromSvg (ids become layer names).
+- Left open: §3/§6 values above; neutral also changed (soft brows, filled tail), so FRAME-001/005 were re-exported.
+Read beyond the list: nothing.
+Next agent reads: docs/frontend/02-ui.md §4 CMP-001, §5 part table, §7 companion rows.
 
 ## fe-engineer #3 · Phase 2b (prototype) · round 1 · 2026-11-14T21:13:24Z
 Task: make the confirmed design run at http://localhost:4317 (`npm start`): scaffold + Q-001..Q-009 to prototype depth, fake data behind one layer, `npm test` with real tests.

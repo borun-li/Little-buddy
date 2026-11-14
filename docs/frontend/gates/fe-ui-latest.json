@@ -1,6 +1,6 @@
 {
   "phase": "fe-ui",
-  "time": "2026-11-14T20:48:33Z",
+  "time": "2026-11-14T21:45:46Z",
   "project": "/Users/apple/Desktop/Hackathon/Local_AI_Hackathon",
   "run_dir": "docs/frontend",
   "overall": "pass",
@@ -21,6 +21,13 @@
       "id": "ALL.upstream",
       "status": "pass",
       "message": "02-ui.md present",
+      "owner": "fe-ui",
+      "details": []
+    },
+    {
+      "id": "ROLE.designer-scope",
+      "status": "pass",
+      "message": "fe-ui changed only design documents",
       "owner": "fe-ui",
       "details": []
     },
@@ -62,7 +69,7 @@
     {
       "id": "FE.figma",
       "status": "pass",
-      "message": "66 of 73 Figma calls used (raised by the user)",
+      "message": "84 of 88 Figma calls used (raised by the user)",
       "owner": "fe-ui",
       "details": []
     },
