@@ -1,0 +1,104 @@
+{
+  "phase": "fe-queue",
+  "time": "2026-11-14T20:47:03Z",
+  "project": "/Users/apple/Desktop/Hackathon/Local_AI_Hackathon",
+  "run_dir": "docs/frontend",
+  "overall": "pass",
+  "consecutive_failures": 0,
+  "failed_runs": 0,
+  "fix_round_cap": 2,
+  "escalate": false,
+  "fail_by_owner": {},
+  "checks": [
+    {
+      "id": "ALL.state",
+      "status": "pass",
+      "message": "state.json valid",
+      "owner": "orchestrator",
+      "details": []
+    },
+    {
+      "id": "ALL.upstream",
+      "status": "pass",
+      "message": "03-queue.md present",
+      "owner": "fe-engineer",
+      "details": []
+    },
+    {
+      "id": "FE2.rows",
+      "status": "pass",
+      "message": "9 rows complete",
+      "owner": "fe-engineer",
+      "details": []
+    },
+    {
+      "id": "FE2.row-ids",
+      "status": "pass",
+      "message": "9 Q ids new to the project",
+      "owner": "fe-engineer",
+      "details": []
+    },
+    {
+      "id": "FE2.row-length",
+      "status": "pass",
+      "message": "Every queue row within 80 words",
+      "owner": "fe-engineer",
+      "details": []
+    },
+    {
+      "id": "FE2.coverage",
+      "status": "pass",
+      "message": "Every page, state row and frame is delivered by a row",
+      "owner": "fe-engineer",
+      "details": []
+    },
+    {
+      "id": "FE2.contract",
+      "status": "pass",
+      "message": "4 capabilities, each ruled",
+      "owner": "fe-engineer",
+      "details": []
+    },
+    {
+      "id": "FE2.feedback",
+      "status": "pass",
+      "message": "2 design-feedback items decided",
+      "owner": "fe-engineer",
+      "details": []
+    },
+    {
+      "id": "LOG.valid",
+      "status": "pass",
+      "message": "Run log intact",
+      "owner": "orchestrator",
+      "details": []
+    },
+    {
+      "id": "CTX.codemap",
+      "status": "pass",
+      "message": "docs/codemap.md paths exist, within its cap",
+      "owner": "fe-engineer",
+      "details": []
+    },
+    {
+      "id": "CTX.handoff",
+      "status": "pass",
+      "message": "handoff.md: 4 current sections",
+      "owner": "orchestrator",
+      "details": []
+    }
+  ],
+  "data": {
+    "rows": [
+      "Q-001",
+      "Q-002",
+      "Q-003",
+      "Q-004",
+      "Q-005",
+      "Q-006",
+      "Q-007",
+      "Q-008",
+      "Q-009"
+    ]
+  }
+}

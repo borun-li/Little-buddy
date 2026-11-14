@@ -105,12 +105,12 @@ No npm package. Two vendored asset sets, no manifest entry.
 
 ### Q-004 — Hold to talk
 - **Page:** PAGE-001
-- **Frame:** FRAME-003, FRAME-010
+- **Frame:** FRAME-003, FRAME-010, FRAME-011
 - **States:** success
 - **REQ:** REQ-002
 - **Files:** `talk-button.js`, `mic.js`, `log.js`, `companion-client.js`, `page.css`
-- **Observable:** holding the button (or Space) shows listening with seconds and level bars; release adds a tagged voice turn and a reply; Esc or sliding off adds nothing
-- **Acceptance:** mic allowed: 2 s hold → turn ≤ 1 s after release; < 0.5 s → too-short hint; 60 s sends itself; 1440, 390
+- **Observable:** holding the button (or Space) shows listening with seconds and level bars (phone: icon, "N 秒", bars; name "在听，N 秒，松开发送"); release sends; Esc adds nothing
+- **Acceptance:** 2 s hold → turn ≤ 1 s after release; < 0.5 s → too-short hint; 60 s auto-sends; 1440, 390
 - **Priority:** P1
 - **Side:** frontend
 - **Depends on:** Q-002, DFB-001

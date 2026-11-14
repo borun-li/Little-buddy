@@ -1,18 +1,14 @@
 {
   "phase": "fe-ui",
-  "time": "2026-11-14T20:42:39Z",
+  "time": "2026-11-14T20:48:33Z",
   "project": "/Users/apple/Desktop/Hackathon/Local_AI_Hackathon",
   "run_dir": "docs/frontend",
-  "overall": "fail",
-  "consecutive_failures": 1,
-  "failed_runs": 1,
+  "overall": "pass",
+  "consecutive_failures": 0,
+  "failed_runs": 0,
   "fix_round_cap": 2,
   "escalate": false,
-  "fail_by_owner": {
-    "fe-ui": [
-      "FE2.prose"
-    ]
-  },
+  "fail_by_owner": {},
   "checks": [
     {
       "id": "ALL.state",
@@ -25,13 +21,6 @@
       "id": "ALL.upstream",
       "status": "pass",
       "message": "02-ui.md present",
-      "owner": "fe-ui",
-      "details": []
-    },
-    {
-      "id": "ROLE.designer-scope",
-      "status": "pass",
-      "message": "fe-ui changed only design documents",
       "owner": "fe-ui",
       "details": []
     },
@@ -79,12 +68,10 @@
     },
     {
       "id": "FE2.prose",
-      "status": "fail",
-      "message": "Prose longer than 50 words: split into bullets or a table",
+      "status": "pass",
+      "message": "No paragraph or bullet over 50 words",
       "owner": "fe-ui",
-      "details": [
-        "54 words: - **States:** default, hover (pressed tone), focus (Cocoa 3 px outline…"
-      ]
+      "details": []
     },
     {
       "id": "LOG.valid",

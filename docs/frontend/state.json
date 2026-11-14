@@ -7,8 +7,8 @@
   "check": "说/输入一句开心的话看到它笑，一句难过的话看到它陪你难过"
  },
  "started_at": "2026-11-14T15:01:00-05:00",
- "updated_at": "2026-11-14T15:01:00-05:00",
- "status": "in_progress",
+ "updated_at": "2026-11-14T15:47:20-05:00",
+ "status": "prototyping",
  "tier": "prototype",
  "risk": "high",
  "design": "new",
@@ -35,11 +35,17 @@
  },
  "current_phase": 2,
  "phases": [],
- "stops": {},
+ "stops": {
+  "UI": {
+   "decision": "approved",
+   "by": "user",
+   "date": "2026-11-14",
+   "note": "frames 001-011, palette+type; defaults accepted (interpreted: only item 3 commented); English later -> deferred D-001"
+  }
+ },
  "preview": null,
  "increments": [],
  "open_questions": [
-  "前后端分界线（project-context.md 草稿）待用户签字",
   "demo-plan 要求的 data-testid 与文字兜底输入框 fake-input（假设：作为无麦克风时的输入方式）"
  ],
  "notes": [

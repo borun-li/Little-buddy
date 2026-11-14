@@ -21,30 +21,25 @@ Next agent must know:
 Read beyond the list: ~/.claude/gates/gatelib/frontend.py ux() — to match what the gate parses.
 Next agent reads: docs/frontend/01-ux.md §4 (PAGE-001 table, wireframe, Companion moods).
 
-## fe-ui #2 · Phase 2 · round 2 · 2026-11-14T20:42:13Z
-Task: decide DFB-001 and DFB-002, draw the phone listening frame if accepted, export CMP-001 Companion as one SVG per mood.
-Changed: docs/frontend/02-ui.md — CMP-003 listening/overflow (phone: icon + "N 秒" + bars), CMP-004 paused (editable, focused, Enter ignored, no fade), §5 FRAME-011 row and export note, 2 plan-revision lines; docs/frontend/06-feedback.md — DFB-001/002 decided; Figma FRAME-011 node 13:305 (clone of FRAME-006, talk button swapped to State=listening, 124×48, hint text hidden); docs/frontend/evidence/design/FRAME-011.png (390×844); docs/frontend/evidence/design/companion/{neutral,pleasant-high,pleasant-low,unpleasant-high,unpleasant-low}.svg (new).
-Feedback: DFB-001 accepted (needs user: no). DFB-002 accepted (needs user: no).
-Result: gate not run by me. Phone button content at "60 秒" = 92 px of 124 px (Figma read-back); 5 SVGs rendered with rsvg-convert and checked by eye: each mood distinct and matching FRAME-009. Figma calls: 10 of 17.
+## fe-ui #2 · Phase 2 · round 3 · 2026-11-14T20:48:13Z
+Task: fix FE2.prose (54-word CMP-003 States bullet) with no content change; confirm the 11 frame PNGs are current exports of the confirmed frames.
+Changed: docs/frontend/02-ui.md — CMP-003 States split into a short States line (keeps "focus") plus 4 sub-bullets; same words. Round 2 changes stand: CMP-003/CMP-004, FRAME-011 (node 13:305), FRAME-011.png, companion/<mood>.svg ×5, DFB-001/002 accepted (needs user: no).
+Result: gate not run by me; gatelib docs.prose_units on 02-ui.md: longest unit 48 words (limit 50), none over; docs.field(CMP-003, States) still contains "focus". PNGs: none re-exported, figma_calls this round 0 (round 2: 10).
 Next agent must know:
-- Pitfalls: mood ids 4:19 neutral, 4:45 pleasant-high, 4:67 pleasant-low, 4:92 unpleasant-high, 4:115 unpleasant-low. SVGs come from REST export (has layer-name ids), cleaned: background rects and the caption path removed, viewBox 0 0 400 400; glow is translucent (alpha fill), ids repeat across files (Vector_n) — inline one mood at a time or prefix ids.
-- FRAME-011 is built by no queue row yet: FE2.coverage fails until fe-engineer adds FRAME-011 to Q-004 (hold to talk) in 03-queue.md.
-- Phone listening keeps aria-label "在听，N 秒，松开发送"; paused input must not get the `disabled` attribute.
-- Tried, did not work: exportAsync SVG_STRING via use_figma would return ~194 KB through context; download_assets svg gives the same ids and saves straight to disk.
-- Left open: text layer in FRAME-011 still named "在听… 4 秒" (characters are "4 秒"); cosmetic.
-Read beyond the list: ~/.claude/gates/gatelib/frontend.py ui()/queue() — frame rows must be built by a queue row.
+- PNG currency evidence: FRAME-006.png vs FRAME-011.png (a clone of 6:304 made this run) differ by 1 pixel in the top 760 rows and 0 in the left 230 columns (`magick compare -metric AE`), so FRAME-006's export matches the canvas. FRAME-011.png was exported after its last edit. My Figma writes touched only 13:305. FRAME-001..005 and 007..010 were not re-read from Figma (budget); no agent wrote to them after fe-ui #1 exported them. Edits the user made in Figma by hand would not show up in this check.
+- Pitfalls: mood ids 4:19 neutral, 4:45 pleasant-high, 4:67 pleasant-low, 4:92 unpleasant-high, 4:115 unpleasant-low; SVG ids `Vector_n` repeat across files — inline one mood at a time. Paused input must not get `disabled`; phone listening aria-label "在听，N 秒，松开发送".
+- Tried, did not work: exportAsync via use_figma returns ~194 KB through context; download_assets svg saves to disk with the same ids.
+- Left open: FRAME-011 text layer still named "在听… 4 秒" (cosmetic).
+Read beyond the list: ~/.claude/gates/gatelib/docs.py prose_units, field — how units and `**States:**` are parsed.
 Next agent reads: docs/frontend/02-ui.md §4 CMP-003, CMP-004; §5 FRAME-011 and export note.
 
-## fe-engineer #1 · Phase 2 (feasibility + queue) · round 1 · 2026-11-14T20:33:49Z
-Task: feasibility check and build queue for PAGE-001 (REQ-001..008, FRAME-001..010); contract §2 draft; stack and build/test commands for Phase 2b; code map.
-Changed: docs/frontend/03-queue.md (new, 182 lines) — stack, § Scaffold (22 planned files), Dependencies (no npm; vendored WenKai subset + 4 Lucide SVGs), feasibility notes, 2 DFBs, Q-001..Q-009 (6 P1, 3 P2, all frontend); contracts/FRONTEND_BACKEND_CONTRACT.md (+52) — §1 C-001/C-002 status cells made bare, §2 PAGE-001 send a line / hold to talk, O-1..O-4; docs/codemap.md (new, planned layout).
-Feedback: DFB-001 → fe-ui: phone listening "N 秒 · 松开发送" is 130.9 px of text for a 124 px button. DFB-002 → fe-ui: CMP-004 "disabled (paused)" vs 01-ux loading "keep typing".
-Result: gate not run by me; dry-checked with gatelib: 9 rows, no field missing, max 79 words (Q-002), all 10 frames and 6 state rows covered, 4 capabilities parse as verified/new. Figma calls 0.
+## fe-engineer #2 · Phase 2 (queue fix) · round 2 · 2026-11-14T20:50:00Z
+Task: make FE2.coverage pass by having a queue row deliver FRAME-011 (phone listening talk button, DFB-001 accepted).
+Changed: docs/frontend/03-queue.md — Q-004 Frame field now FRAME-003, FRAME-010, FRAME-011; Observable adds the phone listening state (icon, "N 秒", level bars; name "在听，N 秒，松开发送"); Acceptance shortened to stay in the cap. Q-004 is 76 words by gatelib docs.words (cap 80); other rows unchanged (max 79, Q-002).
+Feedback: none.
+Result: gate not run by me; dry-checked Q-004 word count with gatelib. Figma calls 0.
 Next agent must know:
-- Pitfalls: `node --test` with a glob matching nothing exits 0 ("tests 0") — test files are named one by one; the junit dir must exist (`mkdir -p`). Paused input stays editable if DFB-002 is accepted. Q-002 sits at 79 of 80 words.
-- Companion art lives only in Figma: Phase 2b needs 1 `use_figma` call on FRAME-009 (node 7:305) exporting SVG_STRING with `svgIdAttribute` per mood, or a redraw fe-ui checks. 2 calls left.
-- Font: LXGW WenKai v1.530 Regular TTF (OFL-1.1; WOFF2 web subsets explicitly allowed) → `pyftsubset` (installed, with brotli) → web/fonts/; ship OFL.txt. Download is build-time only.
-- Tried, did not work: `node --test tests/` (treats the dir as a file, fails).
-- Left open: E1 (768 px uses the phone layout, no frame); O-1..O-4 for the backend run; fe-plan needs fe-ui green (it failed on FE.figma double count).
-Read beyond the list: ~/.claude/gates/gatelib/frontend.py queue(), runner.py run_tests() — to match what the gates parse.
-Next agent reads: docs/frontend/03-queue.md § Stack, § Scaffold, Q-001..Q-005; contracts/FRONTEND_BACKEND_CONTRACT.md §2.
+- Q-004 is at 76 of 80 words.
+- Round-1 notes still hold: companion art is now exported under evidence/design/companion/ (per 02-ui.md); paused input stays editable (DFB-002); test files named one by one; junit dir must exist.
+- Left open: E1 (768 px uses phone layout); O-1..O-4 for the backend run.
+Next agent reads: docs/frontend/03-queue.md Q-004; 02-ui.md CMP-003 and FRAME-011.
