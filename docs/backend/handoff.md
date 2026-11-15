@@ -73,7 +73,14 @@ Next agent must know:
 Read beyond the list: scratchpad arch6/pkg/Sources/CompanionTTS/main.swift (architect's measurement helper).
 Next agent reads: server/tts.js:9-140; server/bonsai.js crisisReply + respond; docs/backend/08-implementation-log.md § Increment 2
 
-## fe-tester #6 · step 3 (client tests for Q-020) · round 1 · increment 2 · 2026-11-15T08:10:00Z
+## fe-tester #7 · step 3 (fnd-r1-fix wiring test) · round 1 · increment 2 · 2026-11-15T10:00:00Z
+Task: repair the one red assertion in tests/fnd-r1-fix.test.js after Q-022 rewrote the onUtterance guard.
+Changed: tests/fnd-r1-fix.test.js only, one line: `/onUtterance: \(audio\) => pending \? false/` became `/onUtterance: \(audio\) => \{\s*if \(pending\) return false;/`. Same behaviour checked (utterance dropped while pending), source regex for the block form.
+Result: fnd-r1-fix 7/7; frontend unit files (package.json list minus server-*) 108/108. Mutation in a scratch copy (pending line removed from app.js): that test red, other 6 green.
+Next agent must know: the check is a source regex, so a further rewrite of that line needs the regex updated again.
+Next agent reads: tests/fnd-r1-fix.test.js:99-104
+Earlier entries follow.
+Earlier entry (fe-tester #6, Q-020 client tests, 2026-11-15T08:10:00Z):
 Task: write tests/client.test.js for Q-020 (2 updated Q-010 assertions + 7 Q-020 tests) after the gate restored HEAD.
 Changed: tests/client.test.js only. Engineer's test diff reviewed: both Q-010 changes are required by the contract (respond now returns lang/crisis/speech; health returns tts) and stay deepEqual, not weakened. Strengthened: respond body now deepEqual {line, history, name} (was name only); speak checks Content-Type application/json.
 Result: with HEAD client the file fails to load (no SPEAK_TIMEOUT_MS export), so all 14 fail until the engineer's client is restored. With the engineer's client copied to a scratch dir: 14/14 pass; mutation 11000 to 12000 turns the speak timeout test red.

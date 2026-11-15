@@ -100,5 +100,5 @@ test('FND-001/002 app.js wiring: awake gated by hint.key, utterance dropped whil
   const src = readFileSync(new URL('../web/js/app.js', import.meta.url), 'utf8');
   assert.match(src, /HEALTH_HINTS\.has\(cur\)\) showHint\('awake'\)/);
   assert.match(src, /if \(cur === 'awake'\) hint\.clear\(\)/);
-  assert.match(src, /onUtterance: \(audio\) => pending \? false/);
+  assert.match(src, /onUtterance: \(audio\) => \{\s*if \(pending\) return false;/);
 });
