@@ -83,21 +83,19 @@ Next agent must know:
 - Left open: the not-observable rows still need a mic, a failing backend, reduce-motion emulation or a network log (user check at Acceptance).
 Next agent reads: docs/frontend/04-verification.md
 
-## fe-engineer #16 · step 4 (FE4.row-tests) · round 3 · increment 1 · 2026-11-15T06:30:00Z
-Round 3: package.json test script + tests/verify-r2.test.js (all other entries kept); web/js/talk-button.js:9 comment now says wait until it says Listening. npm test: 84 tests, 84 pass, 0 fail. No other files touched.
-Round 2 follows.
-Round 2: only docs/codemap.md, backticks removed from non-path words (listeningNow, setPaused, healthHint, hint.key, is-shown); the one backticked path left is tests/fnd-r1-fix.test.js. No code or tests touched. micOpening reword approval confirmed by coordinator (human conditional #172).
-Round 1 follows.
-Task: fix FND-001, FND-002, FND-003 to the 01-ux.md Hint rules; reword hints.micOpening (user's yes relayed by the coordinator).
-Changed: web/js/health-watch.js (failed(): awake armed only by not_ready; first check one poll later), web/js/app.js (healthHint gate by hint.key; utterance dropped while pending), web/js/talk-button.js (listeningNow announced, cleared at hold end; setPaused(true) cancels a hold), web/js/copy.js (listeningNow, micOpening new words), tests/fnd-r1-fix.test.js (new, 7 tests), package.json (+verify-r1, +fnd-r1-fix in test), docs/frontend/03-queue.md (Fix lines), docs/codemap.md. evidence/build/FND-001-*.png, FND-002-race.png, FND-003-listening.png.
-Feedback: none. FND-004 also fixed (awake clears only itself): browser check, tooShort survives the awake timer.
-FND-002 choice: drop, not queue (01-ux "pending → Enter ignored"; audio never kept, A9): Enter during a hold cancels the hold (mic closed); a hold that ends while pending sends nothing.
-Result: new tests 7/7 green; 5 red on the old web/js copy. Browser 4399: send/voice unavailable keep their hint after 6.5 s; race sends one request, no stray typing node; status line says "Listening" while held, empty after release. Full frontend suite 77/79: TWO EXISTING TESTS NOW RED, made wrong by the confirmed rules, not edited (dispatch forbids): tests/health-watch.test.js "a failed send ... resumes checks" (expects check at once; rule is 2 s later) and tests/talk-button.test.js "slow open ..." (expects last hint 'clear'; now 'clear','listeningNow'). verify-r1 fully green incl. micOpening. 0 Figma calls.
+## fe-engineer #17 · step 2 (feasibility + queue) · round 2 · increment 2 · 2026-11-15T06:10:00Z
+Task: append `## Increment 2 — 2026-11-15` to docs/frontend/03-queue.md (rows Q-020.. from the design), extend contract §2 PAGE-001 per 01-ux; no product code.
+Changed: docs/frontend/03-queue.md (+~250/-0) — § Increment 2: changed-earlier-rows table, scaffold, feasibility notes, Q-020..Q-034 (15 rows; Q-034 = FRAME-025 skipped, design only), notes, dependencies; contracts/FRONTEND_BACKEND_CONTRACT.md — §2 PAGE-001: name/lang/crisis/speech fields, speaking/offer/crisis/cleared/tts states, new `speak` action, change-log row.
+Feedback: no DFB: phone caption row, clear inset, 228 px art fit as fe-ui measured; assumptions A-I2-1 (clear while pending drops the late reply silently; card stays under its reply) need no design change.
+Result: round 2: Q-012/014/015/018/019/020 trimmed (status/Fix parentheticals dropped, history is in git), all rows ≤ 80 by gatelib docs.words; Q-034 added for FRAME-025 (skipped); 0 Figma calls.
 Next agent must know:
-- Pitfalls: those two tests need a one-line update by whoever may edit tests; npm test is red until then.
-- Pitfalls: mocked Date starts at 0, so talk-button.t0 === 0 reads as "not open"; tick before opening the stream in tests.
-- Left open: stillDown over an action hint is allowed by the rules; not covered by a browser check (unit rule in healthHint only).
-Next agent reads: web/js/app.js healthHint, tests/fnd-r1-fix.test.js
+- Pitfalls: health-watch must keep polling until tts is ready, but onChange then fires on a tts-only change; app.js healthHint(null) would clear `awake` early, so Q-026 uses a separate callback.
+- Pitfalls: the 11 {name} keys stay default-name text in the zh/en tables (verify-r1.test.js reads them); substitute into the live copy object at setLang/setName.
+- Pitfalls: companion becomes a button; caption loses aria-hidden; keep data-testid fake-input, reply, companion; pokes and breathing swap the face layer only, never data-mood or the glow.
+- Pitfalls: app.js, companion.js, copy.js are shared by most rows: build one row at a time in the Dependencies order.
+- Left open: Safari first-play autoplay [unverified]; phone caption row re-measure (Q-032).
+Read beyond the list: web/index.html, web/js/copy.js, web/js/log.js, web/js/health-watch.js, tests/verify-r1.test.js — structure and tests the rows touch.
+Next agent reads: docs/frontend/03-queue.md § Increment 2 (rows and notes), contract §2 PAGE-001
 
 ## be-tester #5 · step 5 (test report) · round 4 · 2026-11-15T04:30:00Z
 Task: bring tests in line with the review-fix design (DES-002, 03 §6) and add FND-001/002/003 regressions; re-run npm test.

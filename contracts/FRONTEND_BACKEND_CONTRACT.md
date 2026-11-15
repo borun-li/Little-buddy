@@ -19,6 +19,7 @@ Draft by fe-engineer #1, 2026-11-14, from `01-ux.md` PAGE-001 and `00-requiremen
 
 Seam (the client layer's interface, kept when the fake is replaced):
 - `respond(line, history)` → `{ reply, mood }` (C-002, C-003, C-004)
+- Increment 2 (`01-ux.md` § Increment 2): `respond(line, history, name)` → `{ reply, mood, lang, crisis, speech }`; `speak(text, lang)` → WAV Blob; `health()` also returns `tts` (the seam table "Seam for increment 2" below is the truth)
 - `transcribe(audio)` → `{ text }` (C-001; audio = WAV from `mic.js`, O-2 answered) · `health()` → `{ ready, stt, bonsai }` (increment 1; the seam table below is the truth)
 
 ### PAGE-001 · send a line (typed, or a transcribed voice line)  (states and words from `01-ux.md`)
@@ -28,6 +29,10 @@ Seam (the client layer's interface, kept when the fake is replaced):
 | `history` | earlier turns in order, each `{ role: user \| companion, text }`, page memory only (A5) | C-004 | yes | `[]` at the first turn |
 | `reply` | the companion's answer in the line's language (zh/en), warm, ≤ 2 sentences, ≤ 1 question, zh ≤ 120 characters, en ≤ 40 words (REQ-004, REQ-005) | C-002, C-005 | yes | never empty in a 200, otherwise a code |
 | `mood` | the mood of the user's line: `pleasant-high` \| `pleasant-low` \| `unpleasant-high` \| `unpleasant-low` \| `neutral` (REQ-006) | C-003 | yes | `neutral` when unsure |
+| `name` | the saved companion name, cleaned (≤ 12 characters, letters, numbers, space, `-'·`); the companion calls itself by it (REQ-030, REQ-031) | — (client state, `localStorage`) | no | absent or `null` → default name per language |
+| `lang` | `zh` or `en`: the language of the reply, used to pick the voice | C-005 | yes | never empty in a 200 |
+| `crisis` | the line matched the fixed crisis list; the page shows the help card and never judges it (REQ-025) | — (backend) | yes | `false` when not matched |
+| `speech` | the reply cut into parts read in order | — (backend) | yes | `[]` → nothing read |
 | `voice` | the turn came from hold-to-talk, so it is tagged "语音" / "Voice" | — (client state) | no | absent → typed turn |
 
 | State | What renders | Copy |
@@ -36,6 +41,11 @@ Seam (the client layer's interface, kept when the fake is replaced):
 | empty | companion `neutral`; empty log with a hint; input focused; no `reply` hook | "想说什么都可以。按住说话，或者直接打字。" · "聊天只留在这台电脑上，刷新就清空。" |
 | success | turns in order, newest in view; latest reply carries `reply`; companion shows that turn's `mood` | reply text; voice turns tagged "语音" / "Voice" |
 | failure | own turn leaves the log, its text back in the input, hint per code (`01-ux.md` Increment 1, Codes, send column) | `hints.sendUnavailable` · `sendTimeout` · `sendFailed` · `sendDefect` · `warming` |
+| success · speaking / muted | reply and mood at once; the voice ≤ 3 s later, parts in order; muted → text only, a reading stops ≤ 0.5 s | `speakerOn` · `speakerOff` |
+| success · breathing offer | newest reply `unpleasant-high` and `crisis` false: chip under it | `breathOffer` |
+| success · crisis | `crisis` true: the help card under the reply, in the interface language | `crisisLabel` · `crisisTitle` · `crisis988` · `crisis911` · `crisisClose` |
+| empty · cleared | clear: log empty, `history` `[]`, companion `neutral`; a reply still on its way is dropped when it lands | `hints.cleared` |
+| warming · voice reply not ready | `health().tts` is not `ready` or a speak failed: silent, toggle shows not ready, no hint | `speakerNotReady` |
 | warming | reply side not ready: Enter keeps the text, warming hint, caption 还在醒来 | `hints.warming`; `moods.waking` |
 | permission-denied | n/a for this action | — |
 | conflict | n/a: one user, page memory only | — |
@@ -50,6 +60,25 @@ Seam (the client layer's interface, kept when the fake is replaced):
 | `bad_request` | `hints.sendDefect` | never on the page |
 | `too_large` | `hints.sendDefect` | never on the page |
 
+### PAGE-001 · hear the reply — `speak(text, lang)`  (increment 2, `01-ux.md` FLOW-008)
+| Field | Meaning (business terms) | Capability | Required | Empty / absent shape |
+|---|---|---|---|---|
+| `text` | one part of the reply to read aloud, trimmed, 1–200 characters | — (backend cut it into `speech`) | yes | no part, no call |
+| `lang` | `zh` or `en`, from the reply's `lang` | C-005 | yes | — |
+| audio | WAV, PCM 16-bit LE, mono, 24000 Hz, played from page memory and dropped (never kept) | — (backend TTS) | yes | failure → silence |
+
+| State | What renders | Copy |
+|---|---|---|
+| loading | nothing: text and mood never wait; the next part is fetched while one plays | — |
+| success | the voice plays; the toggle shows speaking | `speakerOn` |
+| warming | not ready: silent, toggle shows not ready; checks go on until ready | `speakerNotReady` |
+| failure | that reply stays silent, no hint, toggle unchanged | — |
+| boundary | muted, a press to talk, a send, clear, breathing or a new reply stops it and aborts the call | `speakerOff` |
+
+| Error | User sees | Raw value (admin only, where) |
+|---|---|---|
+| any code (`not_ready`, `unavailable`, `timeout`, `failed`, `bad_request`, `too_large`) | silence, no hint (page stops at 11 s) | never on the page |
+
 ### PAGE-001 · hold to talk — `transcribe(audio)`
 | Field | Meaning (business terms) | Capability | Required | Empty / absent shape |
 |---|---|---|---|---|
@@ -60,6 +89,7 @@ Seam (the client layer's interface, kept when the fake is replaced):
 | loading | pressed: button held, nothing recorded; listening and its seconds start when the mic stream opens, `hints.micOpening` until then (DFB-005); button shows seconds and level bars; after release, own turn "正在转成文字…", send and hold paused ≤ 13 s | "在听… N 秒" · "松开发送 · 移开或 Esc 取消" (laptop; phone see DFB on CMP-003) · `transcribing` · `hints.micOpening` |
 | success | the placeholder becomes the voice turn, then as "send a line" | "语音" / "Voice" |
 | warming | voice not ready: nothing recorded | `hints.voiceNotReady` |
+| boundary (increment 2) | pressing the button first stops a reading, before the mic opens, so the voice is not recorded | — |
 | failure | nothing heard → `hints.nothingHeard`; a code → the voice-column key in Codes; mic absent or busy: hint by the button, typing works | "没找到麦克风，打字也一样能聊。" / "麦克风被别的程序占用了，关掉再试，或者先打字。" |
 | permission-denied | prompt open: hint, no recording; refused: hint on each press | "请在浏览器弹窗里允许麦克风，再按住说话。" / "麦克风没打开。可在地址栏左侧允许，或者直接打字。" |
 | conflict | n/a | — |
@@ -145,3 +175,4 @@ Transport 不变：同源 `http://127.0.0.1:4317`，无 CORS。前端 DES：DES-
 | 2026-11-15 | Seam respond row re-copied after be-architect #3: backend keeps recent history up to weight 2000 (chars + 1.5 × Han); page still sends last 40 | orchestrator | none — page unchanged |
 | 2026-11-15 | Increment 2 seam copied (be-architect #6): respond `name` in, `lang`/`crisis`/`speech` out; POST /api/speak; health `tts` | orchestrator | frontend DES-024..028, DES-030 |
 | 2026-11-15 | Increment 2 seam re-copied after be-architect #7 (name any length cleaned server-side; lang = line language; crisis 200 per UD-1 pending Plan) | orchestrator | frontend DES-024..028, DES-030 |
+| 2026-11-15 | §2 PAGE-001 rows extended per `01-ux.md` § Increment 2: send a line gains `name`, `lang`, `crisis`, `speech` and the speaking, breathing offer, crisis, cleared and tts-warming states; new action `speak(text, lang)`; the seam table is untouched | fe-engineer #17 | none: fields match the seam for increment 2; memory (design only) adds nothing |

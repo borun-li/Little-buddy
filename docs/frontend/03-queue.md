@@ -297,8 +297,7 @@ Stack unchanged: static files, vanilla ES modules, `node:test`. No new package.
 - **Priority:** P1
 - **Side:** both (backend first)
 - **Depends on:** Q-010, Q-011
-- **Status:** built (fe-engineer #11)
-- **Fix (round 1, FND-001, FND-004):** `web/js/health-watch.js` (`failed()` arms awake only for `not_ready`; first check one poll later), `web/js/app.js` (`healthHint`: health hints, awake over a health hint only, awake clears only itself).
+- **Status:** built
 
 ### Q-013 — The held voice is recorded as 16 kHz WAV
 - **Page:** PAGE-001
@@ -327,7 +326,6 @@ Stack unchanged: static files, vanilla ES modules, `node:test`. No new package.
 - **Side:** frontend
 - **Depends on:** Q-013, Q-007
 - **Status:** queued
-- **Fix (round 1, FND-003):** `web/js/talk-button.js` (`listeningNow` announced in the status line when the stream opens, cleared at hold end), `web/js/copy.js` (`listeningNow` zh/en, `hints.micOpening` reworded per 01-ux.md Words).
 
 ### Q-014 — Spoken line becomes real words
 - **Page:** PAGE-001
@@ -336,13 +334,12 @@ Stack unchanged: static files, vanilla ES modules, `node:test`. No new package.
 - **REQ:** REQ-001, REQ-002, REQ-008
 - **DES:** DES-013, DES-014
 - **Files:** `app.js`, `log.js`, `companion-client.js`, `voice-turn.js`, `copy.js`, `page.css`
-- **Observable:** After release your turn shows tagged 语音 with "正在转成文字…", then the words replace it, then reply and mood follow
+- **Observable:** After release your turn shows tagged 语音 with "正在转成文字…", then the words replace it, then reply and mood
 - **Acceptance:** Placeholder ≤ 0.3 s, words ≤ 13 s, reply ≤ 10 s; send paused meanwhile; 1440, 390
 - **Priority:** P1
 - **Side:** both (backend first)
 - **Depends on:** Q-013, Q-011, Q-012
-- **Status:** built (fe-engineer #12)
-- **Fix (round 1, FND-002):** `web/js/talk-button.js` (`setPaused(true)` cancels a running hold), `web/js/app.js` (an utterance that arrives while a reply is pending is dropped, not queued), `tests/fnd-r1-fix.test.js` (new), `package.json` (test script).
+- **Status:** built
 
 ### Q-018 — Silence and voice failures are told
 - **Page:** PAGE-001
@@ -356,7 +353,7 @@ Stack unchanged: static files, vanilla ES modules, `node:test`. No new package.
 - **Priority:** P1
 - **Side:** both for the live check
 - **Depends on:** Q-014
-- **Status:** built (fe-engineer #13; log.js not needed; evidence build/Q-018-*.png; `tests/voice-hints.test.js` is not yet in the package.json test script)
+- **Status:** built
 
 ### Q-015 — Switch the interface language
 - **Page:** PAGE-001
@@ -364,13 +361,13 @@ Stack unchanged: static files, vanilla ES modules, `node:test`. No new package.
 - **States:** success
 - **REQ:** REQ-012, REQ-005
 - **DES:** DES-015
-- **Files:** `copy.js`, `index.html`, `page.css`, `app.js`, `companion.js`, `log.js`, `talk-button.js` (the last three only read strings: refresh() added)
+- **Files:** `copy.js`, `index.html`, `page.css`, `app.js`, `companion.js`, `log.js`, `talk-button.js`
 - **Observable:** `中文 | EN` at the stage top-right switches every word outside the chat at once; focus stays; a non-Chinese browser opens in English
 - **Acceptance:** No Chinese outside chat in English; note Q-015; 1440, 390
 - **Priority:** P1
 - **Side:** frontend
 - **Depends on:** Q-001, Q-007
-- **Status:** built (fe-engineer #14; evidence build/Q-015-*.png; `tests/copy.test.js` new, in the test script with voice-hints.test.js)
+- **Status:** built
 
 ### Q-016 — English layout fits both sizes
 - **Page:** PAGE-001
@@ -418,3 +415,277 @@ No new package. Browser APIs only: `fetch` + `AbortController`, `AudioContext` +
 | Q-015, Q-016, Q-017 | nothing from the backend | client-only |
 | Q-013, Q-019 | nothing from the backend | recorder and encoder are tested without a server |
 | Q-010, Q-011, Q-012, Q-014, Q-018 | be-developer: DES-001..010, 012 (+ DES-011 for voice) | each replaces fake data; client logic is unit-tested first, live check needs `server/` |
+
+## Increment 2 — 2026-11-15
+
+- **Author:** fe-engineer #17 · **Status:** draft (feasibility + queue, step 2 round 1) · run `companion-full-dev`. Ids Q-020… continue; never reused. No product code this round.
+- Inputs: `01-ux.md` and `02-ui.md` § Increment 2, FRAME-017..025 (exported PNGs, 0 Figma calls), `docs/backend/01-requirements.md` REQ-014..031 (ids below are that file's), `docs/backend/03-detailed-design.md` DES-024..028, contract "Seam for increment 2".
+- Backend half: DES-016..023 (`/api/speak`, `crisis`, `speech`, `lang`, `name`, health `tts`) are be-developer's; `server/` has no `speak`, `tts` or `crisis` yet (checked: `grep` over `server/main.js` finds none). Rows marked **backend first** are built and unit-tested against an injected `fetch` / fake client and must not wait; their live check does.
+- **Memory (FLOW-014, FRAME-025, CMP-012, REQ-032..035, DES-029/030) is design only: tracked as skipped row Q-034 (no build), deferred to the user's judgement at Plan.** Its entry button, panel and `memory*` words are not built; the memory words stay out of `copy.js`.
+
+### Earlier approved rows this round may change (PLAYBOOK §3I)
+No `OBS-###` registry exists; rows stand in for observables. Hooks `fake-input`, `reply`, `companion` stay; `companion` keeps `data-mood` (the turn's mood) through breathing and pokes.
+
+| Earlier row | What may change | Why |
+|---|---|---|
+| Q-001 empty page | a 清空 button, a name button and a speaker toggle appear; tab order gains them; the empty state must come back after clear | REQ-026, 028, 016; Q-022, Q-023, Q-026 |
+| Q-003 moods / Q-009 reduce motion | `role=img` becomes a button; caption is no longer `aria-hidden` (holds buttons); caption `{name} · phrase`; new loops (swell, pokes) need the reduced-motion twin | REQ-027, 022, 028; `companion.test.js` may pin the old role |
+| Q-004 / Q-019 hold to talk | pressing the button first stops reading, before the mic opens | REQ-018; Q-027 |
+| Q-008 20 turns | a clear empties the log; chip and card sit inside a reply's log item | REQ-026, 025, 019 |
+| Q-010 / Q-011 respond and failure | `respond` takes `name`, returns `lang`, `crisis`, `speech`; a reply arriving after a clear is dropped, its failure shows nothing | REQ-030, 025, 026; Q-020, Q-022 |
+| Q-012 warming | `health()` gains `tts`; polling goes on after bonsai and stt are ready; tts adds no hint | `01-ux.md` rules; Q-026 |
+| Q-015 / Q-016 language, English layout | new words in both languages; `{name}` keys; the English caption row and card must fit | REQ-012; Q-021, Q-032 |
+| Q-006 offline | `/api/speak` is a same-origin request; audio from a Blob URL | REQ-014; Q-033 |
+
+### Scaffold (increment 2)
+Stack unchanged: static files, vanilla ES modules, `node:test`, no new package. New files: `web/js/name.js`, `web/js/poke.js`, `web/js/speaker.js`, `web/js/breath.js`, `tests/name.test.js`, `tests/poke.test.js`, `tests/speaker.test.js`, `tests/breath.test.js`, each named one by one in `package.json` `test`. Lucide icons added to the inline sprite in `web/index.html`: volume-2, volume-x, volume, wind, square (ISC notice already there).
+
+### Feasibility notes (increment 2)
+- Reuse of art: pokes and breathing only swap the existing mood layer (`companion.js` `render`) without touching `data-mood`; the glow stays because it is the root's background by `data-mood` (codemap `companion.css`). Swell scales the root element from the bottom centre, so the glow and art scale together; the focus ring scales with it (3 px, small). No new SVG but the 3-stroke pop ticks.
+- Playback: `speak` returns a WAV Blob; one reusable `Audio` element, `URL.createObjectURL`, revoked after each part. Autoplay after a click or key is allowed in Chrome; Safari may refuse a first `play()` outside a gesture [unverified]. Mitigation in Q-025: unlock the element silently at the first Enter, click or press. A refused `play()` is a silent failure, per DES-025.
+- Prefetch one part: 24 kHz mono 16-bit is 48,000 B/s of speech (arithmetic); 200 characters of speech is a few hundred KB, held in memory only.
+- Health: `health-watch.js` stops at bonsai + stt. It must go on at 2 s until `tts` is `ready`. Trap: `onChange` then fires when only `tts` changes, with the same `hint`; `app.js healthHint(null)` clears `awake` early. Q-026 passes tts through a separate callback.
+- Words: `copy.js` holds static strings; the 11 `{name}` keys keep their default-name text in the zh/en tables (so `verify-r1.test.js` stays true) and the live `copy` object gets the name substituted at `setLang` / `setName`.
+- Font: every new character is in the subset (fe-ux #6, fontTools cmap); memory words stay out. Names may use any letter the user types; a character outside the subset falls back to Kaiti SC (see Q-017).
+- Phone fit: fe-ui measured the longest caption row 297 px of 358 (FRAME-022, from the PNG); Q-032 re-measures in the browser.
+
+### Design feedback raised
+None. Checked and found fitting: clear at 8 px inset, caption row with toggle (297 / 358 px), 228 px phone art, chip and card in the log, memory design-only. Open assumptions below (A-I2-1..4) need no design change.
+
+### Rows
+
+### Q-020 — Client carries name, speech, crisis, tts
+- **Page:** PAGE-001
+- **Frame:** n/a — shows through Q-025, Q-030
+- **States:** success, error
+- **REQ:** REQ-014, REQ-025, REQ-030
+- **DES:** DES-024
+- **Files:** `companion-client.js`, `client.test.js`
+- **Observable:** `respond` sends `name` when set and returns `lang`, `crisis`, `speech`; `speak` returns a WAV Blob; `health()` returns `tts`
+- **Acceptance:** injected `fetch`; `speak` stops at 11 s; an abort stays an `AbortError`; note Q-020
+- **Priority:** P1
+- **Side:** both (backend first for the live check)
+- **Depends on:** Q-010
+- **Status:** queued
+
+### Q-021 — Increment 2 words in both languages
+- **Page:** PAGE-001
+- **Frame:** FRAME-023
+- **States:** success
+- **REQ:** REQ-012, REQ-028
+- **DES:** DES-027
+- **Files:** `copy.js`, `copy.test.js`
+- **Observable:** every key of Words (increment 2), memory words excluded, reads in zh and en; the 11 `{name}` keys follow the saved name
+- **Acceptance:** zh and en key parity; default name reads exactly as Words (increment 1); note Q-021
+- **Priority:** P1
+- **Side:** frontend
+- **Depends on:** Q-015
+- **Status:** queued
+
+### Q-022 — Clear in one click
+- **Page:** PAGE-001
+- **Frame:** FRAME-017, FRAME-020, FRAME-023
+- **States:** empty · cleared
+- **REQ:** REQ-026, REQ-029
+- **DES:** DES-028
+- **Files:** `index.html`, `page.css`, `app.js`, `log.js`
+- **Observable:** 清空 empties the log at once; empty state returns, companion neutral, cleared hint, focus in the input; next `history` is `[]`
+- **Acceptance:** works while a reply is pending (dropped); name and input text kept; note Q-022; 1440, 390
+- **Priority:** P1
+- **Side:** frontend
+- **Depends on:** Q-021
+- **Status:** queued
+
+### Q-023 — Rename in place
+- **Page:** PAGE-001
+- **Frame:** FRAME-019, FRAME-023
+- **States:** renaming, success
+- **REQ:** REQ-028, REQ-029, REQ-030, REQ-031
+- **DES:** DES-027
+- **Files:** `index.html`, `page.css`, `companion.js`, `app.js`, `name.js`, `name.test.js`, `package.json`
+- **Observable:** clicking the caption's name opens a field; Enter saves, Esc keeps; the name shows everywhere, survives reload and clear, rides each request
+- **Acceptance:** `name.test.js` per FX-012; note Q-023; 1440, 390
+- **Priority:** P1
+- **Side:** both (backend first for Bonsai using it)
+- **Depends on:** Q-020, Q-021
+- **Status:** queued
+
+### Q-024 — Poke the companion
+- **Page:** PAGE-001
+- **Frame:** FRAME-024
+- **States:** poke
+- **REQ:** REQ-027, REQ-022
+- **DES:** DES-028
+- **Files:** `index.html`, `companion.js`, `companion.css`, `poke.js`, `poke.test.js`, `app.js`, `package.json`, `companion.test.js`
+- **Observable:** clicking the companion (or Enter) plays one of three reactions with its caption word, then the mood returns
+- **Acceptance:** six pokes give three or more reactions, none twice running; back ≤ 2 s; note Q-024; 1440, 390
+- **Priority:** P1
+- **Side:** frontend
+- **Depends on:** Q-023
+- **Status:** queued
+
+### Q-025 — The reply is read aloud
+- **Page:** PAGE-001
+- **Frame:** FRAME-017, FRAME-020
+- **States:** success · speaking, error · one reading
+- **REQ:** REQ-014, REQ-015, REQ-017
+- **DES:** DES-025
+- **Files:** `speaker.js`, `speaker.test.js`, `app.js`, `package.json`
+- **Observable:** a reply appears, then its voice, parts in order, in its language; a failed part stays silent
+- **Acceptance:** text and mood never wait; one part ahead; a new reply stops the old; note Q-025
+- **Priority:** P1
+- **Side:** both (backend first)
+- **Depends on:** Q-020
+- **Status:** queued
+
+### Q-026 — Speaker toggle and voice-not-ready
+- **Page:** PAGE-001
+- **Frame:** FRAME-017, FRAME-019, FRAME-023
+- **States:** success · muted, warming · voice reply not ready
+- **REQ:** REQ-016, REQ-017
+- **DES:** DES-025
+- **Files:** `index.html`, `page.css`, `speaker.js`, `health-watch.js`, `app.js`, `health-watch.test.js`
+- **Observable:** the toggle mutes in ≤ 0.5 s, unmutes without replay; not-ready shows a bare icon and tooltip, Enter and hold still work
+- **Acceptance:** on at open; polling goes on until tts ready; no tts hint; note Q-026
+- **Priority:** P1
+- **Side:** both (backend first)
+- **Depends on:** Q-025, Q-023
+- **Status:** queued
+
+### Q-027 — Talking or sending stops the voice
+- **Page:** PAGE-001
+- **Frame:** n/a — no visual of its own
+- **States:** success · speaking
+- **REQ:** REQ-018
+- **DES:** DES-025
+- **Files:** `talk-button.js`, `app.js`, `talk-button.test.js`
+- **Observable:** press of the talk button or a send stops a reading in ≤ 0.5 s, before the mic opens
+- **Acceptance:** the transcript holds none of the reply's words; a stopped part's request is aborted; note Q-027
+- **Priority:** P1
+- **Side:** frontend
+- **Depends on:** Q-025
+- **Status:** queued
+
+### Q-028 — Breathing offered after a worried reply
+- **Page:** PAGE-001
+- **Frame:** FRAME-017, FRAME-020
+- **States:** success · breathing offer
+- **REQ:** REQ-019
+- **DES:** DES-028
+- **Files:** `log.js`, `page.css`, `app.js`
+- **Observable:** an `unpleasant-high` reply (not crisis) carries 一起深呼吸？ under it; other moods and crisis do not; the next send removes it
+- **Acceptance:** chip in view after the reply; clear removes it; note Q-028; 1440, 390
+- **Priority:** P1
+- **Side:** frontend
+- **Depends on:** Q-021
+- **Status:** queued
+
+### Q-029 — Breathing guide
+- **Page:** PAGE-001
+- **Frame:** FRAME-018, FRAME-021, FRAME-024
+- **States:** breathing
+- **REQ:** REQ-020, REQ-021, REQ-022
+- **DES:** DES-028
+- **Files:** `breath.js`, `breath.test.js`, `companion.js`, `companion.css`, `log.js`, `app.js`, `package.json`
+- **Observable:** chip starts it: calm face, swell 4 s, settle 6 s, three times, caption counts; 停下, Esc, send or talk ends it ≤ 1 s
+- **Acceptance:** fake-clock test; reading stopped; pokes ignored; `data-mood` kept; note Q-029
+- **Priority:** P1
+- **Side:** frontend
+- **Depends on:** Q-028, Q-024, Q-025
+- **Status:** queued
+
+### Q-030 — Help card under a crisis reply
+- **Page:** PAGE-001
+- **Frame:** FRAME-019, FRAME-022
+- **States:** success · crisis
+- **REQ:** REQ-025, REQ-024
+- **DES:** DES-026
+- **Files:** `index.html`, `log.js`, `page.css`, `app.js`
+- **Observable:** a reply with `crisis: true` shows the 988 / 911 card under it in the interface language; 收起 removes it; keep talking works
+- **Acceptance:** one card; none without the flag; focus unmoved on arrival; note Q-030; 1440, 390
+- **Priority:** P1
+- **Side:** both (backend first)
+- **Depends on:** Q-020, Q-021
+- **Status:** queued
+
+### Q-031 — Reduce motion for the new moves
+- **Page:** PAGE-001
+- **Frame:** FRAME-024
+- **States:** breathing · reduce motion, poke
+- **REQ:** REQ-022
+- **DES:** DES-028
+- **Files:** `companion.css`, `page.css`
+- **Observable:** with OS reduce motion on, breathing and pokes change face and word only; chip and card appear at once; speaking waves are still
+- **Acceptance:** emulated `prefers-reduced-motion: reduce`: no running animation after each; 1440, 390
+- **Priority:** P2
+- **Side:** frontend
+- **Depends on:** Q-024, Q-026, Q-029, Q-030
+- **Status:** queued
+
+### Q-032 — New controls fit both sizes and both languages
+- **Page:** PAGE-001
+- **Frame:** FRAME-020, FRAME-021, FRAME-022
+- **States:** success, error (longest caption row)
+- **REQ:** REQ-012, REQ-028
+- **DES:** n/a
+- **Files:** `page.css`, `index.html`
+- **Observable:** on the phone a long name plus the toggle stays one line or wraps without hiding the face; clear never covers it
+- **Acceptance:** widths in note Q-032 at 1440, 768, 390, 375
+- **Priority:** P2
+- **Side:** frontend
+- **Depends on:** Q-022, Q-023, Q-026, Q-030
+- **Status:** queued
+
+### Q-033 — Still offline with voice
+- **Page:** PAGE-001
+- **Frame:** n/a — offline looks like success
+- **States:** offline
+- **REQ:** REQ-014, REQ-029
+- **DES:** n/a
+- **Files:** `offline.test.js`
+- **Observable:** with Wi-Fi off a session with a reply read aloud works; the only new requests are same-origin `/api/speak`
+- **Acceptance:** no new external host in `web/`; `offline.test.js` green; network log lists only localhost
+- **Priority:** P2
+- **Side:** both for the live check
+- **Depends on:** Q-025
+- **Status:** queued
+
+### Q-034 — Memory panel (design only)
+- **Page:** PAGE-001
+- **Frame:** FRAME-025
+- **States:** memory off, memory on, memory · forget
+- **REQ:** REQ-032, REQ-033, REQ-034, REQ-035
+- **DES:** DES-029, DES-030
+- **Files:** none — nothing is built this increment
+- **Observable:** none: drawn for the user to judge at Plan
+- **Acceptance:** none; not verified
+- **Priority:** P3
+- **Side:** both
+- **Depends on:** none
+- **Status:** skipped — design only, not built in increment 2 (user 2026-11-14)
+
+### Increment 2 notes the rows point to
+- **A-I2-1 (assumptions [unverified]):** a clear while a reply is pending ends the pending state at once; the late reply or failure is dropped with no hint and no words returned (A24). The card stays under its own crisis reply until 收起, clear, or a later crisis reply moves it ("one card"). Names already in earlier turns are never rewritten.
+- **Q-020:** `respond(line, history, name)`: `name` null or absent is left out of the body; a fresh `speak` aborts itself at 11 s → `timeout`; non-2xx → body `error`; `health()` returns `tts` as given. A 200 body missing `speech` reads as `[]` (silent), missing `crisis` as `false`; the page never guesses `lang`.
+- **Q-021:** `{name}` keys: `title`, `inputLabel`, `typing`, `companionCaption`, `companionName`, `hints.warming`, `awake`, `unreachable`, `stillDown`, `sendUnavailable`, `sendTimeout`. Memory words are not added. `setName(name)` re-substitutes and the app re-renders.
+- **Q-022:** `log.js` gains `clear()`, which puts the original empty state back (kept already as `emptyOriginal`). `app.js` keeps a generation counter: a reply or transcript from an earlier generation is dropped. A callback list lets later rows (reading, breathing, chip, card) register what clear stops. Pending voice transcript: the transcribing turn is removed.
+- **Q-023:** `name.js` = DES-021 `cleanName` (keep `[\p{L}\p{N} \-'·]`, NFC, 12 code points, default names → absent), `localStorage['companion.name']`; both languages and the default names tested against FX-012 expectations. The caption becomes a row (name button, " · phrase", speaker slot) and loses `aria-hidden` as a whole; the mood phrase stays announced from the companion's own name. Names shown by `textContent` only. Emptied or default-named → default for the interface language.
+- **Q-024:** `poke.js` `nextPoke(prev, random)` never repeats; `companion.js` gains `showFace(mood)` that swaps the layer without touching `data-mood` or the glow; ignored while breathing; a poke during a poke plays the next one; a reply's mood change during a poke applies when it ends. `role=button`, described by `pokeHelp`; `companion.test.js` is updated if it pins `role=img` (listed, with the reason, in the build).
+- **Q-025:** `speaker.js` `createSpeaker({speak, audio, now})`: `say(speech, lang)` plays part 1 at once, prefetches part 2, plays on end; `stop()` pauses, revokes, aborts in-flight and drops the rest; any failure ends silently. Gate: toggle on and `tts` ready. Unlock: first user gesture plays a silent clip [unverified for Safari].
+- **Q-026:** toggle `aria-pressed` is the user's choice even when not ready; tooltip is the `aria-describedby` and shows at 500 ms hover or focus. `health-watch.js` adds `speakReady` and keeps polling every 2 s until it is true; `onChange` for a tts-only change must not call `healthHint`. Existing watch tests keep passing.
+- **Q-027:** `talk-button.js` gets an `onPress` callback called before the stream opens; Enter-send and clear also call `speaker.stop()`.
+- **Q-028, Q-029:** chip shown only when the newest reply is `unpleasant-high` and not crisis; `breath.js` (fake clock): inhale 4 s, exhale 6 s, ×3, phase word announced once, seconds never announced; Esc, 停下, send, talk, clear and a new reply end it, restoring the turn's face; pokes ignored; starting stops the reading.
+- **Q-030:** `role=region` named `crisisLabel`, three lines, no links, no focus move on arrival; 收起 moves focus to the input.
+- **Q-031:** every new animation has its reduced-motion twin from `02-ui.md` Motion (increment 2); speaking waves stay shown.
+- **Q-032:** target widths: caption row 297 of 358 px at 390 (fe-ui, to re-measure); 334 px card; English card 4 lines; phone name target ≥ 28 px tall; a long name wraps the phrase to a second line and the art shrinks 20 px.
+- **Q-033:** `offline.test.js` already scans `web/` for hosts; add `/api/speak` as the same-origin case if it names paths.
+- **Deferred (design only, no row):** FLOW-014 memory, FRAME-025, CMP-012, `memory*` words, DES-029/030, REQ-032..035; to be judged at Plan.
+
+### Dependencies (increment 2)
+No new package. Browser APIs: `Audio` + `URL.createObjectURL`, `localStorage`, `matchMedia`.
+
+| Row | Waits for | Why |
+|---|---|---|
+| Q-021, Q-022, Q-024, Q-027, Q-028, Q-029, Q-031, Q-032 | nothing from the backend | page-only |
+| Q-020, Q-023, Q-025, Q-026, Q-030, Q-033 | be-developer: DES-016..023 (`/api/speak`, `crisis`, `speech`, `lang`, `name`, health `tts`) for the live check | client logic is unit-tested first |
+| Build order | Q-020, Q-021, then Q-022, Q-023, Q-024, Q-025, Q-026, Q-027, Q-028, Q-029, Q-030, Q-031..033 | `app.js`, `companion.js`, `copy.js` are shared, so one row at a time |
