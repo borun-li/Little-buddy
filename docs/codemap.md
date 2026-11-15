@@ -31,10 +31,12 @@ Does: fake-companion.js (createFakeCompanion, tests only, moved here by Q-010), 
 Invariants: nothing in web/ imports `web/js/fake/`; ≥ 2 replies per mood, never the same twice in a row, ≤ 2 sentences, ≤ 1 question, ≤ 120 chars.  Tests: `tests/mood.test.js`, `tests/fake-companion.test.js`
 
 ## `web/js/copy.js`
-Does: every user-visible word (hints, captions, accessible names, placeholder), keyed by language (zh only).  Used by: app, log, companion, talk-button
+Does: every user-visible word, zh and en (Q-015). `copy` is one live object: setLang(lang) copies the language into it, so modules read copy.x at the moment they render; resolveLang(browserLang) (zh* → zh, else en, A12); getLang. Starts zh at import; app.js sets the browser default at open.  Used by: app, log, companion, talk-button
+Invariants: zh and en have the same keys (`tests/copy.test.js`); every new character must be in the font subset.  Tests: `tests/copy.test.js`
 
 ## `web/js/log.js`, `web/js/companion.js`
-Does: log renders you / you-voice / typing / reply turns, moves data-testid=reply to the newest reply, scrolls to newest. Companion clones the mood template into a layer, crossfades 240 ms, sets data-mood (the glow colour follows it in CSS), caption and name "小伙伴，<心情>".  Used by: `web/js/app.js`
+Does: Q-015 each has refresh() that re-says its words (voice tag, transcribing placeholder, typing label, caption, accessible name) after a language switch; app.js applyCopy() calls them with hint.refresh() and talk.refresh(), and sets html lang, title, [data-copy], switch aria. The switch is `.lang-switch` in `web/index.html` (CMP-006, buttons data-lang zh|en, aria-pressed).
+Log renders you / you-voice / typing / reply turns, moves data-testid=reply to the newest reply, scrolls to newest. Companion clones the mood template into a layer, crossfades 240 ms, sets data-mood (the glow colour follows it in CSS), caption and name "小伙伴，<心情>".  Used by: `web/js/app.js`
 
 ## `web/js/talk-button.js`, `web/js/mic.js`
 Does: hold by pointer or Space; release on the button sends, off it or Esc cancels; < 0.5 s too-short hint; 60 s sends itself; drives the role=status hint line. mic.js reads the permission state, opens the stream only for the level bars and stops every track on release (audio never kept), maps NotAllowedError / NotFoundError / NotReadableError to hint keys.

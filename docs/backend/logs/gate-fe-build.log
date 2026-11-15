@@ -12,7 +12,11 @@
 [PASS] FE.observables: 19 approved observables intact  (fe-engineer)
 [N/A ] FE.regression: No approved observables registered yet  (fe-engineer)
 [PASS] LOG.valid: Run log intact  (orchestrator)
-[PASS] CTX.codemap: docs/codemap.md paths exist, within its cap  (fe-engineer)
+[FAIL] CTX.codemap: docs/codemap.md out of date or too long (route/HANDOFF.md §7)  (fe-engineer)
+         .lang-switch: no such path
+         copy: no such path
 [PASS] CTX.handoff: handoff.md: 5 current sections  (orchestrator)
 
-[gate] fe-build: PASS  report: docs/frontend/gates/fe-build-latest.json
+[gate] fe-build: FAIL  report: docs/frontend/gates/fe-build-latest.json
+[gate] owners to fix: {'fe-engineer': ['CTX.codemap']}
+[gate] fix round 1 of 2 (1 failed runs on 1 distinct trees): send each failure to its owner, then re-run.

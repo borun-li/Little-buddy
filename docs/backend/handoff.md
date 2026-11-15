@@ -84,13 +84,14 @@ Next agent reads: docs/backend/08-implementation-log.md § Fix rounds; docs/back
 - REQ-003 1 s check now runs on `createFakeCompanion()` default delay (600 ms); the default (real) layer is left to `tests/client.test.js`. Dropped the real-`transcribe()` assertion (it would hit fetch).
 - Seam rule tightened: nothing in `web/` outside `fake/` imports `fake/` (true now). Importer rule (app.js only imports companion-client.js) unchanged.
 - `npm test`: 37 tests, 37 pass, 0 fail.
-## fe-engineer #13 · step 3 (frontend build Q-018) · round 1 · increment 1 · 2026-11-15T03:10:00Z
-Task: Q-018 — silence and voice failures are told (REQ-003, REQ-011, DES-013).
-Changed: web/js/app.js (onVoiceProblem shows the voice-column hint; transcript cut to 1500 chars before send); web/js/copy.js (hints.nothingHeard, voiceUnavailable, voiceTimeout, voiceFailed; voiceHintKey, MAX_VOICE_CHARS); tests/voice-hints.test.js (new, 3 tests); docs/frontend/03-queue.md Q-018 built; docs/codemap.md; evidence docs/frontend/evidence/build/Q-018-{nothing-heard,voice-error}-{1440,390}.png. log.js not needed.
+## fe-engineer #14 · step 3 (frontend build Q-015) · round 1 · increment 1 · 2026-11-15T03:40:00Z
+Task: Q-015 — 中文 | EN switch and copy engine (REQ-012, DES-015).
+Changed: web/js/copy.js (en dictionary incl. every Q-011/012/018 hint, langLabel/langZh/langEn, live `copy`, setLang/getLang/resolveLang); web/js/app.js (browser default at open, applyCopy, switch wiring, hints now via the talk-button hint object); web/js/talk-button.js (hint key/refresh, show(key, icon), talk.refresh); web/js/log.js, companion.js (refresh); web/index.html, web/css/page.css (CMP-006); tests/copy.test.js (new, 5); package.json (voice-hints + copy tests added); 03-queue Q-015 built; codemap.
 Feedback: none.
-Result: new test file 3/3 pass run directly; npm test 61/61 (unchanged: package.json is outside this task's files, so voice-hints.test.js is NOT in its list; add it there). Playwright vs 127.0.0.1:4400, fake mic fed FX-008/input.wav: real silence hold -> POST /api/transcribe only, no respond, 0 turns, nothingHeard hint. Route-injected /api/transcribe: timeout, failed, bad_request, too_large, unavailable show their hints, 0 turns added. not_ready injected shows the awake hint after ~150 ms because the real health says ready (artifact of injection; with a truly not-ready server the watch keeps voiceNotReady). 390 hint fits one line. Unverified: real not_ready live; 1500-char cut has no test (logic is one slice in app.js).
+Decision: removed the stray `watch.start();` in onSendFailed. 01-ux says checks resume only for failed(not_ready|unavailable), which watch.failed already does; the stray call also started polling for timeout/failed/bad_request.
+Result: npm test 69/69 (61 + voice-hints 3 + copy 5). Playwright vs 127.0.0.1:4400: en-US opens en (html lang en, EN pressed), zh-CN opens zh; mouse, Tab+Enter and Shift+Tab+Space switch both ways, focus stays on the pressed option; Shift+Tab from the input lands on EN; caption, name, placeholder, title, talk label, empty text re-render; English line "I had a rough day..." got an English reply, switched to zh while pending, POST body is only {line, history}. Screenshots build/Q-015-{1440,390}-{en,zh}.png, -1440-en-reply.png, matched by eye to FRAME-014. Font cmap covers every copy character. Not checked: hint/transcribing/voice-tag re-render in a browser (code path only; refresh() unit-untested).
 Next agent must know:
-- Q-015 (English) must add the same new hint keys to en; copy.js now also exports voiceHintKey and MAX_VOICE_CHARS.
-- no_audio maps to nothingHeard (talk-button already handles too-short holds with tooShort).
-- A stray `watch.start();` inside onSendFailed (pre-existing) still there.
-Next agent reads: web/js/copy.js; web/js/app.js onVoiceProblem
+- At 390 the English "Hold to talk" button is tight; widening is Q-016 (not built).
+- switch accessible names are 中文 / English; visible text 中文 / EN fixed in index.html.
+Next agent reads: web/css/page.css (.lang-switch, composer), web/js/copy.js
+

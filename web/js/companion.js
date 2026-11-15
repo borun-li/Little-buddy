@@ -52,6 +52,8 @@ export function createCompanion(root, caption) {
     get mood() { return current; },
     setMood(mood) { if (mood !== current) render(mood, true); },
     // The reply side is still warming: caption "还在醒来", art unchanged (FLOW-006).
+    // Q-015: caption and accessible name again in the current language
+    refresh() { root.setAttribute('aria-label', copy.companionName(copy.moods[current].name)); setCaption(); },
     setWaking(on) { if (on !== waking) { waking = on; setCaption(); } },
   };
 }

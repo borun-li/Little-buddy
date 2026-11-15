@@ -361,13 +361,13 @@ Stack unchanged: static files, vanilla ES modules, `node:test`. No new package.
 - **States:** success
 - **REQ:** REQ-012, REQ-005
 - **DES:** DES-015
-- **Files:** `copy.js`, `index.html`, `page.css`, `app.js`
+- **Files:** `copy.js`, `index.html`, `page.css`, `app.js`, `companion.js`, `log.js`, `talk-button.js` (the last three only read strings: refresh() added)
 - **Observable:** `中文 | EN` at the stage top-right switches every word outside the chat at once; focus stays; a non-Chinese browser opens in English
 - **Acceptance:** No Chinese outside chat in English; note Q-015; 1440, 390
 - **Priority:** P1
 - **Side:** frontend
 - **Depends on:** Q-001, Q-007
-- **Status:** queued
+- **Status:** built (fe-engineer #14; evidence build/Q-015-*.png; `tests/copy.test.js` new, in the test script with voice-hints.test.js)
 
 ### Q-016 — English layout fits both sizes
 - **Page:** PAGE-001

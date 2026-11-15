@@ -1,6 +1,6 @@
 // Entry: turn flow idle -> pending -> idle (FLOW-001, FLOW-002). Data comes only from companion-client.js.
 import { respond, transcribe, health } from './companion-client.js';
-import { copy, voiceHintKey, MAX_VOICE_CHARS } from './copy.js';
+import { copy, voiceHintKey, MAX_VOICE_CHARS, setLang, getLang, resolveLang } from './copy.js';
 import { createLog } from './log.js';
 import { createCompanion } from './companion.js';
 import { createHealthWatch } from './health-watch.js';
@@ -9,16 +9,12 @@ import { handleUtterance } from './voice-turn.js';
 
 const $ = (sel) => document.querySelector(sel);
 
-document.title = copy.title;
-document.querySelectorAll('[data-copy]').forEach((el) => { el.textContent = copy[el.dataset.copy]; });
+// A12: the browser decides the language at open; it is not remembered and never sent to the backend.
+setLang(resolveLang(navigator.languages?.[0] ?? navigator.language));
 
 const input = $('[data-testid="fake-input"]');
 const field = $('.field');
 const note = $('.field__note');
-input.placeholder = copy.placeholder;
-input.setAttribute('aria-label', copy.inputLabel);
-note.textContent = copy.pausedNote;
-$('.log__turns').setAttribute('aria-label', copy.logLabel);
 
 const log = createLog($('.log'), $('.log__turns'), $('.log__empty'));
 const companion = createCompanion($('[data-testid="companion"]'), $('.companion__caption'));
@@ -35,9 +31,10 @@ const watch = createHealthWatch({
   },
 });
 
+const hint = createHint($('.hint'));
 const talk = createTalkButton({
   button: $('.talk-button'),
-  hint: createHint($('.hint')),
+  hint,
   // A hold while voice is not ready records nothing and repeats the current hint (talk-button only asks here).
   isPaused: () => {
     if (pending) return true;
@@ -71,24 +68,17 @@ const SEND_HINT_KEY = {
   not_ready: 'warming', unavailable: 'sendUnavailable', timeout: 'sendTimeout',
   failed: 'sendFailed', bad_request: 'sendDefect', too_large: 'sendDefect',
 };
-const hintEl = $('.hint');
-const hintText = hintEl.querySelector('.hint__text');
-let shownKey = null;
+let shownKey = null; // the key of the send/warming hint; the one hint line is shared with the talk button
 function showHint(key) {
   shownKey = key;
-  hintEl.querySelector('use').setAttribute('href', '#i-info');
-  hintEl.classList.add('is-shown');
-  hintText.textContent = '';
-  // later task so the same message twice is announced again (same as createHint)
-  setTimeout(() => { hintText.textContent = copy.hints[key]; }, 30);
+  hint.show(key, 'i-info');
 }
 function showSendHint(code) {
   showHint(SEND_HINT_KEY[code] ?? 'sendFailed'); // an unknown code is a failed reply, never shown raw
 }
 function clearSendHint() {
   shownKey = null;
-  hintEl.classList.remove('is-shown');
-  hintText.textContent = '';
+  hint.clear();
 }
 
 // A failed send gives the words back: the turn leaves, the text returns in front of anything typed
@@ -99,7 +89,6 @@ function onSendFailed(err, line, turn) {
   input.value = typed.trim() ? `${line} ${typed}` : line;
   setPending(false);
   input.focus();
-watch.start();
   input.setSelectionRange(input.value.length, input.value.length);
   showSendHint(err.code);
   watch.failed(err.code); // not_ready / unavailable: the checks resume
@@ -145,5 +134,34 @@ document.addEventListener('visibilitychange', () => {
   document.documentElement.classList.toggle('tab-hidden', document.hidden);
 });
 
+// Q-015: every word outside the chat, in the current language (FLOW-007). Turns are never rewritten.
+function applyCopy() {
+  document.documentElement.lang = getLang() === 'zh' ? 'zh-CN' : 'en';
+  document.title = copy.title;
+  document.querySelectorAll('[data-copy]').forEach((el) => { el.textContent = copy[el.dataset.copy]; });
+  input.placeholder = copy.placeholder;
+  input.setAttribute('aria-label', copy.inputLabel);
+  note.textContent = copy.pausedNote;
+  $('.log__turns').setAttribute('aria-label', copy.logLabel);
+  langGroup.setAttribute('aria-label', copy.langLabel);
+  langButtons.forEach((b) => {
+    b.setAttribute('aria-label', copy[b.dataset.lang === 'zh' ? 'langZh' : 'langEn']);
+    b.setAttribute('aria-pressed', String(b.dataset.lang === getLang()));
+  });
+  hint.refresh();
+  talk.refresh();
+  log.refresh();
+  companion.refresh();
+}
+
+const langGroup = $('.lang-switch');
+const langButtons = [...langGroup.querySelectorAll('button')];
+langButtons.forEach((b) => b.addEventListener('click', () => {
+  if (b.dataset.lang === getLang()) return; // the current option does nothing
+  setLang(b.dataset.lang);
+  applyCopy(); // the clicked button stays in the DOM, so it keeps focus
+}));
+
+applyCopy();
 input.focus();
 watch.start();

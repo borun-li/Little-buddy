@@ -1,44 +1,44 @@
 {
-  "sig": "4dcaa131e43d8f608f8e6a3fc2ce7875bfbd7203866f1e4a77b2c8cac14698d1",
-  "time": "2026-11-15T01:05:29Z",
-  "epoch": 1794704729.043523,
+  "sig": "260762a0d8ec597b204c4dfc4836180057436e2644584ef3f9c5c6333126b74a",
+  "time": "2026-11-15T01:08:16Z",
+  "epoch": 1794704896.621383,
   "result": {
     "cmd": "npm test",
     "exit": 0,
-    "seconds": 0.8,
+    "seconds": 0.9,
     "tail": [
-      "✔ slow open: hint at 0.2 s, listening and seconds at open, hint leaves (0.772ms)",
-      "✔ fast open: the 0.2 s hint never shows (0.2875ms)",
-      "✔ release before open: tooShort at once, a late stream is stopped and never records (0.461625ms)",
-      "✔ release off the button or Esc before open: nothing shown, hint cleared (0.182458ms)",
-      "✔ 0.5 s counts from open: 0.3 s after open is too short, however long the open took (0.1445ms)",
-      "✔ release 0.6 s after open: wav() before close(), blob handed to onUtterance (0.14725ms)",
-      "✔ 60 s counts from open and sends itself (1.772916ms)",
-      "✔ unknown permission: hint at 0.2 s first, then 600 ms decides prompt; nothing records (0.33775ms)",
-      "✔ unknown permission, stream under 600 ms: records (0.147208ms)",
-      "✔ open fails: the error hint shows and nothing is listening (0.110958ms)",
-      "✔ Q-014 words replace the transcribing turn, then follow the send path with the same turn (0.708334ms)",
-      "✔ Q-014 empty transcript: the turn leaves, no send, hook gets \"empty\" (0.11225ms)",
-      "✔ Q-014 not_ready and unavailable reach watch.failed; the turn leaves; no send (0.887541ms)",
-      "✔ Q-014 no audio (null) adds no turn and sends nothing (0.10275ms)",
-      "✔ Q-014 the real client posts the Blob as audio/wav to /api/transcribe and returns the text (0.322833ms)",
-      "✔ header: RIFF/WAVE, PCM, mono, 16 kHz, 16 bit, sizes consistent (4.908625ms)",
-      "✔ samples are little-endian int16, clipped (0.354042ms)",
-      "✔ 60 s is 1,920,044 B and longer input never exceeds it (54.674667ms)",
-      "✔ 48000 Hz downsamples to 16 kHz with the length and the pitch kept (6.682541ms)",
-      "✔ 44100 Hz downsamples to 16 kHz with the length and the pitch kept (6.252334ms)",
-      "✔ 16 kHz passes through; silence stays silence (1.491542ms)",
-      "✔ chunks join, downsample and cap at 60 s of input; Blob is audio/wav (181.532584ms)",
-      "ℹ tests 61",
+      "✔ release off the button or Esc before open: nothing shown, hint cleared (0.407291ms)",
+      "✔ 0.5 s counts from open: 0.3 s after open is too short, however long the open took (0.556042ms)",
+      "✔ release 0.6 s after open: wav() before close(), blob handed to onUtterance (0.339708ms)",
+      "✔ 60 s counts from open and sends itself (3.355459ms)",
+      "✔ unknown permission: hint at 0.2 s first, then 600 ms decides prompt; nothing records (0.222792ms)",
+      "✔ unknown permission, stream under 600 ms: records (0.134917ms)",
+      "✔ open fails: the error hint shows and nothing is listening (0.125791ms)",
+      "✔ Q-018 each voice problem maps to its hint key (0.337959ms)",
+      "✔ Q-018 an unknown or missing code is a failed transcription (0.468291ms)",
+      "✔ Q-018 every mapped key has a non-empty zh string (0.239ms)",
+      "✔ Q-014 words replace the transcribing turn, then follow the send path with the same turn (0.632792ms)",
+      "✔ Q-014 empty transcript: the turn leaves, no send, hook gets \"empty\" (0.096625ms)",
+      "✔ Q-014 not_ready and unavailable reach watch.failed; the turn leaves; no send (0.451166ms)",
+      "✔ Q-014 no audio (null) adds no turn and sends nothing (0.088625ms)",
+      "✔ Q-014 the real client posts the Blob as audio/wav to /api/transcribe and returns the text (0.263875ms)",
+      "✔ header: RIFF/WAVE, PCM, mono, 16 kHz, 16 bit, sizes consistent (3.710666ms)",
+      "✔ samples are little-endian int16, clipped (0.298042ms)",
+      "✔ 60 s is 1,920,044 B and longer input never exceeds it (51.779667ms)",
+      "✔ 48000 Hz downsamples to 16 kHz with the length and the pitch kept (6.459041ms)",
+      "✔ 44100 Hz downsamples to 16 kHz with the length and the pitch kept (5.501333ms)",
+      "✔ 16 kHz passes through; silence stays silence (1.259041ms)",
+      "✔ chunks join, downsample and cap at 60 s of input; Blob is audio/wav (166.0645ms)",
+      "ℹ tests 69",
       "ℹ suites 0",
-      "ℹ pass 61",
+      "ℹ pass 69",
       "ℹ fail 0",
       "ℹ cancelled 0",
       "ℹ skipped 0",
       "ℹ todo 0",
-      "ℹ duration_ms 694.273833"
+      "ℹ duration_ms 710.926333"
     ],
-    "log": "/Users/apple/Desktop/Hackathon/Local_AI_Hackathon/docs/frontend/gates/logs/2026-11-15T010528Z-test.log",
+    "log": "/Users/apple/Desktop/Hackathon/Local_AI_Hackathon/docs/frontend/gates/logs/2026-11-15T010815Z-test.log",
     "cases": [
       [
         "test",
@@ -98,6 +98,31 @@
       [
         "test",
         "REQ-006 reduced motion stops every companion animation and the glow transition",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-015 every zh key has an en value and vice versa, same kind of value",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-015 every en string is non-empty and the function strings take the number",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-015 no Chinese in the English words except the two switch labels",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-015 browser language: zh* opens in zh, anything else in en",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-015 setLang swaps the live copy object in place and ignores unknown languages",
         "passed"
       ],
       [
@@ -287,6 +312,21 @@
       ],
       [
         "test",
+        "Q-018 each voice problem maps to its hint key",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-018 an unknown or missing code is a failed transcription",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-018 every mapped key has a non-empty zh string",
+        "passed"
+      ],
+      [
+        "test",
         "Q-014 words replace the transcribing turn, then follow the send path with the same turn",
         "passed"
       ],
@@ -348,12 +388,12 @@
     ],
     "junit_note": "report from gates.json junit: test-results/junit.xml",
     "counts": {
-      "passed": 61,
       "xpassed": 0,
-      "errors": 0,
-      "failed": 0,
       "xfailed": 0,
-      "skipped": 0
+      "passed": 69,
+      "failed": 0,
+      "skipped": 0,
+      "errors": 0
     },
     "failed_tests": []
   }

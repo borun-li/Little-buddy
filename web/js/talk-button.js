@@ -15,17 +15,23 @@ export function createHint(el) {
   const text = el.querySelector('.hint__text');
   const icon = el.querySelector('use');
   let seq = 0;
+  let shown = null; // Q-015: the key on screen, so a language switch can re-say it
   return {
-    show(key) {
+    get key() { return shown; },
+    show(key, iconId = HINT_ICON[key]) {
       const n = ++seq;
-      icon.setAttribute('href', `#${HINT_ICON[key]}`);
+      shown = key;
+      icon.setAttribute('href', `#${iconId}`);
       el.classList.add('is-shown');
       text.textContent = '';
       // set in a later task so a repeated message (refused on each press) is announced again
       setTimeout(() => { if (n === seq) text.textContent = copy.hints[key]; }, 30);
     },
+    // Q-015: same key in the current language, set at once (not announced again)
+    refresh() { if (shown) text.textContent = copy.hints[shown]; },
     clear() {
       seq += 1;
+      shown = null;
       el.classList.remove('is-shown');
       text.textContent = '';
     },
@@ -206,5 +212,7 @@ export function createTalkButton({ button, hint, isPaused, onUtterance, deps = {
   setIdle();
   return {
     setPaused(paused) { button.setAttribute('aria-disabled', String(paused)); },
+    // Q-015: the idle label in the current language; while listening, the next tick says it
+    refresh() { if (!button.classList.contains('is-listening')) label.textContent = copy.talk; },
   };
 }

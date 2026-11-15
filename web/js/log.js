@@ -8,9 +8,14 @@ function voiceTag() {
   const tag = document.createElement('span');
   tag.className = 'turn__tag';
   tag.innerHTML = '<svg class="icon icon--small" aria-hidden="true"><use href="#i-mic"/></svg>';
-  tag.append(copy.voiceTag);
+  const word = document.createElement('span');
+  word.className = 'turn__tag-text';
+  word.textContent = copy.voiceTag;
+  tag.append(word);
   return tag;
 }
+
+const transcribingWords = () => copy.transcribing.replace(/…$/, '');
 
 export function createLog(scroller, list, emptyState) {
   let typing = null;
@@ -46,7 +51,10 @@ export function createLog(scroller, list, emptyState) {
       li.append(voiceTag());
       const body = document.createElement('span');
       body.className = 'turn__text';
-      body.append(copy.transcribing.replace(/…$/, ''));
+      const words = document.createElement('span');
+      words.className = 'turn__placeholder';
+      words.textContent = transcribingWords();
+      body.append(words);
       const dots = document.createElement('span');
       dots.className = 'typing typing--inline';
       dots.setAttribute('aria-hidden', 'true');
@@ -75,6 +83,13 @@ export function createLog(scroller, list, emptyState) {
     },
     // Q-011: a failed send takes its own turn and the typing dots away; with no turn left the empty
     // state returns (it is the state the page opened in).
+    // Q-015: the words that are not chat (voice tag, transcribing placeholder, typing label) follow the
+    // interface language; typed, spoken and reply text never change.
+    refresh() {
+      list.querySelectorAll('.turn__tag-text').forEach((el) => { el.textContent = copy.voiceTag; });
+      list.querySelectorAll('.turn__placeholder').forEach((el) => { el.textContent = transcribingWords(); });
+      list.querySelectorAll('.turn--typing .sr-only').forEach((el) => { el.textContent = copy.typing; });
+    },
     dropFailed(turn) {
       typing?.remove();
       typing = null;

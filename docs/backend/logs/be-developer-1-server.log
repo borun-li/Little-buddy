@@ -269,3 +269,4 @@ companion-stt: id=43 ms=0
 {"t":"2026-11-15T01:03:57.994Z","level":"info","event":"stt_done","ms":2,"audio_ms":1387,"empty":true,"lang":null}
 companion-stt: id=44 ms=0
 {"t":"2026-11-15T01:04:36.880Z","level":"info","event":"stt_done","ms":3,"audio_ms":1397,"empty":true,"lang":null}
+{"t":"2026-11-15T01:07:29.351Z","level":"info","event":"respond_done","ms":2494,"reply_ms":2494,"mood_ms":2494,"lang":"en","mood_fallback":false,"history_n":0}

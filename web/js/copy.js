@@ -1,5 +1,5 @@
 // Every user-visible word of the page, from docs/frontend/01-ux.md §4 and 02-ui.md.
-// Keyed by language so English can be added later (deferred D-001); only zh exists now.
+// Keyed by language: zh and en (Q-015, 01-ux.md Increment 1 Words). Key parity is checked by tests/copy.test.js.
 
 export const COPY = {
   zh: {
@@ -18,6 +18,9 @@ export const COPY = {
     transcribing: '正在转成文字…', // the trailing … is drawn as moving dots in log.js
     typing: '小伙伴正在回复',
     logLabel: '聊天记录',
+    langLabel: '界面语言',
+    langZh: '中文',
+    langEn: 'English',
     hints: {
       prompt: '请在浏览器弹窗里允许麦克风，再按住说话。',
       refused: '麦克风没打开。可在地址栏左侧允许，或者直接打字。',
@@ -51,9 +54,79 @@ export const COPY = {
     companionCaption: (phrase) => `小伙伴 · ${phrase}`,
     companionName: (word) => `小伙伴，${word}`,
   },
+  en: {
+    title: 'Little Buddy',
+    emptyHint: 'Say anything you like. Hold to talk, or just type.',
+    privacy: 'This chat stays on this computer and clears when you reload.',
+    placeholder: 'Or type, Enter sends',
+    inputLabel: 'What you want to tell Little Buddy',
+    pausedNote: '(sending, your text stays)',
+    talk: 'Hold to talk',
+    listening: (s) => `Listening… ${s} s`,
+    listeningShort: (s) => `${s} s`,
+    listeningHelp: 'Release to send · move off or Esc to cancel',
+    listeningName: (s) => `Listening, ${s} seconds, release to send`,
+    voiceTag: 'Voice',
+    transcribing: 'Turning it into text…',
+    typing: 'Little Buddy is replying',
+    logLabel: 'Chat',
+    langLabel: 'Interface language',
+    langZh: '中文',
+    langEn: 'English',
+    hints: {
+      prompt: 'Allow the microphone in the browser pop-up, then hold to talk.',
+      refused: 'The microphone is off. Allow it at the left of the address bar, or just type.',
+      noMic: 'No microphone found. Typing works just as well.',
+      busy: 'Another app is using the microphone. Close it and try again, or type for now.',
+      tooShort: 'That was quick! Hold a little longer.',
+      micOpening: 'Opening the mic. Start talking when the seconds appear.',
+      warming: "Little Buddy is still waking up, usually within two minutes. Type now and send once it's awake.",
+      voiceNotReady: "Voice isn't ready yet. Type for now.",
+      nothingHeard: "I didn't hear any words. Hold and try again, or type.",
+      voiceUnavailable: "Couldn't connect, so that wasn't turned into text. Hold and try again, or type.",
+      voiceTimeout: 'Turning that into text took too long. Hold and try again, or type.',
+      voiceFailed: "That couldn't be turned into text. Hold and try again, or type.",
+      awake: 'Little Buddy is awake. Go ahead.',
+      unreachable: "Can't reach Little Buddy right now. It's restarting, hang on.",
+      stillDown: 'Still can\'t reach it. Restart Little Buddy (run npm start again in Terminal).',
+      sendUnavailable: "Couldn't reach Little Buddy, so this didn't send. Your words are back in the box; press Enter again in a moment.",
+      sendTimeout: 'Little Buddy took too long this time. Your words are back in the box; press Enter to send again.',
+      sendFailed: "That reply didn't come through. Your words are back in the box; press Enter to send again.",
+      sendDefect: "This didn't send. Your words are back in the box; try again, and if it still fails, reload the page (the chat will clear).",
+    },
+    moods: {
+      neutral: { caption: 'listening', name: 'listening' },
+      'pleasant-high': { caption: 'happy for you', name: 'happy' },
+      'pleasant-low': { caption: 'right here, at ease', name: 'at ease' },
+      'unpleasant-high': { caption: 'a bit worried for you', name: 'worried' },
+      'unpleasant-low': { caption: 'sad with you for a while', name: 'sad' },
+      waking: { caption: 'waking up' },
+    },
+    companionCaption: (phrase) => `Little Buddy · ${phrase}`,
+    companionName: (word) => `Little Buddy, ${word}`,
+  },
 };
 
-export const copy = COPY.zh;
+export const LANGS = ['zh', 'en'];
+export const DEFAULT_LANG = 'zh';
+
+// A12: a browser language starting with zh opens in 中文, anything else (or nothing) in English.
+export function resolveLang(browserLang) {
+  return typeof browserLang === 'string' && /^zh/i.test(browserLang.trim()) ? 'zh' : 'en';
+}
+
+// `copy` is one live object: setLang copies the chosen language into it, so every module that reads
+// copy.x sees the current words. Starts in zh; app.js sets the browser default at open (never at import,
+// so tests are not changed by the machine's locale). The language is never sent to the backend.
+export const copy = { ...COPY[DEFAULT_LANG] };
+let current = DEFAULT_LANG;
+export const getLang = () => current;
+export function setLang(lang) {
+  if (!COPY[lang]) return current;
+  current = lang;
+  Object.assign(copy, COPY[lang]);
+  return current;
+}
 
 // Q-018: 01-ux.md Codes, voice column. kind is 'no_audio', 'empty' or a transcribe error code.
 const VOICE_HINT_KEY = {
