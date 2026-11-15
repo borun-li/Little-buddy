@@ -103,3 +103,45 @@ test('Q-030 crisis capture (zh): one region 求助方式 with the three Words li
   assert.equal(c[at - 1].trim(), '- listitem:'); // its own log item, right after the reply item
   assert.match(c[at - 2], /listitem: 我在呢/);
 });
+
+// Round 2 (fe-tester #10): captures of verify-5 (VERIFY5_DIR overrides, used for the copy-aside mutation runs).
+const DIR5 = process.env.VERIFY5_DIR || fileURLToPath(new URL('../docs/frontend/evidence/verify-5/', import.meta.url));
+const cap5 = (id, ext) => readFileSync(`${DIR5}/${id}${ext}`, 'utf8');
+const aria5 = (id) => cap5(id, '.aria.yml').split('\n').map((l) => l.trimEnd());
+
+// FND-010: after five turns the crisis card is the last log item, right after the reply that names 988, one card.
+test('Q-030 round 2: after five turns the crisis card is the last log item, right under the 988 reply, with the three lines (en)', () => {
+  for (const size of ['laptop', 'phone']) {
+    const c = aria5(`i2-fnd010-long-crisis@${size}`);
+    assert.equal(c.filter((l) => l.includes('region')).length, 1);
+    const at = c.findIndex((l) => l.trim() === '- region "Ways to get help":');
+    assert.ok(at > 0, size);
+    assert.equal(c[at - 1].trim(), '- listitem:');
+    assert.match(c[at - 2], /listitem: .*call or text 988 anytime/);
+    assert.deepEqual(c.slice(at + 1, at + 10).map((l) => l.trim()), [
+      "- paragraph: You're not alone. You can talk to someone any time.",
+      '- paragraph:',
+      '- text: In the US, call or text',
+      '- strong: "988"',
+      '- text: (Suicide & Crisis Lifeline), any time, day or night.',
+      '- paragraph:',
+      "- text: If you're in immediate danger, call",
+      '- strong: "911"',
+      '- text: .',
+    ]);
+    assert.equal(c[at + 10].trim(), '- button "Close ways to get help": Close');
+    assert.equal(c[at + 11].trim(), '- status'); // the card is the last item of the log
+    assert.ok(c.filter((l) => l.includes('listitem')).length >= 11); // at least five turns of two items, plus the card
+  }
+});
+
+// FND-011: a six-character Chinese name in the rename field gets a width from its rendered text, not from the count.
+test('Q-023 round 2: renaming with a Chinese name shows the 名字 field holding 团子团子团子, wide enough for six full-width characters (zh)', () => {
+  for (const [size, lo, hi] of [['phone', 84, 140], ['laptop', 100, 200]]) {
+    const c = aria5(`i2-fnd011-rename-zh@${size}`);
+    assert.equal(c.filter((l) => l.trim() === '- textbox "名字": 团子团子团子').length, 1);
+    assert.equal(c.filter((l) => l.trim() === '- paragraph: 名字记在这台电脑上，最多 12 个字。').length, 1);
+    const w = Number(/class="name-field"[^>]*style="width: (\d+)px;"/.exec(cap5(`i2-fnd011-rename-zh@${size}`, '.dom.html'))?.[1]);
+    assert.ok(w >= lo && w <= hi, `${size} width ${w}`);
+  }
+});

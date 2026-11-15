@@ -108,3 +108,22 @@ File `tests/verify-i2.test.js` (not in the `package.json` test script, which is 
 ## Unmeasured
 - Everything that needs sound, a mic, a stopped or cold backend, `tts` not ready, reduce motion or a network log (the not-observable rows); widths at 768 and 375; the 30 s breathing run and its endings; reload and clear keeping the name.
 - The capture tests read static files: they turn red on the next recapture if the page changes, not on a source edit alone. They do not replace the user's hand check.
+
+## Round 2 (fe-tester #10) — re-judge after review fixes
+Evidence: `evidence/verify-5/manifest.md` (source fingerprint f30ade14a4872a84, laptop 1440 and phone 390, instance 127.0.0.1:4400). Round 1 verdicts above stand for every row not listed here. Done 3, not done 0, not observable 2.
+
+| Row | Verdict | Evidence (file · state · size) | Note |
+|---|---|---|---|
+| Q-024 | done | `i2-q024-poke@laptop.aria.yml`, `i2-q024-poke@laptop.png`, `i2-q024-poke@phone.png` · poke · 1440 and 390; `tests/verify-i2.test.js` Q-024, `tests/poke.test.js`, `tests/fnd-i2-r1-fix.test.js` FND-012 | my round-1 test (every sequence of six draws from {0, .4, .99}: three or more reactions, none twice running) is now green with no edit to it; `poke.test.js` 20 runs, 0 failures; the single-poke capture is as in round 1. The 6.3 % two-reaction case is gone. Round-1 minor (phone sparkle at the top edge) stays filed. |
+| Q-030 | done | `i2-fnd010-long-crisis@laptop.png`, `i2-fnd010-long-crisis@phone.png`, both `.aria.yml` · crisis after five turns · 1440 and 390 | the card (`region "Ways to get help"`, three lines, `Close` button) is fully in view under the 988 reply as the last log item at both sizes, above the input; the chat scrolled so the end of the reply and the whole card show (phone: reply's last lines, card, input row; nothing cut). Round-1 capture (short log) matched FRAME-019/022; this one is the case that failed review (FND-010). New test `Q-030 round 2 …`. In view is seen in the screenshot, not measured by a bounding box (styles.json has a null selector). |
+| Q-023 | done | `i2-fnd011-rename-zh@phone.png`, `i2-fnd011-rename-zh@laptop.png`, both `.aria.yml` and `.dom.html` · renaming, zh name · 390 and 1440 | `textbox "名字": 团子团子团子` with the note 名字记在这台电脑上，最多 12 个字。; the field holds all six characters unclipped (inline width 112 px at 390, 159 px at 1440, from the rendered text). Round-1 renamed and renaming captures stand. New test `Q-023 round 2 …`. A 12-character zh name in the field is not captured (the Q-032 capture shows it as the finished name). |
+| Q-025 | not observable | `i2-q025-speaking@laptop.aria.yml`, `i2-q025-speaking@phone.png` · speaking · 1440 and 390; unit `tests/fnd-i2-r1-fix.test.js` FND-020 | unchanged in what a capture shows (toggle `is-speaking`). The fix (a refused play aborts the request asked ahead; nothing aborted twice) is unit evidence only: the test reads that `signals[1].aborted` is true and `sp.active` false, 185/185 in the run. No sound or network log in a capture. User: hear a reply, then end it early. |
+| Q-032 | not observable | `i2-q032-longest-row@phone.png`, `i2-q032-longest-row@laptop.png` · error (longest caption row) · 390 and 1440; unit `tests/fnd-i2-r1-fix.test.js` FND-013 | normal sizes unchanged: the 12-character name, phrase and toggle still sit in one row, no clipping, same as round 1 (the 280 px stage rule is kept in `page.css:26`). The short-viewport change (below 520 px high, stage `clamp(120px, 32vh, 280px)`) was not captured at a short height; the unit test reads the CSS text only. Recapture at about 390 x 500 to make it observable. |
+
+### Round 2 assertions added
+| Test | Red when | Green when |
+|---|---|---|
+| `Q-030 round 2: after five turns the crisis card is the last log item …` | "988" changed to "989" in the phone long-crisis dump (red, seen) | an unrelated reply text edited in `i2-q020-reply` (green, seen) |
+| `Q-023 round 2: renaming with a Chinese name shows the 名字 field …` | field width 112 px changed to 40 px (red, seen) | same unrelated edit (green, seen) |
+
+`VERIFY5_DIR` points these two at another folder; the round-1 tests still read verify-4. Runs: 26 frontend unit files by explicit list, 185 of 185 pass; `tests/verify-i2.test.js` 9 of 9; `tests/poke.test.js` 20 of 20 runs green.

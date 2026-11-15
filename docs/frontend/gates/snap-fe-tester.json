@@ -1,7 +1,7 @@
 {
   "role": "fe-tester",
-  "time": "2026-11-15T10:41:13Z",
-  "time_ns": 1794739273448668000,
+  "time": "2026-11-15T10:41:31Z",
+  "time_ns": 1794739291555020000,
   "snapshot": {
     ".claude/gates.json": "7c09f3781b864a3b5e27459ac395138a905bcb30",
     ".claude/project-context.md": "95ffb2189fb6577ab35c4bddf715298a2b47bcff",
@@ -1516,7 +1516,7 @@
     "docs/frontend/logs/orchestrator-npm-test-r2.log": "c7eede6800ee9977b6ec4e54a3cfb8f40dbe4292",
     "docs/frontend/logs/orchestrator-npm-test.log": "04c66485dd9136e07ed2e7725dfb047e1ba31308",
     "docs/frontend/logs/review-r1-candidates.md": "777db9d47497e3c85aa5e84f99f5a4f7fb57bfe5",
-    "docs/frontend/run-log.jsonl": "a59c207acf4d108122717dc5f73359630aed8872",
+    "docs/frontend/run-log.jsonl": "907a9f5993632995791963ac529609f628ab4dea",
     "docs/frontend/run-log.md": "7f21154854f75701eb1e838cc6ee37b200267b41",
     "docs/frontend/state.json": "9da1226655b696574873a6b3f149831862e067f9",
     "docs/video/plan.md": "5a7275c9a4900c0dc670691ade7a93a39dc2c544",

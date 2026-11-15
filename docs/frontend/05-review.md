@@ -147,7 +147,7 @@ For tomorrow's demo (laptop, EN UI, normal zoom), FND-010 is the one that shows.
 - **Evidence:** `fe-reviewer-3/crisis.out`: `crisis 1440 900 turns 6 t 3000 … "l988":{"hiddenBelow":39},"l911":{"hiddenBelow":71}`, `crisis 390 844 turns 6 … 65 / 97`, `turns 6 r` (reduce) the same. Positive controls: the same log scrolled to its end by hand shows both lines (`control-scrolled 1440 900 … hiddenBelow 0`), and a crisis turn with no earlier turns fits (`turns 0 … hiddenBelow 0`). Panel: `review-e/crisis-long@phone.png`, `review-e/p5-scroll.cjs`, `review-a/crisis-after-history@1440x900.png`.
 - **Cause (code):** `card = add(li)` (`web/js/log.js:220`) runs `scrollToNewest()` (`:78`, `:29`), which reads `scrollHeight` while the card is still empty. `fillCard()` fills it afterwards (`:221`). The chip is not affected because its text is set before `add` (`:180-182`).
 - **Suggested direction:** scroll to the newest item after the card's words are in.
-- **Status:** open
+- **Status:** fixed in round 2 (§5)
 
 ### FND-011 — Chinese name mostly hidden while renaming
 - **Owner:** fe-engineer
@@ -155,7 +155,7 @@ For tomorrow's demo (laptop, EN UI, normal zoom), FND-010 is the one that shows.
 - **Evidence:** `fe-reviewer-3/rename.out`: `390 zh-CN {"value":"小伙伴","styleWidth":"4ch","clientWidth":14,"scrollWidth":44}`, `1440 zh-CN {"value":"团子团子","styleWidth":"5ch","clientWidth":45,"scrollWidth":90}`. Control: `1440 en-US "Little Buddy" clientWidth 148 scrollWidth 148`. Panel: `review-e/rename-zh-default@phone.png`, `review-e/p1-rename.cjs`.
 - **Cause (code):** `size()` sets the width to (characters + 1) `ch` (`web/js/name.js:60`). A Han character is about 2 `ch` wide, and `box-sizing: border-box` subtracts 20 px of padding and border.
 - **Suggested direction:** size the field from the text's rendered width, not from the character count.
-- **Status:** open
+- **Status:** fixed in round 2 (§5)
 
 ### FND-012 — Q-024 not done: six pokes can show only two reactions
 - **Owner:** fe-engineer
@@ -164,7 +164,7 @@ For tomorrow's demo (laptop, EN UI, normal zoom), FND-010 is the one that shows.
 - **Cause (code):** `nextPoke` draws uniformly from the two reactions that are not the last one (`web/js/poke.js:14`). The UX rule is a cycle of three in random order.
 - **Severity note:** the impact is small, but the in-scope row's acceptance is unmet, so it goes to the fix round as major.
 - **Suggested direction:** take pokes from a shuffled bag of three. The first of a new bag must differ from the last one played.
-- **Status:** open
+- **Status:** fixed in round 2 (§5)
 
 ### FND-013 — at 200 % zoom the log is a slit
 - **Owner:** fe-ui (short-viewport rule), then fe-engineer
@@ -173,7 +173,7 @@ For tomorrow's demo (laptop, EN UI, normal zoom), FND-010 is the one that shows.
 - **Cause (code):** `grid-template-rows: 280px minmax(0, 1fr)` (`web/css/page.css:26`). This fixed row dates from increment 1. The help card is new content in it. 02-ui has no rule for short viewports.
 - **Not seen in the demo set-up** (laptop, normal zoom).
 - **Suggested direction:** on short viewports the stage gives up height, or the page scrolls.
-- **Status:** open
+- **Status:** fixed in round 2 (§5; no short-viewport rule in 02-ui yet, see §5 note)
 
 ### FND-014 — not-ready toggle press shows nothing
 - **Owner:** fe-ui (design defect)
@@ -215,7 +215,7 @@ For tomorrow's demo (laptop, EN UI, normal zoom), FND-010 is the one that shows.
 - **Owner:** fe-engineer
 - **Scenario:** part 1's audio fails to play. The reading ends, but part 2, already requested, is not aborted, so the backend still generates it. This is separate from backend FND-013, which keeps generating parts even after an abort.
 - **Evidence:** `review-i/out-s1a.txt`: `CODE 200-garbage speaks 2 plays 2 … reqfailed []`. Code: `web/js/speaker.js:75-76` (`next` is requested, then `return` on a failed `play` without `r.ctrl.abort()`). The `finally` at `:103` only clears `run`.
-- **Status:** open (deferred, minor)
+- **Status:** fixed in round 2 (§5; minor, re-checked because it was in the fix commit)
 
 ### FND-021 — speak sent with a missing or odd `lang`
 - **Owner:** fe-engineer
@@ -236,7 +236,7 @@ None. I re-ran or code-checked each candidate, and each still showed (§2). E-1 
 |---|---|---|---|
 
 ## 4. Deferred
-- Minors: FND-014, FND-015, FND-016, FND-017, FND-018, FND-019, FND-020, FND-021, FND-022.
+- Minors: FND-014, FND-015, FND-016, FND-017, FND-018, FND-019, FND-021, FND-022 (FND-020 fixed in round 2, §5).
 - Minor deviations from fe-tester #9 (`04-verification.md` § Increment 2 § Minor deviations):
   - Q-024: on the phone the tickle sparkle reaches the stage top and the `中文 | EN` switch (`evidence/verify-4/i2-q024-poke@phone.png`).
   - Q-030: the tear is faint in the 1440 capture (`evidence/verify-4/i2-q030-crisis@laptop.png`).
@@ -246,3 +246,10 @@ None. I re-ran or code-checked each candidate, and each still showed (§2). E-1 
 ## 5. Re-check (fix rounds)
 | FND | Result | Evidence |
 |---|---|---|
+| FND-010 | fixed in round 2 | `crisis.out` (en, 6 turns, then a `crisis: true` reply), at 300, 1500 and 3000 ms: 1440×900 `card`, `l988`, `l911` all `hiddenBelow 0, hiddenAbove 0` (scrollTop 836 = maxScroll); same with reduce motion, at 12 turns, at 1280×720, 390×844, 375×667 and 390×844 zh. Same probe with the pre-fix `log.js`/`page.css` served by route (`OLD`): 988 / 911 lines 39 / 71 px below at 1440, 65 / 97 at 390 and 375 (the round-1 numbers, so the probe still sees the defect). Control: 0 turns fits in both. Capture `evidence/verify-5/i2-fnd010-long-crisis@laptop.png`: card with 988 and 911 whole above the composer. Code: `web/js/log.js:220-226` (fill, then `scrollToNewest()`). |
+| FND-011 | fixed in round 2 | `rename.out` (zh and en UI at 1440, 390, 375): 小伙伴 client 72 = scroll 72 (1440), 48 = 48 (390/375); 团子团子 94 = 94 / 63 = 63; 12 Han characters 274 = 274 / 179 = 179; `scrollLeft 0` every time; the field ends 104–141 px inside the row. Pre-fix (`OLD`): 小伙伴 14 vs 44, 团子团子 22 vs 58 at 390, all `CUT`. Latin names: Little Buddy 135 / 89, Mochi-Mochi1 156 / 103, WWWWWWWWWWWW 243 / 159, iiii 31 / 21, all fit (pre-fix cut Mochi-Mochi1 and WWWW…). Saved name shows whole (团子团子 90 = 90). Capture `evidence/verify-5/i2-fnd011-rename-zh@phone.png`. Code: `web/js/name.js:42-58`, `:78-84`. |
+| FND-012 | fixed in round 2 | `poke-stats.out`: 200,000 fresh pokers × 6 pokes, 0 runs with fewer than 3 reactions, 0 repeats, first poke 66643/66613/66744; one poker over 300,000 pokes: 0 six-poke windows short of 3, 0 repeats; chained `nextPoke` 0 of 50,000; `random=0` gives 012012 (pre-fix: 12,572 of 200,000 short, 010101). In the page (`poke-page.out`, Enter on the companion past each hold): 10 runs at 1440 and 390, all 3 distinct, no repeat; pre-fix run includes `oops,here,oops,here,oops,here`. `unit.out`: `tests/verify-i2.test.js` Q-024 passes; it is in `package.json` `test` (`package.json:9`). Note: any 3 in a row can still show two reactions across a bag boundary (100,427 of 300,000 windows); the row asks for six. |
+| FND-013 | fixed in round 2 | `zoom.out` / `layout.out` (200 % zoom as CSS viewport): 640×400 log 192 px (was 40), 640×360 160 (was 16, page overflow 16 → 0), 720×450 226 (was 90); crisis card after 6 turns with 988 and 911 whole at all three (card border 2 px above at 640×360, title in view). Phone landscape 844×390 and 667×375 log 185 / 175 (was 30 / 16). Unchanged at normal heights (`layout.out`, new = pre-fix): 1440×900 log 736, 1280×720 556, 390×844 stage 280 / log 484, 375×667 280 / 307; 959×521 unchanged, the rule starts at 520. Code: `web/css/page.css:157-160`. Note: the companion art is 67–91 px at those heights and 02-ui has no short-viewport rule (`grep` of `docs/frontend/02-ui.md`); the engineer flagged it for fe-ui. |
+| FND-020 | fixed in round 2 | `s20.out`: part 1 not audio (garbage or JSON), part 2 asked ahead with a 3 s stub: part 2 `net::ERR_ABORTED` at the moment play fails (0.78 s / 0.58 s); pre-fix `speaker.js`: `reqfailed []`. Regressions: three parts requested and played in order, one in flight, URLs 4 created / 4 revoked, nothing aborted; 40 parts in order (`order ok True`, max in flight 1); a 500 on part 2 stops the reading with part 3 never asked. Code: `web/js/speaker.js:69-71`. |
+
+Round 2 probes: `/private/tmp/claude-501/-Users-apple-Desktop-Hackathon-Local-AI-Hackathon/c499be74-fde0-49e2-a17d-d254a152203e/scratchpad/fe-reviewer-4/` (`probe.cjs`, `run.sh`, `run2.sh`, `poke-stats.mjs`, `s20.py`; outputs `crisis.out`, `zoom.out`, `layout.out`, `rename.out`, `poke-page.out`, `poke-stats.out`, `s20.out`, `unit.out`). Headless Chrome against 127.0.0.1:4400, which serves `web/` byte for byte as in the tree (`cmp`, 23 files). Every `/api/*` was stubbed: 0 live calls. `OLD` rows serve the files of `b7539fa^` by route, as the positive control. Unit tests (explicit list: verify-i2, fnd-i2-r1-fix, poke, name, crisis-card, speaker, speaker-toggle, fit, clear): 56 pass, 0 fail. Re-checked by fe-reviewer #4, 2026-11-15. Verdict: no blocker or major left open in increment 2; FND-014..019, 021, 022 stay deferred.

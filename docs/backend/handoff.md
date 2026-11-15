@@ -71,14 +71,15 @@ Next agent must know:
 - Left open: npm test (live suites) not run this round; REQ-015 page timing; REQ-024 tone; Wi-Fi-off run with tts.
 Next agent reads: server/tts.js:9-160; docs/backend/08-implementation-log.md § Fix round 1 (step 6, be-developer #6)
 
-## fe-tester #9 · step 4 (verify increment 2) · round 1 · increment 2 · 2026-11-15T10:20:00Z
-Task: one verdict per row Q-020..Q-033 from evidence/verify-4 (76 captures), plus TC-084, TC-085, TC-086, TC-136 page halves.
-Changed: docs/frontend/04-verification.md (Increment 2 section appended), tests/verify-i2.test.js (new, 7 tests, not in the package.json script).
-Result: done 7 (Q-020, 021, 022, 023, 028, 029, 030), not done 1 (Q-024), not observable 6 (Q-025, 026, 027, 031, 032, 033). 15 increment-2 unit files by name: 118/118 green. verify-i2.test.js: 6 green, 1 red on purpose (Q-024). Mutations on a scratch copy of the captures turned the Q-022, Q-026, Q-029, Q-030 tests red; an unrelated edit stayed green.
-Q-024 defect: nextPoke draws freely among the two reactions that are not the last, so six pokes show only two reactions in 6.3 % of runs (200,000 simulated; theory 6.25 %). tests/poke.test.js "six pokes" is flaky because the code is wrong, not the test; fix the code (shuffled bag of three, new bag never starts with the last played) and that test then always passes. Do not weaken the test.
-TC verdicts: TC-084 still manual (zh-UI plus English line and silence need a mic; client sends no language: client.test.js green); TC-085 partly verified (no Han outside the log in every English dump) and the switch-with-existing-reply step still manual; TC-086 still manual (needs a stopped test server); TC-136 partly verified: toggle muted, breathing, card, clear, rename seen; read-aloud timing, stop-on-talk, reduced motion manual; poke fails on the six-poke rule.
-Next agent must know: verify-i2.test.js reads captures (VERIFY_DIR overrides) and is red until Q-024 is fixed; add it to the package.json test list after the fix. Live :4400 used for 3 calls (health, one speak, one respond), nothing stopped.
-Next agent reads: docs/frontend/04-verification.md § Increment 2; web/js/poke.js:12-17; tests/verify-i2.test.js
+## fe-tester #10 · step 4 (re-judge, increment 2) · round 2 · increment 2 · 2026-11-15T10:43:13Z
+Task: re-judge Q-024 and the rows touched by the round-1 fixes (Q-030, Q-023, Q-032, Q-025) from evidence/verify-5.
+Changed: docs/frontend/04-verification.md (Round 2 table appended under Increment 2), tests/verify-i2.test.js (2 new tests reading verify-5, existing ones untouched).
+Result: done 3 (Q-024, Q-030, Q-023), not observable 2 (Q-025, Q-032), not done 0. Earlier round-1 verdicts kept.
+Tests: 26 frontend unit files by explicit list (server-* left out): 185/185 pass, 0 fail, 0 skipped. poke.test.js 20 runs: 0 failures. verify-i2.test.js 9/9 green (now in the package.json list).
+New assertions turn red on a mutated copy (988 to 989 in the long-crisis phone dump; name-field width 112 to 40 px) and stay green on unrelated copy edits.
+Q-032 short-viewport fix (FND-013) has no capture at a short height (verify-5 has none): only fnd-i2-r1-fix.test.js reads the CSS; recapture at about 390x500 if the panel wants it seen. Q-025 abort on early end is unit evidence only.
+Next agent must know: nothing started or stopped; no live calls made this round.
+Next agent reads: docs/frontend/04-verification.md § Round 2
 (Earlier fe-tester entries: git history of this file.)
 
 ## fe-engineer #33 · step 4 (review fixes) · round 1 · increment 2 · 2026-11-15T10:33:45Z
@@ -102,20 +103,21 @@ Next agent must know:
 Read beyond the list: none.
 Next agent reads: docs/backend/04-test-plan.md TC-137..TC-147; tests/server-tts-serial.test.js
 
-## fe-reviewer #3 · step 4 (review, increment 2) · round 1 · increment 2 · 2026-11-15T10:15:22Z
-Task: coordinate the increment-2 panel (E-1..4, A-1..6, I-1..3) plus fe-tester #9's not-done row Q-024.
-Changed: docs/frontend/05-review.md, appended "Increment 2 — round 1" (FND-010..022). Nothing else.
-Result: 13 findings (0 blocker, 4 major, 9 minor), 0 dropped, E-1 and A-2 merged. Verdict: send back. Evidence is in the session scratchpad fe-reviewer-3/ (crisis.out, zoom.out, rename.out, misc.out, poke.out, verify-i2.out). All /api/* were stubbed, so 0 live calls. :4400 serves web/ byte-identical to the tree (cmp).
+## fe-reviewer #4 · step 4 (re-check, increment 2) · round 2 · increment 2 · 2026-11-15T10:51:12Z
+Task: re-check FND-010, 011, 012, 013, 020 after fe-engineer #33 (b7539fa), with regressions.
+Changed: docs/frontend/05-review.md only: Increment 2 §5 re-check rows, the five Status lines, FND-020 out of §4 Deferred. This entry.
+Result: all five fixed. 0 open blocker/major in increment 2. Each probe also ran with the pre-fix files (b7539fa^) served by route, and those runs still show the round-1 defect (positive control).
+- FND-010: card, 988, 911 hiddenBelow 0 after 6 and 12 turns at 1440x900 (also reduce motion), 1280x720, 390x844, 375x667, zh. Pre-fix: 39/71 px below.
+- FND-011: client = scroll width for zh and Latin names at 1440/390/375, scrollLeft 0. Pre-fix: CUT.
+- FND-012: 0 of 200k six-poke runs short of 3 reactions, 0 repeats; in-page 10/10 runs show 3. verify-i2 Q-024 green.
+- FND-013: log 192/160/226 px at 640x400/640x360/720x450 (was 40/16/90). Card whole. 1440x900, 1280x720, 390x844, 375x667 unchanged.
+- FND-020: the prefetched speak is ERR_ABORTED when play fails. In-order reading, one part in flight, 40-part reading are all unchanged.
+Evidence: scratchpad fe-reviewer-4/ (*.out, probe.cjs, s20.py). :4400 = tree (cmp, 23 files). All /api/* stubbed: 0 live calls. 9 unit files: 56/56 pass.
 Next agent must know:
-- Fix round (majors):
-  - FND-010 (fe-engineer): crisis card scrolled before it is filled (log.js:220-221). This one shows in the demo.
-  - FND-011 (fe-engineer): rename field width in ch (name.js:60).
-  - FND-012 (fe-engineer): Q-024, use a shuffled bag of three (poke.js:14). Turns tests/verify-i2.test.js green.
-  - FND-013 (fe-ui rule first, then fe-engineer): fixed 280 px stage row at 200 % zoom (page.css:26).
-- Frontend FND-010..022 are not backend FND-010..013. Backend FND-013 (TTS keeps generating after an abort) is not filed in the frontend doc.
-- Deferred: FND-014..022, plus fe-tester #9's 3 minor deviations (05-review.md Increment 2 §4).
-- Pitfall: crisis-card probes need about 6 earlier turns. A crisis turn on an empty log fits and hides the bug.
-Next agent reads: docs/frontend/05-review.md § Increment 2 — round 1
+- Not findings: companion art is 67–91 px under the new short-viewport rule. 02-ui has no such rule yet; fe-ui should own it.
+- Any 3 pokes in a row can still show 2 reactions at a bag boundary. The engineer's "every 3 covers all" holds only for aligned triples. Q-024 asks for 6, which holds.
+- fe-tester #10 edited tests/verify-i2.test.js and docs/frontend/04-verification.md while I ran (not me).
+Next agent reads: docs/frontend/05-review.md § Increment 2 §5
 
 
 ## be-reviewer #2 · step 6 re-check · round 2 · 2026-11-15T04:18:53Z

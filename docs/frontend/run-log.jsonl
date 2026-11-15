@@ -315,3 +315,8 @@
 {"seq": 315, "ts": "2026-11-15T10:40:44Z", "event": "capture", "round": "5", "captures": 80, "prev": "af41510ef30d5567d26c3cfa2c5d4b1818371f675e63c0f17ffb76277e85a876"}
 {"seq": 316, "ts": "2026-11-15T10:41:13Z", "event": "mark", "role": "fe-reviewer", "prev": "077a37fa865873d9deaeb999dac0baa0388520d11435e921b84ef120ce12e86b"}
 {"seq": 317, "ts": "2026-11-15T10:41:13Z", "event": "mark", "role": "fe-tester", "prev": "4faffc07bc9bdb3e0a61d1f82f18527f0f2d221bfedca66b24313942deb20a18"}
+{"seq": 318, "ts": "2026-11-15T10:41:25Z", "event": "dispatch", "agent": "fe-reviewer", "model": "opus", "phase": "4", "note": "Re-check frontend fixed FNDs", "redo": 2, "prev": "809ccaa362261071ce3e9651e0a9c2aef591db9fca09278e05e71b3b4eccc60c"}
+{"seq": 319, "ts": "2026-11-15T10:41:31Z", "event": "mark", "role": "fe-tester", "prev": "2a8c18a4a9fcc78f57554d2ffd902bcec81262fcd812e57be16c4880273cc346"}
+{"seq": 320, "ts": "2026-11-15T10:41:31Z", "event": "dispatch", "agent": "fe-tester", "model": "sonnet", "phase": "4", "note": "Re-judge Q-024 and fixed rows", "redo": 3, "prev": "35a8e4989c6c240fbadac316cf65e4a08c5e139cfd24666991891568128e3459"}
+{"seq": 321, "ts": "2026-11-15T10:43:23Z", "event": "return", "agent": "fe-tester", "phase": "4", "status": "ok", "note": "## fe-tester #10 · step 4 (re-judge, increment 2) · round 2 · increment 2 · (UTC time stamped in file)", "prev": "7d209cb3de3ceec30e9abea2afaa3e9a4ac38f62245c2bba0fb59efe200fa0d5"}
+{"seq": 322, "ts": "2026-11-15T10:51:54Z", "event": "return", "agent": "fe-reviewer", "phase": "4", "status": "ok", "note": "## fe-reviewer #4 · step 4 (re-check, increment 2) · round 2 · increment 2 · 2026-11-15T10:51:12Z", "prev": "f946239db3e14d0f99488a76c465fa570ec5d004e16afff9eeb3bb051ad634b9"}
