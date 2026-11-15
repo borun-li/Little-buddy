@@ -1,6 +1,6 @@
 {
   "phase": "fe-ux",
-  "time": "2026-11-14T23:44:25Z",
+  "time": "2026-11-15T01:48:02Z",
   "project": "/Users/apple/Desktop/Hackathon/Local_AI_Hackathon",
   "run_dir": "docs/frontend",
   "overall": "pass",
@@ -116,7 +116,7 @@
       "id": "CTX.codemap",
       "status": "pass",
       "message": "docs/codemap.md paths exist, within its cap",
-      "owner": "fe-engineer",
+      "owner": "fe-tester",
       "details": []
     },
     {

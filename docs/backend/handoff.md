@@ -26,18 +26,19 @@ Next agent must know:
 Read beyond the list: ~/.claude/gates/gatelib/docs.py:48-51 (CJK counted 2 per word); docs/backend/04-test-plan.md TC-008/013/031/037.
 Next agent reads: docs/backend/03-detailed-design.md DES-001 step 1, DES-002, DES-007 windowOf comment, DES-009; docs/backend/logs/be-architect-3-window.log
 
-## fe-ux #4 · step 2 (frontend feedback, increment) · round 1 · increment 1 · 2026-11-14T23:43:51Z
-Task: decide DFB-005 (listening starts when the mic stream opens) and, if accepted, update FLOW-005 / PAGE-001 (increment 1) listening rows.
-Changed: docs/frontend/06-feedback.md — DFB-005 decision, decided-by, needs-user filled. docs/frontend/01-ux.md § Increment 1 — FLOW-005 step "Mic open → listening + seconds", Boundary "under 0.5 s listening" (80 words); PAGE-001 (increment 1) rows "loading · mic opening" and "listening"; hint rule for `hints.micOpening`; Words row `hints.micOpening` zh/en; contract §2 "hold to talk" state-loading row.
-Feedback: DFB-005 accepted, pending user at Plan; needs user: yes (changes the listening moment confirmed at the Prototype stop 2026-11-14). One-line recommendation is in the DFB-005 decision cell.
-Result: gatelib docs.words: FLOW-005 80, first PAGE-001 block 196 (unchanged); prose units > 50 words = []; DFB-005 row parses to 9 cells — evidence: scratchpad wc.py run in this session. Gate not run by me. 0 Figma calls.
+## fe-ux #5 · step 4 (frontend review fix, UX) · round 1 · increment 1 · 2026-11-15T01:46:57Z
+Task: decide FND-003 (what a screen-reader user hears when listening starts; reword `hints.micOpening`) and the hint-rule conflict behind FND-001, in 01-ux.md § Increment 1.
+Changed: docs/frontend/01-ux.md § Increment 1 (+18/-9) — Author line; PAGE-001 (increment 1) rows mic opening, listening (announces `listeningNow`, not shown), error · reply / voice / down; warming table "both ready" row; Hint rules paragraph retired in place → 7 bullets (action / health / hold hints, awake rule, 2 s first check); Words `hints.micOpening` reworded (old words in a "retired words" bullet under the table), new top-level row `listeningNow` 在听 / Listening.
+Feedback: none raised; FND-003 decided (owner fe-ux); FND-001 rule stated for fe-engineer.
+Result: gatelib docs.prose_units > 50 words = []; FLOW blocks unchanged (FLOW-005 80); first PAGE-001 block 196 (unchanged); new glyphs “ ” 在 听 present in web/fonts/lxgw-wenkai-subset.woff2 (fontTools cmap) — evidence: commands run in this session. Gate fe-ux not run by me. 0 Figma calls.
 Next agent must know:
-- Pitfalls: the 0.5 s and 60 s rules now count from the stream opening, not the press; release before it opens → `hints.tooShort`; `hints.micOpening` shows only if the stream is still closed 0.2 s after press (no flash on fast opens).
-- Pitfalls: codemap mic trap "no permission query → stream slower than 600 ms is treated as a prompt" may now misread a slow granted first open; fe-engineer decides how Q-013 tells them apart (FLOW-003 rule stands: a hold that raised the prompt never records).
-- Tried, did not work: keeping the stream open between holds (would keep the mic indicator on; Q-013 needs it off at release) — rejected.
-- Left open: user's answer at the Plan stop; fe-ui may need to check the English hint width (hint line wraps, so likely none); Q-013 "Depends on DFB-005" clears once the user answers.
-Read beyond the list: ~/.claude/gates/gatelib/frontend.py:57,150-199,308-383 — block, length and feedback parsers.
-Next agent reads: docs/frontend/06-feedback.md DFB-005; docs/frontend/01-ux.md § Increment 1 FLOW-005, PAGE-001 (increment 1) rows "loading · mic opening" / "listening", Words `hints.micOpening`
+- Pitfalls: awake now requires a health hint (warming, voiceNotReady, unreachable, stillDown) to be on the line when both parts turn ready; `watch.failed()` after `unavailable` must not arm it (FND-001 cause). `not_ready` code hints are health hints, so awake may follow them.
+- Pitfalls: an action hint (Codes send/voice columns except not_ready, tooShort, nothingHeard, mic prompt/refused/noMic/busy) is replaced by a health check only with stillDown; first check after a code runs 2 s later, not at once.
+- Pitfalls: `listeningNow` goes into the role=status line visually hidden, every hold (focused aria-label changes are not reliably announced); it replaces `hints.micOpening`; both clear at hold end.
+- Pitfalls: tests/verify-r1.test.js (Words vs copy.js) now fails only on `hints.micOpening` until fe-engineer updates web/js/copy.js; `listeningNow` is top-level, not under `hints.`, so its 29-key count holds.
+- Left open: the micOpening rewording changes words the user confirmed in DFB-005 at Plan (2026-11-14) — needs the user's yes at the next stop; if no, keep the old words and the announcement still fixes WCAG 4.1.3 but not 1.3.3. web/js/copy.js not edited (fe-engineer's).
+Read beyond the list: ~/.claude/gates/gatelib/frontend.py:128-200, docs.py:40-75 — which blocks are length-checked and how prose units are cut.
+Next agent reads: docs/frontend/01-ux.md § Increment 1 "PAGE-001 — Talk with the companion (increment 1)" (rows listening, error ·), warming table, Hint rules, Words `hints.micOpening` / `listeningNow`
 
 ## fe-ui #5 · step 2 (frontend UI, increment) · round 2 · increment 1 · 2026-11-14T23:36:23Z
 Task: fix FE2.components (CMP-006 focus state readable) and FE2.prose (5 units over 50 words in 02-ui.md § Increment 1); round 1: switch, English frames, DFB-004, D-004.
