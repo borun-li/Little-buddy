@@ -1,7 +1,0 @@
-[PASS] ALL.state: state.json valid  (orchestrator)
-[PASS] FEP.gates: fe-product, fe-ux, fe-ui, fe-queue green  (orchestrator)
-[PASS] LOG.valid: Run log intact  (orchestrator)
-[PASS] CTX.codemap: docs/codemap.md paths exist, within its cap  (fe-engineer)
-[PASS] CTX.handoff: handoff.md: 5 current sections  (orchestrator)
-
-[gate] fe-plan: PASS  report: docs/frontend/gates/fe-plan-latest.json

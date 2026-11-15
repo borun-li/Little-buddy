@@ -1,8 +1,0 @@
-{
-  "selector": "[data-testid=reply]",
-  "elements": [
-    {
-      "font-family": "\"LXGW WenKai Web\", \"Kaiti SC\", STKaiti, serif"
-    }
-  ]
-}

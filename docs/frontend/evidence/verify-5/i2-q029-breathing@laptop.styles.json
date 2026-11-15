@@ -1,9 +1,0 @@
-{
-  "selector": "[data-testid=companion]",
-  "elements": [
-    {
-      "animation-name": "breath-cycle",
-      "transform": "matrix(1.08, 0, 0, 1.08, 0, 0)"
-    }
-  ]
-}

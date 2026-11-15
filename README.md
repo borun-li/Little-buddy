@@ -9,6 +9,23 @@ that mood. Argmax TTSKit then reads the reply aloud. Every step runs on your Mac
 
 Built solo for the Cornell Local AI Hackathon (November 2026).
 
+## Demo
+[![Little Buddy demo video (86 s)](docs/demo/poster.jpg)](docs/demo/little-buddy.mp4)
+
+▶ **[Watch the 86-second demo](docs/demo/little-buddy.mp4)**. Everything in it was recorded with Wi‑Fi off.
+
+## Why local AI
+Feelings are the most private data there is. Most AI companions send every word to a server, where it is stored,
+logged, reviewed or used for training. Little Buddy takes a different approach:
+
+- **Your words never leave your Mac.** Speech recognition, the language model, mood detection and the voice all run on-device.
+  The gateway listens on `127.0.0.1` only, the page makes no external requests, and there are no accounts, analytics or API keys.
+- **Works with no connection at all.** Turn Wi‑Fi off and it still works: on a plane, in a dorm with bad Wi‑Fi, or late at night
+  when you simply don't want anything online. A hard moment shouldn't depend on a signal bar.
+- **Nothing is kept.** Clear the conversation with one tap. The server keeps no transcript, and the logs record events and timings, never what you said.
+- **Safer to open up.** People share more honestly when they know no one else is listening. Privacy is the point of the product, not an extra.
+- **Free and always available.** No subscription and no rate limits. It runs on hardware you already own.
+
 ## What it does
 - **Voice in, voice out:** hold to talk (or type). The reply is read aloud in the serena voice; you can mute it, and talking again stops it.
 - **The face follows your mood:** five moods (pleasant/unpleasant × high/low energy, plus neutral) drive the companion's expression and colour.
@@ -48,8 +65,4 @@ If read-aloud files are missing, chat still works without voice.
 ```bash
 npm test          # frontend and backend suites (the live suites expect a running instance)
 ```
-More than 300 automated tests cover the moods, language, crisis rule, read-aloud queue and page behaviour. The design,
-review and acceptance records are in `docs/`.
-
-## Demo video
-`docs/video/` holds the storyboard. The video itself is linked in the submission.
+More than 300 automated tests cover the moods, language, crisis rule, read-aloud queue and page behaviour.
