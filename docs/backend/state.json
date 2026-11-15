@@ -7,7 +7,7 @@
     "check": "关掉 Wi-Fi，npm start 打开页面，按住说一句开心的英文（如 \"I just got the internship!\"）：几秒内出现 Bonsai 现场生成的英文回复（不是预设句），小伙伴变开心；再说一句难过的，回复接得上前文，小伙伴变难过。"
   },
   "started_at": "2026-11-14T22:19:00Z",
-  "updated_at": "2026-11-15T00:54:21Z",
+  "updated_at": "2026-11-15T02:15:54Z",
   "status": "in_progress",
   "tier": "full",
   "risk": "normal",
@@ -25,7 +25,7 @@
     "be-review-reliability": "opus",
     "be-review-security": "opus"
   },
-  "current_phase": 4,
+  "current_phase": 5,
   "phases": [
     {
       "phase": 1,
@@ -51,17 +51,17 @@
     {
       "des": "DES-013",
       "queue_row": "Q-010, Q-011, Q-012, Q-014, Q-018",
-      "status": "building"
+      "status": "verified (fe-verify pass; 12 rows not observable → user check at Acceptance)"
     },
     {
       "des": "DES-014",
       "queue_row": "Q-013, Q-019",
-      "status": "building"
+      "status": "verified (fe-verify pass; 12 rows not observable → user check at Acceptance)"
     },
     {
       "des": "DES-015",
       "queue_row": "Q-015, Q-016, Q-017",
-      "status": "building"
+      "status": "verified (fe-verify pass; 12 rows not observable → user check at Acceptance)"
     }
   ],
   "increments": [],
@@ -73,7 +73,9 @@
     "WhisperKit: first transcribe in a new binary ~390 s (ANE compile); plan warm-up early.",
     "Demo instance runs on 127.0.0.1:4399 (isolated from the user's 4317).",
     "be-architect #1 (2026-11-14): 9B recommended (bench docs/backend/logs/be-architect-1-bench.log); new dep argmax-oss-swift 1.1.1 exact; new `npm run setup` (online, one-time); npm start = node server on 127.0.0.1:4317. All four for the Plan stop.",
-    "Run-log gap: SendMessage continuations of be-developer r2/r3 and be-tester r2 were not logged as dispatch/return by the hook; p4 re-run per writer in order (decision #42)."
+    "Run-log gap: SendMessage continuations of be-developer r2/r3 and be-tester r2 were not logged as dispatch/return by the hook; p4 re-run per writer in order (decision #42).",
+    "Frontend: Q-010..019 built; review 9 FND (3 major fixed, re-checked; minors deferred D-006..D-012); fe-review (scoped user waiver) and fe-verify pass, 2026-11-15.",
+    "Backend p5 open: TC-073 (stt_warm log not in §6), TC-081 (context recall 1/3); P5.tc-results not-executed because `npm test` excludes backend suites → be-tester to wire them in."
   ],
   "decisions_at_plan": {
     "by": "user",
