@@ -101,14 +101,10 @@ Next agent must know:
 - Left open: the not-observable rows still need a mic, a failing backend, reduce-motion emulation or a network log (user check at Acceptance).
 Next agent reads: docs/frontend/04-verification.md
 
-## fe-engineer #31 · step 3 (build Q-033) · round 1 · increment 2 · 2026-11-15T09:45:00Z
-Task: Q-033, extend the offline guarantee test to the voice page (test-only row).
-Changed: tests/offline.test.js (6 new cases appended, 5 existing untouched), docs/frontend/03-queue.md (Q-033 built + note).
-Result: frontend unit files (test list minus server-*, 25 files) 171/171 pass (165 + 6). No external reference in web/. Live: headless Chrome vs :4400, respond stubbed with speech, 22 requests all 127.0.0.1:4400 (2 POST /api/speak), nothing off-machine; blob audio is not listed in Chrome's request log. Wi-Fi-off run not done.
-Next agent must know:
-- Pitfalls: the fetch-seam case pins the four /api paths exactly, so a new endpoint must be added there; the speaker src case pins the variables `current` and `u`.
-- Left open: poke "six pokes" flake not seen this run.
-Next agent reads: docs/frontend/03-queue.md (Q-033), then the verification step
+## fe-engineer #32 · step 3 (codemap backticks) · round 3 · increment 2 · 2026-11-15T11:20:00Z
+- Changed: docs/codemap.md only. Removed backticks from 24 non-path tokens (words kept); no text added.
+- Verify: python re.findall over backticks, os.path.exists on part before ':' -> only `swift build -c release --package-path stt` left (allowed shell command); non-path count 0.
+- Figma calls: 0.
 
 ## be-tester #6 · step 4 (gate fix) · round 2 · increment 2 · 2026-11-15
 Round 2 (be-tester #6, gate fix):
