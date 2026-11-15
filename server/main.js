@@ -84,11 +84,18 @@ async function handleApi(req, res, path) {
   return sendJson(res, 404, { error: 'bad_request' });
 }
 
+// Never throws: a throw in the 'request' listener would kill node and both children (FND-001).
 export function route(req, res) {
-  const path = new URL(req.url, 'http://localhost').pathname;
+  let path;
+  try {
+    path = new URL(req.url, 'http://localhost').pathname;
+  } catch {
+    sendError(res, new ApiError('bad_request'), 'request'); // malformed request-target ("//", an absolute URL with a bad host)
+    return;
+  }
   if (path === '/api' || path.startsWith('/api/')) {
     handleApi(req, res, path).catch((err) => {
-      if (err instanceof ApiError && err.code === 'too_large') res.setHeader('Connection', 'close');
+      if (err instanceof ApiError && err.code === 'too_large' && !res.headersSent) res.setHeader('Connection', 'close');
       sendError(res, err, path);
     });
     return;

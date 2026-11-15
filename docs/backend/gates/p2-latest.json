@@ -1,6 +1,6 @@
 {
   "phase": "p2",
-  "time": "2026-11-15T03:31:45Z",
+  "time": "2026-11-15T03:49:40Z",
   "project": "/Users/apple/Desktop/Hackathon/Local_AI_Hackathon",
   "run_dir": "docs/backend",
   "overall": "pass",
@@ -109,10 +109,24 @@
       "details": []
     },
     {
-      "id": "ROLE.tester-scope",
+      "id": "ROLE.frontend",
       "status": "pass",
-      "message": "be-tester changed only tests and documents",
-      "owner": "be-tester",
+      "message": "No frontend file changed by be-developer",
+      "owner": "be-developer",
+      "details": []
+    },
+    {
+      "id": "ROLE.tests",
+      "status": "pass",
+      "message": "No existing test changed by be-developer",
+      "owner": "be-developer",
+      "details": []
+    },
+    {
+      "id": "ROLE.unplanned",
+      "status": "pass",
+      "message": "Every changed file is planned or logged",
+      "owner": "be-developer",
       "details": []
     },
     {
@@ -147,13 +161,13 @@
       "id": "CTX.codemap",
       "status": "pass",
       "message": "docs/codemap.md paths exist, within its cap",
-      "owner": "be-tester",
+      "owner": "be-developer",
       "details": []
     },
     {
       "id": "CTX.handoff",
       "status": "pass",
-      "message": "handoff.md: 10 current sections",
+      "message": "handoff.md: 11 current sections",
       "owner": "orchestrator",
       "details": []
     }

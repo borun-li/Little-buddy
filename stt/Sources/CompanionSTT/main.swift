@@ -50,7 +50,8 @@ func hasSpeech(_ s: [Float]) -> Bool {
     vad.voiceActivity(in: s).filter { $0 }.count >= 3
 }
 
-func transcribe(_ kit: WhisperKit, _ s: [Float], language: String) async throws -> (text: String, avgLogprob: Float) {
+/// fellBack: WhisperKit rejected every segment's temperature-0 decode (logProbThreshold / compressionRatioThreshold) and sampled a fallback.
+func transcribe(_ kit: WhisperKit, _ s: [Float], language: String) async throws -> (text: String, avgLogprob: Float, fellBack: Bool) {
     let options = DecodingOptions(
         task: .transcribe, language: language, temperature: 0, usePrefillPrompt: true, detectLanguage: false,
         skipSpecialTokens: true, withoutTimestamps: true, chunkingStrategy: .vad
@@ -59,7 +60,13 @@ func transcribe(_ kit: WhisperKit, _ s: [Float], language: String) async throws 
     let joined = segments.map(\.text).joined(separator: language == "zh" ? "" : " ")
     let text = joined.trimmingCharacters(in: .whitespacesAndNewlines)
     let avg = segments.isEmpty ? -Float.infinity : segments.map(\.avgLogprob).reduce(0, +) / Float(segments.count)
-    return (text, avg)
+    let fellBack = !segments.isEmpty && segments.allSatisfy { $0.temperature > 0 }
+    return (text, avg, fellBack)
+}
+
+/// Noise that passed the energy gate (FND-002): an unsure language AND a fallback decode. Both must agree (03 DES-011).
+func isNoise(langLogprob: Float, fellBack: Bool) -> Bool {
+    langLogprob < -0.5 && fellBack
 }
 
 func simplified(_ s: String) -> String {
@@ -82,18 +89,24 @@ func handle(_ kit: WhisperKit, _ line: String) async -> Reply {
         return Reply(id: request.id, text: "", lang: nil, ms: elapsedMs(since: start), error: nil)
     }
     do {
-        let detected = try await kit.detectLangauge(audioArray: audio).language
+        let det = try await kit.detectLangauge(audioArray: audio)
+        let detected = det.language
+        let langLogprob = det.langProbs[detected] ?? 0
         var language = detected
         var text: String
+        var fellBack: Bool
         if detected == "zh" || detected == "en" {
-            text = try await transcribe(kit, audio, language: detected).text
+            (text, _, fellBack) = try await transcribe(kit, audio, language: detected)
         } else {
             let zh = try await transcribe(kit, audio, language: "zh")
             let en = try await transcribe(kit, audio, language: "en")
-            (language, text) = zh.avgLogprob >= en.avgLogprob ? ("zh", zh.text) : ("en", en.text)
+            (language, text, fellBack) = zh.avgLogprob >= en.avgLogprob ? ("zh", zh.text, zh.fellBack) : ("en", en.text, en.fellBack)
         }
         if language == "zh" { text = simplified(text) }
         if !hasWordCharacters(text) { text = "" }
+        if isNoise(langLogprob: langLogprob, fellBack: fellBack) {
+            return Reply(id: request.id, text: "", lang: nil, ms: elapsedMs(since: start), error: nil)
+        }
         return Reply(id: request.id, text: text, lang: language, ms: elapsedMs(since: start), error: nil)
     } catch {
         logTiming("companion-stt: whisperkit error \(type(of: error))")

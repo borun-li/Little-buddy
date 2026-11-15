@@ -1,0 +1,184 @@
+{
+  "phase": "p2",
+  "time": "2026-11-15T03:47:21Z",
+  "project": "/Users/apple/Desktop/Hackathon/Local_AI_Hackathon",
+  "run_dir": "docs/backend",
+  "overall": "fail",
+  "consecutive_failures": 1,
+  "failed_runs": 1,
+  "fix_round_cap": 2,
+  "escalate": false,
+  "fail_by_owner": {
+    "be-architect": [
+      "P3.des-length",
+      "P3.prose"
+    ]
+  },
+  "checks": [
+    {
+      "id": "P2.prototype-first",
+      "status": "pass",
+      "message": "Prototype approved before design (or not a Full development run)",
+      "owner": "orchestrator",
+      "details": []
+    },
+    {
+      "id": "ALL.state",
+      "status": "pass",
+      "message": "state.json valid",
+      "owner": "orchestrator",
+      "details": []
+    },
+    {
+      "id": "ALL.upstream",
+      "status": "pass",
+      "message": "Upstream documents present",
+      "owner": "be-architect",
+      "details": []
+    },
+    {
+      "id": "P2.coverage",
+      "status": "pass",
+      "message": "Every active REQ is covered",
+      "owner": "be-architect",
+      "details": []
+    },
+    {
+      "id": "P2.length",
+      "status": "pass",
+      "message": "105 words of prose (limit 800)",
+      "owner": "be-architect",
+      "details": []
+    },
+    {
+      "id": "P2.prose",
+      "status": "pass",
+      "message": "No paragraph or bullet over 50 words",
+      "owner": "be-architect",
+      "details": []
+    },
+    {
+      "id": "ALL.upstream",
+      "status": "pass",
+      "message": "Upstream documents present",
+      "owner": "be-architect",
+      "details": []
+    },
+    {
+      "id": "P3.des-ids",
+      "status": "pass",
+      "message": "15 DES, ids unique",
+      "owner": "be-architect",
+      "details": []
+    },
+    {
+      "id": "P3.serves",
+      "status": "pass",
+      "message": "Every DES serves existing REQs",
+      "owner": "be-architect",
+      "details": []
+    },
+    {
+      "id": "P3.side",
+      "status": "pass",
+      "message": "Every DES has a side",
+      "owner": "be-architect",
+      "details": []
+    },
+    {
+      "id": "P3.req-claimed",
+      "status": "pass",
+      "message": "Every active REQ is claimed",
+      "owner": "be-architect",
+      "details": []
+    },
+    {
+      "id": "P3.des-length",
+      "status": "fail",
+      "message": "DES longer than 120 words (code excluded)",
+      "owner": "be-architect",
+      "details": [
+        "DES-004: 198 words",
+        "DES-007: 123 words",
+        "DES-011: 166 words"
+      ]
+    },
+    {
+      "id": "P3.prose",
+      "status": "fail",
+      "message": "Prose longer than 50 words: split into bullets or a table",
+      "owner": "be-architect",
+      "details": [
+        "66 words: - Author: be-architect #1 (Phase 2, same dispatch as `02-architecture.…",
+        "52 words: Step 6 round 1（be-architect #5）要改的文件：`server/supervisor.js`（DES-004 第 …",
+        "56 words: - 已到上限：`<name> 已停止 gave up after 5 restarts: <cause> — 修好上面的原因后重新运行 np…",
+        "55 words: Round 4（be-architect #4）：表中最后 8 行是代码已发的事件（`grep -rn \"log('\" server/`），…"
+      ]
+    },
+    {
+      "id": "P3.contract",
+      "status": "pass",
+      "message": "3 frontend DES in contract",
+      "owner": "be-architect",
+      "details": []
+    },
+    {
+      "id": "ROLE.shared",
+      "status": "pass",
+      "message": "be-architect and be-developer were out together: their changes fit their roles combined",
+      "owner": "be-architect+be-developer",
+      "details": []
+    },
+    {
+      "id": "PLAN.inputs",
+      "status": "pass",
+      "message": "Every declared fixture has an input",
+      "owner": "be-analyst",
+      "details": []
+    },
+    {
+      "id": "PLAN.expected",
+      "status": "pass",
+      "message": "Every declared fixture has an expected output",
+      "owner": "be-analyst",
+      "details": []
+    },
+    {
+      "id": "PLAN.meta",
+      "status": "pass",
+      "message": "Every fixture names its REQ, source and compare rule",
+      "owner": "be-analyst",
+      "details": []
+    },
+    {
+      "id": "LOG.valid",
+      "status": "pass",
+      "message": "Run log intact",
+      "owner": "orchestrator",
+      "details": []
+    },
+    {
+      "id": "CTX.codemap",
+      "status": "pass",
+      "message": "docs/codemap.md paths exist, within its cap",
+      "owner": "be-developer",
+      "details": []
+    },
+    {
+      "id": "CTX.handoff",
+      "status": "pass",
+      "message": "handoff.md: 11 current sections",
+      "owner": "orchestrator",
+      "details": []
+    }
+  ],
+  "data": {
+    "frontend_des": [
+      "DES-013",
+      "DES-014",
+      "DES-015"
+    ],
+    "to_approve": [],
+    "review_sheet": "docs/backend/gates/plan-review.md"
+  }
+}

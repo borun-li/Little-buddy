@@ -1,8 +1,12 @@
 # Detailed design — 离线小伙伴：真实转写、Bonsai 回复与情绪、中英文
 
-- Author: be-architect #1 (Phase 2, same dispatch as `02-architecture.md`)；revised be-architect #2（round 2：上限、截止、截断、简体）；amended be-architect #3（step 4：DES-001 缺文件提示、DES-002/007 前文权重预算、DES-009 多数规则）；revised #4（step 5：RECALL、§6） · Input: `01-requirements.md`, `02-architecture.md` · 2026-11-14
+- Author: be-architect #1 (Phase 2, same dispatch as `02-architecture.md`) · Input: `01-requirements.md`, `02-architecture.md` · 2026-11-14
+  - revised be-architect #2（round 2：上限、截止、截断、简体）
+  - amended be-architect #3（step 4：DES-001 缺文件提示、DES-002/007 前文权重预算、DES-009 多数规则）
+  - revised #4（step 5：RECALL、§6）
+  - amended #5（step 6：FND-002 噪声判空、FND-003 llama-server 关 CORS 加一次性密钥、FND-004 子进程停掉时的终端行、FND-005 bonsaiBootMs）
 - 代码 ESM JavaScript（Node ≥ 18，本机 v24.13.0，无 npm 依赖）+ Swift 5.10 包。文档中文，代码与标识符英文。
-- 证据：`docs/backend/logs/be-architect-1-bench.log`、`docs/backend/logs/be-architect-1-stt-check.log`、`docs/backend/logs/be-architect-2-stt60.log`、`docs/backend/logs/be-architect-3-window.log`。
+- 证据：`docs/backend/logs/be-architect-1-bench.log`、`docs/backend/logs/be-architect-1-stt-check.log`、`docs/backend/logs/be-architect-2-stt60.log`、`docs/backend/logs/be-architect-3-window.log`、`docs/backend/logs/be-architect-5-fixes.log`。
 
 ## 1. Files
 | Path | Responsibility | New / changed |
@@ -24,6 +28,15 @@
 | `docs/codemap.md` | 加 `server/`、`stt/` 两段 | changed |
 | `web/js/companion-client.js`、`web/js/mic.js`、界面语言相关文件 | 前端接缝（DES-013..015），fe-engineer 建 | changed (side: frontend) |
 | `tests/server-*.test.js` 与 `package.json` 的 test 行 | be-tester 写 | new / changed |
+
+Step 6 round 1（be-architect #5）要改的文件（无新依赖：`node:crypto`、`node:readline` 为内置；`server/main.js` 不改）：
+
+| Path | Change |
+|---|---|
+| `server/supervisor.js` | DES-004 第 6、7 步，`env`、`causeOf` |
+| `server/bonsai.js` | DES-007 参数、密钥、stdio |
+| `server/config.js` | DES-002 `bonsaiBootMs` |
+| `stt/Sources/CompanionSTT/main.swift` | DES-011 `fellBack`、`isNoise`、6a；改后 `swift build -c release --package-path stt` |
 
 ## 2. Modules
 
@@ -61,7 +74,9 @@ export const CONFIG: {
   stt: { bin: string, modelDir: string, tokenizerDir: string },  // <repo>/stt/.build/release/companion-stt, STT_MODEL_DIR, STT_TOKENIZER_DIR
   limits: { lineChars: 1500, historyEntries: 40, historyTextChars: 1500, historyBudget: 2000, jsonBytes: 262144, wavBytes: 2000000 },
   // historyBudget: weight units for windowOf (DES-007), sized by cold latency (be-architect-3-window.log), replaces historyBudgetChars 6000
-  deadlines: { respondMs: 15000, transcribeMs: 12000, sttBootMs: 600000, bonsaiBootMs: 60000 },   // 12 s + 15 s < 30 s (A11)
+  deadlines: { respondMs: 15000, transcribeMs: 12000, sttBootMs: 600000, bonsaiBootMs: 300000 },  // 12 s + 15 s < 30 s (A11)
+  // bonsaiBootMs (FND-005): a failure detector, not a target. 4B cold load measured 62.6 s (contended); 9B gguf is 2.11× the bytes
+  //   -> ~132 s estimated (unmeasured), × 2 margin -> 300000. REQ-010's 120 s is the warm-cache target, unchanged (be-architect-5-fixes.log)
   restarts: { max: 5, delayMs: 2000 },
 }
 export function bonsaiFiles(cfg = CONFIG): { bin: string, model: string } // bin/macos-arm64/llama-server, models/Ternary-Bonsai-2-<size>-PQ2_0.gguf
@@ -105,10 +120,19 @@ export function sendError(res: http.ServerResponse, err: unknown, route: string)
 export const isReady = (s: ChildState) => s === 'ready';
 export function supervise(opts: {
   name: 'stt' | 'bonsai', cmd: string, args: string[],
-  stdio: ['pipe'|'ignore', 'pipe'|'ignore', 'inherit'|'ignore'],
+  stdio: ['pipe'|'ignore', 'pipe'|'ignore', 'inherit'|'pipe'],   // 'pipe' on stderr = keep a tail (step 6); 'ignore' no longer used
   warm: (child: ChildProcess) => Promise<void>,          // resolves when usable
   onExit?: () => void,                                    // owner rejects its in-flight work
+  env?: NodeJS.ProcessEnv,                                // passed to spawn as-is; default process.env (FND-003)
 }): { readonly state: ChildState, readonly pid: number | null, readonly child: ChildProcess | null, stop(): void }
+const TAIL_LINES = 20;
+function causeOf(tail: string[], warmErr: Error | null, code: number | null, signal: string | null): string
+// first tail line matching /error|failed|couldn't|cannot/i, else warmErr.message, else `code ${code}, signal ${signal}`;
+// strip a leading llama timestamp /^\d+\.\d+\.\d+\.\d+\s+/, cut to 200 chars
+//   fires: ['0.00.035.634 E srv  start: couldn't bind HTTP server socket, hostname: 127.0.0.1, port: 4462', '… I srv operator(): cleaning up', '… E srv server_run_i: exiting due to HTTP server error']
+//          -> "E srv  start: couldn't bind HTTP server socket, hostname: 127.0.0.1, port: 4462" (first match, the specific one)
+//          [] + Error('llama-server health exceeded bonsaiBootMs') -> 'llama-server health exceeded bonsaiBootMs'
+//   not:   ['… W srv server_setup: security: …', '… I srv load_model: loading model …'] + null, code 1 -> 'code 1, signal null'
 ```
 - **Behaviour:**
   1. `spawn` → `starting`，记 `child_spawn {name,pid}`。
@@ -116,6 +140,17 @@ export function supervise(opts: {
   3. 子进程退出 → `down`，调 `onExit`，记 `child_exit {name,code,signal,restarts}`。
   4. 不是 `stop()` 引起且 `restarts < 5` → 2 s 后重新 `spawn`（`restarts++`）；否则保持 `down`。
   5. `stop()` 只给自己 spawn 的 pid 发 `SIGTERM`。
+  6. （FND-004）stderr tail：见下方代码块第 6 步。
+  7. （FND-004）终端行与 `child_gave_up`：见下方代码块第 7 步。
+```text
+6. stdio[2] === 'pipe'：每次 spawn 清空 tail，readline 读 child.stderr，只留最后 TAIL_LINES 行，只在内存
+   （持续读，管道不会写满卡住子进程；平时不打印）。warm 失败时记下该 err（每次 spawn 清空）。
+7. 退出不是 stop() 引起 → 在 child_exit 之后往 stderr 写一行（process.stderr.write），<cause> = causeOf(tail, warmErr, code, signal)：
+   - 还会重启：<name> 已退出 exited: <cause> — 2 秒后重启 restarting in 2 s (<restarts after ++>/5)
+   - 已到上限：<name> 已停止 gave up after 5 restarts: <cause> — 修好上面的原因后重新运行 npm start  Fix the cause above, then run npm start again
+   同时记 §6 child_gave_up {name, restarts}（只在到上限时，一次）。
+   行里只有子进程自己的错误行；不经 log()，所以 stdout JSON 日志里没有原因文字（可能含路径）。
+```
 - **Errors:** 无（状态由调用方映射成 `not_ready`/`unavailable`）。
 
 ### DES-005 — `server/static.js` 与 `server/wav.js`
@@ -174,12 +209,21 @@ export function windowOf(history: HistoryEntry[], cfg = CONFIG): HistoryEntry[]
 //   why 2000: cold reply+mood at the budget 6.7-7.1 s zh, 6.5-7.0 s en (n=4 each) + transcribe ~1.4 s ≤ 10 s (REQ-008);
 //             6000 chars gave 14.3 s / 504 / 504; prefill ≈ 130 tokens/s is the cost, not generation
 //   bound: system ~140 + history ≤ ~600 + line ≤ 1500 chars (≤ ~1000 tokens) ≪ 16384 per slot (-c 32768 / -np 2)
-// llama-server args: ['-m',model,'-ngl','99','-fa','on','-c','32768','-np','2','--host','127.0.0.1','--port',BONSAI_PORT,'--no-webui']
+// llama-server args: ['-m',model,'-ngl','99','-fa','on','-c','32768','-np','2','--host','127.0.0.1','--port',BONSAI_PORT,'--no-webui',
+//                     '--cors-origins','none','--no-cors-credentials','--no-slots']                       (FND-003)
+//   every flag is in this binary's --help (lines 532-546, 637); 'none' is echoed as Access-Control-Allow-Origin: none, which no page
+//   origin (scheme://host[:port] or 'null') equals, so no browser may read a response; not 'null' (sandboxed/file pages send Origin: null)
+// const apiKey = randomBytes(24).toString('hex')   // node:crypto, once per createBonsai(); never logged, printed, stored or configurable
+//   spawn env: { ...process.env, LLAMA_API_KEY: apiKey }  (env, not --api-key, so it is not in `ps` argv)
+//   post(): headers { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` }; warm's GET /health sends no key (public)
+//   why the key: CORS alone still lets a page fire a text/plain POST /v1/chat/completions (no preflight) and burn a slot — measured 200;
+//   with the key: that POST 401, GET /props 401, GET /health 200, gateway POST with Bearer 200 (be-architect-5-fixes.log, FND-003 section)
+// stdio: ['ignore', 'ignore', 'pipe']   // llama-server logs only on stderr (bad model: stdout 0 lines, stderr 15); supervisor keeps the tail (DES-004 step 6)
 // warm: respond('Hello', []) sends the reply AND the mood call, so REPLY_SYSTEM and MOOD_SYSTEM are both prefix-cached;
 //       LANG_RULE is the system message's last line, so a zh turn re-processes only LANG_RULE.zh
 ```
 - **Behaviour:**
-  1. `supervise('bonsai', bin, 上面的参数, stdio ignore)`；`warm` = 每 500 ms 查 `/health` 到 200（≤ 60 s），再跑一次 `respond('Hello', [])`。
+  1. `supervise('bonsai', bin, 上面的参数, stdio ['ignore','ignore','pipe'], env 带 LLAMA_API_KEY)`；`warm` = 每 500 ms 查 `/health` 到 200（≤ `bonsaiBootMs` 300 s），再跑一次 `respond('Hello', [])`（终端行见 DES-004）。
   2. `respond`：状态映射同 DES-006；`lang = languageOf(line)`；`win = windowOf(history)`。
   3. 同一 `AbortSignal.timeout(respondMs)`（15 s）下并行：回复调用（`toMessages`，`REPLY_SAMPLING`，`enable_thinking:false`）与情绪调用（`MOOD_SYSTEM` + 只这句话，`MOOD_SAMPLING`，`response_format` = `MOOD_SCHEMA`）。
   4. 回复调用：超时 → `timeout`；连不上 → `unavailable`；非 200 → `failed`；`shapeReply` 为空 → `failed`。
@@ -278,7 +322,17 @@ struct Request: Decodable { let id: Int; let pcm16: String }
 struct Reply: Encodable { let id: Int; let text: String?; let lang: String?; let ms: Int; let error: String? }
 func samples(fromBase64 b64: String) -> [Float]?                       // Int16 LE / 32768
 func hasSpeech(_ s: [Float]) -> Bool                                     // EnergyVAD(frameLength: 0.1, energyThreshold: 0.02): ≥ 3 voiced frames
-func transcribe(_ kit: WhisperKit, _ s: [Float], language: String) async throws -> (text: String, avgLogprob: Float)
+func transcribe(_ kit: WhisperKit, _ s: [Float], language: String) async throws -> (text: String, avgLogprob: Float, fellBack: Bool)
+//   fellBack = !segments.isEmpty && segments.allSatisfy { $0.temperature > 0 }   (WhisperKit rejected the temperature-0 decode:
+//   logProbThreshold -1.0 / compressionRatioThreshold 2.4 defaults, Configurations.swift:196-215, and sampled a fallback)
+func isNoise(langLogprob: Float, fellBack: Bool) -> Bool   // langLogprob < -0.5 && fellBack   (FND-002)
+//   langLogprob = det.langProbs[det.language] ?? 0, det = kit.detectLangauge(audioArray:) (already called in step 5)
+//   measured (be-architect-5-fixes.log): noise 25/25 calls det -1.306..-0.954 and every segment temperature 0.2..1.0
+//     (white 0.03/0.06/0.12, hum, clicks; 12/25 of them return Okay./Okay/so/you today);
+//   speech: every call det -0.165..-0.0001 and temperature 0.0 (FX-005/006/007 ×5, quiet-0.1 at RMS 0.017, short zh, 60 s clips)
+//   fires: white-0.03 (det -1.18, T 0.4, "Okay.") -> ""; hum (det -0.95, T 0.4, "Okay.") -> ""
+//   not:   FX-007 (det -0.002, T 0.0); short-1 "好远呀" (det -0.165, T 0.0); a sure language with a fallback decode (det -0.1, T 0.4) stays
+//   both signals must agree: each alone separates the measured sets, AND keeps a real but hard utterance (one signal off) transcribed
 func simplified(_ s: String) -> String   // s.applyingTransform(StringTransform("Hant-Hans"), reverse: false) ?? s  (Foundation, ICU)
 //   fires: 有點難過 -> 有点难过 (be-architect-2-stt60.log); not: Simplified or Latin text unchanged
 // DecodingOptions(task: .transcribe, language: language, temperature: 0, usePrefillPrompt: true, detectLanguage: false,
@@ -289,9 +343,16 @@ func simplified(_ s: String) -> String   // s.applyingTransform(StringTransform(
   1. 按上面的 config 加载（`download: false`，从不联网）。
   2. 预热：1 s 全零直接 `transcribe(language:"en")` 与 `detectLangauge(audioArray:)`，绕过 `hasSpeech`；再打印 `{"event":"ready","load_ms","warm_ms"}`。
   3. 循环 `readLine()`：解码失败 → `error:"bad_request"`；`samples` 为 nil → `error:"bad_audio"`。
-  4. `!hasSpeech` → `text:""`、`lang:null`，不解码（触发：FX-008、底噪；不触发：正常音量 ≥ 0.3 s 的话）。
+  4. `!hasSpeech` → `text:""`、`lang:null`，不解码（何时触发见下方代码块）。
   5. 判出 `zh`/`en` → 用它转写；其他 → 两种各转一次，取平均 `avgLogprob` 高者。
   6. 分段以 zh `""`、en `" "` 连接、去空白；zh 再过 `simplified`；只剩标点 → `""`。
+  6a. （FND-002）噪声判空（见下方代码块）。
+```text
+4.  !hasSpeech 触发：FX-008、RMS ≤ 0.02 的底噪；不触发：正常音量 ≥ 0.3 s 的话；更响的噪声由 6a 判空。
+6a. 用被采用的那次转写（第 5 步：判出 zh/en 的那次，或两次中 avgLogprob 高者）：
+    isNoise(langLogprob, fellBack) → text:""、lang:null（与第 4 步同形，DES-006 照常记 stt_done empty:true）。
+    不另加日志（stderr 只写耗时）。
+```
   7. 每个回答一行 stdout 并 flush；stderr 只写耗时。
 - **Errors:** `bad_request`、`bad_audio`、WhisperKit 抛错 → `error` 行（DES-006 映射成 `failed`）。
 
@@ -365,7 +426,7 @@ Blob type 'audio/wav': RIFF/WAVE, fmt PCM (1), 1 channel, 16000 Hz, 16-bit littl
 | `starting` | `ready` | `warm()` 完成（stt：ready 行；bonsai：/health 200 + 一次 respond） | no |
 | `starting`/`ready` | `down` | 子进程退出或 `warm()` 失败 | no |
 | `down` | `starting` | 2 s 后重启，`restarts < 5` | no |
-| `down` | `down`（终止） | `restarts = 5` 或 `stop()` | no |
+| `down` | `down`（终止） | `restarts = 5`（stderr 一行"已停止 gave up"+ `child_gave_up`，DES-004 第 7 步）或 `stop()`（不打印） | no |
 | 整体 | `ready: true` | `isReady(stt) && isReady(bonsai)` | no |
 
 ## 5. Config & secrets
@@ -377,7 +438,8 @@ Blob type 'audio/wav': RIFF/WAVE, fmt PCM (1), 1 channel, 16000 Hz, 16-bit littl
 | `STT_MODEL_DIR` | env | `~/Documents/huggingface/models/argmaxinc/whisperkit-coreml/openai_whisper-large-v3-v20240930_626MB` | no |
 | `STT_TOKENIZER_DIR` | env | `~/Documents/huggingface`（内含 `models/openai/whisper-large-v3/tokenizer.json`） | no |
 | 上限、截止、重启次数 | `server/config.js` 常量 | 见 DES-002 | — |
-| 密钥 | — | 无 | — |
+| 密钥 | — | 无用户密钥 | — |
+| llama-server API key | `server/bonsai.js` 每次启动 `randomBytes(24)` 生成，经子进程 env `LLAMA_API_KEY` 传入 | 无（不可配置、不落盘、不打印、不记日志） | — |
 
 ## 6. Logging
 Node 每行一条 JSON 到 stdout；从不记 `line`、`history`、`reply`、转写文字、声音（A9）。
@@ -400,8 +462,18 @@ Node 每行一条 JSON 到 stdout；从不记 `line`、`history`、`reply`、转
 | `child_warm_failed` | error | `name`, `err_name` |
 | `static_read_failed` | error | `err_name`, `err_code` |
 | `boot_failed` | error | `err_name`, `message` |
+| `child_gave_up` | error | `name`, `restarts` |
 
-Round 4（be-architect #4）：表中最后 8 行是代码已发的事件（`grep -rn "log('" server/`），补进表而不删代码；字段只有计时、名字与错误名。TC-073 的事件白名单（`tests/server-boot.test.js:62`）须与本表 16 个事件一致，由 be-tester 改。
+Round 4（be-architect #4）：
+- 表中 `stt_warm`..`boot_failed` 8 行是代码已发的事件（`grep -rn "log('" server/`），补进表而不删代码；字段只有计时、名字与错误名。
+- TC-073 的事件白名单（`tests/server-boot.test.js:62`）须与本表 16 个事件一致，由 be-tester 改。
+Round 6（be-architect #5）：加 `child_gave_up`（FND-004），表共 17 个事件；TC-073 白名单由 be-tester 同步。
+
+操作员行（stderr，人读，非 JSON；`main.js` 的 `say` 与 `supervisor.js` 写）新增两种，见 DES-004 第 7 步：
+| Line | When |
+|---|---|
+| `<name> 已退出 exited: <cause> — 2 秒后重启 restarting in 2 s (<n>/5)` | 子进程非 `stop()` 退出且还会重启 |
+| `<name> 已停止 gave up after 5 restarts: <cause> — 修好上面的原因后重新运行 npm start  Fix the cause above, then run npm start again` | 到重启上限，一次 |
 
 ## 7. Dependencies
 | Name | Version | Why |

@@ -13,18 +13,17 @@ Next agent must know:
 Read beyond the list: docs/frontend/00-requirements.md A1; idea.md § 情绪模型 — mood labels; ~/.claude/gates/gatelib/checks.py:812-881 — meta/compare rules.
 Next agent reads: tests/fixtures/candidates/FX-00n/meta.json (rules, runs, pass, manual)
 
-## be-architect #4 · step 5 (design revision) · round 1 · 2026-11-15T02:32:27Z
-Task: one rule each for TC-081 (FX-002 context use, REQ-007) and TC-073 (stt_warm not in 03 §6), measured.
-Changed: docs/backend/03-detailed-design.md (+30/-4) — DES-008 toMessages appends RECALL[lang](prev) to the last user message when the window has a user entry (prev = newest user text); DES-010 new export RECALL {en, zh} + steps 2-3; §6 +8 events already emitted by code (stt_warm, stt_error, stt_bad_line, stt_stdin_error, child_error, child_warm_failed, static_read_failed, boot_failed). REPLY_SYSTEM, sampling, MOOD_* unchanged. Logs: docs/backend/logs/be-architect-4-context.log (summary), -raw.log, -bench-script.log.
-Result: FX-002 refers back: current prompt 21/54 (live 4400 5/20, 4401 4/10, own 12/24); RECALL 34/34 (own 24/24, 4401 10/10). FX-003 mentions 考 29/30 vs 14/30. FX-004 2 rounds mood 9/10 each (05 only), langs 20/20; FX-001 3/3; all shape checks pass. DES-008 119 words (gatelib), prose > 50 = []. Gate p2 not run.
+## be-architect #5 · step 6 (review fix design) · round 2 · 2026-11-15T03:49:10Z
+Task: P3.des-length (DES-004/007/011 > 120 words) and P3.prose (4 units > 50 words), meaning unchanged.
+Changed: docs/backend/03-detailed-design.md (+83/-11 vs HEAD, rounds 1+2) — round 2 only moves text: DES-004 steps 6-7 and DES-011 step 4 triggers + 6a into ```text blocks (same rules, values, strings); DES-007 step 1 pointer shortened; Author line split into sub-bullets; step-6 file list now a table; §6 Round 4 note split into 2 bullets ("最后 8 行" now names stt_warm..boot_failed, since child_gave_up is appended). Round 1 content unchanged: FND-002 isNoise(langLogprob < -0.5 && fellBack); FND-003 --cors-origins none, --no-cors-credentials, --no-slots, LLAMA_API_KEY env + Bearer; FND-004 stderr tail 20, causeOf, one zh+en stderr line, child_gave_up; FND-005 bonsaiBootMs 300000.
+Result: gatelib docs.words/prose_units locally: DES-004 <= 100, DES-007 116, DES-011 119, DES-008 119; no prose unit > 50. Gate p2 not run by me.
 Next agent must know:
-- Code: server/prompts.js add RECALL (03 DES-010 text verbatim); server/bonsai.js toMessages last message per DES-008 code block.
-- Tests: TC-012 (tests/server-unit.test.js:175) and TC-031 (tests/server-fakes.test.js:198) assert last content === line; must expect line + "\n" + RECALL[lang](prev). TC-073 allow-list tests/server-boot.test.js:62 must hold the 16 events of 03 §6.
-- Pitfalls: Bonsai's chat template raises on a system message not first, so the reminder must live in the user turn; wording is fragile (a "begin with that earlier thing" rule gave 1/12).
-- Tried, did not work: system-prompt rewrites alone (c1/c4/c5/c6/c8: 8-83 %); quoting prev before the line as "(Earlier I said …)" 5/12.
-- Left open: zh+RECALL one Latin word leak in 46 replies ("reconciled"; base 0/36, n too small to attribute) and 2/30 zh replies misstate the exam as 没过; unrelated follow-ups now name the earlier topic 6/6.
-Read beyond the list: ~/.claude/gates/gatelib/docs.py (word count); stt/Sources/CompanionSTT/main.swift:76-100 (stt_error values); bonsai chat template via 4451 /props.
-Next agent reads: docs/backend/03-detailed-design.md DES-008, DES-010, §6; docs/backend/logs/be-architect-4-context.log
+- Code: server/supervisor.js (DES-004 code block steps 6-7), server/bonsai.js (DES-007 code block), server/config.js (300000), stt/Sources/CompanionSTT/main.swift (DES-011 fellBack/isNoise/6a). server/main.js untouched by this design.
+- Pitfalls: rebuild stt with swift build -c release --package-path stt (my scratch copy relinked in 62 s, loaded in 1.3 s, no ANE recompile). Noise text varies per call because the fallback decode samples (T > 0).
+- Tests (be-tester): noise fixture from be-review-behavior-1/noise.mjs (seed 1) -> "" every call; foreign-Origin no matching ACAO, keyless POST 401; stderr line on a bad model; TC-073 allow-list +child_gave_up (17 events).
+- Left open: short-7..10 (0.46-0.6 s English) decode to zero segments (pre-existing); 9B cold load unmeasured.
+Read beyond the list: ~/.claude/gates/gatelib/docs.py (words: CJK 2 chars = 1 word, fenced code excluded).
+Next agent reads: docs/backend/03-detailed-design.md DES-002, DES-004, DES-007, DES-011, §6; docs/backend/logs/be-architect-5-fixes.log
 
 ## fe-ux #5 · step 4 (frontend review fix, UX) · round 1 · increment 1 · 2026-11-15T01:46:57Z
 Task: decide FND-003 (what a screen-reader user hears when listening starts; reword `hints.micOpening`) and the hint-rule conflict behind FND-001, in 01-ux.md § Increment 1.
@@ -60,18 +59,19 @@ Open: backend review round 1 — candidates docs/backend/logs/review-r1-candidat
 Next: run any gate (so the hook re-marks be-reviewer), dispatch fresh be-reviewer #1 to merge → 06-review-report.md, gate p6; fixes for blocker/majors (be-developer; R-2/R-3 may need be-architect); minors → deferred.md; re-run p4/p5; then demo after (start own instance on 4399, gate.py demo after), 07-acceptance.md, p7, Acceptance stop with the user (Wi-Fi off, real mic); then increment 2 at Phase 1 (be-analyst).
 Trap: docs/backend/logs/be-developer-2-server.log is instance A's live log in a tracked file — it trips P6 tree-unchanged; restart instance A with its log outside the project before the coordinator runs.
 
-## be-developer #2 · step 5 (fix) · round 2 · 2026-11-15T03:01:53Z
-Task: CMD.test wiring: `npm test` (gate p5, junit test-results/junit.xml) runs the backend suites; be-tester #3's `test` line copied verbatim into package.json. Round 1 (same agent) added RECALL to server/prompts.js and the DES-008 toMessages change to server/bonsai.js.
-Changed: package.json (+1/-1) — `test` sets COMPANION_URL (default http://127.0.0.1:4400) and adds server-unit, server-fakes, server-live to the one junit run (server-boot stays in test:backend); docs/backend/08-implementation-log.md (Fix rounds § Round 5). Round 1: server/prompts.js (+7/-0), server/bonsai.js (+4/-2), docs/codemap.md.
-Result: npm test 142 tests, 141 pass, 1 fail (TC-052: 6071/7582/8555/9695/11027 ms, 5th over 10 s; a user-accepted known issue, not fixed) — evidence: docs/backend/logs/be-developer-2-r2-npm-test.log
+## be-developer #4 · step 6 (fix) · round 1 · 2026-11-15T03:55:56Z
+Task: implement be-architect #5's 03 amendment for FND-002..005, rebuild stt/, restart instance A with the new code.
+Changed: stt/Sources/CompanionSTT/main.swift (+18/-5) — fellBack + isNoise → "" / null (DES-011 6a); server/bonsai.js (+10/-3) — cors none, no-cors-credentials, no-slots, per-run LLAMA_API_KEY via env, Bearer on post, stderr pipe; server/supervisor.js (+37/-3) — env opt, 20-line stderr tail, causeOf, zh+en operator line, child_gave_up; server/config.js (+1/-1) bonsaiBootMs 300000; 08 § Round 7; codemap server/ + stt/ invariants.
+Result: noise clips 30/30 "" (5 kinds ×5 + empty); FX-005/006/007 ×3 transcribe as before; 4401 foreign Origin → ACAO none, keyless POST/props/slots 401; FX-001 ×3 200; npm test 141/142, fail TC-015 (expects old bonsaiBootMs 60000; be-tester's test) — evidence: docs/backend/logs/be-developer-4-fnd002-005.log, be-developer-4-npmtest.log
 Next agent must know:
-- Pitfalls: instance A is node 91736 (stt 91742, llama 91743) on PORT=4400 BONSAI_PORT=4401, PID in the session scratchpad server.pid, log docs/backend/logs/be-developer-2-server.log; stop only 91736.
-- Pitfalls: npm test now takes ~150 s and needs instance A ready (server-live probes /api/health for up to COMPANION_READY_MS 130 s, then skips); behaviour with 4400 down not run.
-- Pitfalls: fixture input.json wraps the request in {endpoint, content_type, body}; POST only .body.
+- Pitfalls: instance A is now node 61506 (stt 61513, llama 61514) on 4400/4401, PID in the session scratchpad server.pid, log scratchpad instanceA.log; it boots in ~4 s now (stt rebuild did not trigger an ANE recompile).
+- Pitfalls: a manual llama-server probe now needs the key, so use /health (keyless) or go through the gateway; the key exists only in the child's env.
+- Pitfalls: FX-001 input.json is a wrapper {endpoint, body}; post .body, not the file (my first probe got 400 for that).
 - Tried, did not work: nothing.
-- Left open: TC-050/052/055 known issues (user accepted 2026-11-15); only TC-052 failed in this run.
-Read beyond the list: tests/server-helpers.js:99 (probeLive skip rule).
-Next agent reads: package.json `test`; docs/backend/08-implementation-log.md § Round 5
+- Left open: TC-015 must move to 300000 and TC-073 allow-list needs child_gave_up (be-tester); the operator line text takes policy.max/delayMs (= 03's literal 5 / 2 s with CONFIG); FND-009 still open.
+Read beyond the list: scratchpad arch5/stt main.swift (architect's probe diff, for det.langProbs use).
+Next agent reads: server/supervisor.js:14-60; server/bonsai.js:75-90,145-160; stt/Sources/CompanionSTT/main.swift:53-115; docs/backend/08-implementation-log.md § Round 7
+
 ## fe-tester #5 · step 4 (FE4.capture recapture) · round 4 · increment 1 · 2026-11-15T09:00:00Z
 Task: re-point docs/frontend/04-verification.md to evidence/verify-3/manifest.md and confirm the 19 verdicts against the verify-3 files.
 Changed: docs/frontend/04-verification.md only (header, round note, Q-010 row). Verdicts: done 7 (Q-001, 002, 003, 005, 008, 015, 017), not observable 12. Q-010 done to not observable: in verify-3 the sad follow-up reply does not show recall of the first line (mood and English reply do hold).

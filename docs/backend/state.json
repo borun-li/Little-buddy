@@ -80,7 +80,13 @@
       "status": "pending"
     }
   ],
-  "open_questions": [],
+  "open_questions": [
+    {
+      "q": "Per-run internal llama-server API key (memory only) OK under NFR '无密钥'?",
+      "default": "yes (be-architect #5 option a)",
+      "show_at": "Acceptance"
+    }
+  ],
   "notes": [
     "Cross-stack: backend drives; frontend runs inside per FRONTEND_BACKEND_LINE §4. Evidence: no backend service (package.json:7 static server), fake layer web/js/companion-client.js:1-4.",
     "Language: replies follow the user's language (zh/en); UI copy gets a zh/en switch (user, kickoff 2026-11-14).",

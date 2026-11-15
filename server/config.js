@@ -34,7 +34,7 @@ export const CONFIG = Object.freeze({
     tokenizerDir: process.env.STT_TOKENIZER_DIR || HF,
   },
   limits: { lineChars: 1500, historyEntries: 40, historyTextChars: 1500, historyBudget: 2000, jsonBytes: 262144, wavBytes: 2000000 },
-  deadlines: { respondMs: 15000, transcribeMs: 12000, sttBootMs: 600000, bonsaiBootMs: 60000 },
+  deadlines: { respondMs: 15000, transcribeMs: 12000, sttBootMs: 600000, bonsaiBootMs: 300000 },
   restarts: { max: 5, delayMs: 2000 },
 });
 

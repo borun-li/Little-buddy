@@ -1,0 +1,116 @@
+# be-developer #4 step 6 round 1 — FND-002..005 evidence (2026-11-15T03:55:26Z)
+## build: swift build -c release --package-path stt -> see be-developer-4-stt-build.log
+Build complete! (13.41s)
+exit 0
+## instance A restart (node 61506, PORT=4400 BONSAI_PORT=4401), boot lines:
+{"t":"2026-11-15T03:50:10.530Z","level":"info","event":"stt_warm","load_ms":1214,"warm_ms":725}
+{"t":"2026-11-15T03:50:10.530Z","level":"info","event":"child_ready","name":"stt","ms":2228}
+{"t":"2026-11-15T03:50:12.277Z","level":"info","event":"respond_done","ms":2964,"reply_ms":2870,"mood_ms":2964,"lang":"en","mood_fallback":false,"history_n":0}
+{"t":"2026-11-15T03:50:12.278Z","level":"info","event":"child_ready","name":"bonsai","ms":3973}
+{"t":"2026-11-15T03:50:12.319Z","level":"info","event":"ready","url":"http://127.0.0.1:4400","boot_ms":4024}
+## FND-002: reviewer noise clips (be-review-behavior-1/noise.mjs, seed 1) x5 and FX-005/006/007 x3 -> POST 4400/api/transcribe
+white-0.03 #1: {"text":""} [200 1.433423s]
+white-0.03 #2: {"text":""} [200 1.562861s]
+white-0.03 #3: {"text":""} [200 1.566846s]
+white-0.03 #4: {"text":""} [200 1.505053s]
+white-0.03 #5: {"text":""} [200 1.353082s]
+white-0.06 #1: {"text":""} [200 1.454275s]
+white-0.06 #2: {"text":""} [200 1.572185s]
+white-0.06 #3: {"text":""} [200 1.406320s]
+white-0.06 #4: {"text":""} [200 1.511989s]
+white-0.06 #5: {"text":""} [200 1.406431s]
+white-0.12 #1: {"text":""} [200 1.436726s]
+white-0.12 #2: {"text":""} [200 1.531474s]
+white-0.12 #3: {"text":""} [200 1.415936s]
+white-0.12 #4: {"text":""} [200 1.491950s]
+white-0.12 #5: {"text":""} [200 1.500935s]
+hum #1: {"text":""} [200 1.436547s]
+hum #2: {"text":""} [200 1.410585s]
+hum #3: {"text":""} [200 1.541782s]
+hum #4: {"text":""} [200 1.401089s]
+hum #5: {"text":""} [200 1.537192s]
+clicks #1: {"text":""} [200 1.341149s]
+clicks #2: {"text":""} [200 1.354699s]
+clicks #3: {"text":""} [200 1.357732s]
+clicks #4: {"text":""} [200 1.342842s]
+clicks #5: {"text":""} [200 1.385732s]
+empty #1: {"text":""} [200 0.000914s]
+empty #2: {"text":""} [200 0.000796s]
+empty #3: {"text":""} [200 0.000802s]
+empty #4: {"text":""} [200 0.000790s]
+empty #5: {"text":""} [200 0.000757s]
+FX-005 #1: {"text":"Hello, this is a fully offline test for the local AI hackathon."} [200 1.446662s]
+FX-005 #2: {"text":"Hello, this is a fully offline test for the local AI hackathon."} [200 1.457417s]
+FX-005 #3: {"text":"Hello, this is a fully offline test for the local AI hackathon."} [200 1.438600s]
+FX-006 #1: {"text":"I just got the internship."} [200 1.353368s]
+FX-006 #2: {"text":"I just got the internship."} [200 1.351976s]
+FX-006 #3: {"text":"I just got the internship."} [200 1.350721s]
+FX-007 #1: {"text":"可是婉双和朋友吵架了,有点难过。"} [200 1.474530s]
+FX-007 #2: {"text":"可是婉双和朋友吵架了,有点难过。"} [200 1.481769s]
+FX-007 #3: {"text":"可是婉双和朋友吵架了,有点难过。"} [200 1.476753s]
+## FND-003: probes against llama-server 4401, ps argv, FX-001 body x3 -> POST 4400/api/respond
+(the first FX-001 line below is my own mistake: I posted the fixture wrapper file, not its body -> 400; the three lines after it post .body)
+== OPTIONS foreign Origin
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: none
+Access-Control-Allow-Credentials: false
+Access-Control-Allow-Methods: GET, POST, DELETE, OPTIONS
+Access-Control-Allow-Headers: *
+== GET /health foreign Origin
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: none
+== keyless text/plain POST
+401
+== keyless json POST
+401
+== keyless GET /props
+401
+== keyless GET /slots
+401
+== key in argv?
+0
+/Users/apple/Desktop/Hackathon/Local_AI_Hackathon/samples/bonsai-models/gguf/bin/macos-arm64/llama-server -m /Users/apple/Desktop/Hackathon/Local_AI_Hackathon/samples/bonsai-models/gguf/models/Ternary-Bonsai-2-9B-PQ2_0.gguf -ngl 99 -fa on -c 32768 -np 2 --host 127.0.0.1 --port 4401 --no-webui --cors-origins none --no-cors-credentials --no-slots
+== FX-001
+{
+  "status": 200,
+  "mood": "pleasant-high",
+  "reply_checks": {
+    "nonempty": true,
+    "language": "en",
+    "sentences_le_2": true,
+    "questions_le_1": true,
+    "length_ok": true,
+    "not_a_preset": true,
+    "no_thinking_text": true
+  }
+}
+
+{"error":"bad_request"} [400 0.000736s]
+== health
+{"ready":true,"stt":"ready","bonsai":"ready"}
+{"reply":"That is amazing news! 🎉 So exciting to start your journey.","mood":"pleasant-high"} [200 1.392343s]
+{"reply":"That is amazing news! I am so happy for you and can't wait to hear about your first day.","mood":"pleasant-high"} [200 1.405807s]
+{"reply":"That is amazing news! I'm so proud of you.","mood":"pleasant-high"} [200 1.069134s]
+## FND-004: throwaway createBonsai on a port held by a node listener (127.0.0.1:4462), restarts {max:1, delayMs:500}
+{"t":"2026-11-15T03:51:57.490Z","level":"info","event":"child_spawn","name":"bonsai","pid":63278}
+{"t":"2026-11-15T03:51:57.595Z","level":"warn","event":"child_exit","name":"bonsai","code":1,"signal":null,"restarts":0}
+bonsai 已退出 exited: E srv         start: couldn't bind HTTP server socket, hostname: 127.0.0.1, port: 4462 — 0.5 秒后重启 restarting in 0.5 s (1/1)
+{"t":"2026-11-15T03:51:58.099Z","level":"info","event":"child_spawn","name":"bonsai","pid":63280}
+{"t":"2026-11-15T03:51:58.187Z","level":"warn","event":"child_exit","name":"bonsai","code":1,"signal":null,"restarts":1}
+bonsai 已停止 gave up after 1 restarts: E srv         start: couldn't bind HTTP server socket, hostname: 127.0.0.1, port: 4462 — 修好上面的原因后重新运行 npm start  Fix the cause above, then run npm start again
+{"t":"2026-11-15T03:51:58.187Z","level":"error","event":"child_gave_up","name":"bonsai","restarts":1}
+## FND-004: causeOf on the design's fires/not examples
+"E srv  start: couldn't bind HTTP server socket, hostname: 127.0.0.1, port: 4462" | "llama-server health exceeded bonsaiBootMs" | "code 1, signal null" (all three match 03 DES-004)
+## npm test -> be-developer-4-npmtest.log
+ℹ tests 142
+ℹ pass 141
+ℹ fail 1
+✖ TC-015 CONFIG: loopback host, limits, deadlines, restarts, defaults (0.639958ms)
+✔ TC-016 bonsaiFiles and missingFiles list every absent required path and nothing when all exist (2.707584ms)
+✔ TC-017 sources: no personal absolute path, no non-loopback bind, no network download; package.json scripts per DES-012 (1.914834ms)
+✔ TC-018 serveStatic: / -> index.html, content types, no-store, HEAD without body, 404 for missing, 405 for other methods (13.24625ms)
+✔ TC-019 serveStatic never leaves the web root: /../x, /%2e%2e/x and encoded variants -> 404 (3.077208ms)
+✔ TC-020 [FX-008] isNothingHeard is true only for the empty string (1.235083ms)
+✔ TC-038 missingHints: one line per kind of missing file (stt bin / Bonsai / WhisperKit), in that order; [] -> [] (0.6545ms)
+✔ press only holds: no listening, no seconds before the stream opens (1.563542ms)
+✔ slow open: hint at 0.2 s, listening and seconds at open, hint leaves (0.329792ms)

@@ -1,4 +1,5 @@
 // llama-server child and the reply + mood calls to Bonsai (03 DES-007, DES-008).
+import { randomBytes } from 'node:crypto';
 import { bonsaiFiles, CONFIG } from './config.js';
 import { ApiError } from './errors.js';
 import { hanCount, languageOf } from './lang.js';
@@ -74,6 +75,8 @@ export function shapeReply(text, lang) {
 
 export function createBonsai(cfg = CONFIG) {
   const base = `http://127.0.0.1:${cfg.bonsai.port}`;
+  // Per-run key for llama-server (FND-003): passed by env, not argv, so it is not in `ps`; never logged, printed, stored or configurable.
+  const apiKey = randomBytes(24).toString('hex');
   let proc = null;
 
   async function post(body, signal) {
@@ -81,7 +84,7 @@ export function createBonsai(cfg = CONFIG) {
     try {
       res = await fetch(`${base}/v1/chat/completions`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
         body: JSON.stringify({ stream: false, ...NO_THINKING, ...body }),
         signal,
       });
@@ -146,8 +149,12 @@ export function createBonsai(cfg = CONFIG) {
       proc = supervise({
         name: 'bonsai',
         cmd: bin,
-        args: ['-m', model, '-ngl', '99', '-fa', 'on', '-c', '32768', '-np', '2', '--host', '127.0.0.1', '--port', String(cfg.bonsai.port), '--no-webui'],
-        stdio: ['ignore', 'ignore', 'ignore'],
+        // 'none' is echoed as Access-Control-Allow-Origin: none, which no page origin equals (FND-003).
+        args: ['-m', model, '-ngl', '99', '-fa', 'on', '-c', '32768', '-np', '2', '--host', '127.0.0.1', '--port', String(cfg.bonsai.port), '--no-webui',
+          '--cors-origins', 'none', '--no-cors-credentials', '--no-slots'],
+        // llama-server logs only on stderr; the supervisor keeps its tail for the operator line (DES-004 step 6).
+        stdio: ['ignore', 'ignore', 'pipe'],
+        env: { ...process.env, LLAMA_API_KEY: apiKey },
         warm,
         restarts: cfg.restarts,
       });
