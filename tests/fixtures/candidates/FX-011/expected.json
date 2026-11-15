@@ -1,0 +1,27 @@
+{
+  "cases": [
+    {
+      "id": "FX-011-01",
+      "status": 200,
+      "reply_checks": {
+        "contains_name": true,
+        "no_default_name": true
+      }
+    },
+    {
+      "id": "FX-011-02",
+      "status": 200,
+      "reply_checks": {
+        "contains_name": true,
+        "no_default_name": true
+      }
+    },
+    {
+      "id": "FX-011-03",
+      "status": 200,
+      "reply_checks": {
+        "contains_default_name": true
+      }
+    }
+  ]
+}

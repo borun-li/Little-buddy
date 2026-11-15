@@ -102,6 +102,28 @@ Transport：同源，页面与接口都在 `http://127.0.0.1:4317`（`PORT` 可�
 | `bad_request` | 400 | 请求不合格（页面缺陷） |
 | `too_large` | 413 | 录音或前文太大（页面缺陷） |
 
+### Seam for increment 2 (be-architect #6, `docs/backend/03-detailed-design.md` § Increment 2 — 9. Seam; frontend DES-024..028, DES-030; copied by orchestrator 2026-11-15)
+The increment-1 seam above stays valid except where this table extends it (respond gains `name` in and `lang`, `crisis`, `speech` out; new `/api/speak`; health gains `tts`).
+
+Transport 不变：同源 `http://127.0.0.1:4317`，无 CORS。前端 DES：DES-024（client）、DES-025（朗读播放）、DES-026（危机卡片）、DES-027（改名）、DES-028（深呼吸、戳一戳、清空）；DES-030（本地记忆，design only，本增量不建，无接口变化；查看记录只读页面的 `companion.memory`）。
+
+| Name | Type | Nullable | Who computes | Endpoint / field |
+|---|---|---|---|---|
+| `respond(line, history, name)` in | `line`、`history` 同前；`name` 字符串，任何长度都收，后端按 DES-021 再清理（≤ 12 码点，字母/数字/空格/`-'·`）；不是字符串 → 400 `bad_request` | `name` 可缺省或 `null` = 默认名 | frontend（DES-027 清理后保存的名字） | `POST /api/respond` |
+| `reply` out | 同前；危机轮必含 "988"，至多 2 句 | no | backend | 200 `{reply, mood, lang, crisis, speech}` |
+| `mood` out | 同前 5 个 id | no | backend | 同上 |
+| `lang` out | `zh`\|`en`，回复的语言（= `line` 的语言，REQ-005 保证二者相同；朗读用它） | no | backend（`languageOf(line)`） | 同上 |
+| `crisis` out | boolean：本句命中固定危机词句表（DES-019） | no | backend；页面不自判 | 同上；危机轮即使 Bonsai 出错也是 200（UD-1 推荐 (a)，Plan 定；选 (b) 删此句） |
+| `speech` out | 字符串数组，按顺序朗读的段；可为 `[]` | no | backend（DES-018） | 同上 |
+| `speak(text, lang)` in | `text` 去空白 1–200 字符；`lang` `zh`\|`en`（用 respond 给的 `lang`） | no | frontend（`speech` 的一段） | `POST /api/speak`，`application/json`，体 ≤ 4096 B |
+| `speak` out | WAV：PCM 16-bit LE、单声道、24000 Hz | 失败 = 不出声 | backend（TTSKit Qwen3-TTS） | 200 `audio/wav`；10 s 截止，页面 11 s 自停 |
+| `health()` out | `{ready, stt, bonsai, tts}`；`ready` 仍只看 stt 与 bonsai | no | backend | `GET /api/health` |
+| failure / slow | `.code` 同 6 个码；`speak` 的任何失败页面都静音、不提示 | — | backend | `{"error": code}` |
+| 名字存储 | 清理后的名字 | 缺省 = 默认名 | frontend only | localStorage `companion.name`，不发 `transcribe`/`speak` |
+| UI copy language | `zh`\|`en` | no | frontend only | 不发给后端 |
+
+错误码表同 §9（`not_ready` 用于朗读时 = 朗读还在预热，页面静音）。
+
 ## 3. Open items
 | # | Question | Owner | Impact | Status |
 |---|---|---|---|---|
@@ -121,3 +143,5 @@ Transport：同源，页面与接口都在 `http://127.0.0.1:4317`（`PORT` 可�
 | 2026-11-14 | Seam re-copied after be-architect #2: line/history text 1–1500, body ≤ 262144 B, server deadlines STT 12 s / respond 15 s, page aborts at 13 s / 16 s; zh transcripts forced Simplified | orchestrator | frontend DES-013 timing and limits changed |
 | 2026-11-14 | §2 PAGE-001 rows replaced per `01-ux.md` Increment 1 (line 1–1500, reply language/limits, mood REQ-006, voice tag, loading/failure/warming states, six-code error tables, `transcribe(audio)` and nothing-heard); seam table untouched | fe-engineer #5 | none; fields now match the seam; `Backend DES` column unchanged |
 | 2026-11-15 | Seam respond row re-copied after be-architect #3: backend keeps recent history up to weight 2000 (chars + 1.5 × Han); page still sends last 40 | orchestrator | none — page unchanged |
+| 2026-11-15 | Increment 2 seam copied (be-architect #6): respond `name` in, `lang`/`crisis`/`speech` out; POST /api/speak; health `tts` | orchestrator | frontend DES-024..028, DES-030 |
+| 2026-11-15 | Increment 2 seam re-copied after be-architect #7 (name any length cleaned server-side; lang = line language; crisis 200 per UD-1 pending Plan) | orchestrator | frontend DES-024..028, DES-030 |

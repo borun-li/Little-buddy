@@ -1,0 +1,29 @@
+{
+  "endpoint": "POST /api/respond",
+  "content_type": "application/json",
+  "cases": [
+    {
+      "id": "FX-011-01",
+      "body": {
+        "line": "你叫什么名字？",
+        "history": [],
+        "name": "团子"
+      }
+    },
+    {
+      "id": "FX-011-02",
+      "body": {
+        "line": "What's your name?",
+        "history": [],
+        "name": "Mochi"
+      }
+    },
+    {
+      "id": "FX-011-03",
+      "body": {
+        "line": "你叫什么名字？",
+        "history": []
+      }
+    }
+  ]
+}

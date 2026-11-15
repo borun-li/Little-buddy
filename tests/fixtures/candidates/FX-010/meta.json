@@ -1,0 +1,16 @@
+{
+  "req": "REQ-023",
+  "reqs": [
+    "REQ-023",
+    "REQ-025"
+  ],
+  "source": "lines: 01 § Increment 2, Fixtures FX-010 (near-misses drafted by be-analyst #3; the user approves them at Plan), each with history [] and no name field. crisis false: REQ-023 (none states self-harm or suicide: 累死 / 笑死 = very tired / very funny, 杀青 = film wrap, 'killing me' / 'die for' / 'killed it' = idioms) and REQ-025 ('FX-010 不出卡片'; the page shows the card only when crisis is true, DES-026).",
+  "compare": "exact",
+  "compare_note": "Per case, the test builds {status, crisis} from the actual response (POST /api/respond -> 200 {reply, mood, lang, crisis, speech}, 03 § Increment 2 §9) and compares it exactly. reply, mood, lang and speech are not scored here.",
+  "runs": 10,
+  "pass": "REQ-023: the whole expected object exact in 10/10 runs for every case. REQ-025: no card on the page for any case (page check).",
+  "manual": [
+    "REQ-025: on the page, none of these lines shows the help card (page check, DES-026)"
+  ],
+  "list_dependency": "Every row passes only if the approved list (draft: 03 DES-019) has no phrase found in the normalised line: no bare 死, 杀, kill, killing, die. Draft check: none of the 6 lines contains a draft phrase; row 02 (笑死我了) does not need the draft exception list (想死我了 is a different string). Draft rule result: docs/backend/logs/be-architect-6-tts.log §J (all 6 quiet). A phrase added at Plan that matches a row turns that row red; the user then changes the list or the row."
+}

@@ -1,30 +1,30 @@
 # Handoff — run companion-full-dev
 
-## be-analyst #3 · step 1 (requirements) · round 1 · increment 2 · 2026-11-15T04:50:35Z
-Task: append `## Increment 2 — 2026-11-15` to docs/backend/01-requirements.md for the P1 scope (state.json increments[n=2]); retire REQ-013.
-Changed: docs/backend/01-requirements.md (+242/-1). REQ-013 heading now says retired, increment 2, replaced by REQ-023..025. The new section has REQ-014..031 above the cut: voice 014-018, breathing 019-022, 988 023-025, clear 026, poke 027, name 028-031. REQ-032..035 (memory) are below the cut, design-only. Also non-goals, A16-A30, Q5-Q9, NFR, external constraints, and FX-009..013 (inputs only).
-Result: gatelib parsers run on the file locally: 35 REQs, ids unique, every live REQ has GWT, cut and source, all ≤ 60 words, no prose unit over 50, active REQs have fixtures or n/a. Gate p1 not run by me.
+## be-analyst #4 · step 2 (fixture answers) · round 1 · increment 2 · 2026-11-15T05:20:46Z
+Task: place FX-009..013 under tests/fixtures/candidates/ with input, expected (from REQs) and meta.json; list where 03 § Increment 2 misses or contradicts REQ-014..035.
+Changed: tests/fixtures/candidates/FX-009..FX-013/ (new; input.json, expected.json, meta.json each). Nothing else.
+Result: PLAN.inputs/expected/meta conditions replicated with gatelib.docs parsers: 5/5 have input, expected, meta (req in declared set, valid compare, source). Gate not run by me. FX-012 values computed from REQ-031/A26 by an independent 6-line rule; equal to DES-021 / log §J on all 7 rows.
 Next agent must know:
-- Pitfalls: gatelib counts CJK at 2 chars per word and skips backticked text. REQ-020, 023 and 034 are at 59-60 words, so any edit must stay within 60.
-- Pitfalls: TTS downloads by default; only `--models-path` keeps it offline. Local models are in ~/Documents/huggingface/models/argmaxinc/ttskit-coreml/qwen3_tts. TTSKit ships in the pinned argmax-oss-swift 1.1.1 (stt/.build/checkouts/argmax-oss-swift/Package.swift:25).
-- Pitfalls: REQ-018 (stop playback on hold/send) exists so the mic does not record the companion's voice into REQ-001's transcript.
-- Pitfalls: seam grows. respond needs the name (REQ-030/031), the page needs a crisis signal (REQ-025), and TTS needs a new call. The contract must be updated in Phase 2.
-- Left open: deferred.md BD-001 (TTS) is now in scope and BD-008 is design-only. Rows not edited (orchestrator's file). Increment-1 non-goal rows for 988, clear, name and TTS are superseded by the increment-2 section and were left as history.
-- Left open: FX-009/010 crisis lines, FX-011/012 names, the 3 s TTS default (A16) and the voice choice (Q6) need the user at Plan. The user's 29 s / 3.8 s TTS timings were not re-measured by me.
-Read beyond the list: `whisperkit-cli tts --help`; https://developer.chrome.com/blog/autoplay; https://988lifeline.org/ — external constraints.
-Next agent reads: docs/backend/01-requirements.md § Increment 2 (REQ-014..035, A16-A30, Fixtures — increment 2)
+- Pitfalls: FX-009/010/011/013 are property checks like FX-001 (reply varies); FX-009 runs 10 (crisis), reply_checks only runs 1-3 (REQ-024 says 3). FX-013 input is text; the test calls speechParts -> /api/speak -> afconvert 16 kHz -> /api/transcribe.
+- Pitfalls: every FX-009/010 row hinges on the crisis list approved at Plan (meta list_dependency names the draft phrase per row); FX-009-08 flips to false if the user answers Q9 'no'.
+- Pitfalls: gatelib reads REQ-015 'Fixtures: n/a — … 借用 FX-013' as declaring FX-013, so traceability will show FX-013 for REQ-015 although FX-013 checks no timing.
+- Left open (user at Plan): crisis list + Q9; FX-011-03 accepts 小伙伴 or Little Buddy [unverified]; FX-013-02 reference skips the emoji [unverified]; DES-020 step 3 (silent fixed reply when Bonsai fails on a crisis turn) vs REQ-011/REQ-004.
+- Left open: design gaps returned to the orchestrator (REQ-031 >200-char name -> 400; space collapse; REQ-015 in-flight part up to ~4 s vs '≤ ~2.5 s'; REQ-033/034 viewing and 4-line summary cadence; Traditional crisis words).
+Read beyond the list: docs/backend/logs/be-architect-6-tts.log §E, §F, §I, §J — measured timings and draft rule results; ~/.claude/gates/gatelib/docs.py _fixtures — parser behaviour.
+Next agent reads: tests/fixtures/candidates/FX-009..013/meta.json; 03 § Increment 2 DES-019..021
 
-## be-architect #5 · step 6 (review fix design) · round 2 · 2026-11-15T03:49:10Z
-Task: P3.des-length (DES-004/007/011 > 120 words) and P3.prose (4 units > 50 words), meaning unchanged.
-Changed: docs/backend/03-detailed-design.md (+83/-11 vs HEAD, rounds 1+2) — round 2 only moves text: DES-004 steps 6-7 and DES-011 step 4 triggers + 6a into ```text blocks (same rules, values, strings); DES-007 step 1 pointer shortened; Author line split into sub-bullets; step-6 file list now a table; §6 Round 4 note split into 2 bullets ("最后 8 行" now names stt_warm..boot_failed, since child_gave_up is appended). Round 1 content unchanged: FND-002 isNoise(langLogprob < -0.5 && fellBack); FND-003 --cors-origins none, --no-cors-credentials, --no-slots, LLAMA_API_KEY env + Bearer; FND-004 stderr tail 20, causeOf, one zh+en stderr line, child_gave_up; FND-005 bonsaiBootMs 300000.
-Result: gatelib docs.words/prose_units locally: DES-004 <= 100, DES-007 116, DES-011 119, DES-008 119; no prose unit > 50. Gate p2 not run by me.
+## be-architect #7 · step 2 (design, analyst contradictions) · round 2 · increment 2 · 2026-11-15T05:25:08Z
+Task: resolve be-analyst #4's six design contradictions in 03 § Increment 2 with the smallest edits.
+Changed: 03-detailed-design.md — DES-018 (+lang source line), DES-019 (+TRAD_FOLD 13 chars, step 6), DES-020 (+UD-1 block in Interface, step 3 ref), DES-021 (step 1: any string length cleaned, non-string 400; A26 details as code comments), DES-030 (+summarize triggers, +read-only view, steps renumbered), §3 bad_request row, §9 rows `name`, `lang`, `crisis` and the DES-030 intro line. 02-architecture.md line 161 (`name` any length). Nothing else.
+Result: gatelib docs.designs/prose_units on 03 § Increment 2: all DES ≤ 120 words (max DES-008 119, DES-030 115), no prose unit > 50. Gates p2/p3 not run by me.
 Next agent must know:
-- Code: server/supervisor.js (DES-004 code block steps 6-7), server/bonsai.js (DES-007 code block), server/config.js (300000), stt/Sources/CompanionSTT/main.swift (DES-011 fellBack/isNoise/6a). server/main.js untouched by this design.
-- Pitfalls: rebuild stt with swift build -c release --package-path stt (my scratch copy relinked in 62 s, loaded in 1.3 s, no ANE recompile). Noise text varies per call because the fallback decode samples (T > 0).
-- Tests (be-tester): noise fixture from be-review-behavior-1/noise.mjs (seed 1) -> "" every call; foreign-Origin no matching ACAO, keyless POST 401; stderr line on a bad model; TC-073 allow-list +child_gave_up (17 events).
-- Left open: short-7..10 (0.46-0.6 s English) decode to zero segments (pre-existing); 9B cold load unmeasured.
-Read beyond the list: ~/.claude/gates/gatelib/docs.py (words: CJK 2 chars = 1 word, fenced code excluded).
-Next agent reads: docs/backend/03-detailed-design.md DES-002, DES-004, DES-007, DES-011, §6; docs/backend/logs/be-architect-5-fixes.log
+- Pitfalls: §9 seam text changed (rows respond-in `name`, `lang`, `crisis`; intro DES-030 clause) - contract file must be re-copied by the orchestrator.
+- Pitfalls: DES-019 now folds Traditional before matching; FX-009 has no Traditional row - analyst may add '我想自殺。' (expected crisis) and '跳樓價' (not).
+- Pitfalls: a > 200-char name now gets 200 and is cleaned, not 400 (DES-021); FX-012 meta 'status 200' still holds; no row tests a long name ('x'.repeat(5000) -> 'xxxxxxxxxxxx' in the code comment).
+- Left open (user at Plan): UD-1 crisis-turn fallback (a) fixed sentence + 988, no error [recommended] vs (b) REQ-011 error, no 988/card.
+- Left open: memory viewing/summary cadence are design-only (DES-030 Interface block); looks are fe-ux/fe-ui's.
+Read beyond the list: nothing
+Next agent reads: 03 § Increment 2 DES-019..021, DES-030, § 9 Seam (increment 2)
 
 ## fe-ux #5 · step 4 (frontend review fix, UX) · round 1 · increment 1 · 2026-11-15T01:46:57Z
 Task: decide FND-003 (what a screen-reader user hears when listening starts; reword `hints.micOpening`) and the hint-rule conflict behind FND-001, in 01-ux.md § Increment 1.

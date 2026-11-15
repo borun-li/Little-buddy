@@ -119,3 +119,110 @@
 | REQ-010 | 网关、看护、`package.json` |
 | REQ-011 | 错误表、网关（12 s + 15 s 截止）、看护、前端数据层（13 s / 16 s 自停） |
 | REQ-012 | 界面语言开关 |
+
+## Increment 2 — 2026-11-15
+
+- Author: be-architect #6 · step 2, round 1 · Input: `01-requirements.md` § Increment 2（REQ-014..035，A16–A30，Q5–Q9） · Status: draft
+- 证据：`docs/backend/logs/be-architect-6-tts.log`（TTS 时延、内存、回读、规则原型）；试听：`docs/backend/evidence/tts-voices/`。
+- REQ-032..035（本地记忆）只设计、本增量不建：见 03 DES-029、DES-030。
+
+### 1. Components (increment 2)
+```
+浏览器 ──POST /api/speak {text, lang}──> 网关 server/tts.js ──stdin/stdout JSON 行──> companion-tts (Swift + TTSKit, Qwen3-TTS 0.6B)
+        <── audio/wav (PCM16 24 kHz) ──
+```
+
+| Component | Responsibility (one sentence) | Serves |
+|---|---|---|
+| 朗读助手 `stt/` 的第二个目标 `companion-tts`（Swift，TTSKit 1.1.1） | 常驻、离线加载 Qwen3-TTS、预热 zh/en 提示缓存、把一段文字合成为内存里的 16-bit WAV。 | REQ-014, REQ-015, REQ-017 |
+| 朗读客户端 `server/tts.js` | 看护助手、一次一段排队、页面中止的段不生成、10 s 截止；把回复切成朗读段。 | REQ-014..REQ-018 |
+| 危机规则 `server/crisis.js` | 按固定中英文词句表判这一句是不是危机，结果确定。 | REQ-023, REQ-025 |
+| 危机回复（`server/bonsai.js` + `server/prompts.js`） | 危机轮让 Bonsai 写一句温柔的话，再接上固定的 988 句；Bonsai 出错时用固定句。 | REQ-024, REQ-025 |
+| 名字规则 `server/name.js` + `replySystem` | 清理名字（≤ 12 字、允许集），以引号内数据放进系统提示。 | REQ-030, REQ-031 |
+| 网关 `server/main.js`（增改） | `/api/speak`、respond 收 `name` 回 `lang`/`crisis`/`speech`、health 加 `tts`、缺 TTS 文件不挡启动。 | REQ-014, REQ-017, REQ-025, REQ-030 |
+| 朗读播放（side: frontend） | 喇叭开时逐段请求并播放，预取一段；关喇叭、按住、发送、清空即停。 | REQ-014..REQ-018 |
+| 危机卡片（side: frontend） | 读 `crisis` 显示 988/911 卡片，可关。 | REQ-025 |
+| 改名（side: frontend） | 原地改名，同一规则清理，存本机浏览器，随 respond 发 `name`。 | REQ-028..REQ-031 |
+| 深呼吸、戳一戳、一键清空（side: frontend） | 只在页面，读已有 `mood` 与新 `crisis`，无新接口。 | REQ-019..REQ-022, REQ-026, REQ-027 |
+| 本地记忆（design only，两侧） | 页面存心情记录与摘要；网关多一个无状态的摘要调用。 | REQ-032..REQ-035 |
+
+### 2. Data model (increment 2)
+| Entity | Key fields | Owner | Stored in |
+|---|---|---|---|
+| 名字 | 清理后 1–12 码点，或缺省 = 默认名 | 页面 | 浏览器 localStorage `companion.name`（REQ-029、A27）；网关只在请求内存 |
+| 一轮结果（增） | `lang` zh\|en、`crisis` boolean、`speech` 朗读段数组 | 网关 | 页面内存；`crisis` 不记日志（A9） |
+| 朗读段 | 文字 1–200 字符 + `lang` → WAV PCM16 单声道 24 kHz | 页面请求 → 网关 → 助手 | 只在内存，播完丢弃 |
+| 朗读队列项 | `id`、`text`、`lang`、`signal`、计时器 | 网关 | 进程内存 |
+| 记忆（design only） | `on`、`moods[{date, mood}]`、`summary` ≤ 400 字符 | 页面 | 浏览器 localStorage `companion.memory`；默认无此键 |
+
+### 3. External contracts (increment 2)
+| Interface | Signature / endpoint | Auth | Errors | Limits | Source |
+|---|---|---|---|---|---|
+| 页面 → 网关：回复（增） | `POST /api/respond` `{line, history, name?}` → `{reply, mood, lang, crisis, speech}` | 同 §3 | 同 §3；危机轮不报错 | `name` 任何长度的字符串进、清理后 ≤ 12 码点；非字符串 400 | 本设计 |
+| 页面 → 网关：朗读 | `POST /api/speak` `{text, lang}` → 200 `audio/wav` | 同上；`application/json` | 6 个码，同 §3 | 体 ≤ 4096 B；`text` 去空白 1–200；10 s 截止 | 本设计 |
+| 页面 → 网关：就绪（增） | `GET /api/health` → `{ready, stt, bonsai, tts}`；`ready` 不含 `tts` | 同上 | — | — | A18 |
+| 网关 → 朗读助手 | stdin `{"id","text","lang"}` → stdout `{"id","wav":"<base64>","ms","audio_ms"}` 或 `{"id","ms","error"}`；首行 `{"event":"ready","load_ms","warm_ms"}` | 进程内管道 | `error` → `failed`；退出 → `unavailable` | 一次一段 | 本设计 |
+| 朗读助手 → TTSKit | `TTSKitConfig(modelFolder:, tokenizerFolder:, download: false)`、`buildPromptCache(voice:language:)`、`promptCache`、`generate(text:voice:language:options:)` → `SpeechResult{audio,sampleRate}` | — | 抛错 → `error` 行 | 本机模型；`maxNewTokens` 120 帧（每帧 80 ms） | `Qwen3Config.swift:114-305`；`TTSKit.swift:104,375-386,555-567,628-642,779-785`；`Models.swift:431-449` |
+| 浏览器有声自动播放 | 页面有过用户操作后才能出声；发送、按住都算 | — | 被拦 → 不出声 | — | https://developer.chrome.com/blog/autoplay |
+
+### 4. Decisions (increment 2)
+| Decision | Chosen | Rejected (why) |
+|---|---|---|
+| TTS 进程 | 常驻 `companion-tts`（同 `stt/` 模式），启动时预热 | 每次 `whisperkit-cli tts`：5.4–5.6 s 一句（加载占大头），且把音频写进文件（log §A） |
+| 放在哪个包 | `stt/` 包加第二个可执行目标，同一 pin，无需重新解析依赖 | 新建 `tts/` 包（再克隆一份依赖、两份 Package.resolved 要同步） |
+| 谁出声 | 页面播放网关返回的 WAV | 助手直接用 Mac 喇叭播（停、静音要另开控制通道；页面开关管不到） |
+| 整条还是分段 | 回复切段，页面逐段请求、预取一段；首段 zh ≤ 10 字、en ≤ 7 词 | 整条一次合成：zh 3.0–3.9 s、en 3.4–3.6 s，超过 3 s（log §D）；助手流式回多段（要 HTTP 分块和页面拼流） |
+| 段从哪来 | 网关算好 `speech` 随 respond 返回（一个生产者） | 页面自己切句（规则写两份） |
+| 英文数字 | en 段把数字念成单词（988 → nine eight eight） | 原样：serena 把 988 念成乱音（log §I） |
+| 音频格式 | WAV PCM 16-bit 单声道 24 kHz（模型原生采样率） | Float32 WAV（大一倍）；m4a（要编码、流程多一步） |
+| 危机识别 | 固定词句表 + 例外表，规范化后子串/词界匹配 | Bonsai 打分（不确定，REQ-023 要 10/10 一致） |
+| 回复必提 988 | Bonsai 第一句 + 固定 988 句；Bonsai 失败用固定句 | 只靠提示词（REQ-024 要 3/3，不可保证）；整条固定回复（失去 Bonsai 的回应） |
+| 名字进提示 | 后端再清理，放在引号内；允许集无引号/换行 | 原样信任页面（直接 POST 可注入） |
+| 名字存哪 | 浏览器 localStorage | 网关写本机文件（要新的写盘路径与权限，A27 已定浏览器） |
+| 记忆存哪（design only） | 浏览器 localStorage，网关保持无状态 | 网关写 `~/Library/Application Support/…` 文件（忘掉我要删文件，服务端首次有状态） |
+
+### 5. Risks (increment 2)
+| Risk | Likelihood | Impact | Mitigation | Early signal |
+|---|---|---|---|---|
+| 首段超过 3 s | 中（采样随机；8 词段实测到 3.1 s） | REQ-015 | 首段上限 zh 10 字 / en 7 词；12 字段实测 ≤ 2.37 s | 日志 `tts_done.ms` > 2500 |
+| 段与段之间有停顿 | 中（后段比前段长时） | 听感 | 只预取一段；后段上限 zh 24 / en 16 | 人工听 FX-013 |
+| 朗读与 Bonsai 抢算力 | 低（只有发新一句时在途的那一段） | 下一条回复慢 ≤ 一段 | 排队的段被中止即不生成 | `respond_done.ms` 上升 |
+| 采样跑飞（长时间乱音） | 低 | 一段卡住 | `maxNewTokens` 120 帧（≤ 9.6 s）；10 s 截止 | `tts_done.audio_ms` ≫ 段长 |
+| 危机漏判 | 中（表外说法） | 没有卡片 | 表可审、可加；否定也判（A22） | 用户在 Plan 审表 |
+| 危机误判（如 "Suicide Squad"） | 中 | 多出一张卡片 | 接受（A22：漏判更糟）；例外表 | FX-010 |
+| 改名后仍自称默认名 | 未测 | REQ-030 | NAME_RULE 明说"不要叫自己小伙伴"；构建时跑 FX-011 × 3 | FX-011 |
+| 内存 | 低 | 换页变慢 | 实测：Bonsai 9.5 GB + STT 166 MB + TTS 171 MB ≈ 9.9 GB / 24 GB | `memory_pressure` |
+
+### 6. Failure model (increment 2)
+| Dependency | Fails how | System does |
+|---|---|---|
+| 朗读助手 | 缺文件 | 不启动，打印缺的路径和一行提示；`tts: "down"`，聊天照常 |
+| 朗读助手 | 预热中 / 退出 / 卡住 / `error` 行 | `/api/speak` 503 `not_ready` / 503 `unavailable` / 504 `timeout` / 502 `failed`；页面只是不出声；看护重启同 §6 |
+| 朗读助手 | 页面中止 | 排队的段不写给助手；在途的答案丢弃 |
+| llama-server | 危机轮出错或没起 | 不报错：固定温柔句 + 988 句，`crisis: true` |
+
+### 7. Cost of the next one (increment 2)
+| Growing family | Adding a member changes | Goes red if forgotten |
+|---|---|---|
+| 危机词句 | `server/crisis.js` 一处表 | FX-009/010 用例；新词要加正反各一句 |
+| 声音 | 环境变量 `TTS_VOICE`（9 个之一，config 校验） | 启动时报错退出 |
+| 朗读语言 | `LANGUAGE` 表（Swift）+ `speechParts` 计数规则 + `server/lang.js` | 助手回 `bad_request`；无测试量化，属估计 |
+
+### 8. Coverage (increment 2)
+| REQ | Component(s) |
+|---|---|
+| REQ-014 | 朗读助手、朗读客户端、网关、朗读播放 |
+| REQ-015 | 朗读助手（常驻预热）、朗读客户端（分段）、朗读播放（预取） |
+| REQ-016 | 朗读播放、朗读客户端（中止不生成） |
+| REQ-017 | 网关（`ready` 不含 tts、缺文件不挡）、朗读播放 |
+| REQ-018 | 朗读播放、朗读客户端 |
+| REQ-019, REQ-020, REQ-021, REQ-022 | 深呼吸（页面） |
+| REQ-023 | 危机规则 |
+| REQ-024 | 危机回复 |
+| REQ-025 | 危机规则、网关 `crisis`、危机卡片 |
+| REQ-026 | 一键清空（页面） |
+| REQ-027 | 戳一戳（页面） |
+| REQ-028, REQ-029 | 改名（页面） |
+| REQ-030 | 名字规则、网关 |
+| REQ-031 | 名字规则、改名（页面） |
+| REQ-032..REQ-035 | 本地记忆（design only） |

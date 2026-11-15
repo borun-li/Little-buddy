@@ -1,0 +1,15 @@
+{
+  "req": "REQ-014",
+  "reqs": [
+    "REQ-014"
+  ],
+  "source": "replies: 01 § Increment 2, Fixtures FX-013 = real Bonsai replies, verbatim, from tests/fixtures/approved/FX-003/input.json and FX-002/input.json history[1]. lang = the reply's language (REQ-014; REQ-005). Expected: REQ-014 Accept (sound 6/6; synthesised speech read back by this project's WhisperKit, same language, CER/WER <= 20%, A17). text_reference = the reply text; 02 [unverified]: the emoji 🎉 is not spoken text, so the reference has no words for it (DES-018 also drops it). 01 is 3 sentences (raw Bonsai text before reply shaping, REQ-004 allows 2); it is still a valid text to read (19 chars). Input is text because the audio is produced by the system under test.",
+  "compare": "numeric:0.2",
+  "compare_note": "Per run and case: parts = speechParts(reply, lang) (DES-018, the producer the page reads from); each part -> POST /api/speak {text, lang} -> 200 audio/wav (PCM16 mono 24000 Hz, 03 § Increment 2 §9) -> `afconvert -f WAVE -d LEI16@16000 -c 1` (seam format of /api/transcribe, as FX-005) -> POST /api/transcribe -> text; join the part texts (zh no separator, en one space). audible = every speak call returned 200 audio/wav and the joined text is non-empty (silence reads back as '' per FX-008), compared exactly. language: computed from the joined text with the FX-005 rule, compared exactly (REQ-014 'language consistent'). Error rate (zh CER on characters, en WER on words, after lowercasing and removing punctuation, whitespace ignored for zh) vs text_reference must be within 0.2 of 0.",
+  "runs": 3,
+  "pass": "REQ-014: 2 cases x 3 runs = 6/6 audible, language exact and error rate <= 0.2 in each",
+  "manual": [
+    "REQ-014: on the page with the speaker on, each of the 6 reads is heard (human check)",
+    "REQ-015 borrows these inputs for timing (text shown -> first sound <= 3 s, 5 reads each); timing is not part of this fixture's expected output (01: REQ-015 Fixtures n/a)"
+  ]
+}
