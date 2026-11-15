@@ -1,0 +1,14 @@
+{
+  "req": "REQ-031",
+  "reqs": [
+    "REQ-031"
+  ],
+  "source": "names: 01 § Increment 2, Fixtures FX-012 (drafted by be-analyst #3). Expected value: REQ-031 ('去首尾空白，只留文字、数字、空格和 -'·，至多 12 字') with A26 (NFC; letters and digits of any script; other characters removed; 12 = code points, cut after removal; empty after cleaning -> default name). null = default name: nothing stored, the page shows 小伙伴 / Little Buddy by UI language (REQ-028), Bonsai gets no custom name. Shape (string | null) from 03 DES-021 cleanName / DES-027; the design's own values (docs/backend/logs/be-architect-6-tts.log §J) agree on all 7 rows. status 200: every input is a string <= 200 chars, so none is refused (DES-021 step 1).",
+  "compare": "exact",
+  "compare_note": "One expected answer for both sides (DES-021 step 5). Page: confirming each name in the rename field stores and shows `name` (localStorage companion.name absent when null; shown via textContent). Gateway: POST /api/respond {line, history, name} with each case's name returns `status`, and the name Bonsai receives in the system message equals `name` (null: the unchanged default system text, no NAME_RULE line). The test builds {id, status, name} per side and compares exactly.",
+  "runs": 1,
+  "pass": "REQ-031: all 7 cases exact on both sides",
+  "manual": [
+    "REQ-031: on the page, row 04 shows the plain text 'img srcx one' and runs no markup or script (page check)"
+  ]
+}

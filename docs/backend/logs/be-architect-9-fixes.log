@@ -1,0 +1,89 @@
+# be-architect #9 · step 6 (review fixes) round 1 · increment 2 · 2026-11-15T10:13:01Z
+# FND-014 (DES-019): greeting exceptions removed only in fond-greeting form, at end of clause
+# scratch rule = server/crisis.js with this diff (outside the project): /private/tmp/claude-501/-Users-apple-Desktop-Hackathon-Local-AI-Hackathon/c499be74-fde0-49e2-a17d-d254a152203e/scratchpad/arch9/crisis9.mjs
+16c16,18
+< export const CRISIS_EXCEPTIONS = ['想死你', '想死您', '想死我了', '跳楼价', '跳楼大甩卖'];
+---
+> export const CRISIS_EXCEPTIONS = ['跳楼价', '跳楼大甩卖'];
+> export const GREETING_EXCEPTIONS = ['想死你了', '想死你们了', '想死您了', '想死我了'];
+> const GREETING_RE = new RegExp(`(?:${GREETING_EXCEPTIONS.join('|')})(?![\\p{L}\\p{N}])`, 'gu');
+37c39
+<   let zh = t.replace(/\s/g, '');
+---
+>   let zh = t.replace(/\s/g, '').replace(GREETING_RE, '');
+# command: node /private/tmp/claude-501/-Users-apple-Desktop-Hackathon-Local-AI-Hackathon/c499be74-fde0-49e2-a17d-d254a152203e/scratchpad/arch9/check9.mjs "$PWD" /private/tmp/claude-501/-Users-apple-Desktop-Hackathon-Local-AI-Hackathon/c499be74-fde0-49e2-a17d-d254a152203e/scratchpad/arch9/crisis9.mjs   (cwd = project root; node v24.13.0); FX-009/FX-010 lines read from tests/fixtures/approved/*/input.json
+# A
+PASS FX-009-01 want=true got=true,true,true,true,true,true,true,true,true,true  "我不想活了。"
+PASS FX-009-02 want=true got=true,true,true,true,true,true,true,true,true,true  "我想自杀。"
+PASS FX-009-03 want=true got=true,true,true,true,true,true,true,true,true,true  "我想伤害自己。"
+PASS FX-009-04 want=true got=true,true,true,true,true,true,true,true,true,true  "I want to kill myself."
+PASS FX-009-05 want=true got=true,true,true,true,true,true,true,true,true,true  "I've been thinking about ending my life."
+PASS FX-009-06 want=true got=true,true,true,true,true,true,true,true,true,true  "I keep wanting to hurt myself."
+PASS FX-009-07 want=true got=true,true,true,true,true,true,true,true,true,true  "I WANT TO DIE"
+PASS FX-009-08 want=true got=true,true,true,true,true,true,true,true,true,true  "我没有想自杀，只是很累。"
+PASS FX-009-09 want=true got=true,true,true,true,true,true,true,true,true,true  "有时候觉得活着没什么意思，想就这样消失。"
+# B
+PASS FX-010-01 want=false got=false,false,false,false,false,false,false,false,false,false  "今天累死了。"
+PASS FX-010-02 want=false got=false,false,false,false,false,false,false,false,false,false  "笑死我了，这个视频太好笑。"
+PASS FX-010-03 want=false got=false,false,false,false,false,false,false,false,false,false  "我们剧组今天杀青了！"
+PASS FX-010-04 want=false got=false,false,false,false,false,false,false,false,false,false  "This homework is killing me."
+PASS FX-010-05 want=false got=false,false,false,false,false,false,false,false,false,false  "I'd die for a slice of pizza right now."
+PASS FX-010-06 want=false got=false,false,false,false,false,false,false,false,false,false  "I totally killed it at my presentation!"
+# C
+PASS greeting/shop want=false got=false,false,false,false,false,false,false,false,false,false  "想死你了！"
+PASS greeting/shop want=false got=false,false,false,false,false,false,false,false,false,false  "想死你们了！"
+PASS greeting/shop want=false got=false,false,false,false,false,false,false,false,false,false  "你可想死我了。"
+PASS greeting/shop want=false got=false,false,false,false,false,false,false,false,false,false  "想死您了"
+PASS greeting/shop want=false got=false,false,false,false,false,false,false,false,false,false  "我想死你了，好久不见"
+PASS greeting/shop want=false got=false,false,false,false,false,false,false,false,false,false  "跳楼价大甩卖"
+PASS greeting/shop want=false got=false,false,false,false,false,false,false,false,false,false  "跳樓價"
+PASS greeting/shop want=false got=false,false,false,false,false,false,false,false,false,false  "跳楼大甩卖"
+# D
+PASS crisis want=true got=true,true,true,true,true,true,true,true,true,true  "我想死你们都不懂我"
+PASS crisis want=true got=true,true,true,true,true,true,true,true,true,true  "我想死你别管我"
+PASS crisis want=true got=true,true,true,true,true,true,true,true,true,true  "我想死您别劝我了"
+PASS crisis want=true got=true,true,true,true,true,true,true,true,true,true  "我想死我了真的撑不下去"
+PASS crisis want=true got=true,true,true,true,true,true,true,true,true,true  "真的好想死你们根本不在乎"
+PASS crisis want=true got=true,true,true,true,true,true,true,true,true,true  "我想死，你别管我"
+PASS crisis want=true got=true,true,true,true,true,true,true,true,true,true  "想死你了，可我真的想死"
+# E
+PASS prior want=true got=true,true,true,true,true,true,true,true,true,true  "有时候觉得活着没什么意思，想就这样消失。"
+PASS prior want=true got=true,true,true,true,true,true,true,true,true,true  "活著沒什麼意思"
+PASS prior want=true got=true,true,true,true,true,true,true,true,true,true  "我想自殺。"
+PASS prior want=false got=false,false,false,false,false,false,false,false,false,false  "这游戏没什么意思。"
+PASS prior want=false got=false,false,false,false,false,false,false,false,false,false  "尴尬得想消失。"
+PASS prior want=false got=false,false,false,false,false,false,false,false,false,false  "I have the skill myself"
+# total failures: 0
+exit=0
+
+# control: same list, plain substring removal (no end-of-clause lookahead): /private/tmp/claude-501/-Users-apple-Desktop-Hackathon-Local-AI-Hackathon/c499be74-fde0-49e2-a17d-d254a152203e/scratchpad/arch9/crisis9-plain.mjs
+PASS FX-010-06 want=false got=false,false,false,false,false,false,false,false,false,false  "I totally killed it at my presentation!"
+FAIL crisis want=true got=false,false,false,false,false,false,false,false,false,false  "我想死我了真的撑不下去"
+# total failures: 1
+-> the lookahead is needed: 想死我了 inside 我想死我了真的撑不下去
+
+# --- check script ---
+// be-architect #9 scratch check of the narrowed DES-019 exceptions (FND-014); not project code
+import { readFileSync } from 'node:fs';
+const [,, proj, rule] = process.argv;
+const { isCrisis } = await import(rule);
+const fx = (n) => JSON.parse(readFileSync(`${proj}/tests/fixtures/approved/${n}/input.json`, 'utf8')).cases.map((c) => [c.id, c.body.line]);
+const rows = [
+  ...fx('FX-009').map(([id, l]) => ['A', id, l, true]),
+  ...fx('FX-010').map(([id, l]) => ['B', id, l, false]),
+  ...[['想死你了！', false], ['想死你们了！', false], ['你可想死我了。', false], ['想死您了', false], ['我想死你了，好久不见', false],
+     ['跳楼价大甩卖', false], ['跳樓價', false], ['跳楼大甩卖', false]].map(([l, w]) => ['C', 'greeting/shop', l, w]),
+  ...[['我想死你们都不懂我', true], ['我想死你别管我', true], ['我想死您别劝我了', true], ['我想死我了真的撑不下去', true],
+     ['真的好想死你们根本不在乎', true], ['我想死，你别管我', true], ['想死你了，可我真的想死', true]].map(([l, w]) => ['D', 'crisis', l, w]),
+  ...[['有时候觉得活着没什么意思，想就这样消失。', true], ['活著沒什麼意思', true], ['我想自殺。', true], ['这游戏没什么意思。', false],
+     ['尴尬得想消失。', false], ['I have the skill myself', false]].map(([l, w]) => ['E', 'prior', l, w]),
+];
+let fail = 0, sec = '';
+for (const [s, id, l, want] of rows) {
+  if (s !== sec) { console.log(`# ${s}`); sec = s; }
+  const got = Array.from({ length: 10 }, () => isCrisis(l));
+  const ok = got.every((g) => g === want);
+  if (!ok) fail++;
+  console.log(`${ok ? 'PASS' : 'FAIL'} ${id} want=${want} got=${got.join(',')}  "${l}"`);
+}
+console.log(`# total failures: ${fail}`); process.exit(fail ? 1 : 0);

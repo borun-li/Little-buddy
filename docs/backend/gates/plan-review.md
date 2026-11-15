@@ -18,7 +18,29 @@ Approve the plan, or say what to change. Nothing is built before you do.
 | REQ-010 — 一条命令起全套并预热 [interface] | above | 只运行 `npm start` 就起页面、转写和 Bonsai，预热完才显示就绪。 | n/a: 启动计时，无输出值 |
 | REQ-011 — 慢、未就绪或出错时有交代 [interface] | above | 预热中、后端没起或出错、30 s 未回复时，用户被告知，原话保留，可再发。 | n/a: 停止进程触发，无固定输出 |
 | REQ-012 — 界面文字中/英切换 [interface] | above | 页面可切换界面文字中/英，聊天内容不变。 | n/a: 仅前端，无后端输出 |
-| REQ-013 — 严重情况温和给出求助方式 | below | 用户说出自伤等严重内容时，回复温和地给出美国 988。 | n/a: below the cut（Q1） |
+| REQ-013 — 严重情况温和给出求助方式 (retired, increment 2 — replaced by REQ-023..REQ-025) | below | 用户说出自伤等严重内容时，回复温和地给出美国 988。 | n/a: below the cut（Q1） |
+| REQ-014 — 回复自动朗读 [interface] | above | 每条回复出现后自动离线朗读一次（Argmax Qwen3-TTS），用回复的语言（中/英）。 | FX-013 |
+| REQ-015 — 朗读几秒内开始 [interface] | above | 常驻预热后，回复文字出现到出声 ≤ 3 s；回复在 REQ-004 长度内时成立。 | FX-013 |
+| REQ-016 — 喇叭开关静音 [interface] | above | 关掉喇叭开关后不再朗读，正在读的立即停；再打开，之后的回复照常朗读。 | n/a: 页面开关状态 |
+| REQ-017 — 朗读不拖住聊天 [interface] | above | 文字回复和表情从不等朗读；朗读未就绪、慢或出错时只是不出声。 | n/a: 停止进程触发 |
+| REQ-018 — 说话或发送时先停朗读 [interface] | above | 按住说话或发送新一句时，正在读的回复立即停，不录进用户的话。 | n/a: 播放中操作触发 |
+| REQ-019 — 焦虑时邀请深呼吸 [interface] | above | `unpleasant-high` 那一轮回复出现后，页面邀请"一起深呼吸？"；其他情绪不邀请；发下一句时消失。 | n/a: 页面只读 `mood`（情绪判断归 REQ-006） |
+| REQ-020 — 引导深呼吸 [interface] | above | 接受后，小伙伴带着吸 4 s、呼 6 s，共 3 次，页面显示正在吸还是呼。 | n/a: 页面计时 |
+| REQ-021 — 深呼吸可随时停 [interface] | above | 引导中用鼠标或键盘随时可停，发新一句也会停；停后表情回到本轮情绪。 | n/a: 页面状态 |
+| REQ-022 — 减少动态时的替代 [interface] | above | 系统"减少动态"开时，深呼吸和戳一戳不做移动或缩放，仍看得出吸/呼阶段和戳到的反应。 | n/a: 系统设置触发 |
+| REQ-023 — 危机内容按固定词句识别 | above | 这一句（打字或语音）含固定表中任一中/英文自伤或自杀说法即判为危机；同一句结果永远相同。 | FX-009, FX-010 |
+| REQ-024 — 危机时回复提到求助 [interface] | above | 判为危机时，回复用这句的语言温和提到可找 988；不诊断、不说教，长度守 REQ-004。 | FX-009 |
+| REQ-025 — 危机时显示求助卡片 [interface] | above | 危机那一轮回复出现时，页面显示平静卡片：988 可打电话或发短信，紧急打 911；可关掉。 | FX-009, FX-010 |
+| REQ-026 — 一键清空 [interface] | above | 点清空按钮，记录和前文清空，小伙伴回 `neutral`，出现"已清空"提示，不弹确认。 | n/a: 页面状态 |
+| REQ-027 — 戳一戳 [interface] | above | 点击小伙伴，或聚焦时按 Enter，播放俏皮反应后回到当前情绪；连戳时反应有变化。 | n/a: 纯页面动画 |
+| REQ-028 — 原地改名 [interface] | above | 在显示名字处直接改名；确认后页面称呼小伙伴之处都用新名；改成空白恢复默认名。 | n/a: 页面状态（清理见 REQ-031） |
+| REQ-029 — 名字刷新后仍在 [interface] | above | 名字存在本机这个浏览器里，刷新或重开仍在；聊天照旧刷新即清空；一键清空不动名字。 | n/a: 浏览器本机存储 |
+| REQ-030 — Bonsai 用这个名字自称 [interface] | above | 回复中小伙伴提到自己时用当前名字；改名后不再自称默认名。 | FX-011 |
+| REQ-031 — 名字限长并清理 [interface] | above | 名字去首尾空白，只留文字、数字、空格和 `-'·`，至多 12 字；只当纯文字显示；Bonsai 只见清理后的名字。 | FX-012 |
+| REQ-032 — 记忆须主动打开（design-only） [interface] | below | 记忆默认关，用户明确打开后才跨会话保存；关着时同现在。 | n/a: design-only, below the cut |
+| REQ-033 — 跨会话情绪记录（design-only） [interface] | below | 记忆开时，每轮情绪连同日期存在本机，用户能看到过去的情绪记录。 | n/a: design-only, below the cut |
+| REQ-034 — "关于你"摘要（design-only） [interface] | below | 记忆开时，本机存一段关于用户的简短摘要，用户能看到，之后的会话回复能用上。 | n/a: design-only, below the cut |
+| REQ-035 — 忘掉我（design-only） [interface] | below | "忘掉我"立即删除全部记忆（情绪记录与摘要），刷新后也不剩。 | n/a: design-only, below the cut |
 
 ## Non-goals
 

@@ -1,17 +1,20 @@
-// llama-server child and the reply + mood calls to Bonsai (03 DES-007, DES-008).
+// llama-server child and the reply + mood calls to Bonsai (03 DES-007, DES-008); name and crisis turn (DES-020, DES-021).
 import { randomBytes } from 'node:crypto';
 import { bonsaiFiles, CONFIG } from './config.js';
+import { isCrisis, isStrongCrisis } from './crisis.js';
 import { ApiError } from './errors.js';
 import { hanCount, languageOf } from './lang.js';
 import { log } from './log.js';
-import { LANG_RULE, MOOD_SAMPLING, MOOD_SCHEMA, MOOD_SYSTEM, MOODS, RECALL, REPLY_SAMPLING, REPLY_SYSTEM } from './prompts.js';
+import {
+  CRISIS_FALLBACK, CRISIS_LINE, CRISIS_MARK, CRISIS_RULE, LANG_RULE, MOOD_SAMPLING, MOOD_SCHEMA, MOOD_SYSTEM, MOODS, RECALL, REPLY_SAMPLING, replySystem,
+} from './prompts.js';
 import { supervise } from './supervisor.js';
 
 const NO_THINKING = { chat_template_kwargs: { enable_thinking: false } };
 const QUOTES = { '"': '"', "'": "'", '“': '”', '‘': '’', '「': '」', '『': '』' };
 const CAPS = { zh: 120, en: 40 };
 // A sentence ends after a run of 。！？!?.… ; emoji (and closing quotes/brackets) right after it stay with it.
-const SENTENCE = /[\s\S]*?(?:[。！？!?.…]+(?:\p{Extended_Pictographic}|\p{Emoji_Modifier}|️|‍|[”’"'）)」』])*|$)/gu;
+export const SENTENCE = /[\s\S]*?(?:[。！？!?.…]+(?:\p{Extended_Pictographic}|\p{Emoji_Modifier}|️|‍|[”’"'）)」』])*|$)/gu;
 
 // Prompt cost of a history text, ≈ 4 × tokens: Han counts 2.5, everything else 1 (03 DES-007).
 const weight = (text) => text.length + 1.5 * hanCount(text);
@@ -24,10 +27,12 @@ export function windowOf(history, cfg = CONFIG) {
 }
 
 // The last message carries a reminder of the newest earlier user line (03 DES-008); it is never stored, logged or counted by windowOf.
-export function toMessages(line, history, lang) {
+// System message = replySystem(name) + LANG_RULE (+ CRISIS_RULE on a crisis turn) (03 DES-020, DES-021).
+export function toMessages(line, history, lang, name = null, crisis = false) {
   const prev = history.findLast((h) => h.role === 'user')?.text;
+  const system = `${replySystem(name)}\n${LANG_RULE[lang]}${crisis ? `\n${CRISIS_RULE[lang]}` : ''}`;
   return [
-    { role: 'system', content: `${REPLY_SYSTEM}\n${LANG_RULE[lang]}` },
+    { role: 'system', content: system },
     ...history.map((h) => ({ role: h.role === 'companion' ? 'assistant' : 'user', content: h.text })),
     { role: 'user', content: prev === undefined ? line : `${line}\n${RECALL[lang](prev)}` },
   ];
@@ -39,14 +44,17 @@ function unwrap(text) {
   return s;
 }
 
-// The mood call's JSON content → its mood value, or null when it is not JSON (falls back to neutral, 03 §3).
+// The mood call's JSON content → { mood, risk }: mood null when absent or not JSON (falls back to neutral, 03 §3);
+// risk null unless it is a boolean (FND-026: then the crisis verdict falls back to isCrisis).
 function moodOf(content) {
+  let o;
   try {
-    return JSON.parse(content)?.mood ?? null;
+    o = JSON.parse(content);
   } catch (err) {
-    if (err instanceof SyntaxError) return null;
+    if (err instanceof SyntaxError) return { mood: null, risk: null };
     throw err;
   }
+  return { mood: o?.mood ?? null, risk: typeof o?.risk === 'boolean' ? o.risk : null };
 }
 
 const size = (s, lang) => (lang === 'zh' ? [...s].length : s.split(/\s+/).filter(Boolean).length);
@@ -71,6 +79,22 @@ export function shapeReply(text, lang) {
       : `${reply.split(/\s+/).filter(Boolean).slice(0, CAPS.en).join(' ')}…`;
   }
   return reply;
+}
+
+// Crisis turn reply (03 DES-020): the first sentence of the shaped reply (or the fixed gentle sentence when there is none),
+// then the 988 line unless the sentence already holds CRISIS_MARK (a bare '988', e.g. the name "988", does not count: FND-019);
+// the first sentence is cut so the whole stays within CAPS.
+export function crisisReply(shaped, lang) {
+  let first = shaped === '' ? CRISIS_FALLBACK[lang] : shaped.match(SENTENCE)[0].trim(); // shapeReply output is trimmed: match 0 is non-empty
+  if (first.replace(/\s/g, '').toLowerCase().includes(CRISIS_MARK[lang])) return first;
+  const sep = lang === 'zh' ? '' : ' ';
+  const room = CAPS[lang] - size(CRISIS_LINE[lang], lang); // the separator adds no code point (zh) and no word (en)
+  if (size(first, lang) > room) {
+    first = lang === 'zh'
+      ? `${[...first].slice(0, room - 1).join('')}…`
+      : `${first.split(/\s+/).filter(Boolean).slice(0, room).join(' ')}…`;
+  }
+  return `${first}${sep}${CRISIS_LINE[lang]}`;
 }
 
 export function createBonsai(cfg = CONFIG) {
@@ -104,26 +128,33 @@ export function createBonsai(cfg = CONFIG) {
     }
   }
 
-  async function chat(line, history) {
+  // The mood call never carries the name (03 DES-021 step 3). FND-026: strong = isStrongCrisis(line) (gets CRISIS_RULE); the verdict is
+  // strong || the mood call's risk, or strong || isCrisis(line) when risk is unknown (call failed, not JSON, risk missing).
+  async function chat(line, history, name = null, strong = false) {
     const started = Date.now();
     const lang = languageOf(line);
     const win = windowOf(history, cfg);
     const signal = AbortSignal.timeout(cfg.deadlines.respondMs);
     const timed = (p) => p.then((v) => ({ v, ms: Date.now() - started }));
     const [reply, mood] = await Promise.allSettled([
-      timed(post({ messages: toMessages(line, win, lang), ...REPLY_SAMPLING }, signal)),
+      timed(post({ messages: toMessages(line, win, lang, name, strong), ...REPLY_SAMPLING }, signal)),
       timed(post({ messages: [{ role: 'system', content: MOOD_SYSTEM }, { role: 'user', content: line }], ...MOOD_SAMPLING, response_format: MOOD_SCHEMA }, signal)),
     ]);
-    if (reply.status === 'rejected') throw reply.reason;
-    const text = shapeReply(reply.value.v, lang);
-    if (!text) throw new ApiError('failed', 'bonsai');
-    const value = mood.status === 'fulfilled' ? moodOf(mood.value.v) : null;
+    const shaped = reply.status === 'fulfilled' ? shapeReply(reply.value.v, lang) : '';
+    const { mood: value, risk } = mood.status === 'fulfilled' ? moodOf(mood.value.v) : { mood: null, risk: null };
+    const crisis = strong || (risk ?? isCrisis(line));
+    const crisisBy = strong ? 'strong' : risk === true ? 'model' : risk === null && crisis ? 'fallback' : null;
+    // A crisis turn never fails: when Bonsai gives no reply, the fixed gentle sentence + 988 line (UD-1 = (a), the user at Plan).
+    if (!crisis) {
+      if (reply.status === 'rejected') throw reply.reason;
+      if (!shaped) throw new ApiError('failed', 'bonsai');
+    }
     const fallback = !MOODS.includes(value);
     log('info', 'respond_done', {
-      ms: Date.now() - started, reply_ms: reply.value.ms, mood_ms: mood.status === 'fulfilled' ? mood.value.ms : null,
-      lang, mood_fallback: fallback, history_n: win.length,
+      ms: Date.now() - started, reply_ms: shaped ? reply.value.ms : null, mood_ms: mood.status === 'fulfilled' ? mood.value.ms : null,
+      lang, mood_fallback: fallback, history_n: win.length, crisis_by: crisisBy,
     });
-    return { reply: text, mood: fallback ? 'neutral' : value };
+    return { reply: crisis ? crisisReply(shaped, lang) : shaped, mood: fallback ? 'neutral' : value, lang, crisis };
   }
 
   async function warm(child) {
@@ -168,11 +199,15 @@ export function createBonsai(cfg = CONFIG) {
     get pid() {
       return proc?.pid ?? null;
     },
-    respond(line, history) {
+    respond(line, history, name = null) {
       const state = proc?.state ?? 'down';
+      if (state !== 'ready' && isCrisis(line)) {
+        const lang = languageOf(line); // Bonsai starting or down: no call made, mood neutral (03 DES-020 step 3)
+        return Promise.resolve({ reply: crisisReply('', lang), mood: 'neutral', lang, crisis: true });
+      }
       if (state === 'starting') return Promise.reject(new ApiError('not_ready', 'bonsai'));
       if (state !== 'ready') return Promise.reject(new ApiError('unavailable', 'bonsai'));
-      return chat(line, history);
+      return chat(line, history, name, isStrongCrisis(line));
     },
   };
 }

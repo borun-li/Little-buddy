@@ -1,6 +1,6 @@
 {
   "phase": "fe-build",
-  "time": "2026-11-15T02:09:27Z",
+  "time": "2026-11-15T09:37:58Z",
   "project": "/Users/apple/Desktop/Hackathon/Local_AI_Hackathon",
   "run_dir": "docs/frontend",
   "overall": "pass",
@@ -79,9 +79,8 @@
       "message": "tests green",
       "owner": "fe-engineer",
       "details": [
-        "reused the run of 2026-11-15T02:08:58Z: same tree and command (test_reuse_minutes)",
-        "$ npm test -> exit 0 (0.9s), log: /Users/apple/Desktop/Hackathon/Local_AI_Hackathon/docs/frontend/gates/logs/2026-11-15T020857Z-test.log",
-        "counts: {'failed': 0, 'xfailed': 0, 'skipped': 0, 'passed': 84, 'errors': 0, 'xpassed': 0}",
+        "$ npm test -> exit 0 (582.9s), log: /Users/apple/Desktop/Hackathon/Local_AI_Hackathon/docs/frontend/gates/logs/2026-11-15T092815Z-test.log",
+        "counts: {'passed': 274, 'errors': 0, 'xfailed': 0, 'skipped': 0, 'failed': 0, 'xpassed': 0}",
         "per-test results: report from gates.json junit: test-results/junit.xml"
       ]
     },
@@ -95,7 +94,7 @@
     {
       "id": "FE.observables",
       "status": "pass",
-      "message": "19 approved observables intact",
+      "message": "34 approved observables intact",
       "owner": "fe-engineer",
       "details": []
     },
@@ -130,16 +129,15 @@
   ],
   "data": {
     "writer_changed": [
-      "docs/frontend/run-log.jsonl",
-      "package.json",
-      "web/js/talk-button.js"
+      "docs/codemap.md",
+      "docs/frontend/run-log.jsonl"
     ],
     "counts": {
-      "failed": 0,
+      "passed": 274,
+      "errors": 0,
       "xfailed": 0,
       "skipped": 0,
-      "passed": 84,
-      "errors": 0,
+      "failed": 0,
       "xpassed": 0
     }
   }

@@ -1,0 +1,17 @@
+{
+  "req": "REQ-030",
+  "reqs": [
+    "REQ-030"
+  ],
+  "source": "inputs: 01 § Increment 2, Fixtures FX-011 (drafted by be-analyst #3). Expected: REQ-030 Accept ('每条含该名字；改过名的不含\"小伙伴\"/\"Little Buddy\"'). 01 and 02 send a custom name; 03 omits name (the legitimately absent shape, DES-021: absent = default name). 03 [unverified]: REQ-028 / A26 make the default name 小伙伴 or Little Buddy by UI language, and the UI language never reaches the backend (03 § Increment 2 §9), so either default form passes; the zh line would normally give 小伙伴 (REQ-005). 团子 and Mochi are unchanged by the name rule (FX-012 row 01; Mochi has nothing to clean).",
+  "compare": "exact",
+  "compare_note": "Per case, the test builds {status, reply_checks} from the actual response (POST /api/respond {line, history[, name]} -> 200 {reply, mood, lang, crisis, speech}, 03 § Increment 2 §9) with the rules in `rules` and compares it exactly. The expected keys of reply_checks differ per case: compute only the keys the case lists.",
+  "rules": {
+    "normalise": "NFC, toLowerCase, runs of whitespace -> one space",
+    "contains_name": "normalised reply contains the normalised name sent in body.name",
+    "no_default_name": "normalised reply contains neither '小伙伴' nor 'little buddy'",
+    "contains_default_name": "normalised reply contains '小伙伴' or 'little buddy'"
+  },
+  "runs": 3,
+  "pass": "REQ-030: the whole expected object exact in 3/3 runs for every case"
+}

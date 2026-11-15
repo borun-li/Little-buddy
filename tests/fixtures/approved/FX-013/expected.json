@@ -1,0 +1,20 @@
+{
+  "cases": [
+    {
+      "id": "FX-013-01",
+      "audible": true,
+      "language": "zh",
+      "metric": "CER",
+      "text_reference": "太棒了！这真值得庆祝。你准备去庆祝吗？",
+      "error_rate_max": 0.2
+    },
+    {
+      "id": "FX-013-02",
+      "audible": true,
+      "language": "en",
+      "metric": "WER",
+      "text_reference": "That is amazing news! I can't wait to hear all about it.",
+      "error_rate_max": 0.2
+    }
+  ]
+}

@@ -103,6 +103,71 @@
         "meta.json": "3ee2aba49135f7b3cfbb88875a2227a1f22493fe581d126eeaeead1b4e875697"
       },
       "history": []
+    },
+    "FX-009": {
+      "req": "REQ-023",
+      "source": "lines: 01 § Increment 2, Fixtures FX-009 (drafted by be-analyst #3; the user approves them at Plan), each with history [] and no name field (default name: the legitimately absent shape, DES-021). crisis true: REQ-023 (a self-harm or suicide statement in zh or en is a crisis), with 07 from A22 (case is normalised), 08 from A22 / Q9 (a negated statement still counts) and 09 from the user's Plan addition 2026-11-15 (the FRAME-019 line; 活着没什么意思 family, DES-019). reply_checks: REQ-024 (mentions 988, the line's language, REQ-004 length: <= 2 sentences, <= 1 question, zh <= 120 chars / en <= 40 words). REQ-025's card is the page's part: at this endpoint it is observed only as crisis true (DES-026 reads nothing else).",
+      "compare": "exact",
+      "approved_by": "user",
+      "date": "2026-11-15",
+      "files": {
+        "expected.json": "a0a5f853ecbe526eaf3c5e6164de12cc20e1188f75f8ae5cc9edaa4fd877d0a8",
+        "input.json": "5b4a436fb455a2db709b4807c034651b19f64eefe83ca3786af8df4aecde8f76",
+        "meta.json": "94612ff70f08b24d2c6fd1cc6369818cf0707fe8cac3e6b02dfc703d84d0ff80"
+      },
+      "history": []
+    },
+    "FX-010": {
+      "req": "REQ-023",
+      "source": "lines: 01 § Increment 2, Fixtures FX-010 (near-misses drafted by be-analyst #3; the user approves them at Plan), each with history [] and no name field. crisis false: REQ-023 (none states self-harm or suicide: 累死 / 笑死 = very tired / very funny, 杀青 = film wrap, 'killing me' / 'die for' / 'killed it' = idioms) and REQ-025 ('FX-010 不出卡片'; the page shows the card only when crisis is true, DES-026).",
+      "compare": "exact",
+      "approved_by": "user",
+      "date": "2026-11-15",
+      "files": {
+        "expected.json": "6d78e0cb6eb885bf434e041999b9960c63eae33b88f3f0957db8278e8a837cf9",
+        "input.json": "93f8adb3b9798507f883555ce3b0d7a72da11853afb5214ffcfc916017df0ccb",
+        "meta.json": "3f4c35982b2ff04f471c8ecf3ac8089ea90ae91523dacc3983e85e960cc545b0"
+      },
+      "history": []
+    },
+    "FX-011": {
+      "req": "REQ-030",
+      "source": "inputs: 01 § Increment 2, Fixtures FX-011 (drafted by be-analyst #3). Expected: REQ-030 Accept ('每条含该名字；改过名的不含\"小伙伴\"/\"Little Buddy\"'). 01 and 02 send a custom name; 03 omits name (the legitimately absent shape, DES-021: absent = default name). 03 [unverified]: REQ-028 / A26 make the default name 小伙伴 or Little Buddy by UI language, and the UI language never reaches the backend (03 § Increment 2 §9), so either default form passes; the zh line would normally give 小伙伴 (REQ-005). 团子 and Mochi are unchanged by the name rule (FX-012 row 01; Mochi has nothing to clean).",
+      "compare": "exact",
+      "approved_by": "user",
+      "date": "2026-11-15",
+      "files": {
+        "expected.json": "38d014fbbc898b53747af843d4110290f46709b8281a4882d79556f92e212974",
+        "input.json": "1902e1d0a872abedb26feb82a9fa07f146de8453fe1b0f5df079bfcb4e5b403b",
+        "meta.json": "aca0dbbe1238ed761da1337360bdba0825d9e42cbf6b0c337d96ea5babb35265"
+      },
+      "history": []
+    },
+    "FX-012": {
+      "req": "REQ-031",
+      "source": "names: 01 § Increment 2, Fixtures FX-012 (drafted by be-analyst #3). Expected value: REQ-031 ('去首尾空白，只留文字、数字、空格和 -'·，至多 12 字') with A26 (NFC; letters and digits of any script; other characters removed; 12 = code points, cut after removal; empty after cleaning -> default name). null = default name: nothing stored, the page shows 小伙伴 / Little Buddy by UI language (REQ-028), Bonsai gets no custom name. Shape (string | null) from 03 DES-021 cleanName / DES-027; the design's own values (docs/backend/logs/be-architect-6-tts.log §J) agree on all 7 rows. status 200: every input is a string <= 200 chars, so none is refused (DES-021 step 1).",
+      "compare": "exact",
+      "approved_by": "user",
+      "date": "2026-11-15",
+      "files": {
+        "expected.json": "fcc389ef3e53ff09f73db1fec8018dee8d0e7ca39d312fcb455aacf98671af41",
+        "input.json": "89cab8f57e7a8c77c78a2ec278673ddfc09e024539f12177412d83016143e52a",
+        "meta.json": "453fb4670cecc1d4c11280c2e08cf7b05a016f7a04bbc262f791c778fc37a316"
+      },
+      "history": []
+    },
+    "FX-013": {
+      "req": "REQ-014",
+      "source": "replies: 01 § Increment 2, Fixtures FX-013 = real Bonsai replies, verbatim, from tests/fixtures/approved/FX-003/input.json and FX-002/input.json history[1]. lang = the reply's language (REQ-014; REQ-005). Expected: REQ-014 Accept (sound 6/6; synthesised speech read back by this project's WhisperKit, same language, CER/WER <= 20%, A17). text_reference = the reply text; 02 [unverified]: the emoji 🎉 is not spoken text, so the reference has no words for it (DES-018 also drops it). 01 is 3 sentences (raw Bonsai text before reply shaping, REQ-004 allows 2); it is still a valid text to read (19 chars). Input is text because the audio is produced by the system under test.",
+      "compare": "numeric:0.2",
+      "approved_by": "user",
+      "date": "2026-11-15",
+      "files": {
+        "expected.json": "d19360e85fda3b00474c9e5112f130322b55df14027c00e15a716b30f397998b",
+        "input.json": "c2b3bd1489eccdfb5cf55441e3b25cc4bfd0c6de5b9fc180c09a04102e03ed33",
+        "meta.json": "bad8dbe019ace5d48d74c4ef9a226a77c50ea02266ec2524958213d417efa2a4"
+      },
+      "history": []
     }
   }
 }

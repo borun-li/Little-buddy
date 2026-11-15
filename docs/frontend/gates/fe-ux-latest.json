@@ -1,6 +1,6 @@
 {
   "phase": "fe-ux",
-  "time": "2026-11-15T01:48:02Z",
+  "time": "2026-11-15T05:36:05Z",
   "project": "/Users/apple/Desktop/Hackathon/Local_AI_Hackathon",
   "run_dir": "docs/frontend",
   "overall": "pass",
@@ -55,14 +55,14 @@
     {
       "id": "FE1.coverage",
       "status": "pass",
-      "message": "11 active REQs each served by a page",
+      "message": "28 active REQs each served by a page",
       "owner": "fe-ux",
       "details": []
     },
     {
       "id": "FE1.flows",
       "status": "pass",
-      "message": "7 flows with steps, success, failure, cancel, recovery, boundary",
+      "message": "14 flows with steps, success, failure, cancel, recovery, boundary",
       "owner": "fe-ux",
       "details": []
     },
@@ -138,7 +138,14 @@
       "FLOW-004",
       "FLOW-005",
       "FLOW-006",
-      "FLOW-007"
+      "FLOW-007",
+      "FLOW-008",
+      "FLOW-009",
+      "FLOW-010",
+      "FLOW-011",
+      "FLOW-012",
+      "FLOW-013",
+      "FLOW-014"
     ]
   }
 }

@@ -7,8 +7,8 @@
     "check": "关掉 Wi-Fi，npm start 打开页面，按住说一句开心的英文（如 \"I just got the internship!\"）：几秒内出现 Bonsai 现场生成的英文回复（不是预设句），小伙伴变开心；再说一句难过的，回复接得上前文，小伙伴变难过。"
   },
   "started_at": "2026-11-14T22:19:00Z",
-  "updated_at": "2026-11-15T04:34:33Z",
-  "status": "accepted",
+  "updated_at": "2026-11-15T15:45:00Z",
+  "status": "in_progress",
   "tier": "full",
   "risk": "normal",
   "risk_note": "Rule says high (new external deps: WhisperKit Swift package, llama-server process, a local backend service; voice/emotion personal data). User chose normal for speed, 2026-11-14 kickoff: explicit trade of reliability review for speed (Constitution §1).",
@@ -25,7 +25,7 @@
     "be-review-reliability": "opus",
     "be-review-security": "opus"
   },
-  "current_phase": 6,
+  "current_phase": 1,
   "phases": [
     {
       "phase": 1,
@@ -77,7 +77,21 @@
       "words": "今晚必须完成P1的设计（设计 + 做出来）。P1：语音回复（Argmax TTS）、一起深呼吸、安全兜底（988）、一键清空；P2的本地记忆如果有时间可以设计。先验收 P0，再做 P1。另问：是否加入 sidechat，类似于额外的聊天窗口（解决上下文管理问题）",
       "by": "user",
       "joins_at": "P0 Acceptance stop (PLAYBOOK §3B)",
-      "status": "starting (scope with user)"
+      "status": "in_progress",
+      "scope": {
+        "build": [
+          "voice reply: auto-read each reply in its language (Argmax Qwen3-TTS, resident, warmed), speaker toggle to mute",
+          "deep breathing: offered after an anxious (unpleasant-high) turn via a button; companion breathes in 4 s / out 6 s × 3, stoppable",
+          "988 safety: gentle mention in the reply + a calm card (988 call/text, 911 emergency) when crisis content is detected",
+          "one-click clear: clears log and history, companion neutral, 'cleared' hint, no confirm",
+          "poke: click/Enter on the companion → playful reaction animation, varied on repeats, reduced-motion fallback",
+          "custom name: edit the companion's name in place, saved locally, used by Bonsai when it refers to itself"
+        ],
+        "design_only": [
+          "local memory: mood history + 'about you' summary across sessions with opt-in and forget-me (P2)"
+        ],
+        "decided_by": "user 2026-11-14 ~23:55 EST"
+      }
     }
   ],
   "open_questions": [
@@ -98,7 +112,12 @@
     "Frontend: Q-010..019 built; review 9 FND (3 major fixed, re-checked; minors deferred D-006..D-012); fe-review (scoped user waiver) and fe-verify pass, 2026-11-15.",
     "Backend p5 open: TC-073 (stt_warm log not in §6), TC-081 (context recall 1/3); P5.tc-results not-executed because `npm test` excludes backend suites → be-tester to wire them in.",
     "Video: user records live; orchestrator writes a 2-min shot list, narration, tested demo lines and a pre-record checklist (user, 2026-11-14 21:25 EST).",
-    "Phase 6 panel round 1 done (behavior, security, reliability): candidates in docs/backend/logs/review-r1-candidates.md — 1 blocker (S-1/R-1 '//' crash), majors S-2 CORS, B-1 noise→'Okay.', R-2 silent child failure. Next: fresh be-reviewer merges → 06-review-report.md, gate p6."
+    "Phase 6 panel round 1 done (behavior, security, reliability): candidates in docs/backend/logs/review-r1-candidates.md — 1 blocker (S-1/R-1 '//' crash), majors S-2 CORS, B-1 noise→'Okay.', R-2 silent child failure. Next: fresh be-reviewer merges → 06-review-report.md, gate p6.",
+    "P0 p7: P7.matrix gaps are manual TCs the user covered at Acceptance (TC-083..086, TC-070/076); record them via a tester in increment 2 before the final p7.",
+    "Build brief carry-overs (2026-11-15 ~01:12 EST): be-developer fixes stale text only, no behaviour change — DES-023 voice: envVoice() comment, § 5 TTS_VOICE row (default = serena, decided), § 9 crisis row (UD-1 = (a) decided); then re-copy § 9 seam to contracts/FRONTEND_BACKEND_CONTRACT.md. 01-requirements.md § Increment 2 FX-009 row (line ~417) lacks FX-009-09 (FRAME-019 line); locked fixture is authoritative.",
+    "Ready state (c8a1144, pushed): Plan done, p2 pass, FX-009..013 locked. Next on user's go: baseline → mark be-tester/be-developer → Phase 4 build (DES-016..023), then frontend Q-020..Q-033 serial.",
+    "USER DEV RULES (2026-11-15 ~01:20 EST, hold lifted): (1) run P1 end to end in one go, all features, no mid-run pauses; (2) if an error repeats (>=2 consecutive) and fix rounds cannot fix it, waive it automatically and report honestly to the user in the morning; (3) orchestrator estimates P2 local memory; (4) orchestrator prepares the shot script; user records, orchestrator helps edit; 1-2 min warm product-promo video.",
+    "Increment 2 (2026-11-15 ~06:55 EST): built and verified overnight. Gates p4, p5, p6, fe-build, fe-review, fe-verify pass; npm test 300/300; demo after 9/9. p7 fails only on P7.matrix (manual TCs blocked until the user's own check: TC-070..076, 084..086, 133, 134, 136) and LOG.trail (harness gap). Waiting for the user's Acceptance; confirm FND-014 decision; open user decisions FND-017/018."
   ],
   "decisions_at_plan": {
     "by": "user",
@@ -118,5 +137,24 @@
     "by": "user",
     "date": "2026-11-14",
     "words": "关掉Wi-Fi后可以成功运行，且效果比较好。我很满意。"
+  },
+  "decisions_at_plan_inc2": {
+    "by": "user",
+    "date": "2026-11-15",
+    "voice": "serena",
+    "crisis_list": "approved + add 活着没什么意思-type phrases",
+    "negations": "trigger",
+    "designs": "FRAME-017..025 approved",
+    "UD-1": "(a)",
+    "fixtures": "FX-009..013 lock after phrase addition"
+  },
+  "accepted_inc2": {
+    "by": "user",
+    "date": "2026-11-15",
+    "words": "验收通过",
+    "fixes_at_acceptance": [
+      "FND-025 7566aa4",
+      "FND-026 c3959f2"
+    ]
   }
 }

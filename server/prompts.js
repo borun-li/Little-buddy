@@ -27,9 +27,33 @@ Examples:
 "My boss yelled at me and I'm furious." -> unpleasant-high
 "我好想奶奶。" -> unpleasant-low
 "I'm on the bus." -> neutral
-"我吃完午饭了。" -> neutral`;
+"我吃完午饭了。" -> neutral
+Also set risk: true when the user says or implies they want to die, kill themselves, harm themselves or no longer want to live, including indirect, past-tense or soft phrasing ("I wanted to die", "I want to end it", "I don't want to wake up", 活着真没意思, 不想醒来, 撑不下去了想消失). risk: false for idioms and exaggeration (想死你了 = I miss you, 笑死我了, 累死了, 思想死板, 死磕, "this traffic is killing me", 跳楼价), and for talk about other people, fiction or news.`;
 
 export const REPLY_SAMPLING = { temperature: 0.7, top_p: 0.8, top_k: 20, min_p: 0, presence_penalty: 1.5, repetition_penalty: 1.0, max_tokens: 120 };
-export const MOOD_SAMPLING = { temperature: 0, top_k: 1, max_tokens: 16 };
+// FND-026 (Acceptance): the mood call also returns risk (semantic crisis judgment); 32 tokens fit {"mood": ..., "risk": ...}.
+export const MOOD_SAMPLING = { temperature: 0, top_k: 1, max_tokens: 32 };
 export const MOOD_SCHEMA = { type: 'json_schema', json_schema: { name: 'mood', strict: true, schema: {
-  type: 'object', properties: { mood: { type: 'string', enum: MOODS } }, required: ['mood'], additionalProperties: false } } };
+  type: 'object', properties: { mood: { type: 'string', enum: MOODS }, risk: { type: 'boolean' } }, required: ['mood', 'risk'], additionalProperties: false } } };
+
+// Name (03 DES-021): null → REPLY_SYSTEM unchanged; a cleaned name has no quote, newline, bracket or colon (server/name.js).
+// TC-125 (review round 1): the words 小伙伴 / Little Buddy are banned outright (the old rule still allowed '…暖心小伙伴').
+export const NAME_RULE = (n) => `Your name is "${n}". When you mention yourself or are asked your name, say "${n}". Never write the words 小伙伴 or Little Buddy, not even to describe yourself; say 朋友 or friend instead.`;
+
+export function replySystem(name) {
+  if (name === null) return REPLY_SYSTEM;
+  return `${REPLY_SYSTEM.replace('小伙伴 (Little Buddy)', `"${name}"`)}\n${NAME_RULE(name)}`;
+}
+
+// Crisis turn (03 DES-020). Words shown to the user at Plan and approved 2026-11-15; they appear in replies.
+export const CRISIS_RULE = {
+  zh: '用户可能有伤害自己的念头。只用一句温柔的话回应，表示你听到了、你在乎他；不要提问，不要诊断，不要给建议。',
+  en: 'The user may be thinking about hurting themselves. Answer with one gentle sentence that shows you heard them and care; no question, no diagnosis, no advice.',
+};
+export const CRISIS_LINE = {
+  zh: '你不用一个人扛着，随时可以打给 988，或者发短信，那边有人愿意听你说。',
+  en: "You don't have to carry this alone; you can call or text 988 anytime, and someone there will listen.",
+};
+// CRISIS_LINE's own wording, whitespace removed, lowercased: a first sentence holding it already gives the hotline (FND-019).
+export const CRISIS_MARK = { zh: '打给988', en: 'callortext988' };
+export const CRISIS_FALLBACK = { zh: '谢谢你愿意告诉我这些，我很在乎你。', en: 'Thank you for telling me this, and I really care about you.' };

@@ -41,6 +41,7 @@ export const COPY = {
       sendUnavailable: '没连上小伙伴，这句没发出去。文字放回输入框了，稍等再按 Enter。',
       sendTimeout: '小伙伴想得太久，这次没回上。文字放回输入框了，按 Enter 再发。',
       sendFailed: '这次没回上来。文字放回输入框了，按 Enter 再发。',
+      cleared: '聊天清空了，重新开始吧。',
       sendDefect: '这句没发出去。文字放回输入框了，再试一次；还不行就刷新页面（聊天会清空）。',
     },
     // Mood caption after "小伙伴 · " and the word in the accessible name "小伙伴，<word>".
@@ -54,6 +55,31 @@ export const COPY = {
     },
     companionCaption: (phrase) => `小伙伴 · ${phrase}`,
     companionName: (word) => `小伙伴，${word}`,
+    // Increment 2 (01-ux.md Words (increment 2)); memory words are design only and not added.
+    defaultName: '小伙伴',
+    speaker: '朗读回复',
+    speakerOn: '朗读开着，点一下静音',
+    speakerOff: '已静音，点一下打开朗读',
+    speakerNotReady: '声音还没准备好，回复先只显示文字',
+    breathOffer: '一起深呼吸？',
+    breathStop: '停下',
+    breathStopName: '停下深呼吸',
+    breathIn: (n) => `吸气… ${n}`,
+    breathOut: (n) => `呼气… ${n}`,
+    breathName: (name) => `${name}，陪你深呼吸`,
+    crisisLabel: '求助方式',
+    crisisTitle: '你不是一个人，随时可以找人聊聊。',
+    crisis988: '在美国，打电话或发短信到 988（自杀与危机生命线），24 小时都有人。',
+    crisis911: '如果有立即的危险，请打 911。',
+    crisisClose: '收起',
+    crisisCloseName: '收起求助方式',
+    clear: '清空',
+    clearName: '清空聊天',
+    pokeHelp: '点一下或按 Enter，戳一戳',
+    pokes: ['嘿嘿，好痒', '哎呀！', '在呢在呢'],
+    renameName: (name) => `改名字，现在叫${name}`,
+    nameLabel: '名字',
+    nameNote: '名字记在这台电脑上，最多 12 个字。',
   },
   en: {
     title: 'Little Buddy',
@@ -94,6 +120,7 @@ export const COPY = {
       sendUnavailable: "Couldn't reach Little Buddy, so this didn't send. Your words are back in the box; press Enter again in a moment.",
       sendTimeout: 'Little Buddy took too long this time. Your words are back in the box; press Enter to send again.',
       sendFailed: "That reply didn't come through. Your words are back in the box; press Enter to send again.",
+      cleared: 'Chat cleared. Start fresh any time.',
       sendDefect: "This didn't send. Your words are back in the box; try again, and if it still fails, reload the page (the chat will clear).",
     },
     moods: {
@@ -106,6 +133,30 @@ export const COPY = {
     },
     companionCaption: (phrase) => `Little Buddy · ${phrase}`,
     companionName: (word) => `Little Buddy, ${word}`,
+    defaultName: 'Little Buddy',
+    speaker: 'Read replies aloud',
+    speakerOn: 'Reading aloud is on. Click to mute.',
+    speakerOff: 'Muted. Click to read replies aloud.',
+    speakerNotReady: "Voice isn't ready yet. Replies show as text for now.",
+    breathOffer: 'Breathe together?',
+    breathStop: 'Stop',
+    breathStopName: 'Stop breathing',
+    breathIn: (n) => `Breathe in… ${n}`,
+    breathOut: (n) => `Breathe out… ${n}`,
+    breathName: (name) => `${name}, breathing with you`,
+    crisisLabel: 'Ways to get help',
+    crisisTitle: "You're not alone. You can talk to someone any time.",
+    crisis988: 'In the US, call or text 988 (Suicide & Crisis Lifeline), any time, day or night.',
+    crisis911: "If you're in immediate danger, call 911.",
+    crisisClose: 'Close',
+    crisisCloseName: 'Close ways to get help',
+    clear: 'Clear',
+    clearName: 'Clear chat',
+    pokeHelp: 'Click or press Enter to poke',
+    pokes: ['Hehe, that tickles', 'Oops!', "Yes, I'm here"],
+    renameName: (name) => `Rename, now called ${name}`,
+    nameLabel: 'Name',
+    nameNote: 'The name is saved on this computer, up to 12 characters.',
   },
 };
 
@@ -122,12 +173,40 @@ export function resolveLang(browserLang) {
 // so tests are not changed by the machine's locale). The language is never sent to the backend.
 export const copy = { ...COPY[DEFAULT_LANG] };
 let current = DEFAULT_LANG;
+let savedName = null; // Q-021: the user's name, or null for the default of the interface language
 export const getLang = () => current;
+export const getName = () => savedName ?? COPY[current].defaultName;
+
+// The 11 keys that carry the companion's name. The tables keep the default name in them, so the
+// increment-1 words stay true; the live object gets the name substituted (01-ux.md Keys that take {name}).
+const NAME_KEYS = ['title', 'inputLabel', 'typing', 'companionCaption', 'companionName',
+  'hints.warming', 'hints.awake', 'hints.unreachable', 'hints.stillDown', 'hints.sendUnavailable', 'hints.sendTimeout'];
+function withName(v, def, name) {
+  if (typeof v === 'function') return (...a) => v(...a).split(def).join(name);
+  return v.split(def).join(name);
+}
+function apply() {
+  Object.assign(copy, COPY[current], { hints: { ...COPY[current].hints } });
+  if (savedName === null) return;
+  const def = COPY[current].defaultName;
+  for (const key of NAME_KEYS) {
+    const [a, b] = key.split('.');
+    if (b) copy[a][b] = withName(COPY[current][a][b], def, savedName);
+    else copy[a] = withName(COPY[current][a], def, savedName);
+  }
+}
 export function setLang(lang) {
   if (!COPY[lang]) return current;
   current = lang;
-  Object.assign(copy, COPY[lang]);
+  apply();
   return current;
+}
+// A name that is empty, not a string or one of the default names reads as the default (null).
+export function setName(name) {
+  const n = typeof name === 'string' ? name.trim() : '';
+  savedName = n && !Object.values(COPY).some((c) => c.defaultName === n) ? n : null;
+  apply();
+  return getName();
 }
 
 // Q-018: 01-ux.md Codes, voice column. kind is 'no_audio', 'empty' or a transcribe error code.

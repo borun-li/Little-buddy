@@ -4,7 +4,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { imp, sleep, waitFor, freePort, mkTmp, withEnv, shellWrapper, SUPPORT } from './server-helpers.js';
+import { imp, fx, MOODS, sleep, waitFor, freePort, mkTmp, withEnv, shellWrapper, SUPPORT } from './server-helpers.js';
 
 const alive = (pid) => { try { process.kill(pid, 0); return true; } catch { return false; } };
 const code = (c) => (e) => e.code === c;
@@ -157,7 +157,7 @@ test('TC-029 bonsai.respond: one reply call (thinking off, REPLY_SAMPLING) and o
     await ready();
     const before = bodies(log).length;
     const r = await b.respond('I am HAPPY today', []);
-    assert.deepEqual(r, { reply: 'Fake reply.', mood: 'pleasant-high' });
+    assert.deepEqual(r, { reply: 'Fake reply.', mood: 'pleasant-high', lang: 'en', crisis: false }); // increment 2: + lang, crisis (DES-020)
     const calls = bodies(log).slice(before);
     assert.equal(calls.length, 2);
     const rep = calls.find((c) => !c.response_format), mood = calls.find((c) => c.response_format);
@@ -278,4 +278,245 @@ test('TC-036 bonsai llama-server arguments: loopback only, own port, -c 32768 -n
     assert.equal(at('-c'), '32768'); assert.equal(at('-np'), '2'); assert.equal(at('-ngl'), '99'); assert.equal(at('-fa'), 'on');
     assert.ok(argv.includes('--no-webui'));
   } finally { b.stop(); }
+});
+
+// =====================================================================================================
+// Increment 2 (docs/backend/04-test-plan.md § Increment 2): tts.js against tests/support/fake-tts.cjs; bonsai.respond crisis / name / lang
+// =====================================================================================================
+async function makeTts(env = {}, over = {}) {
+  const { createTts } = await imp('server/tts.js');
+  const { CONFIG } = await imp('server/config.js');
+  const dir = mkTmp();
+  const logFile = join(dir, 'tts.jsonl');
+  const cfg = structuredClone(CONFIG);
+  cfg.tts = { ...cfg.tts, bin: shellWrapper(dir, 'companion-tts', `${SUPPORT}/fake-tts.cjs`), modelDir: join(dir, 'models'), tokenizerDir: join(dir, 'tok'), voice: 'serena' };
+  cfg.deadlines = { ...cfg.deadlines, ...over };
+  const tts = await withEnv({ FAKE_TTS_LOG: logFile, ...env }, () => { const s = createTts(cfg); s.start(); return s; });
+  const log = () => (existsSync(logFile) ? readFileSync(logFile, 'utf8').split('\n').filter(Boolean).map((l) => JSON.parse(l)) : []);
+  const reqs = () => log().filter((e) => e.req).map((e) => e.req);
+  return { tts, log, reqs, dir, ready: () => waitFor(() => tts.state === 'ready', 10000, 'tts ready') };
+}
+const sig = () => new AbortController();
+
+test('TC-109 REQ-014 tts.speak: not_ready while starting; then a WAV (RIFF, PCM16 mono 24000 Hz); the helper gets --model-folder --tokenizer-folder --voice serena and {text, lang}; the non-JSON line is dropped', async () => {
+  const { tts, log, reqs, dir, ready } = await makeTts({ FAKE_TTS_WARM_MS: '1200' });
+  try {
+    assert.equal(tts.state, 'starting');
+    await assert.rejects(tts.speak('你好。', 'zh', sig().signal), (e) => e.code === 'not_ready' && e.status === 503);
+    await ready();
+    const wav = await tts.speak('你好。', 'zh', sig().signal);
+    assert.ok(Buffer.isBuffer(wav));
+    assert.equal(wav.toString('ascii', 0, 4), 'RIFF'); assert.equal(wav.toString('ascii', 8, 12), 'WAVE');
+    assert.equal(wav.readUInt16LE(20), 1, 'PCM'); assert.equal(wav.readUInt16LE(22), 1, 'mono'); assert.equal(wav.readUInt32LE(24), 24000, 'rate'); assert.equal(wav.readUInt16LE(34), 16, 'bits');
+    assert.equal(wav.length, 44 + wav.readUInt32LE(40));
+    await tts.speak('Hello there.', 'en', sig().signal);
+    assert.deepEqual(reqs().map(({ text, lang }) => ({ text, lang })), [{ text: '你好。', lang: 'zh' }, { text: 'Hello there.', lang: 'en' }]);
+    const argv = log().find((e) => e.argv).argv;
+    const at = (f) => argv[argv.indexOf(f) + 1];
+    assert.equal(at('--voice'), 'serena'); assert.equal(at('--model-folder'), join(dir, 'models')); assert.equal(at('--tokenizer-folder'), join(dir, 'tok'));
+    assert.ok(tts.pid > 0);
+  } finally { tts.stop(); }
+});
+
+test('TC-110 REQ-017 tts.speak failures: helper error -> failed (502); a slow answer past the deadline -> timeout (504) and is dropped; exit mid-flight and while down -> unavailable (503)', async () => {
+  const { tts, ready } = await makeTts({}, { speakMs: 400 });
+  try {
+    await ready();
+    await assert.rejects(tts.speak('ERR now', 'en', sig().signal), (e) => e.code === 'failed' && e.status === 502);
+    const t0 = Date.now();
+    await assert.rejects(tts.speak('LATE now', 'en', sig().signal), (e) => e.code === 'timeout' && e.status === 504);
+    assert.ok(Date.now() - t0 < 2000, 'timeout fires at the deadline');
+    await sleep(600);
+    assert.ok((await tts.speak('fine now', 'en', sig().signal)).length > 44, 'the late answer for the dropped id does not break the next request');
+    await assert.rejects(tts.speak('DIE now', 'en', sig().signal), (e) => e.code === 'unavailable' && e.status === 503);
+    assert.equal(tts.state, 'down');
+    await assert.rejects(tts.speak('x now', 'en', sig().signal), (e) => e.code === 'unavailable');
+  } finally { tts.stop(); }
+});
+
+test('TC-111 REQ-014/REQ-018 tts.speak queue: one request at a time in FIFO order; the deadline counts queue wait; a signal aborted while queued is never written to the helper; an in-flight abort does not break the next call', async () => {
+  const { tts, reqs, ready } = await makeTts({}, { speakMs: 1000 });
+  try {
+    await ready();
+    const [a, b, c] = ['SLOW a', 'SLOW b', 'SLOW c'];
+    const pa = tts.speak(a, 'en', sig().signal), pb = tts.speak(b, 'en', sig().signal), pc = tts.speak(c, 'en', sig().signal);
+    await sleep(200);
+    assert.deepEqual(reqs().map((r) => r.text), [a], 'only the first is written while it is in flight');
+    assert.ok((await pa).length > 44);
+    assert.ok((await pb).length > 44);
+    await assert.rejects(pc, (e) => e.code === 'timeout', 'c waited ~800 ms in the queue + 400 ms generation > 1000 ms');
+    assert.deepEqual(reqs().map((r) => r.text).slice(0, 2), [a, b], 'FIFO');
+    await sleep(800);
+  } finally { tts.stop(); }
+  const m = await makeTts({}, { speakMs: 5000 });
+  try {
+    await m.ready();
+    const acQ = sig();
+    const p1 = m.tts.speak('SLOW first', 'en', sig().signal);
+    const p2 = m.tts.speak('SLOW queued', 'en', acQ.signal);
+    const p3 = m.tts.speak('SLOW third', 'en', sig().signal);
+    const q = p2.then(() => 'resolved', (e) => e);
+    await sleep(100); acQ.abort();
+    assert.ok((await p1).length > 44); assert.ok((await p3).length > 44);
+    assert.notEqual(await q, 'resolved', 'the aborted call does not deliver audio');
+    assert.ok(!m.reqs().some((r) => r.text === 'SLOW queued'), 'never written to the helper');
+    const acF = sig();
+    const pf = m.tts.speak('SLOW inflight', 'en', acF.signal).then(() => 'resolved', (e) => e);
+    await sleep(100); acF.abort();
+    const next = m.tts.speak('after abort', 'en', sig().signal);
+    assert.ok((await next).length > 44, 'a part already written is still generated; the next call is served');
+    assert.notEqual(await pf, 'resolved', 'an answer for an aborted call is dropped');
+  } finally { m.tts.stop(); }
+});
+
+test('TC-112 REQ-017 tts.speak: the helper exiting rejects the in-flight call and every queued call with unavailable, and the queue is emptied', async () => {
+  const { tts, ready } = await makeTts();
+  try {
+    await ready();
+    const r = await Promise.allSettled([tts.speak('DIE x', 'en', sig().signal), tts.speak('q1', 'en', sig().signal), tts.speak('q2', 'en', sig().signal)]);
+    for (const x of r) { assert.equal(x.status, 'rejected'); assert.equal(x.reason.code, 'unavailable'); }
+  } finally { tts.stop(); }
+});
+
+// ---------- bonsai.respond increment 2 (DES-020, DES-021)
+const crisisLines = () => fx('FX-009').input.cases.map((c) => ({ id: c.id, line: c.body.line }));
+const quietLines = () => fx('FX-010').input.cases.map((c) => ({ id: c.id, line: c.body.line }));
+const sentencesOf = (t) => t.split(/(?<=[。！？!?.…])(?![。！？!?.…])/u).filter((s) => /[\p{L}\p{N}]/u.test(s));
+const sysOf = (c) => c.messages[0].content;
+const repOf = (calls) => calls.find((x) => !x.response_format);
+const moodOf = (calls) => calls.find((x) => x.response_format);
+
+test('TC-113 REQ-005/REQ-014 bonsai.respond returns {reply, mood, lang, crisis}: lang is the language of the line, crisis false with no CRISIS_RULE or NAME_RULE in the prompt', async () => {
+  const P = await imp('server/prompts.js');
+  const { b, log, ready } = await makeBonsai();
+  try {
+    await ready();
+    for (const [line, lang] of [['I am HAPPY today', 'en'], ['今天很开心 HAPPY', 'zh'], ['我今天很happy', 'zh']]) {
+      const n = bodies(log).length;
+      const r = await b.respond(line, []);
+      assert.deepEqual(Object.keys(r).sort(), ['crisis', 'lang', 'mood', 'reply']);
+      assert.equal(r.lang, lang, line); assert.equal(r.crisis, false); assert.ok(MOODS.includes(r.mood));
+      const rep = repOf(bodies(log).slice(n));
+      assert.equal(sysOf(rep), P.replySystem(null) + '\n' + P.LANG_RULE[lang], line);
+      assert.ok(!sysOf(rep).includes(P.CRISIS_RULE[lang]) && !sysOf(rep).includes('Your name is'));
+    }
+  } finally { b.stop(); }
+});
+
+test('TC-114 [FX-009] REQ-023/REQ-024 bonsai.respond on a crisis line: crisis true, system message ends with CRISIS_RULE[lang] (mood call does not carry it), reply contains 988, <= 2 sentences, <= 1 question; non-crisis lines never get the rule', async () => {
+  const P = await imp('server/prompts.js'); const { isStrongCrisis } = await imp('server/crisis.js');
+  const { b, log, ready } = await makeBonsai();
+  try {
+    await ready();
+    for (const { id, line } of crisisLines()) {
+      const lang = /\p{Script=Han}/u.test(line) ? 'zh' : 'en';
+      const n = bodies(log).length;
+      const r = await b.respond(line + ' SAD', []);
+      const calls = bodies(log).slice(n);
+      assert.equal(r.crisis, true, id); assert.equal(r.lang, lang, id);
+      // FND-026: the rule is added on the strong-word floor; non-strong lines stay crisis via the fallback (no risk in the fake mood answer)
+      if (isStrongCrisis(line)) assert.ok(sysOf(repOf(calls)).endsWith('\n' + P.CRISIS_RULE[lang]), `${id}: reply system message ends with the crisis rule`);
+      assert.ok(sysOf(repOf(calls)).includes(P.LANG_RULE[lang]), id);
+      assert.ok(!JSON.stringify(moodOf(calls).messages).includes(P.CRISIS_RULE[lang]), `${id}: mood call carries no crisis rule`);
+      assert.equal(r.mood, 'unpleasant-low', `${id}: mood from the mood call`);
+      assert.ok(r.reply.includes('988'), `${id}: ${r.reply}`);
+      assert.ok(sentencesOf(r.reply).length <= 2 && sentencesOf(r.reply).filter((s) => /[?？]/.test(s)).length <= 1, `${id}: ${r.reply}`);
+    }
+    for (const { line } of quietLines()) { const r = await b.respond(line, []); assert.equal(r.crisis, false, line); assert.ok(!r.reply.includes('988'), line); }
+    const n2 = bodies(log).length; await b.respond('This homework is killing me.', []);
+    assert.ok(!sysOf(repOf(bodies(log).slice(n2))).includes(P.CRISIS_RULE.en));
+  } finally { b.stop(); }
+});
+
+test('TC-115 [FX-009] REQ-024/REQ-025 UD-1 (a): on a crisis turn a failed, empty, slow or unavailable Bonsai gives 200-shape {crisis: true, reply: fallback + 988 line}, never an error; a normal turn still rejects', async () => {
+  const { crisisReply } = await imp('server/bonsai.js');
+  const slow = await makeBonsai({}, { respondMs: 1200 });
+  try {
+    await slow.ready();
+    const want = (lang) => crisisReply('', lang);
+    for (const trig of ['REPLY500', 'REPLYEMPTY']) {
+      const r = await slow.b.respond(`I want to kill myself ${trig}`, []);
+      assert.equal(r.crisis, true, trig); assert.equal(r.reply, want('en'), trig); assert.equal(r.lang, 'en'); assert.ok(MOODS.includes(r.mood));
+      const z = await slow.b.respond(`我想自杀 ${trig}`, []);
+      assert.equal(z.reply, want('zh'), trig); assert.equal(z.lang, 'zh'); assert.equal(z.crisis, true);
+    }
+    const f = await slow.b.respond('我不想活了 REPLY500 MOODFAIL', []);
+    assert.equal(f.mood, 'neutral', 'the mood call failed too');
+    const t0 = Date.now();
+    const s = await slow.b.respond('I want to die REPLYSLOW', []);
+    assert.equal(s.reply, want('en')); assert.equal(s.crisis, true); assert.ok(Date.now() - t0 < 3500, 'answers at the reply deadline, not after the 4 s the fake needs');
+    await assert.rejects(slow.b.respond('This is fine REPLY500', []), (e) => e.code === 'failed', 'normal turns keep REQ-011 behaviour');
+  } finally { slow.b.stop(); }
+  const early = await makeBonsai({ FAKE_LLAMA_BOOT_MS: '3000' });
+  try {
+    assert.equal(early.b.state, 'starting');
+    const r = await early.b.respond('I want to hurt myself', []);
+    assert.equal(r.crisis, true); assert.equal(r.reply, crisisReply('', 'en')); assert.equal(r.mood, 'neutral', 'no mood call was possible');
+    await assert.rejects(early.b.respond('Just a normal line', []), (e) => e.code === 'not_ready', 'normal turns while starting stay not_ready');
+    await early.ready();
+    early.b.stop();
+    await waitFor(() => early.b.state === 'down', 5000, 'down');
+    const d = await early.b.respond('我想自杀', []);
+    assert.equal(d.crisis, true); assert.equal(d.reply, crisisReply('', 'zh'));
+  } finally { early.b.stop(); }
+  const die = await makeBonsai();
+  try {
+    await die.ready();
+    const r = await die.b.respond('I keep wanting to hurt myself REPLYDIE', []);
+    assert.equal(r.crisis, true); assert.equal(r.reply, crisisReply('', 'en'), 'the child died mid-request');
+  } finally { die.b.stop(); }
+});
+
+test('TC-116 [FX-012 FX-011] REQ-030/REQ-031 name -> Bonsai: system message = replySystem(cleaned name) + LANG_RULE; null -> the unchanged default text with no NAME_RULE; the mood call never sees the name', async () => {
+  const P = await imp('server/prompts.js');
+  const { parseTurn } = await imp('server/main.js');
+  const f = fx('FX-012');
+  const { b, log, ready } = await makeBonsai();
+  try {
+    await ready();
+    for (const c of f.input.cases) {
+      const want = f.expected.cases.find((e) => e.id === c.id).name;
+      const turn = parseTurn(Buffer.from(JSON.stringify({ line: f.input.line, history: [], name: c.name })));
+      assert.equal(turn.name, want, c.id);
+      const n = bodies(log).length;
+      await b.respond(turn.line, turn.history, turn.name);
+      const calls = bodies(log).slice(n);
+      assert.equal(sysOf(repOf(calls)), P.replySystem(want) + '\n' + P.LANG_RULE.en, c.id);
+      if (want === null) assert.ok(!sysOf(repOf(calls)).includes('Your name is'), `${c.id}: no NAME_RULE`);
+      else { assert.ok(sysOf(repOf(calls)).includes(`Your name is "${want}"`), c.id); assert.ok(!sysOf(repOf(calls)).includes('小伙伴 (Little Buddy)'), c.id); assert.ok(!JSON.stringify(moodOf(calls).messages).includes(want), `${c.id}: mood call`); }
+    }
+    const n = bodies(log).length;
+    await b.respond('你叫什么名字？', [], '团子');
+    const calls = bodies(log).slice(n);
+    assert.ok(sysOf(repOf(calls)).includes('"团子"') && sysOf(repOf(calls)).includes(P.LANG_RULE.zh));
+    const n2 = bodies(log).length;
+    await b.respond('你叫什么名字？', []);
+    assert.equal(sysOf(repOf(bodies(log).slice(n2))), P.replySystem(null) + '\n' + P.LANG_RULE.zh, 'name omitted -> default text (FX-011-03 shape)');
+  } finally { b.stop(); }
+});
+
+test('TC-117 REQ-024/REQ-030 a crisis turn with a custom name carries both the NAME_RULE and the CRISIS_RULE, in that order, after the language rule', async () => {
+  const P = await imp('server/prompts.js');
+  const { b, log, ready } = await makeBonsai();
+  try {
+    await ready();
+    const n = bodies(log).length;
+    await b.respond('I want to kill myself', [], 'Mochi');
+    const s = sysOf(repOf(bodies(log).slice(n)));
+    assert.equal(s, P.replySystem('Mochi') + '\n' + P.LANG_RULE.en + '\n' + P.CRISIS_RULE.en);
+  } finally { b.stop(); }
+});
+
+test('TC-137 REQ-017 FND-013/FND-015 tts.speak: a helper that never answers holds the slot (nothing more is written, later callers time out), is killed after ttsOverdueMs and restarted, then serves (design change: replaces the superseded deviation #10 "write the next after a timeout")', async () => {
+  const { tts, reqs, ready } = await makeTts({}, { speakMs: 500, ttsOverdueMs: 2500 });
+  try {
+    await ready();
+    const pid0 = tts.pid;
+    await assert.rejects(tts.speak('HANG now', 'en', sig().signal), (e) => e.code === 'timeout' && e.status === 504);
+    await assert.rejects(tts.speak('fine now', 'en', sig().signal), (e) => e.code === 'timeout' && e.status === 504, 'queued behind the busy slot until its own deadline');
+    assert.deepEqual(reqs().map((r) => r.text), ['HANG now'], 'the second request was never written while the slot was busy');
+    await waitFor(() => tts.state === 'ready' && tts.pid !== pid0, 15000, 'overdue kill, then restarted helper ready');
+    const wav = await tts.speak('fine now', 'en', sig().signal).catch((e) => e);
+    assert.ok(Buffer.isBuffer(wav), `after the restart the helper serves, got ${wav?.code ?? wav}`);
+  } finally { tts.stop(); }
 });

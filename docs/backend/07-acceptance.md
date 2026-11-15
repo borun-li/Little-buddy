@@ -65,3 +65,54 @@ Quality model plan (opus for analyst, architect, developer, reviewers; sonnet fo
 1. Stop the old preview on port 4317 (PID 23757, started in an earlier session): Ctrl+C in its terminal, or `kill 23757`.
 2. Online once: `npm run setup` (already done on this Mac).
 3. Turn Wi‑Fi off, run `npm start`, open http://127.0.0.1:4317, allow the microphone.
+
+
+---
+
+## Increment 2 (P1) — Acceptance report (draft for the user's morning check)
+
+- Compiled by: Orchestrator · Date: 2026-11-15 · Branch `companion-full-dev`
+
+### I2.0 Goal
+- **Change (user, 2026-11-14 ~23:55 EST):** the reply is read aloud (voice serena, mute toggle); an anxious turn offers deep breathing (in 4 s / out 6 s ×3); a crisis line gets a gentle reply naming 988 and a calm card (988 call or text, 911); one-click clear without a confirm; poke the companion (≥ 3 reactions); a custom name (≤ 12 chars, saved locally, used by Bonsai). Memory (REQ-032..035) design only.
+- **Check (the user's own, at this stop):** Wi‑Fi off, `npm start`, open the page with sound on → say an anxious line → hear the reply, tap "Breathe together?" and follow one round → type a crisis line → see 988 in the reply and the card → poke the companion, rename it, ask its name → clear.
+- **Demo:** before = the P0 accepted state (`evidence/demo-after/` at commit 23bf9b0); after = `evidence/demo-after/` now (9 captures, 0 failed: open, happy-en, sad follow-up, anxious → breathing offer, breathing guide "Breathe out… 6", crisis line → reply with "call or text 988" + card with 988 and 911, poke, rename + ask the name, clear). Typed input stands in for voice.
+
+### I2.1 What was built
+- Backend (DES-016..023): resident `companion-tts` helper (Argmax TTSKit, Qwen3-TTS, voice serena) and `POST /api/speak`; deterministic zh/en crisis rule `server/crisis.js` with the fixed 988 line (UD-1 (a): a crisis turn always answers with 988, even when Bonsai fails); name cleaning `server/name.js` and the name in Bonsai's system prompt; respond returns `lang`, `crisis`, `speech`; health adds `tts`.
+- Frontend (Q-020..Q-033): read-aloud with one-part prefetch, speaker toggle and voice-not-ready state, press-to-talk / send / clear stop the voice, breathing offer + guide, crisis card, one-click clear, rename in place, poke (shuffled bag of 3), reduced motion, both sizes and both languages, offline guarantee test.
+
+### I2.2 Tests
+- `npm test`: 300/300 (be-tester #10, 2026-11-15 ~06:00). Backend TCs: 118 pass, 0 fail, 13 blocked (manual: boot group TC-070..076 needs a third 9B instance; TC-084/085/086 page checks; TC-133 needs a second Bonsai; TC-134 / TC-136 need a human ear/eye → this stop).
+- Fixtures FX-009..013 (locked) pass; FX-001..008 still pass. TC-125 (Bonsai uses the name) 7/7 after the NAME_RULE fix.
+- Frontend: Q-020..Q-033 verdicts in `docs/frontend/04-verification.md`: done where capturable; read-aloud sound, stop-on-talk timing, reduced motion and short-height layout are "not observable" by the capture tool → the user's check.
+
+### I2.3 Review
+- Backend round 1: FND-013..024 (2 major). Fixed and re-checked: FND-013 (aborted read-aloud no longer silences the next reply), FND-014 (crisis exceptions no longer hide "我想死你别管我"), FND-015, FND-016, FND-019, FND-020. Deferred minors: BD-016..023.
+- Frontend round 1: FND-010..022 (4 major). Fixed and re-checked: FND-010 (crisis card fully in view), FND-011 (Chinese rename readable), FND-012 (Q-024 poke), FND-013 (200% zoom), FND-020. Deferred minors: FND-014..019, 021, 022.
+
+### I2.4 Decisions taken without the user (user's rules: no pause; report in the morning)
+| # | Decision | Why | Reversible |
+|---|---|---|---|
+| 1 | FND-014: the 想死你/您/我 exceptions are removed only in their fond-greeting form at the end of a clause (想死你了 / 想死你们了 / 想死您了 / 想死我了) | the user's own rule A22: a crisis miss is worse than a false alarm; "我想死你别管我" was missed | yes, one list in `server/crisis.js` |
+| 2 | FND-013 (frontend): on screens ≤ 520 px high (200% zoom) the companion stage shrinks so the log and the crisis card fit | accessibility review; no change at normal sizes | yes, one CSS rule |
+| 3 | fe-build run after groups of rows, not after every row (each run ~17 min) | finish P1 overnight | process only |
+| 4 | fe-build went to a 3rd fix round (cap 2) on ROLE/codemap bookkeeping | user rule "don't pause" | process only |
+
+### I2.5 Open for the user
+- Confirm decision 1 (FND-014).
+- FND-017 / BD-016: add more crisis phrasings? ("I wanted to die", "I want to end it", "kms", 活着真没意思 …)
+- FND-018 / BD-017: accept false alarms like 思想死板 / 死磕 (A22) or add exceptions?
+- FND-024 / BD-021: `npm run setup` can exit 1 on a transient voice restart (first-run path; rerun setup if it happens).
+- BD-023: with a custom name, Bonsai sometimes calls the user by that name or speaks of itself in third person.
+- Known issues still accepted from P0: TC-050, TC-052, TC-055.
+
+### I2.6 Waivers
+- None new. Rule 2 ("waive after ≥ 2 failed fix rounds") was not needed: every failure in increment 2 was fixed.
+
+### I2.7 Human sign-off (increment 2)
+- **Accepted by the user, 2026-11-15 ~10:35 EST**, on the real page with Wi‑Fi off ("验收通过"). Run logs: backend #219, frontend #338.
+- Checked by the user: read-aloud and stop-on-talk, breathing offer and guide, crisis card (988 / 911), poke, rename, clear — "其余功能健全".
+- Found at Acceptance and fixed the same morning: **FND-025** (fond greeting "想死你了" + particles / 啦 / 妳們 raised the card; commit 7566aa4) and **FND-026** (user decision: semantic crisis detection — Bonsai's `risk` in the mood call, strong-word floor, keyword fallback; live 15/15 crisis lines, 0/8 false alarms; commit c3959f2). User re-checked both on the page.
+- Decision 1 (FND-014) confirmed by the user: fond greetings no card, "我想死你别管我" card. FND-017 / FND-018 now covered by FND-026 (semantic judgment).
+- Not checked by the user: reduced motion and narrow width (automated captures only). Not run: TC-070..076, TC-086, TC-133 (a second 9B instance does not fit memory).

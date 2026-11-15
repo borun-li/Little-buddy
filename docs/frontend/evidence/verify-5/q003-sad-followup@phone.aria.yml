@@ -1,0 +1,17 @@
+- main:
+  - button "Clear chat": Clear
+  - group "Interface language":
+    - button "中文"
+    - button "English" [pressed]: EN
+  - button "Little Buddy, sad"
+  - button "Rename, now called Little Buddy": Little Buddy
+  - button "Read replies aloud" [pressed]
+  - log "Chat":
+    - listitem: I just got the internship!
+    - listitem: That is amazing news! I can't believe you finally got it.
+    - listitem: But I'll have to move away from all my friends, and I feel really lonely about it.
+    - listitem: That is so bittersweet after hearing about your internship! Do you think you can make new friends there?
+  - status
+  - textbox "What you want to tell Little Buddy":
+    - /placeholder: Or type, Enter sends
+  - button "Hold to talk"

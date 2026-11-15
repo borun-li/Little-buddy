@@ -1,0 +1,140 @@
+{
+  "selector": "[data-testid=companion], [data-testid=companion] *",
+  "elements": [
+    {
+      "animation-name": "none"
+    },
+    {
+      "animation-name": "poke-hop"
+    },
+    {
+      "animation-name": "none"
+    },
+    {
+      "animation-name": "none"
+    },
+    {
+      "animation-name": "none"
+    },
+    {
+      "animation-name": "none"
+    },
+    {
+      "animation-name": "none"
+    },
+    {
+      "animation-name": "none"
+    },
+    {
+      "animation-name": "sway-3"
+    },
+    {
+      "animation-name": "flick"
+    },
+    {
+      "animation-name": "none"
+    },
+    {
+      "animation-name": "none"
+    },
+    {
+      "animation-name": "none"
+    },
+    {
+      "animation-name": "none"
+    },
+    {
+      "animation-name": "none"
+    },
+    {
+      "animation-name": "none"
+    },
+    {
+      "animation-name": "none"
+    },
+    {
+      "animation-name": "none"
+    },
+    {
+      "animation-name": "none"
+    },
+    {
+      "animation-name": "none"
+    },
+    {
+      "animation-name": "none"
+    },
+    {
+      "animation-name": "none"
+    },
+    {
+      "animation-name": "none"
+    },
+    {
+      "animation-name": "none"
+    },
+    {
+      "animation-name": "none"
+    },
+    {
+      "animation-name": "none"
+    },
+    {
+      "animation-name": "none"
+    },
+    {
+      "animation-name": "none"
+    },
+    {
+      "animation-name": "none"
+    },
+    {
+      "animation-name": "none"
+    },
+    {
+      "animation-name": "none"
+    },
+    {
+      "animation-name": "none"
+    },
+    {
+      "animation-name": "blush"
+    },
+    {
+      "animation-name": "blush"
+    },
+    {
+      "animation-name": "none"
+    },
+    {
+      "animation-name": "none"
+    },
+    {
+      "animation-name": "none"
+    },
+    {
+      "animation-name": "none"
+    },
+    {
+      "animation-name": "none"
+    },
+    {
+      "animation-name": "heart-rise"
+    },
+    {
+      "animation-name": "none"
+    },
+    {
+      "animation-name": "none"
+    },
+    {
+      "animation-name": "none"
+    },
+    {
+      "animation-name": "none"
+    },
+    {
+      "animation-name": "none"
+    }
+  ]
+}

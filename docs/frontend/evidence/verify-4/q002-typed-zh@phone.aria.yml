@@ -1,0 +1,15 @@
+- main:
+  - button "清空聊天": 清空
+  - group "界面语言":
+    - button "中文" [pressed]
+    - button "English": EN
+  - button "小伙伴，开心"
+  - button "改名字，现在叫小伙伴": 小伙伴
+  - button "朗读回复" [pressed]
+  - log "聊天记录":
+    - listitem: 今天考试过了，好开心！
+    - listitem: 太棒了！你的努力终于得到了回报，真值得庆祝！
+  - status
+  - textbox "想对小伙伴说的话":
+    - /placeholder: 打字也可以，Enter 发送
+  - button "按住说话"

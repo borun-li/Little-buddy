@@ -1,0 +1,16 @@
+{
+  "endpoint": "POST /api/speak",
+  "content_type": "application/json",
+  "cases": [
+    {
+      "id": "FX-013-01",
+      "reply": "太棒了！这真值得庆祝。你准备去庆祝吗？",
+      "lang": "zh"
+    },
+    {
+      "id": "FX-013-02",
+      "reply": "That is amazing news! I can't wait to hear all about it. 🎉",
+      "lang": "en"
+    }
+  ]
+}

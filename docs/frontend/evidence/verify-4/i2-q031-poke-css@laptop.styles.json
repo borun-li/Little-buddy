@@ -1,0 +1,181 @@
+{
+  "selector": "[data-testid=companion] *",
+  "elements": [
+    {
+      "animation-name": "poke-squash",
+      "transform": "matrix(1.02523, 0, 0, 0.962154, 0, 0)"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "sway-8",
+      "transform": "matrix(1, 1.86168e-05, -1.86168e-05, 1, 0, 0)"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "twitch-left",
+      "transform": "matrix(1, 0, 0, 1, 0, 0)"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "twitch-right",
+      "transform": "matrix(1, 0, 0, 1, 0, 0)"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "breathe",
+      "transform": "matrix(1.01742, 0, 0, 1.01742, 0, 0)"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "blink-4-6",
+      "transform": "matrix(1, 0, 0, 1, 0, 0)"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "poke-ticks",
+      "transform": "matrix(1, 0, 0, 1, -32.3984, 0)"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    }
+  ]
+}

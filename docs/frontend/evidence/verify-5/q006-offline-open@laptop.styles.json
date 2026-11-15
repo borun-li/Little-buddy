@@ -1,0 +1,8 @@
+{
+  "selector": "body",
+  "elements": [
+    {
+      "font-family": "\"PingFang SC\", \"Noto Sans SC\", system-ui, sans-serif"
+    }
+  ]
+}

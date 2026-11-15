@@ -5,6 +5,7 @@
 @media (min-width: 960px) {
   .companion { width: min(540px, 90%, calc(100vh - 160px)); }
 }
+.companion__layers { position: absolute; inset: 0; transform-origin: 50% 85%; }
 .companion__layer { position: absolute; inset: 0; }
 .companion__art { display: block; width: 100%; height: 100%; overflow: visible; }
 
@@ -130,8 +131,47 @@
 @keyframes droop-right { 50% { transform: rotate(3deg); } }
 @keyframes blink-slow { 0%, 92%, 100% { transform: scaleY(1); } 96% { transform: scaleY(0.1); } }
 
+/* ---------- Q-024 poke reactions (02-ui CMP-001): the face is swapped by companion.showFace, the motion is here ---------- */
+.companion { cursor: pointer; }
+.companion:focus-visible { outline: none; }
+/* 3 px Cocoa ring, 2 px outside the glow disc (the disc is the content box inside the 5 % padding) */
+.companion:focus-visible::after {
+  content: ""; position: absolute; inset: calc(5% - 5px);
+  border: 3px solid var(--color-focus-ring); border-radius: 50%; pointer-events: none;
+}
+.companion.is-poke-tickle .companion__layers { animation: poke-wiggle 200ms ease-in-out 3; }   /* +-5 deg x 3 in 600 ms */
+.companion.is-poke-oops .companion__layers { animation: poke-squash 480ms ease-out; }         /* 120 ms squash + 360 ms spring */
+.companion.is-poke-here .companion__layers { animation: poke-hop 240ms ease-out; }            /* one hop -8 px */
+@keyframes poke-wiggle { 25% { transform: rotate(5deg); } 75% { transform: rotate(-5deg); } }
+@keyframes poke-squash { 25% { transform: scale(1.08, 0.88); } }
+@keyframes poke-hop { 50% { transform: translateY(-8px); } }
+.companion__ticks {
+  position: absolute; left: 50%; top: 2%; width: 12%; transform: translateX(-50%);
+  color: var(--color-cocoa); opacity: 0; pointer-events: none;
+}
+.companion.is-poke-oops .companion__ticks { animation: poke-ticks 600ms ease-in-out both; }
+@keyframes poke-ticks { 0%, 100% { opacity: 0; } 30%, 60% { opacity: 1; } }
+
+/* ---------- Q-029 breathing (02-ui Motion): the character and the glow disc swell together from the bottom centre,
+   1 -> 1.08 in 4 s, back in 6 s, x3 (phone 1.04); the part loops rest; the face is the neutral one (companion.js) ---------- */
+.companion { --breath-scale: 1.08; }
+@media (max-width: 959px) { .companion { --breath-scale: 1.04; } }
+.companion.is-breathing { transform-origin: 50% 100%; animation: breath-cycle 10s linear 3; }
+.companion.is-breathing .companion__art * { animation: none !important; }
+@keyframes breath-cycle {
+  0% { transform: scale(1); animation-timing-function: ease-in-out; }
+  40% { transform: scale(var(--breath-scale)); animation-timing-function: ease-in-out; }
+  100% { transform: scale(1); }
+}
+
 /* REQ-006: reduce motion -> the drawn pose, face and glow swap at once; nothing keeps moving. */
 @media (prefers-reduced-motion: reduce) {
   .companion *, .companion__layer { animation: none !important; }
   .companion { transition: none; }
+  .companion.is-breathing { animation: none !important; } /* no swell: neutral face and the countdown only */
+  /* Q-031: poke and breathing movement goes explicitly (face, word and countdown stay) */
+  .companion .companion__layers, .companion.is-breathing { transform: none !important; }
+  .companion.is-poke-tickle .companion__layers, .companion.is-poke-oops .companion__layers,
+  .companion.is-poke-here .companion__layers { animation: none !important; }
+  .companion.is-poke-oops .companion__ticks { opacity: 1; animation: none !important; } /* the ticks stay, still */
 }

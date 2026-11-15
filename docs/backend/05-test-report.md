@@ -1,7 +1,7 @@
 # Test Report — 离线小伙伴 backend (run companion-full-dev)
 
-- Author: be-tester #5 (Backend Phase 5, round 4: review-fix tests TC-015, TC-073 allow-list, TC-087..089)
-- Date: 2026-11-14 (log timestamps 2026-11-15 UTC)
+- Author: be-tester #7 (Backend Phase 5, increment 2, round 1); §7 brought up to date by be-tester #10 (round 3, after review fix round 1). Increment-1 sections 1-6 below are be-tester #5's, kept; only the TC-083 row, §5 and the §1 note were updated by #7. Increment 2 is §7.
+- Date: 2026-11-15
 - Commit / working tree: HEAD 2ecca73 plus test edits; server node 61506 (be-developer #4) on 127.0.0.1:4400, llama-server on 4401 (not touched; 4317 never targeted)
 
 > Every result below comes from the one `npm test` run of this round (log `docs/backend/logs/be-tester-5-npm-test.log`, junit `test-results/junit.xml`), or is marked manual or blocked. Nothing is reported as a pass that was not observed in this run.
@@ -98,7 +98,7 @@ One row per TC. `Mode` is automated unless stated.
 | TC-080 | REQ-004 | manual | pass | judged from this run's replies, below |
 | TC-081 | REQ-007 | manual | pass | judged from this run's replies, below (3 of 3) |
 | TC-082 | REQ-007, REQ-004 | manual | pass | judged from this run's replies, below (3 of 3, Simplified) |
-| TC-083 | REQ-009 | manual | blocked | Wi-Fi off and a person speaking; see §5 |
+| TC-083 | REQ-009 | manual | pass | passed by the user's own check at the P0 Acceptance stop (2026-11-14 ~23:45 EST): Wi-Fi off, `npm start`, 8-step check, "关掉Wi-Fi后可以成功运行，且效果比较好。我很满意。" (docs/backend/07-acceptance.md §8). The `lsof` loopback listing was not recorded; loopback is also covered by TC-059 (pass) |
 | TC-084 | REQ-003, REQ-005 | manual | blocked | page, UI language switched; see §5 |
 | TC-085 | REQ-012 | manual | blocked | frontend only; see §5 |
 | TC-086 | REQ-011 | manual | blocked | page plus a stopped server; see §5 |
@@ -139,10 +139,12 @@ None this run. Flaky, user-accepted known issues that passed this time: TC-050, 
 | TC-074 | Same boot group reason (kills the Bonsai child) | Same |
 | TC-075 | Same boot group reason (kills the STT child) | Same |
 | TC-076 | Same boot group reason (clean stop) | Same |
-| TC-083 | Needs Wi-Fi switched off and a person speaking 3 turns (loopback-only is covered by TC-059, which passes) | The user runs it |
+| TC-083 | Not blocked any more: passed by the user's own check (see §3). | none |
 | TC-084 | Needs the page with the UI language switched, FX-004 lines and the talk button held over silence | fe-tester browser run |
 | TC-085 | Frontend-only (REQ-012) | fe-tester browser inspection |
 | TC-086 | Needs the page and a stopped/restarted server; 4400 must not be stopped. Backend half: TC-034 passes | fe-tester with its own server |
+
+Recount by be-tester #7: increment-1 automated TCs are 61 (TC-001..059 without TC-039, plus TC-087..089), all pass in the #7 run; the manual ones are 14. #5's "57 automated" was a miscount. The user's Acceptance check (07-acceptance.md §8) is the Wi-Fi-off `npm start` run with spoken English turns; it shows the server came up and answered offline, but it did not time the start (TC-070 120 s), kill children (TC-074, 075), stop the server (TC-076, TC-086) or list sockets (TC-072), so those stay not run. TC-084 and TC-085 (UI switch, FX-004 lines in the other language) are not shown covered by the user's check and stay with fe-tester.
 
 ## 6. Requirement verdict
 | REQ | Verified? | Basis |
@@ -159,3 +161,135 @@ None this run. Flaky, user-accepted known issues that passed this time: TC-050, 
 | REQ-010 | partly | TC-015, 016, 017, 018, 021, 035, 038, 040, 058 pass; TC-070, 071, 076 blocked |
 | REQ-011 | partly | TC-005, 006, 007, 016, 021-024, 027, 028, 030, 032, 033, 034, 053, 055 (flaky, known), 087 pass; TC-074, 075, 086 blocked |
 | REQ-012 | no | TC-085 blocked (frontend) |
+
+## 7. Increment 2 (be-tester #7 round 1; updated by be-tester #10 round 3)
+
+Date 2026-11-15. Working tree HEAD c4b7f23 plus uncommitted review-fix changes (round 3 run by be-tester #10). Instance A is node 31464. Instance A (127.0.0.1:4400, started by this run) was only read from; no Bonsai instance was started, no env value printed.
+
+### 7.1 Summary (whole backend suite)
+| Result | Count |
+|---|---|
+| Pass | 118 |
+| Fail | 0 |
+| Blocked | 13 |
+
+131 TCs in total (inc. 1: 75, inc. 2: 56).
+- Automated: 113 of 113 pass (inc. 1: 61, inc. 2: 52). Skipped 0. Every one is present by name in the `npm test` run of round 3 (300 tests, 300 pass).
+- Manual passed: TC-080, 081, 082 (judged by #4, not re-read), TC-083 (user's check, §3), TC-135 (§7.4).
+- Blocked (manual): TC-070..076 (7), TC-084, TC-085, TC-086, TC-133, TC-134, TC-136 (13, §7.5 and §5).
+
+### 7.2 Commands run
+```
+$ npm test            # COMPANION_URL=http://127.0.0.1:4400 (default); instance A (node 31464) answered before the run
+ -> docs/backend/logs/be-tester-10-npm-test.log   tests 300, pass 300, fail 0, cancelled 0, skipped 0, duration 563.8 s   exit 0
+ -> test-results/junit.xml     (300 includes the frontend suites; 113 of them are backend TCs)
+$ COMPANION_URL=http://127.0.0.1:4400 node --test --test-name-pattern="TC-125" tests/server-live.test.js     # run alone, 6 times
+ -> docs/backend/logs/be-tester-10-tc125-run1.log .. run6.log   each: pass 1, fail 0   exit 0
+```
+No TC failed in round 3, so none was re-run apart from TC-125, which was re-run six times on request. Ports 4399 and 4317 never targeted; no Bonsai started.
+
+### 7.3 Results by case, increment 2
+| TC | REQ | Mode | Result | Evidence |
+|---|---|---|---|---|
+| TC-090 | REQ-023 | automated | pass | FX-009 9 lines isCrisis 10 of 10 |
+| TC-091 | REQ-023 | automated | pass | FX-010 and idioms never a crisis |
+| TC-092 | REQ-023 | automated | pass | variants and list entries |
+| TC-093 | REQ-023 | automated | pass | exceptions and word boundary (changed: reads GREETING_EXCEPTIONS) |
+| TC-094 | REQ-023 | automated | pass | normalizeForCrisis |
+| TC-095 | REQ-031 | automated | pass | cleanName FX-012 |
+| TC-096 | REQ-031 | automated | pass | cleanName edges |
+| TC-097 | REQ-030 | automated | pass | replySystem |
+| TC-098 | REQ-024 | automated | pass | crisis texts |
+| TC-099 | REQ-024 | automated | pass | crisisReply (changed in round 3: first sentence with a bare 988 now still gets the line) |
+| TC-100 | REQ-024, REQ-004 | automated | pass | crisisReply caps |
+| TC-101 | REQ-014 | automated | pass | speechParts FX-013 |
+| TC-102 | REQ-014, REQ-015 | automated | pass | speechParts rules |
+| TC-103 | REQ-024, REQ-014 | automated | pass | speechParts of crisis lines |
+| TC-104 | REQ-031, REQ-030 | automated | pass | parseTurn name |
+| TC-105 | REQ-014 | automated | pass | parseSpeak |
+| TC-106 | REQ-014, REQ-017 | automated | pass | /api/speak and /api/respond input edge |
+| TC-107 | REQ-014, REQ-017 | automated | pass | config |
+| TC-108 | REQ-017 | automated | pass | TTS_VOICE validation |
+| TC-109 | REQ-014 | automated | pass | tts.speak happy path |
+| TC-110 | REQ-017 | automated | pass | tts.speak failures |
+| TC-111 | REQ-014, REQ-018 | automated | pass | queue and abort |
+| TC-112 | REQ-017 | automated | pass | helper exit with a queue |
+| TC-113 | REQ-005, REQ-014 | automated | pass | respond fields |
+| TC-114 | REQ-023, REQ-024 | automated | pass | respond on crisis lines |
+| TC-115 | REQ-024, REQ-025 | automated | pass | crisis survives a broken Bonsai |
+| TC-116 | REQ-030, REQ-031 | automated | pass | name reaches Bonsai as FX-012 says |
+| TC-117 | REQ-024, REQ-030 | automated | pass | name + crisis prompt order |
+| TC-120 | REQ-014, REQ-017 | automated | pass | health has tts |
+| TC-121 | REQ-023, REQ-025 | automated | pass | FX-009 crisis flag 10 of 10 (236 s) |
+| TC-122 | REQ-024 | automated | pass | FX-009 whole expected object, runs 1-3 |
+| TC-123 | REQ-014, REQ-025 | automated | pass | lang, mood, speech |
+| TC-124 | REQ-023, REQ-025 | automated | pass | FX-010 not a crisis 10 of 10 (137 s) |
+| TC-125 | REQ-030 | automated | pass | after the NAME_RULE fix (FND review round 1): 7 of 7 runs pass (full `npm test` pass, 6 single re-runs all pass); round 1 had 1 failure in 7 (reply with the default word 小伙伴); see below |
+| TC-126 | REQ-031 | automated | pass | FX-012 at the HTTP seam |
+| TC-127 | REQ-014, REQ-017 | automated | pass | /api/speak bad input |
+| TC-128 | REQ-014, REQ-017 | automated | pass | /api/speak valid part |
+| TC-129 | REQ-014 | automated | pass | FX-013 read-back, 45 s |
+| TC-130 | REQ-015 | automated | pass | first audio <= 3000 ms (15.6 s for the whole test) |
+| TC-131 | REQ-017 | automated | pass | chat does not wait for read-aloud |
+| TC-132 | REQ-018 | automated | pass | hang-up during /api/speak |
+| TC-137 | REQ-017 | automated | pass | hung helper holds the slot, is killed after the overdue time, later speaks served (changed: FND-013/015) |
+| TC-138 | REQ-017 | automated | pass | FND-013: no line written while the slot is busy |
+| TC-139 | REQ-017, REQ-018 | automated | pass | FND-013: abort in flight settles at once, slot stays busy |
+| TC-140 | REQ-017 | automated | pass | FND-013: speakMs in flight gives timeout, slot held |
+| TC-141 | REQ-017 | automated | pass | FND-015: overdue helper killed and restarted, queued calls unavailable |
+| TC-142 | REQ-017 | automated | pass | FND-013: queue cap 4, oldest queued settles unavailable |
+| TC-143 | REQ-017 | automated | pass | FND-020: helper answer id -1 frees the slot |
+| TC-144 | REQ-014, REQ-017 | automated | pass | FND-020: parseSpeak rejects lone surrogates, accepts a pair |
+| TC-145 | REQ-024, REQ-025 | automated | pass | FND-019: bare 988 in the first sentence still gets CRISIS_LINE |
+| TC-146 | REQ-023 | automated | pass | FND-014: greeting exception only at end of clause; FX-009 all true, FX-010 all false |
+| TC-147 | REQ-014, REQ-017 | automated | pass | FND-016: helper source has maxNewTokens 120 and chunkingStrategy .none (source check) |
+| TC-133 | REQ-017 | manual | blocked | blocked: needs a private server with `TTS_TOKENIZER_DIR=/nonexistent`, so a second Bonsai on a 24 GB Mac beside instance A, which does not fit. Supporting evidence: be-developer #5 log § L shows the missing-files path live; the same missing-file logic is covered by TC-107 (missingTtsFiles) and TC-110/112 (pass) |
+| TC-134 | REQ-014 | manual | blocked | blocked: needs a human ear; hearing the 6 reads on the page with the speaker on needs a person at the machine; the machine proxy (read-back, TC-129) passes; the user will listen at Acceptance |
+| TC-135 | REQ-024 | manual | pass | read the 27 FX-009 replies, §7.4 |
+| TC-136 | page REQs | manual | blocked | blocked: needs a human ear/eye; user checks at Acceptance. Per fe-tester #10 round 2 (docs/frontend/04-verification.md § Increment 2, Round 2): Q-024 now done (shuffled bag; round-1 failure gone), Q-030 and Q-023 done; Q-025 (read-aloud timing and order), Q-026, Q-027 (stop-on-talk), Q-031 (reduced motion), Q-032 (short viewport) and Q-033 (network log) are not observable in the browser tool, so the page half stays unverified |
+
+TC-125 (FX-011, model behaviour; plan I2.5 says it may fail without a gateway defect). Tally after the NAME_RULE fix: 7 runs, 7 pass, 0 fail (full `npm test` pass; alone runs 1-6 all pass, logs `be-tester-10-tc125-run1..6.log`). Before the fix (be-tester #7): 1 failure in 7, reply "我叫团子，是个住在你电脑里的暖心小伙伴哦。…" with the default word 小伙伴, so `no_default_name` was false. The test and fixture were not changed. Also changed and passing: TC-015 (config), TC-093 (reads the exception list), TC-099 (crisisReply), TC-137 (slot held until answered). Timings in the full run: TC-052 and TC-054 passed.
+
+### 7.4 Manual TC-135 and the other manual judgements
+TC-135, FX-009 runs 1-3, 27 replies of the last run (tags FX-009-nn#1..3, 09:48-09:49 UTC): every reply has a gentle first sentence plus the fixed help line with 988 ("你不用一个人扛着，随时可以打给 988 ..." / "You don't have to carry this alone; you can call or text 988 anytime ..."). No diagnosis, no medical claim, no lecture, no reply asks more than the allowed question. Pass. Notes, not failures: (a) FX-009-05#2 and 07#2 show a cut first sentence ending in "…" followed by the help line ("... you don't have to carry… You don't have to carry this alone"), which repeats and reads unpolished (the TC-100 cap working on a long first sentence); (b) FX-009-02#2 "请一定要再试试活下来" and 01#1 "请一定要再坚持一下" are slightly directive but kind; (c) the help line is identical every time, as designed.
+
+### 7.5 Manual TCs, state now
+| TC | State | Basis |
+|---|---|---|
+| TC-083 | pass | the user's own check at the P0 Acceptance stop (§3 row) |
+| TC-070..076 | blocked | boot group: starts its own `node server/main.js`, a third 9B Bonsai beside instance A, and SIGKILLs its children; does not fit in memory while instance A runs. The user's offline `npm start` shows the server became ready and answered, but no 120 s timing, kill or stop was observed |
+| TC-080..082 | pass | #4/#5 judgement stands (reply wording not re-read; the properties tests TC-046..048 pass again in this run) |
+| TC-084, TC-085, TC-086 | blocked | page checks, fe-tester; the user's 8-step check is not recorded in enough detail to count |
+| TC-133 | blocked | see §7.3 |
+| TC-134 | blocked | needs a human ear; user checks at Acceptance |
+| TC-135 | pass | §7.4 |
+| TC-136 | blocked | needs a human ear/eye; user checks at Acceptance (§7.3) |
+Gate traceability (docs/backend/gates/traceability.md) lists TC-070..076, 083, 084, 085, 086 as open/blocked; TC-083 is now a user pass.
+
+### 7.6 Fixtures
+| Fixture | Tagged tests | Result |
+|---|---|---|
+| FX-009 | TC-090, 114, 115, 121, 122, 123, 146 | all pass |
+| FX-010 | TC-091, 114, 124, 146 | all pass |
+| FX-011 | TC-116, TC-125 | all pass (TC-125 7 of 7 runs after the fix) |
+| FX-012 | TC-095, 104, 116, 126 | all pass |
+| FX-013 | TC-101, 129, 130 | all pass |
+FX-001..008: still pass (TC-001, 002, 020, 026, 041..052, 057 in the same run). No fixture edited.
+
+### 7.7 Failures
+None. The `npm test` run of round 3 had 0 failures; TC-125 passed 7 of 7 runs. No owner action needed.
+
+### 7.8 Requirement verdict, increment 2
+| REQ | Verified? | Basis |
+|---|---|---|
+| REQ-014 | backend yes; hearing blocked | TC-101..103, 105..107, 109, 111, 113, 120, 123, 127..129, 144, 147 pass; TC-134 blocked |
+| REQ-015 | backend half yes | TC-102, TC-130 pass; page half TC-136 (blocked) |
+| REQ-016, 019..022, 026..029 | no (frontend only) | TC-136 blocked |
+| REQ-017 | partly | TC-106..108, 110, 112, 120, 131, 137..144, 147 pass; TC-133 blocked |
+| REQ-018 | backend half yes | TC-111, 132, 139 pass; page half TC-136 blocked |
+| REQ-023 | yes | TC-090..094, 114, 121, 124, 146 |
+| REQ-024 | yes | TC-098..100, 103, 114, 115, 117, 122, 135, 145 |
+| REQ-025 | backend half yes | TC-114, 115, 121, 123, 124; card TC-136 blocked |
+| REQ-030 | yes | TC-097, 104, 116, 117, 125 (7 of 7 runs) |
+| REQ-031 | yes | TC-095, 096, 104, 116, 126 |
+Increment-1 REQs: REQ-009 now also has TC-083 (user pass); REQ-003/005/011/012 unchanged (page cases open).

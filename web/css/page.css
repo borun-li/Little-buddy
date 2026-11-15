@@ -51,12 +51,113 @@ p { margin: 0; }
   background: var(--color-turn-you-bg); color: var(--color-text-primary); font-weight: 600; cursor: default;
 }
 .lang-switch button:focus-visible { outline: 3px solid var(--color-focus-ring); outline-offset: 2px; }
+/* CMP-007 clear: 36 px, mirrors the switch at the stage's top-left (24 px laptop, 8 px phone) */
+.stage-clear {
+  position: absolute; top: 8px; left: 8px; z-index: 1;
+  height: 36px; padding: 0 12px; background: none; cursor: pointer;
+  border: 1px solid var(--color-border-control); border-radius: var(--radius-control);
+  font: 400 13px/20px var(--font-ui); color: var(--color-text-muted);
+}
+.stage-clear:hover, .stage-clear:active { background: var(--color-turn-you-bg); color: var(--color-text-primary); }
+.stage-clear:focus-visible { outline: 3px solid var(--color-focus-ring); outline-offset: 2px; }
+/* CMP-009 breathing offer chip (Q-028): 36 px, 12 px under its reply (list gap 16 - 4), indented 16 px to the reply text */
+.turn--offer { margin-top: -4px; padding-left: 16px; }
+.breath-chip {
+  display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 14px 0 12px;
+  background: none; cursor: pointer; color: var(--color-text-primary);
+  border: 1px solid var(--color-border-control); border-radius: var(--radius-control);
+  font: 400 16px/26px var(--font-ui);
+}
+.breath-chip .icon--chip { width: 16px; height: 16px; }
+.breath-chip:hover, .breath-chip:active { background: var(--color-turn-you-bg); }
+.breath-chip:focus-visible { outline: 3px solid var(--color-focus-ring); outline-offset: 2px; }
+/* CMP-010 help card (Q-030): 12 px under its crisis reply, indented 16 px, Oat, 1 px outline, no alarm colours */
+.turn--card { margin-top: -4px; padding-left: 16px; }
+.crisis-card {
+  position: relative; display: flex; flex-direction: column; gap: 6px;
+  padding: 12px 16px 16px; background: var(--color-surface-page);
+  border: 1px solid var(--color-border-control); border-radius: var(--radius-control);
+  font: 400 16px/26px var(--font-ui); color: var(--color-text-primary);
+}
+.crisis-card p { margin: 0; }
+.crisis-card strong { font-weight: 600; }
+.crisis-card__title { padding-right: 64px; } /* room for the top-right 收起 */
+.crisis-card__close {
+  position: absolute; top: 12px; right: 16px; height: 30px; padding: 0 10px;
+  background: none; cursor: pointer; color: var(--color-text-primary);
+  border: 1px solid var(--color-border-control); border-radius: var(--radius-control);
+  font: 400 13px/20px var(--font-ui);
+}
+.crisis-card__close:hover, .crisis-card__close:active { background: var(--color-turn-you-bg); }
+.crisis-card__close:focus-visible { outline: 3px solid var(--color-focus-ring); outline-offset: 2px; }
+/* CMP-011 caption row: name button, " · phrase", speaker slot (Q-025); centred under the art */
 .companion__caption {
-  font: 400 13px/20px var(--font-voice);
+  position: relative;
+  display: flex; align-items: center; justify-content: center; flex-wrap: wrap;
+  max-width: 100%;
+  font: 400 14px/20px var(--font-voice);
   color: var(--color-text-muted);
   letter-spacing: 0.04em;
 }
+.caption__name {
+  margin: 0; padding: 4px 0; border: 0; background: none; cursor: pointer; border-radius: 4px;
+  font: inherit; letter-spacing: inherit; color: inherit;
+  text-decoration: underline dotted; text-underline-offset: 4px;
+}
+.caption__name:hover { text-decoration-style: solid; }
+.caption__name:focus-visible { outline: 3px solid var(--color-focus-ring); outline-offset: 0; } /* phone: the row is 5 px from the stage edge */
+.caption__phrase { white-space: pre-wrap; }
+/* CMP-007 speaker toggle: 36 px, 18 px icon, 12 px after the caption (8 px phone) */
+.caption__speaker { display: inline-flex; margin-left: 8px; } /* phone: the tip is placed against the caption row, so a wrapped row never pushes it off screen */
+.speaker-toggle {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 36px; height: 36px; padding: 0; cursor: pointer;
+  border: 1px solid var(--color-border-control); border-radius: var(--radius-control);
+  background: var(--color-turn-you-bg); color: var(--color-text-primary);
+}
+.speaker-toggle .icon { width: 18px; height: 18px; }
+.speaker-toggle:hover { border-color: var(--color-text-primary); }
+.speaker-toggle:focus-visible { outline: 3px solid var(--color-focus-ring); outline-offset: 2px; }
+.speaker-toggle.is-muted, .speaker-toggle.is-notready { background: var(--color-surface-page); color: var(--color-text-muted); }
+.speaker-toggle.is-speaking .wave-a { animation: wave 1.2s infinite; }
+.speaker-toggle.is-speaking .wave-b { animation: wave 1.2s 0.6s infinite; }
+@keyframes wave { 0%, 100% { opacity: 1; } 50% { opacity: 0.2; } }
+.speaker-tip {
+  position: absolute; bottom: calc(100% + 8px); right: 8px; z-index: 2; /* phone: the stage clips below the row, so the tip opens upward */
+  width: max-content; max-width: min(240px, calc(100vw - 16px)); padding: 4px 8px; text-align: left; white-space: normal;
+  background: var(--color-surface-page); border: 1px solid var(--color-border-control); border-radius: var(--radius-control);
+  font: 400 13px/20px var(--font-ui); letter-spacing: 0; color: var(--color-text-primary);
+  opacity: 0; visibility: hidden; pointer-events: none;
+}
+.speaker-toggle:hover + .speaker-tip { opacity: 1; visibility: visible; transition: opacity 0s 500ms, visibility 0s 500ms; }
+.speaker-toggle:focus-visible + .speaker-tip { opacity: 1; visibility: visible; }
+.name-field {
+  min-width: 2ch; max-width: 100%; margin: 0; padding: 4px 8px;
+  border: 2px solid var(--color-focus-ring); border-radius: var(--radius-control); outline: none;
+  background: var(--color-surface-page); color: var(--color-text-primary);
+  font: inherit; letter-spacing: inherit;
+}
+.name-field::selection { background: var(--color-turn-you-bg); color: var(--color-text-primary); }
+.caption__note {
+  /* phone: the 280 px stage clips below the row, so the note sits 6 px above it, in the gap under the art */
+  position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%);
+  width: max-content; max-width: min(358px, calc(100vw - 16px)); text-align: center;
+  font: 400 13px/20px var(--font-ui); letter-spacing: 0; color: var(--color-text-muted);
+}
 .talk { display: flex; flex-direction: column; min-height: 0; min-width: 0; }
+/* Q-032 phone stage (FRAME-020, 02-ui.md CMP-011): 6 + 228 art + 4 + 36 row + 6 = 280. A row that wraps to a second line
+   takes the extra height from the art (it shrinks, about 20 px), so the stage never clips the face or the toggle. */
+@media (max-width: 959px) {
+  .page .stage { padding: 6px 16px; }
+  .page .companion { width: auto; height: 228px; flex: 0 1 228px; min-height: 0; }
+  .companion__caption { flex: none; }
+}
+/* FND-013: short viewport (200% zoom on a laptop is 640 x 360-400 CSS px): the stage shrinks with the height so the
+   log keeps room for the turns and the help card; 52 = 6 + 4 + 36 + 6 of padding, gap and caption row. */
+@media (max-width: 959px) and (max-height: 520px) {
+  .page { grid-template-rows: clamp(120px, 32vh, 280px) minmax(0, 1fr); }
+  .page .companion { height: calc(clamp(120px, 32vh, 280px) - 52px); flex-basis: calc(clamp(120px, 32vh, 280px) - 52px); }
+}
 
 /* ---------- log ---------- */
 .log {
@@ -178,8 +279,13 @@ html[lang="en"] .composer { grid-template-columns: minmax(0, 1fr) 154px; }
 @media (min-width: 960px) {
   .page { grid-template-columns: minmax(0, 1fr) 640px; grid-template-rows: minmax(0, 1fr); }
   .lang-switch { top: 24px; right: 24px; }
+  .stage-clear { top: 24px; left: 24px; }
   .stage { border-bottom: 0; border-right: 1px solid var(--color-border-default); gap: var(--space-24); }
-  .companion__caption { font-size: 20px; line-height: 32px; }
+  .companion__caption { font-size: 21.6px; line-height: 32px; }
+  .caption__speaker { position: relative; margin-left: 12px; }
+  /* Q-032: centred on the toggle and capped to the stage, so the narrow stage at 960 px never clips either */
+  .speaker-tip { bottom: auto; top: calc(100% + 8px); right: auto; left: 50%; transform: translateX(-50%); max-width: min(240px, calc(100vw - 672px)); }
+  .caption__note { top: calc(100% + 6px); bottom: auto; max-width: min(540px, calc(100vw - 672px)); }
   .log { padding: var(--space-40) var(--space-40) 0; }
   .turn--you { max-width: 440px; }
   .turn--reply, .turn--typing { font-size: 20px; line-height: 32px; }
@@ -202,6 +308,9 @@ html[lang="en"] .composer { grid-template-columns: minmax(0, 1fr) 154px; }
   .turn, .hint { animation: none; }
   .typing__dot { display: none; }
   .typing__static { display: inline; }
+  .speaker-toggle .wave-a, .speaker-toggle .wave-b { animation: none !important; opacity: 1; } /* waves still, fully shown */
+  /* Q-031: breathing chip and help card appear at once, no fade or rise */
+  .turn--offer, .turn--card, .turn--offer *, .turn--card * { animation: none !important; transition: none !important; }
 }
 .tab-hidden * { animation-play-state: paused !important; }
 

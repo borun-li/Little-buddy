@@ -1,0 +1,229 @@
+{
+  "selector": "[data-testid=companion] *",
+  "elements": [
+    {
+      "animation-name": "poke-wiggle",
+      "transform": "matrix(1, -0.000177542, 0.000177542, 1, 0, 0)"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "hop, bounce",
+      "transform": "matrix(1, 0, 0, 1, 0, -3.11786)"
+    },
+    {
+      "animation-name": "wag",
+      "transform": "matrix(0.965926, -0.258819, 0.258819, 0.965926, 0, 0)"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "wave",
+      "transform": "matrix(0.978148, 0.207912, -0.207912, 0.978148, 0, 0)"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "wave",
+      "transform": "matrix(0.978148, -0.207912, 0.207912, 0.978148, 0, 0)"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "twinkle",
+      "transform": "matrix(0.692637, 0, 0, 0.692637, 0, 0)"
+    },
+    {
+      "animation-name": "twinkle",
+      "transform": "matrix(0.603473, 0, 0, 0.603473, 0, 0)"
+    },
+    {
+      "animation-name": "twinkle",
+      "transform": "matrix(0.777166, 0, 0, 0.777166, 0, 0)"
+    },
+    {
+      "animation-name": "twinkle",
+      "transform": "matrix(0.985825, 0, 0, 0.985825, 0, 0)"
+    },
+    {
+      "animation-name": "twinkle",
+      "transform": "matrix(0.940976, 0, 0, 0.940976, 0, 0)"
+    },
+    {
+      "animation-name": "none",
+      "transform": "matrix(1, 0, 0, 1, -13.6172, 0)"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    },
+    {
+      "animation-name": "none",
+      "transform": "none"
+    }
+  ]
+}

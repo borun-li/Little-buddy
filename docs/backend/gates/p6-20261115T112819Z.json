@@ -1,0 +1,64 @@
+{
+  "phase": "p6",
+  "time": "2026-11-15T11:28:19Z",
+  "project": "/Users/apple/Desktop/Hackathon/Local_AI_Hackathon",
+  "run_dir": "docs/backend",
+  "overall": "pass",
+  "consecutive_failures": 0,
+  "failed_runs": 0,
+  "fix_round_cap": 2,
+  "escalate": false,
+  "fail_by_owner": {},
+  "checks": [
+    {
+      "id": "ALL.state",
+      "status": "pass",
+      "message": "state.json valid",
+      "owner": "orchestrator",
+      "details": []
+    },
+    {
+      "id": "P6.tree-unchanged",
+      "status": "pass",
+      "message": "Tree unchanged during review",
+      "owner": "orchestrator",
+      "details": []
+    },
+    {
+      "id": "ALL.upstream",
+      "status": "pass",
+      "message": "Upstream documents present",
+      "owner": "orchestrator",
+      "details": []
+    },
+    {
+      "id": "P6.findings",
+      "status": "pass",
+      "message": "Every finding is well-formed and anchored",
+      "owner": "orchestrator",
+      "details": []
+    },
+    {
+      "id": "LOG.valid",
+      "status": "pass",
+      "message": "Run log intact",
+      "owner": "orchestrator",
+      "details": []
+    },
+    {
+      "id": "CTX.codemap",
+      "status": "pass",
+      "message": "docs/codemap.md paths exist, within its cap",
+      "owner": "be-tester",
+      "details": []
+    },
+    {
+      "id": "CTX.handoff",
+      "status": "pass",
+      "message": "handoff.md: 11 current sections",
+      "owner": "orchestrator",
+      "details": []
+    }
+  ],
+  "data": {}
+}

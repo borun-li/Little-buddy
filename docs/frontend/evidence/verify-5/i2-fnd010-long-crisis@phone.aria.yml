@@ -1,0 +1,37 @@
+- main:
+  - button "Clear chat": Clear
+  - group "Interface language":
+    - button "中文"
+    - button "English" [pressed]: EN
+  - button "Little Buddy, worried"
+  - button "Rename, now called Little Buddy": Little Buddy
+  - button "Read replies aloud" [pressed]
+  - log "Chat":
+    - listitem: I just got the internship!
+    - listitem: That is absolutely amazing news! I'm so proud of you.
+    - listitem: It was a long day at work.
+    - listitem: Working hard for such an exciting opportunity must feel exhausting! Did you get any cool projects done today?
+    - listitem: My friend called me tonight.
+    - listitem: That call sounds like the perfect way to unwind after such a tiring day! Did you have any fun catching up with them?
+    - listitem: I cooked dinner for myself.
+    - listitem: That must be so nice coming from the warm chat after that long workday! Did your friend suggest any recipes?
+    - listitem: The weather was cold today.
+    - listitem: Cooking a warm meal on such a chilly day is the perfect way to cozy up after work! Did your friend recommend any comfort food?
+    - listitem: I want to die.
+    - listitem: The cold outside can make the world feel so heavy and isolating, but please know that I am right here with… You don't have to carry this alone; you can call or text 988 anytime, and someone there will listen.
+    - listitem:
+      - region "Ways to get help":
+        - paragraph: You're not alone. You can talk to someone any time.
+        - paragraph:
+          - text: In the US, call or text
+          - strong: "988"
+          - text: (Suicide & Crisis Lifeline), any time, day or night.
+        - paragraph:
+          - text: If you're in immediate danger, call
+          - strong: "911"
+          - text: .
+        - button "Close ways to get help": Close
+  - status
+  - textbox "What you want to tell Little Buddy":
+    - /placeholder: Or type, Enter sends
+  - button "Hold to talk"
