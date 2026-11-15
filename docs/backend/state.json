@@ -114,7 +114,9 @@
     "Video: user records live; orchestrator writes a 2-min shot list, narration, tested demo lines and a pre-record checklist (user, 2026-11-14 21:25 EST).",
     "Phase 6 panel round 1 done (behavior, security, reliability): candidates in docs/backend/logs/review-r1-candidates.md — 1 blocker (S-1/R-1 '//' crash), majors S-2 CORS, B-1 noise→'Okay.', R-2 silent child failure. Next: fresh be-reviewer merges → 06-review-report.md, gate p6.",
     "P0 p7: P7.matrix gaps are manual TCs the user covered at Acceptance (TC-083..086, TC-070/076); record them via a tester in increment 2 before the final p7.",
-    "USER HOLD (2026-11-15 ~01:05 EST): after the increment-2 Plan stop (layout approval), PAUSE — dispatch no build work until the user has restated the development rules and said to proceed."
+    "USER HOLD (2026-11-15 ~01:05 EST): after the increment-2 Plan stop (layout approval), PAUSE — dispatch no build work until the user has restated the development rules and said to proceed.",
+    "Build brief carry-overs (2026-11-15 ~01:12 EST): be-developer fixes stale text only, no behaviour change — DES-023 voice: envVoice() comment, § 5 TTS_VOICE row (default = serena, decided), § 9 crisis row (UD-1 = (a) decided); then re-copy § 9 seam to contracts/FRONTEND_BACKEND_CONTRACT.md. 01-requirements.md § Increment 2 FX-009 row (line ~417) lacks FX-009-09 (FRAME-019 line); locked fixture is authoritative.",
+    "Ready state (c8a1144, pushed): Plan done, p2 pass, FX-009..013 locked. Next on user's go: baseline → mark be-tester/be-developer → Phase 4 build (DES-016..023), then frontend Q-020..Q-033 serial."
   ],
   "decisions_at_plan": {
     "by": "user",
