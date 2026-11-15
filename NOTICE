@@ -1,0 +1,37 @@
+Little Buddy
+Copyright 2026 borun-li
+
+This product is licensed under the Apache License, Version 2.0 (see LICENSE).
+
+-------------------------------------------------------------------------------
+Included in this repository
+-------------------------------------------------------------------------------
+
+LXGW WenKai (subset, web/fonts/lxgw-wenkai-subset.woff2)
+  Copyright 2021-2026 LXGW, with Reserved Font Names; Copyright 2020 The Klee Project Authors.
+  SIL Open Font License 1.1. Full text and the author's additional permission: web/fonts/OFL.txt
+
+Lucide icons 1.73.0 (inlined as SVG symbols in web/index.html)
+  Copyright (c) 2026 Lucide Icons and Contributors. ISC License.
+  "info" and "lock" are derived from Feather, Copyright (c) 2013-present Cole Bemis. MIT License.
+  The full notices are in the comment at the top of web/index.html.
+
+-------------------------------------------------------------------------------
+Fetched at build time (Swift Package Manager, stt/Package.swift)
+-------------------------------------------------------------------------------
+
+argmax-oss-swift 1.1.1 (WhisperKit, TTSKit)   Copyright (c) 2024 argmax, inc.   MIT License
+swift-argument-parser                          Apple Inc. and the Swift project authors   Apache License 2.0
+
+-------------------------------------------------------------------------------
+Models and runtimes the user downloads separately (not redistributed here)
+-------------------------------------------------------------------------------
+
+Bonsai 2 (Ternary-Bonsai-2 4B / 9B GGUF), PrismML        Apache License 2.0
+llama.cpp (llama-server, PrismML build)                  MIT License
+WhisperKit Core ML models (argmaxinc/whisperkit-coreml)  MIT License
+  based on OpenAI Whisper large-v3                       MIT License
+Qwen3-TTS (Core ML build argmaxinc/ttskit-coreml)        Apache License 2.0 (upstream Qwen/Qwen3-TTS)
+Qwen3-0.6B tokenizer                                     Apache License 2.0
+
+Each model is used under the terms its publisher states on its model page.

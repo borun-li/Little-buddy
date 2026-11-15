@@ -59,7 +59,7 @@ before(async () => {
   const cfg = structuredClone(CONFIG);
   cfg.bonsai = { ...cfg.bonsai, port: await freePort(), dir: join(dir, 'gguf') };
   shellWrapper(join(dir, 'gguf'), 'bin/macos-arm64/llama-server', join(dir, 'fake.cjs'));
-  b = await withEnv({ FAKE_LOG: logFile }, () => { const x = createBonsai(cfg); x.start(); return x; });
+  b = await withEnv({ FAKE_LOG: logFile }, () => { const x = createBonsai(cfg, 'US'); x.start(); return x; });
   await waitFor(() => b.state === 'ready', 20000, 'bonsai ready');
 });
 after(() => b?.stop());
@@ -86,7 +86,7 @@ test('FND-026 isStrongCrisis: unambiguous words fire (normalised, Traditional, e
 test('FND-026 respond: model risk true on a non-strong line -> crisis, 988, no CRISIS_RULE in the prompt, crisis_by model', async () => {
   const { r, sys, done } = await turn('I wanted to die RISK_T');
   assert.equal(r.crisis, true); assert.ok(r.reply.includes('988'), r.reply);
-  assert.equal(r.reply, crisisReply('I hear you. What happened?', 'en'));
+  assert.equal(r.reply, crisisReply('I hear you. What happened?', 'en', 'US'));
   assert.equal(r.mood, 'unpleasant-low');
   assert.ok(!sys.includes(CRISIS_RULE.en));
   assert.equal(done.crisis_by, 'model');
@@ -121,8 +121,8 @@ test('FND-026 respond: risk missing, not boolean, not JSON or the mood call fail
 
 test('FND-026 respond: a model-crisis turn whose reply call fails still answers with the fallback sentence + 988 (UD-1 a); a normal turn still fails', async () => {
   const { r } = await turn('I want to end it REPLY500 RISK_T');
-  assert.deepEqual(r, { reply: crisisReply('', 'en'), mood: 'unpleasant-low', lang: 'en', crisis: true });
+  assert.deepEqual(r, { reply: crisisReply('', 'en', 'US'), mood: 'unpleasant-low', lang: 'en', crisis: true });
   const f = await turn('我想伤害自己 REPLY500 MOODFAIL');
-  assert.equal(f.r.crisis, true); assert.equal(f.r.reply, crisisReply('', 'zh')); assert.equal(f.r.mood, 'neutral');
+  assert.equal(f.r.crisis, true); assert.equal(f.r.reply, crisisReply('', 'zh', 'US')); assert.equal(f.r.mood, 'neutral');
   await assert.rejects(b.respond('Just a normal day REPLY500 RISK_F', []), (e) => e.code === 'failed');
 });

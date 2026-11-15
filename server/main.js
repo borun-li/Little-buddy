@@ -13,9 +13,12 @@ import { createStt } from './stt.js';
 import { isReady } from './supervisor.js';
 import { createTts, speechParts } from './tts.js';
 import { pcmFromWav } from './wav.js';
+import { systemRegion } from './region.js';
 
 const WEB = join(CONFIG.repo, 'web');
-const children = { stt: createStt(), bonsai: createBonsai(), tts: createTts() };
+// R0: the help-line region, decided once at start on this Mac (macOS region, then time zone; COMPANION_REGION overrides).
+const REGION = systemRegion();
+const children = { stt: createStt(), bonsai: createBonsai(CONFIG, REGION), tts: createTts() };
 let ttsStarted = false;
 
 // Human-readable lines go to stderr; stdout carries only the JSON log (03 §6).
@@ -93,7 +96,7 @@ async function handleApi(req, res, path) {
     if (mediaType(req) !== 'application/json') throw new ApiError('bad_request');
     const { line, history, name } = parseTurn(await readBody(req, CONFIG.limits.jsonBytes));
     const turn = await children.bonsai.respond(line, history, name);
-    return sendJson(res, 200, { ...turn, speech: speechParts(turn.reply, turn.lang) });
+    return sendJson(res, 200, { ...turn, region: REGION, speech: speechParts(turn.reply, turn.lang) }); // region: the page's crisis card picks its numbers
   }
   if (req.method === 'POST' && path === '/api/speak') {
     if (mediaType(req) !== 'application/json') throw new ApiError('bad_request');
@@ -217,6 +220,7 @@ export async function main(argv) {
     ttsStarted = true;
   }
   const url = `http://${CONFIG.host}:${CONFIG.port}`;
+  say(`求助电话地区 Help-line region: ${REGION ?? 'international'}（改 Change: COMPANION_REGION=CN|US|OTHER）`);
   say(`启动中 Starting (stt pid ${children.stt.pid}, bonsai pid ${children.bonsai.pid}, tts pid ${children.tts.pid})…`);
   const poll = setInterval(() => {
     const h = health();

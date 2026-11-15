@@ -15,7 +15,7 @@ test('Q-010 respond posts line and history, parses 200', async () => {
   let seen;
   const c = createClient({ fetch: async (url, init) => { seen = { url, init }; return json(200, { reply: 'Hi!', mood: 'pleasant-high' }); } });
   const r = await c.respond('hello', [{ role: 'user', text: 'a', extra: 1 }]);
-  assert.deepEqual(r, { reply: 'Hi!', mood: 'pleasant-high', lang: undefined, crisis: false, speech: [] });
+  assert.deepEqual(r, { reply: 'Hi!', mood: 'pleasant-high', lang: undefined, crisis: false, region: null, speech: [] });
   assert.equal(seen.url, '/api/respond');
   assert.equal(seen.init.method, 'POST');
   assert.equal(seen.init.headers['Content-Type'], 'application/json');
@@ -86,7 +86,7 @@ test('Q-020 respond sends name when set, leaves it out when null or absent; retu
   const bodies = [];
   const c = createClient({ fetch: async (_u, init) => { bodies.push(JSON.parse(init.body)); return json(200, { reply: 'Hi', mood: 'neutral', lang: 'en', crisis: true, speech: ['Hi', 'there'] }); } });
   const r = await c.respond('hello', [], 'Pip');
-  assert.deepEqual(r, { reply: 'Hi', mood: 'neutral', lang: 'en', crisis: true, speech: ['Hi', 'there'] });
+  assert.deepEqual(r, { reply: 'Hi', mood: 'neutral', lang: 'en', crisis: true, region: null, speech: ['Hi', 'there'] });
   await c.respond('hello', [], null);
   await c.respond('hello', []);
   assert.deepEqual(bodies[0], { line: 'hello', history: [], name: 'Pip' });
