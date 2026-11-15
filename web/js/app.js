@@ -1,8 +1,9 @@
 // Entry: turn flow idle -> pending -> idle (FLOW-001, FLOW-002). Data comes only from companion-client.js.
-import { respond, transcribe } from './companion-client.js';
+import { respond, transcribe, health } from './companion-client.js';
 import { copy } from './copy.js';
 import { createLog } from './log.js';
 import { createCompanion } from './companion.js';
+import { createHealthWatch } from './health-watch.js';
 import { createHint, createTalkButton } from './talk-button.js';
 
 const $ = (sel) => document.querySelector(sel);
@@ -23,16 +24,32 @@ const companion = createCompanion($('[data-testid="companion"]'), $('.companion_
 const history = []; // page memory only (A5)
 let pending = false;
 
+// FLOW-006: the watch decides what Enter and hold may do and which hint and caption show.
+const watch = createHealthWatch({
+  health,
+  onChange(st) {
+    companion.setWaking(st.waking);
+    if (st.hint) showHint(st.hint);
+    else if (shownKey === 'awake') clearSendHint(); // the awake hint leaves by itself after 4 s
+  },
+});
+
 const talk = createTalkButton({
   button: $('.talk-button'),
   hint: createHint($('.hint')),
-  isPaused: () => pending,
+  // A hold while voice is not ready records nothing and repeats the current hint (talk-button only asks here).
+  isPaused: () => {
+    if (pending) return true;
+    const st = watch.state;
+    if (!st.canVoice) { showHint(st.hint ?? 'unreachable'); return true; }
+    return false;
+  },
   // Q-014 passes the held WAV and handles failures; until then the real transcribe has no audio to send.
   onUtterance: async (audio) => {
     try {
       const { text } = await transcribe(audio);
       send(text, { voice: true });
-    } catch { /* Q-014 / Q-018 words these */ }
+    } catch (err) { watch.failed(err.code); /* Q-014 / Q-018 word these */ }
   },
 });
 
@@ -42,30 +59,27 @@ function setPending(on) {
   field.classList.toggle('is-paused', on && input.value.trim() !== '');
 }
 
-// Q-011: words per 01-ux.md Codes, send column. Q-015 moves these into copy.js (hints.warming,
-// sendUnavailable, sendTimeout, sendFailed, sendDefect); copy.hints wins as soon as it has them.
+// Q-011: words per 01-ux.md Codes, send column; every string lives in copy.hints.
 const SEND_HINT_KEY = {
   not_ready: 'warming', unavailable: 'sendUnavailable', timeout: 'sendTimeout',
   failed: 'sendFailed', bad_request: 'sendDefect', too_large: 'sendDefect',
 };
-const SEND_HINT_ZH = {
-  warming: '小伙伴还在醒来，通常一两分钟。可以先打字，醒了再发。',
-  sendUnavailable: '没连上小伙伴，这句没发出去。文字放回输入框了，稍等再按 Enter。',
-  sendTimeout: '小伙伴想得太久，这次没回上。文字放回输入框了，按 Enter 再发。',
-  sendFailed: '这次没回上来。文字放回输入框了，按 Enter 再发。',
-  sendDefect: '这句没发出去。文字放回输入框了，再试一次；还不行就刷新页面（聊天会清空）。',
-};
 const hintEl = $('.hint');
 const hintText = hintEl.querySelector('.hint__text');
-function showSendHint(code) {
-  const key = SEND_HINT_KEY[code] ?? 'sendFailed'; // an unknown code is a failed reply, never shown raw
+let shownKey = null;
+function showHint(key) {
+  shownKey = key;
   hintEl.querySelector('use').setAttribute('href', '#i-info');
   hintEl.classList.add('is-shown');
   hintText.textContent = '';
   // later task so the same message twice is announced again (same as createHint)
-  setTimeout(() => { hintText.textContent = copy.hints[key] ?? SEND_HINT_ZH[key]; }, 30);
+  setTimeout(() => { hintText.textContent = copy.hints[key]; }, 30);
+}
+function showSendHint(code) {
+  showHint(SEND_HINT_KEY[code] ?? 'sendFailed'); // an unknown code is a failed reply, never shown raw
 }
 function clearSendHint() {
+  shownKey = null;
   hintEl.classList.remove('is-shown');
   hintText.textContent = '';
 }
@@ -78,8 +92,10 @@ function onSendFailed(err, line, turn) {
   input.value = typed.trim() ? `${line} ${typed}` : line;
   setPending(false);
   input.focus();
+watch.start();
   input.setSelectionRange(input.value.length, input.value.length);
   showSendHint(err.code);
+  watch.failed(err.code); // not_ready / unavailable: the checks resume
 }
 
 async function send(raw, { voice = false } = {}) {
@@ -110,6 +126,8 @@ input.addEventListener('keydown', (e) => {
   if (pending) { setPending(true); return; } // ignored; text kept
   const text = input.value;
   if (!text.trim()) return;
+  const st = watch.state;
+  if (!st.canSend) { showHint(st.hint ?? 'unreachable'); return; } // text kept, hint repeated, nothing sent
   input.value = '';
   send(text);
 });
@@ -120,3 +138,4 @@ document.addEventListener('visibilitychange', () => {
 });
 
 input.focus();
+watch.start();

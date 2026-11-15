@@ -297,7 +297,7 @@ Stack unchanged: static files, vanilla ES modules, `node:test`. No new package.
 - **Priority:** P1
 - **Side:** both (backend first)
 - **Depends on:** Q-010, Q-011
-- **Status:** queued
+- **Status:** built (fe-engineer #11)
 
 ### Q-013 — The held voice is recorded as 16 kHz WAV
 - **Page:** PAGE-001

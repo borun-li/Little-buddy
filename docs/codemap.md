@@ -11,10 +11,15 @@ Traps: `web/index.html` holds the 5 companion SVGs inline as <template id="mood-
 Does: turn flow idle → pending → idle; Enter (not while an IME composes) sends; Enter while pending is ignored and keeps the text; pauses the talk button ≤ 1 s. Q-011: a failed respond drops the turn (log.dropFailed), returns the line to the input in front of text typed meanwhile (focused, caret at end) and shows the send-column hint for err.code in the shared .hint line; the hint clears at the next send.  Entry: module top level  Used by: `web/index.html`
 Invariants: the only importer of `web/js/companion-client.js`; page memory only (A5).  Tests: `tests/fake-companion.test.js` (import seam)
 
+## `web/js/health-watch.js`
+Does: Q-012 warming state machine. createHealthWatch({health, onChange, now, timers}) → {state, start, failed(code), stop}; state {canSend, canVoice, waking, hint}. Checks at open and every 2 s until bonsai and stt are ready; a failed check = bonsai down; 30 s down → hint stillDown; awake for 4 s only if a not-ready hint was shown; failed('not_ready'|'unavailable') resumes checks. onChange fires only when the state changes (no re-announce per poll).  Used by: `web/js/app.js`
+Invariants: pure, clock and health() injected.  Tests: `tests/health-watch.test.js`
+Traps: talk-button.js is not edited: app.js's isPaused callback shows the hold hint (voiceNotReady / warming / unreachable) and returns true, so a blocked hold records nothing. Enter while blocked keeps the text and repeats the hint.
+
 ## `web/js/companion-client.js`
 Does: the one replaceable data layer (REQ-007), real since Q-010: respond(line, history) → {reply, mood} (POST /api/respond, aborts at 16 s), transcribe(audio) (POST /api/transcribe, 13 s; Q-014 sends the WAV), health() (GET /api/health). Failures reject with an Error whose .code is one of CODES (not_ready, unavailable, timeout, failed, bad_request, too_large).  Used by: `web/js/app.js` only
 Invariants: same-origin relative paths; last 40 history entries, never the interface language; createClient({fetch, timers}) is injectable for tests; replacing this one file swaps all replies and moods; seam in `contracts/FRONTEND_BACKEND_CONTRACT.md` §2.
-Traps: app.js holds the five send-hint strings (SEND_HINT_ZH) until Q-015 moves them to copy.hints; copy.hints[key] wins once present. Default timers are arrow wrappers, because window.setTimeout called as timers.setTimeout throws Illegal invocation in browsers (node does not, only a browser run shows it).  Tests: `tests/client.test.js`
+Traps: Default timers are arrow wrappers, because window.setTimeout called as timers.setTimeout throws Illegal invocation in browsers (node does not, only a browser run shows it).  Tests: `tests/client.test.js`
 
 ## `web/js/fake/`
 Does: fake-companion.js (createFakeCompanion, tests only, moved here by Q-010), presets.js (A3 replies, A1 voice lines) and mood-keywords.js (A2: keyword ending last wins, longer wins at a tie, so 不开心 is sad; no match → neutral). Keyed by language (zh only).  Used by: `tests/fake-companion.test.js`, `tests/mood.test.js`
