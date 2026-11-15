@@ -10,3 +10,16 @@ __pycache__/
 .DS_Store
 # Test reports
 test-results/
+# Local agent / workflow files — not part of the product
+.claude/
+CLAUDE.md
+**/CLAUDE.md
+contracts/
+idea.md
+spikes/
+# Process records stay local; only the demo (and the design files the tests read) are published
+docs/*
+!docs/demo/
+# Raw recordings and video work files
+docs/video/
+*.mov
