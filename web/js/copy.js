@@ -23,6 +23,7 @@ export const COPY = {
       noMic: '没找到麦克风，打字也一样能聊。',
       busy: '麦克风被别的程序占用了，关掉再试，或者先打字。',
       tooShort: '说得太快啦，按住久一点。',
+      micOpening: '麦克风正在打开，看到秒数再开口。',
     },
     // Mood caption after "小伙伴 · " and the word in the accessible name "小伙伴，<word>".
     moods: {

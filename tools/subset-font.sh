@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # One-off, build-time: LXGW WenKai Regular TTF -> web/fonts/lxgw-wenkai-subset.woff2.
-# Keeps ASCII, Latin-1 punctuation, general and CJK punctuation, full-width forms, the GB2312 hanzi,
+# Keeps ASCII, Latin-1 (accented letters too) and Latin Extended-A, punctuation, € ™, general and CJK punctuation, full-width forms, the GB2312 hanzi,
 # and every character in the preset replies and UI copy. Never runs at page time.
 # Needs: python3 with fonttools + brotli (pyftsubset). The TTF is not committed.
 # Usage: tools/subset-font.sh path/to/LXGWWenKai-Regular.ttf
@@ -30,7 +30,7 @@ PY
 
 pyftsubset "$ttf" \
   --text-file="$chars" \
-  --unicodes="U+0020-007E,U+00A0-00BF,U+00D7,U+00F7,U+2000-206F,U+3000-303F,U+FF00-FFEF" \
+  --unicodes="U+0020-007E,U+00A0-00FF,U+0100-017F,U+2000-206F,U+20AC,U+2122,U+3000-303F,U+FF00-FFEF" \
   --layout-features='*' \
   --flavor=woff2 \
   --output-file="$out"

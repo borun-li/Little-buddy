@@ -52,20 +52,6 @@ Next agent must know:
 Read beyond the list: ~/.claude/gates/gatelib/docs.py:54-70, 115-119 — prose and field parsers.
 Next agent reads: docs/frontend/02-ui.md § Increment 1 (CMP-006, CMP-003 increment 1, Frames (increment 1)); docs/frontend/06-feedback.md DFB-004
 
-## fe-engineer #6 · step 3 (frontend build Q-010) · round 1 · increment 1 · 2026-11-15T00:58:00Z
-Task: Q-010 — a typed line gets a real reply and mood through web/js/companion-client.js (DES-013). Placed beside #7's section, not over it: two fe-engineers ran in parallel.
-Changed: web/js/companion-client.js (rewritten: createClient({fetch, timers}), respond / transcribe(audio) / health, CODES, MOODS); web/js/fake/fake-companion.js (createFakeCompanion moved here, tests only, `git mv` was blocked so the old path is a plain move: git sees delete + new); web/js/app.js (transcribe(audio) passthrough; send catches respond errors via onSendFailed); tests/client.test.js (new, 7 tests); tests/fake-companion.test.js (imports); package.json (client.test.js added to `test`); docs/codemap.md (companion-client, fake); docs/frontend/evidence/build/Q-010-1440.png, Q-010-390.png.
-Feedback: none (the frames FRAME-014/015 are what is built; the CMP-006 switch, English words and caption are Q-015/Q-016, so the page still shows Chinese chrome).
-Result: `npm test` 37 pass / 0 fail. Live at 127.0.0.1:4400 (Chromium, en-US, 1440 and 390): "I passed my exam today, so happy!" -> reply in English, mood pleasant-high, 1.8 s; follow-up "Now I feel really sad." -> unpleasant-low, reply recalls the success; only POST /api/respond, no console error. Latency measured with Playwright from Enter to the reply element.
-Next agent must know:
-- Pitfalls: window.setTimeout called as timers.setTimeout throws Illegal invocation in browsers; node does not, so only a browser run found it. Default timers are arrow wrappers.
-- Pitfalls: app.js onSendFailed is the Q-011 hook: today it only removes the typing dots (`.turn--typing`, DOM query, replace with a log.js method), unpauses, console.warn; the own turn stays and the text is not given back, no hint. A failed send still shows nothing to the user until Q-011.
-- Pitfalls: onUtterance now calls transcribe(audio) with no audio (talk-button does not pass it): voice is broken until Q-014 wires mic.wav(); the catch swallows it. Voice demo does not work between Q-010 and Q-014.
-- Tried, did not work: nothing.
-- Left open: Latin glyphs in the WenKai subset (Q-017); hint/caption English (Q-015/016).
-Next agent reads: web/js/companion-client.js; tests/client.test.js; app.js onSendFailed and onUtterance
-- From fe-engineer #7 (Q-013, trimmed by orchestrator): talk-button.js stop() calls hold.mic.close(), which drops audio — Q-019/Q-014 must `await hold.mic.wav()` first; web/js/mic.js wav() stops tracks then waits ≤300 ms for the worklet flush.
-
 ## orchestrator · Phase 2 · Plan stop · 2026-11-14T23:46:52Z
 State: p1 pass, p2 pass; frontend increment 1 gates fe-ux (user waiver FE1.flow-length FLOW-001/002 only), fe-ui, fe-queue, fe-plan pass. Branch companion-full-dev. Figma 12/15 this run.
 Decided: risk normal (user, kickoff); 9B, setup step, argmax-oss-swift 1.1.1, port 4317 = be-architect recommendations, pending user; DFB-004 by fe-ui #5; DFB-005 accepted by fe-ux #4 pending user; PAGE-001 increment block accepted as increment structure (orchestrator).
@@ -98,3 +84,14 @@ Next agent reads: docs/backend/08-implementation-log.md § Fix rounds; docs/back
 - REQ-003 1 s check now runs on `createFakeCompanion()` default delay (600 ms); the default (real) layer is left to `tests/client.test.js`. Dropped the real-`transcribe()` assertion (it would hit fetch).
 - Seam rule tightened: nothing in `web/` outside `fake/` imports `fake/` (true now). Importer rule (app.js only imports companion-client.js) unchanged.
 - `npm test`: 37 tests, 37 pass, 0 fail.
+## fe-engineer #8 · step 3 (frontend build Q-011) · round 1 · increment 1 · 2026-11-15T01:20:00Z
+Task: Q-011 — a failed send gives the words back (REQ-011, DES-013).
+Changed: web/js/app.js (onSendFailed: turn leaves, text returns in front of text typed meanwhile, focus + caret at end, send-column hint per code; clearSendHint at next send; SEND_HINT_KEY / SEND_HINT_ZH); web/js/log.js (dropFailed(turn): removes turn and dots, restores the empty state if no turn is left); docs/codemap.md; docs/frontend/evidence/build/Q-011-1440.png, Q-011-390.png. companion-client.js unchanged (already maps codes).
+Feedback: none.
+Result: npm test 37 pass / 0 fail. Playwright route against 127.0.0.1:4400 (1440 and 390): 503 not_ready, aborted fetch -> unavailable, 504 timeout, 500 failed, 400, 413, unknown code -> right hint; turn count 0, dots 0, text back, input focused, mood neutral, hint 0.04-0.06 s after Enter. Merge "第一句 后来" confirmed; after a reply a later failure keeps the older turn and reply; caret at end; resend works and the hint clears. Hint wraps to 2 lines at 390.
+Next agent must know:
+- copy.js keys to add (Q-015), zh as in 01-ux.md Words: hints.warming, hints.sendUnavailable, hints.sendTimeout, hints.sendFailed, hints.sendDefect. app.js reads copy.hints[key] first, so adding them is enough; then delete SEND_HINT_ZH.
+- Pitfalls: talk-button's createHint cannot show these keys (HINT_ICON and copy lookup), so app.js writes the shared .hint element itself with the i-info icon; a talk-button hint shown later still wins (newest wins).
+- Left open: Q-012 checks resuming after not_ready / unavailable; voice-line failures (Q-018); no node test for the DOM part (no DOM in node tests), browser run only.
+Next agent reads: web/js/app.js showSendHint / onSendFailed; web/js/log.js dropFailed
+- Carried by orchestrator from #6/#9/#10 (trimmed): #6 Q-010 real layer in companion-client.js (createClient, 16 s/13 s aborts; fake moved to web/js/fake/); #9 Q-019 talk-button.js finish() awaits hold.mic.wav() then close() then onUtterance(blob|null), `hints.micOpening` zh only, tests/talk-button.test.js not yet in `npm test`; #10 Q-017 font subset now has Latin-1/Latin Extended-A/general punctuation (emoji, →, ✓ still fall back).

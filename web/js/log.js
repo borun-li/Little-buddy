@@ -6,6 +6,7 @@ const reduceMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)')
 
 export function createLog(scroller, list, emptyState) {
   let typing = null;
+  const emptyOriginal = emptyState;
 
   function scrollToNewest() {
     scroller.scrollTo({ top: scroller.scrollHeight, behavior: reduceMotion() ? 'auto' : 'smooth' });
@@ -47,6 +48,17 @@ export function createLog(scroller, list, emptyState) {
       sr.textContent = copy.typing;
       li.append(sr);
       typing = add(li);
+    },
+    // Q-011: a failed send takes its own turn and the typing dots away; with no turn left the empty
+    // state returns (it is the state the page opened in).
+    dropFailed(turn) {
+      typing?.remove();
+      typing = null;
+      turn?.remove();
+      if (emptyOriginal && !list.children.length) {
+        emptyState = emptyOriginal;
+        scroller.prepend(emptyOriginal);
+      }
     },
     addReply(text) {
       typing?.remove();

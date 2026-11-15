@@ -7,7 +7,7 @@
     "check": "关掉 Wi-Fi，npm start 打开页面，按住说一句开心的英文（如 \"I just got the internship!\"）：几秒内出现 Bonsai 现场生成的英文回复（不是预设句），小伙伴变开心；再说一句难过的，回复接得上前文，小伙伴变难过。"
   },
   "started_at": "2026-11-14T22:19:00Z",
-  "updated_at": "2026-11-14T23:52:03Z",
+  "updated_at": "2026-11-15T00:54:21Z",
   "status": "in_progress",
   "tier": "full",
   "risk": "normal",
@@ -38,23 +38,30 @@
       "gate": "p2",
       "verdict": "pass",
       "at": "2026-11-14T23:46:52Z"
+    },
+    {
+      "phase": 4,
+      "gate": "p4",
+      "verdict": "pass",
+      "at": "2026-11-15T00:54:21Z",
+      "note": "backend DES-001..012 built; test:backend 58/58 incl. live on 4400"
     }
   ],
   "frontend_items": [
     {
       "des": "DES-013",
       "queue_row": "Q-010, Q-011, Q-012, Q-014, Q-018",
-      "status": "queued"
+      "status": "building"
     },
     {
       "des": "DES-014",
       "queue_row": "Q-013, Q-019",
-      "status": "queued"
+      "status": "building"
     },
     {
       "des": "DES-015",
       "queue_row": "Q-015, Q-016, Q-017",
-      "status": "queued"
+      "status": "building"
     }
   ],
   "increments": [],
@@ -65,7 +72,8 @@
     "Bonsai 4B vs 9B: benchmark both on a production-shaped prompt before build (PLAYBOOK §2.2); default 9B.",
     "WhisperKit: first transcribe in a new binary ~390 s (ANE compile); plan warm-up early.",
     "Demo instance runs on 127.0.0.1:4399 (isolated from the user's 4317).",
-    "be-architect #1 (2026-11-14): 9B recommended (bench docs/backend/logs/be-architect-1-bench.log); new dep argmax-oss-swift 1.1.1 exact; new `npm run setup` (online, one-time); npm start = node server on 127.0.0.1:4317. All four for the Plan stop."
+    "be-architect #1 (2026-11-14): 9B recommended (bench docs/backend/logs/be-architect-1-bench.log); new dep argmax-oss-swift 1.1.1 exact; new `npm run setup` (online, one-time); npm start = node server on 127.0.0.1:4317. All four for the Plan stop.",
+    "Run-log gap: SendMessage continuations of be-developer r2/r3 and be-tester r2 were not logged as dispatch/return by the hook; p4 re-run per writer in order (decision #42)."
   ],
   "decisions_at_plan": {
     "by": "user",

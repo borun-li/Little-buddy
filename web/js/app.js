@@ -42,26 +42,58 @@ function setPending(on) {
   field.classList.toggle('is-paused', on && input.value.trim() !== '');
 }
 
-// Hook for Q-011: it gives the words back and shows the hint for err.code. Until then the page only
-// stops waiting, so a failed send never leaves send and hold paused for good.
-function onSendFailed(err, line) {
-  void line;
-  document.querySelector('.turn--typing')?.remove();
+// Q-011: words per 01-ux.md Codes, send column. Q-015 moves these into copy.js (hints.warming,
+// sendUnavailable, sendTimeout, sendFailed, sendDefect); copy.hints wins as soon as it has them.
+const SEND_HINT_KEY = {
+  not_ready: 'warming', unavailable: 'sendUnavailable', timeout: 'sendTimeout',
+  failed: 'sendFailed', bad_request: 'sendDefect', too_large: 'sendDefect',
+};
+const SEND_HINT_ZH = {
+  warming: '小伙伴还在醒来，通常一两分钟。可以先打字，醒了再发。',
+  sendUnavailable: '没连上小伙伴，这句没发出去。文字放回输入框了，稍等再按 Enter。',
+  sendTimeout: '小伙伴想得太久，这次没回上。文字放回输入框了，按 Enter 再发。',
+  sendFailed: '这次没回上来。文字放回输入框了，按 Enter 再发。',
+  sendDefect: '这句没发出去。文字放回输入框了，再试一次；还不行就刷新页面（聊天会清空）。',
+};
+const hintEl = $('.hint');
+const hintText = hintEl.querySelector('.hint__text');
+function showSendHint(code) {
+  const key = SEND_HINT_KEY[code] ?? 'sendFailed'; // an unknown code is a failed reply, never shown raw
+  hintEl.querySelector('use').setAttribute('href', '#i-info');
+  hintEl.classList.add('is-shown');
+  hintText.textContent = '';
+  // later task so the same message twice is announced again (same as createHint)
+  setTimeout(() => { hintText.textContent = copy.hints[key] ?? SEND_HINT_ZH[key]; }, 30);
+}
+function clearSendHint() {
+  hintEl.classList.remove('is-shown');
+  hintText.textContent = '';
+}
+
+// A failed send gives the words back: the turn leaves, the text returns in front of anything typed
+// meanwhile, focus and caret at the end. History, mood and older turns are untouched.
+function onSendFailed(err, line, turn) {
+  log.dropFailed(turn);
+  const typed = input.value;
+  input.value = typed.trim() ? `${line} ${typed}` : line;
   setPending(false);
-  console.warn('respond failed:', err.code);
+  input.focus();
+  input.setSelectionRange(input.value.length, input.value.length);
+  showSendHint(err.code);
 }
 
 async function send(raw, { voice = false } = {}) {
   const line = raw.trim();
   if (!line || pending) return false;
-  log.addYou(line, { voice });
+  clearSendHint();
+  const turn = log.addYou(line, { voice });
   setPending(true);
   log.showTyping();
   let result;
   try {
     result = await respond(line, history.slice());
   } catch (err) {
-    onSendFailed(err, line);
+    onSendFailed(err, line, turn);
     return false;
   }
   const { reply, mood } = result;

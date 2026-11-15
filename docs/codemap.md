@@ -8,13 +8,13 @@ Invariants: no request to any host but localhost (REQ-008); hooks data-testid fa
 Traps: `web/index.html` holds the 5 companion SVGs inline as <template id="mood-<mood>">, copied from `docs/frontend/evidence/design/companion/` with every id prefixed <mood>-- (ids repeat across the exports); re-copy by hand if fe-ui re-exports; `tests/companion.test.js` turns red when a copy is stale. Icons are an inline Lucide sprite (#i-mic, #i-mic-off, #i-info, #i-lock) with the ISC/MIT notice in a comment. No autofocus attribute: app.js focuses the input.
 
 ## `web/js/app.js`
-Does: turn flow idle → pending → idle; Enter (not while an IME composes) sends; Enter while pending is ignored and keeps the text; pauses the talk button ≤ 1 s.  Entry: module top level  Used by: `web/index.html`
+Does: turn flow idle → pending → idle; Enter (not while an IME composes) sends; Enter while pending is ignored and keeps the text; pauses the talk button ≤ 1 s. Q-011: a failed respond drops the turn (log.dropFailed), returns the line to the input in front of text typed meanwhile (focused, caret at end) and shows the send-column hint for err.code in the shared .hint line; the hint clears at the next send.  Entry: module top level  Used by: `web/index.html`
 Invariants: the only importer of `web/js/companion-client.js`; page memory only (A5).  Tests: `tests/fake-companion.test.js` (import seam)
 
 ## `web/js/companion-client.js`
 Does: the one replaceable data layer (REQ-007), real since Q-010: respond(line, history) → {reply, mood} (POST /api/respond, aborts at 16 s), transcribe(audio) (POST /api/transcribe, 13 s; Q-014 sends the WAV), health() (GET /api/health). Failures reject with an Error whose .code is one of CODES (not_ready, unavailable, timeout, failed, bad_request, too_large).  Used by: `web/js/app.js` only
 Invariants: same-origin relative paths; last 40 history entries, never the interface language; createClient({fetch, timers}) is injectable for tests; replacing this one file swaps all replies and moods; seam in `contracts/FRONTEND_BACKEND_CONTRACT.md` §2.
-Traps: default timers are arrow wrappers, because window.setTimeout called as timers.setTimeout throws Illegal invocation in browsers (node does not, only a browser run shows it).  Tests: `tests/client.test.js`
+Traps: app.js holds the five send-hint strings (SEND_HINT_ZH) until Q-015 moves them to copy.hints; copy.hints[key] wins once present. Default timers are arrow wrappers, because window.setTimeout called as timers.setTimeout throws Illegal invocation in browsers (node does not, only a browser run shows it).  Tests: `tests/client.test.js`
 
 ## `web/js/fake/`
 Does: fake-companion.js (createFakeCompanion, tests only, moved here by Q-010), presets.js (A3 replies, A1 voice lines) and mood-keywords.js (A2: keyword ending last wins, longer wins at a tie, so 不开心 is sad; no match → neutral). Keyed by language (zh only).  Used by: `tests/fake-companion.test.js`, `tests/mood.test.js`
