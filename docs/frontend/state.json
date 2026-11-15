@@ -56,6 +56,12 @@
       "date": "2026-11-14",
       "words": "Full development companion-full-dev: real STT/Bonsai states (warming, empty transcript, six error codes, slow), voice tag copy, replies in the user language, zh/en UI switch",
       "source": "docs/backend/01-requirements.md [interface] REQs; DES-013..015"
+    },
+    {
+      "n": 2,
+      "date": "2026-11-14",
+      "words": "P1: voice reply (auto + mute), deep breathing (offered when anxious), 988 card, one-click clear, poke the companion, custom name; memory design only",
+      "source": "docs/backend/state.json increments[n=2]"
     }
   ],
   "open_questions": [],
@@ -75,7 +81,7 @@
   },
   "figma_run_budget": {
     "run": "companion-full-dev",
-    "budget": 15,
-    "_note": "orchestrator default 2026-11-14 for increment 1 (only new control: zh/en switch; new states reuse existing hint styles). Prior run used 84/88. List at Plan."
+    "budget": 35,
+    "_note": "orchestrator default 2026-11-14 for increment 1 (only new control: zh/en switch; new states reuse existing hint styles). Prior run used 84/88. List at Plan. | user 2026-11-14 23:55 EST: +20 for increment 2 (P1) → 35 total, 12 used."
   }
 }
