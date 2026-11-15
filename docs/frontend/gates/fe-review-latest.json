@@ -1,14 +1,18 @@
 {
   "phase": "fe-review",
-  "time": "2026-11-15T02:08:57Z",
+  "time": "2026-11-15T11:14:54Z",
   "project": "/Users/apple/Desktop/Hackathon/Local_AI_Hackathon",
   "run_dir": "docs/frontend",
-  "overall": "pass",
-  "consecutive_failures": 0,
-  "failed_runs": 0,
+  "overall": "fail",
+  "consecutive_failures": 1,
+  "failed_runs": 1,
   "fix_round_cap": 2,
   "escalate": false,
-  "fail_by_owner": {},
+  "fail_by_owner": {
+    "orchestrator": [
+      "FE4.tree-unchanged"
+    ]
+  },
   "checks": [
     {
       "id": "ALL.state",
@@ -19,14 +23,31 @@
     },
     {
       "id": "FE4.tree-unchanged",
-      "status": "waived",
+      "status": "fail",
       "message": "Files changed while reviewers ran (PLAYBOOK §4.3)",
       "owner": "orchestrator",
       "details": [
+        "docs/backend/gates/logs/2026-11-15T110505Z-test.log",
+        "docs/backend/gates/p5-20261115T111454Z.json",
+        "docs/backend/gates/p6-20261115T111454Z.json",
+        "docs/backend/logs/be-tester-10-npm-test.log",
+        "docs/backend/logs/be-tester-10-tc125-run1.log",
+        "docs/backend/logs/be-tester-10-tc125-run2.log",
+        "docs/backend/logs/be-tester-10-tc125-run3.log",
+        "docs/backend/logs/be-tester-10-tc125-run4.log",
+        "docs/backend/logs/be-tester-10-tc125-run5.log",
+        "docs/backend/logs/be-tester-10-tc125-run6.log",
+        "docs/backend/05-test-report.md",
+        "docs/backend/demo-plan.json",
+        "docs/backend/gates/attempts.json",
+        "docs/backend/gates/p5-latest.json",
+        "docs/backend/gates/p6-latest.json",
+        "docs/backend/gates/snap-be-developer.json",
+        "docs/backend/gates/snap-be-tester.json",
+        "docs/backend/gates/tests-cache.json",
         "docs/backend/handoff.md",
-        "package.json",
-        "web/js/talk-button.js",
-        "waived by user on 2026-11-15: Scope: fe-review round 2 recheck only. The one changed file, docs/backend/handoff.md, was written by fe-tester #4 (dispatched with the reviewer per PLAYBOOK §3 Phase 4.1) and by the orchestrator filing the reviewer's entry; fe-reviewer #2 wrote only 05-review.md. Remove before any later review round."
+        "docs/backend/run-log.jsonl",
+        "docs/codemap.md"
       ]
     },
     {
@@ -46,7 +67,7 @@
     {
       "id": "FE4.findings",
       "status": "pass",
-      "message": "9 findings well-formed and anchored",
+      "message": "22 findings well-formed and anchored",
       "owner": "fe-reviewer",
       "details": []
     },

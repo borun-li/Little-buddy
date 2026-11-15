@@ -1,21 +1,14 @@
 {
   "phase": "p5",
-  "time": "2026-11-15T10:10:59Z",
+  "time": "2026-11-15T11:14:54Z",
   "project": "/Users/apple/Desktop/Hackathon/Local_AI_Hackathon",
   "run_dir": "docs/backend",
-  "overall": "fail",
-  "consecutive_failures": 1,
-  "failed_runs": 1,
+  "overall": "pass",
+  "consecutive_failures": 0,
+  "failed_runs": 0,
   "fix_round_cap": 2,
   "escalate": false,
-  "fail_by_owner": {
-    "be-tester": [
-      "P5.report-complete"
-    ],
-    "orchestrator": [
-      "CTX.handoff"
-    ]
-  },
+  "fail_by_owner": {},
   "checks": [
     {
       "id": "ALL.state",
@@ -32,10 +25,10 @@
       "details": []
     },
     {
-      "id": "ROLE.tester-scope",
+      "id": "ROLE.shared",
       "status": "pass",
-      "message": "be-tester changed only tests and documents",
-      "owner": "be-tester",
+      "message": "be-developer and be-tester were out together: their changes fit their roles combined",
+      "owner": "be-developer+be-tester",
       "details": []
     },
     {
@@ -44,8 +37,8 @@
       "message": "tests green",
       "owner": "be-developer",
       "details": [
-        "$ npm test -> exit 0 (632.5s), log: /Users/apple/Desktop/Hackathon/Local_AI_Hackathon/docs/backend/gates/logs/2026-11-15T100026Z-test.log",
-        "counts: {'errors': 0, 'xpassed': 0, 'passed': 274, 'failed': 0, 'skipped': 0, 'xfailed': 0}",
+        "$ npm test -> exit 0 (587.9s), log: /Users/apple/Desktop/Hackathon/Local_AI_Hackathon/docs/backend/gates/logs/2026-11-15T110505Z-test.log",
+        "counts: {'errors': 0, 'xfailed': 0, 'failed': 0, 'skipped': 0, 'passed': 300, 'xpassed': 0}",
         "per-test results: report from gates.json junit: test-results/junit.xml"
       ]
     },
@@ -59,7 +52,7 @@
     {
       "id": "P5.tc-in-code",
       "status": "pass",
-      "message": "99 automated TCs found in test code",
+      "message": "109 automated TCs found in test code",
       "owner": "be-tester",
       "details": []
     },
@@ -72,15 +65,10 @@
     },
     {
       "id": "P5.report-complete",
-      "status": "fail",
-      "message": "TCs with no pass/fail/blocked verdict in 05-test-report.md",
+      "status": "pass",
+      "message": "Every TC has a verdict in the report",
       "owner": "be-tester",
-      "details": [
-        "TC-125",
-        "TC-133",
-        "TC-134",
-        "TC-136"
-      ]
+      "details": []
     },
     {
       "id": "P5.report-honest",
@@ -119,12 +107,10 @@
     },
     {
       "id": "CTX.handoff",
-      "status": "fail",
-      "message": "handoff.md must hold one current section per role (route/HANDOFF.md §1)",
+      "status": "pass",
+      "message": "handoff.md: 11 current sections",
       "owner": "orchestrator",
-      "details": [
-        "fe-tester: 34 lines, cap 20"
-      ]
+      "details": []
     }
   ],
   "data": {
@@ -215,6 +201,16 @@
       "TC-116": "passed",
       "TC-117": "passed",
       "TC-137": "passed",
+      "TC-138": "passed",
+      "TC-139": "passed",
+      "TC-140": "passed",
+      "TC-141": "passed",
+      "TC-142": "passed",
+      "TC-143": "passed",
+      "TC-144": "passed",
+      "TC-145": "passed",
+      "TC-146": "passed",
+      "TC-147": "passed",
       "TC-120": "passed",
       "TC-121": "passed",
       "TC-122": "passed",
@@ -338,6 +334,7 @@
       "TC-122": "pass",
       "TC-123": "pass",
       "TC-124": "pass",
+      "TC-125": "pass",
       "TC-126": "pass",
       "TC-127": "pass",
       "TC-128": "pass",
@@ -346,7 +343,20 @@
       "TC-131": "pass",
       "TC-132": "pass",
       "TC-137": "pass",
-      "TC-135": "pass"
+      "TC-138": "pass",
+      "TC-139": "pass",
+      "TC-140": "pass",
+      "TC-141": "pass",
+      "TC-142": "pass",
+      "TC-143": "pass",
+      "TC-144": "pass",
+      "TC-145": "pass",
+      "TC-146": "pass",
+      "TC-147": "pass",
+      "TC-133": "blocked",
+      "TC-134": "blocked",
+      "TC-135": "pass",
+      "TC-136": "blocked"
     },
     "fx_observed": {
       "FX-001": "passed",
@@ -365,11 +375,11 @@
     },
     "counts": {
       "errors": 0,
-      "xpassed": 0,
-      "passed": 274,
+      "xfailed": 0,
       "failed": 0,
       "skipped": 0,
-      "xfailed": 0
+      "passed": 300,
+      "xpassed": 0
     }
   }
 }

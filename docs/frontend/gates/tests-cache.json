@@ -1,44 +1,44 @@
 {
-  "sig": "3b26d102c6d95f458b9fce6e78935500f7da5ae6cda90e227964ae496805e499",
-  "time": "2026-11-15T09:37:58Z",
-  "epoch": 1794735478.249127,
+  "sig": "9cf3bd58507b148fd4fe606b3e3e76731627feecf25396675aedd39d5fc44ccc",
+  "time": "2026-11-15T11:25:47Z",
+  "epoch": 1794741947.641954,
   "result": {
     "cmd": "npm test",
     "exit": 0,
-    "seconds": 582.9,
+    "seconds": 652.4,
     "tail": [
-      "✔ Q-003 the five mood captions match FRAME-009 (zh) and the Words table (en) (0.084833ms)",
-      "✔ Q-005 only app.js imports companion-client.js, so a stub swap touches one file (1.074125ms)",
-      "✔ Q-013 a 2 s hold at 48 kHz becomes a 64,044 B audio/wav blob; 60 s is capped at 1,920,044 B (31.832833ms)",
-      "✔ Q-017 the shipped font covers U+00C0-U+00FF and the punctuation replies use (203.520916ms)",
-      "✔ Q-012 warming table: warming -> voiceNotReady -> awake (4 s) -> empty; down 30 s -> stillDown (3.615667ms)",
-      "✔ Q-019 FND-003 the listening announcement and mic-opening words equal the Words table (0.180209ms)",
-      "✔ Q-008 the 20-turn capture alternates you / reply in order with one typing dots node last (1.120875ms)",
-      "✔ Q-018 each voice problem maps to its hint key (1.163916ms)",
-      "✔ Q-018 an unknown or missing code is a failed transcription (0.292167ms)",
-      "✔ Q-018 every mapped key has a non-empty zh string (0.426916ms)",
-      "✔ Q-014 words replace the transcribing turn, then follow the send path with the same turn (2.380416ms)",
-      "✔ Q-014 empty transcript: the turn leaves, no send, hook gets \"empty\" (0.441875ms)",
-      "✔ Q-014 not_ready and unavailable reach watch.failed; the turn leaves; no send (1.475208ms)",
-      "✔ Q-014 no audio (null) adds no turn and sends nothing (0.297584ms)",
-      "✔ Q-014 the real client posts the Blob as audio/wav to /api/transcribe and returns the text (1.365459ms)",
-      "✔ header: RIFF/WAVE, PCM, mono, 16 kHz, 16 bit, sizes consistent (11.141167ms)",
-      "✔ samples are little-endian int16, clipped (0.436167ms)",
-      "✔ 60 s is 1,920,044 B and longer input never exceeds it (64.860542ms)",
-      "✔ 48000 Hz downsamples to 16 kHz with the length and the pitch kept (7.729542ms)",
-      "✔ 44100 Hz downsamples to 16 kHz with the length and the pitch kept (6.899375ms)",
-      "✔ 16 kHz passes through; silence stays silence (1.641542ms)",
-      "✔ chunks join, downsample and cap at 60 s of input; Blob is audio/wav (192.655208ms)",
-      "ℹ tests 274",
+      "✔ Q-003 the five mood captions match FRAME-009 (zh) and the Words table (en) (0.579125ms)",
+      "✔ Q-005 only app.js imports companion-client.js, so a stub swap touches one file (4.791458ms)",
+      "✔ Q-013 a 2 s hold at 48 kHz becomes a 64,044 B audio/wav blob; 60 s is capped at 1,920,044 B (35.176333ms)",
+      "✔ Q-017 the shipped font covers U+00C0-U+00FF and the punctuation replies use (136.424959ms)",
+      "✔ Q-012 warming table: warming -> voiceNotReady -> awake (4 s) -> empty; down 30 s -> stillDown (5.116875ms)",
+      "✔ Q-019 FND-003 the listening announcement and mic-opening words equal the Words table (0.119041ms)",
+      "✔ Q-008 the 20-turn capture alternates you / reply in order with one typing dots node last (0.528375ms)",
+      "✔ Q-018 each voice problem maps to its hint key (0.432125ms)",
+      "✔ Q-018 an unknown or missing code is a failed transcription (0.060833ms)",
+      "✔ Q-018 every mapped key has a non-empty zh string (0.084625ms)",
+      "✔ Q-014 words replace the transcribing turn, then follow the send path with the same turn (0.781292ms)",
+      "✔ Q-014 empty transcript: the turn leaves, no send, hook gets \"empty\" (0.1255ms)",
+      "✔ Q-014 not_ready and unavailable reach watch.failed; the turn leaves; no send (0.958625ms)",
+      "✔ Q-014 no audio (null) adds no turn and sends nothing (0.066708ms)",
+      "✔ Q-014 the real client posts the Blob as audio/wav to /api/transcribe and returns the text (0.281667ms)",
+      "✔ header: RIFF/WAVE, PCM, mono, 16 kHz, 16 bit, sizes consistent (5.462167ms)",
+      "✔ samples are little-endian int16, clipped (0.368917ms)",
+      "✔ 60 s is 1,920,044 B and longer input never exceeds it (68.275959ms)",
+      "✔ 48000 Hz downsamples to 16 kHz with the length and the pitch kept (13.535584ms)",
+      "✔ 44100 Hz downsamples to 16 kHz with the length and the pitch kept (10.41525ms)",
+      "✔ 16 kHz passes through; silence stays silence (3.535042ms)",
+      "✔ chunks join, downsample and cap at 60 s of input; Blob is audio/wav (202.7155ms)",
+      "ℹ tests 300",
       "ℹ suites 0",
-      "ℹ pass 274",
+      "ℹ pass 300",
       "ℹ fail 0",
       "ℹ cancelled 0",
       "ℹ skipped 0",
       "ℹ todo 0",
-      "ℹ duration_ms 582717.533083"
+      "ℹ duration_ms 652258.098333"
     ],
-    "log": "/Users/apple/Desktop/Hackathon/Local_AI_Hackathon/docs/frontend/gates/logs/2026-11-15T092815Z-test.log",
+    "log": "/Users/apple/Desktop/Hackathon/Local_AI_Hackathon/docs/frontend/gates/logs/2026-11-15T111455Z-test.log",
     "cases": [
       [
         "test",
@@ -348,6 +348,41 @@
       [
         "test",
         "Q-032 tooltip and rename note stay inside the screen: capped to the viewport, laptop capped to the narrow 960 px stage",
+        "passed"
+      ],
+      [
+        "test",
+        "FND-010 the card is scrolled to only after its words are filled, with reduced motion on or off",
+        "passed"
+      ],
+      [
+        "test",
+        "FND-011 the rename field is sized from the rendered text, not from the character count",
+        "passed"
+      ],
+      [
+        "test",
+        "FND-012 a bag gives all three reactions in every three pokes, none twice running, over 200k pokes",
+        "passed"
+      ],
+      [
+        "test",
+        "FND-012 for every sequence of six draws from {0, .4, .99} the first six pokes cover three reactions",
+        "passed"
+      ],
+      [
+        "test",
+        "FND-012 createPoker plays a bag: six pokes are each reaction twice",
+        "passed"
+      ],
+      [
+        "test",
+        "FND-013 below 520 px of height the phone stage shrinks; the normal heights keep 280 px",
+        "passed"
+      ],
+      [
+        "test",
+        "FND-020 a refused play aborts the request asked ahead; a clean reading leaves nothing to abort twice",
         "passed"
       ],
       [
@@ -752,7 +787,7 @@
       ],
       [
         "test",
-        "TC-137 REQ-017 tts.speak: a helper that never answers one request (deadline passed, timeout returned) does not wedge the next speak (DES-017 step 5: &quot;after that, write the next&quot;)",
+        "TC-137 REQ-017 FND-013/FND-015 tts.speak: a helper that never answers holds the slot (nothing more is written, later callers time out), is killed after ttsOverdueMs and restarted, then serves (design change: replaces the superseded deviation #10 &quot;write the next after a timeout&quot;)",
         "passed"
       ],
       [
@@ -932,6 +967,36 @@
       ],
       [
         "test",
+        "TC-138 REQ-017 FND-013 tts.speak: no line reaches the helper while the slot is busy; the next is written only after the helper answered the previous one, in FIFO order",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-139 REQ-017/REQ-018 FND-013 tts.speak: an abort while in flight settles the caller at once (AbortError); the slot stays busy and the next request is written only after the late answer",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-140 REQ-017 FND-013 tts.speak: speakMs while in flight settles the caller with timeout (504) and holds the slot; the next is written only after the late answer",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-141 REQ-017 FND-015 tts.speak: a helper that never answers is killed after ttsOverdueMs and restarted; in-flight and queued calls get unavailable; the restarted helper serves",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-142 REQ-017 FND-013 tts.speak queue cap 4: a fifth waiting call settles the oldest queued one with unavailable at once; the other four are served in order; the in-flight one is untouched",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-143 REQ-017 FND-020 tts.speak: a helper answer with id -1 settles the slot item with failed (502) and frees the slot for the next request",
+        "passed"
+      ],
+      [
+        "test",
         "TC-001 [FX-005 FX-006 FX-007] pcmFromWav returns exactly the data chunk of the seam-format fixtures (extra chunks allowed)",
         "passed"
       ],
@@ -1067,6 +1132,16 @@
       ],
       [
         "test",
+        "TC-146 [FX-009 FX-010] REQ-023 FND-014 isCrisis: a fond greeting is removed only when nothing but end of text or punctuation follows; 我想死你别管我 etc. stay crisis; FX-009/FX-010 results unchanged",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-147 REQ-014/REQ-017 FND-016 companion-tts main.swift: GenerationOptions uses chunkingStrategy .none with maxNewTokens 120 (one pass bounds the whole request; static check, the Swift binary is not run)",
+        "passed"
+      ],
+      [
+        "test",
         "TC-094 REQ-023 normalizeForCrisis: NFKC, Traditional folded, lowercase, curly quotes, whitespace runs, trim",
         "passed"
       ],
@@ -1097,6 +1172,11 @@
       ],
       [
         "test",
+        "TC-145 REQ-024/REQ-025 FND-019 crisisReply: a first sentence with a bare 988 (e.g. the name &quot;988&quot;) still gets CRISIS_LINE; one with the CRISIS_LINE wording (CRISIS_MARK) is kept alone, no duplicate",
+        "passed"
+      ],
+      [
+        "test",
         "TC-100 REQ-024/REQ-004 crisisReply cuts an over-long first sentence to the room left (zh 120 code points, en 40 words), ends it in … and keeps 988",
         "passed"
       ],
@@ -1123,6 +1203,11 @@
       [
         "test",
         "TC-105 REQ-014 parseSpeak: text trimmed 1..200 chars, lang zh|en, otherwise bad_request",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-144 REQ-014/REQ-017 FND-020 parseSpeak: text with a lone surrogate (high or low, alone or inside a sentence) -> bad_request; a valid surrogate pair (emoji) is still accepted",
         "passed"
       ],
       [
@@ -1297,6 +1382,51 @@
       ],
       [
         "test",
+        "Q-024 six pokes show three or more reactions and none twice running, for every sequence of draws",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-022 the cleared capture has an empty log, the cleared hint and the empty-state words (en)",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-023 renaming shows the Name field and the note; renamed shows the new name in every place (en)",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-026 muted capture: toggle off with the muted tooltip; speaking capture: toggle on and speaking",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-028 an unpleasant-high reply carries the chip as its own log item; a crisis reply carries none",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-029 breathing capture: calm name, phase word without seconds, 停下 chip as Stop, turn mood kept, swell 1.08",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-030 crisis capture (zh): one region 求助方式 with the three Words lines and the close button, under the reply",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-030 round 2: after five turns the crisis card is the last log item, right under the 988 reply, with the three lines (en)",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-023 round 2: renaming with a Chinese name shows the 名字 field holding 团子团子团子, wide enough for six full-width characters (zh)",
+        "passed"
+      ],
+      [
+        "test",
         "Q-001 Q-015 every plain word on the page equals the confirmed Words table, zh and en",
         "passed"
       ],
@@ -1413,11 +1543,11 @@
     ],
     "junit_note": "report from gates.json junit: test-results/junit.xml",
     "counts": {
-      "passed": 274,
-      "errors": 0,
       "xfailed": 0,
-      "skipped": 0,
+      "passed": 300,
+      "errors": 0,
       "failed": 0,
+      "skipped": 0,
       "xpassed": 0
     },
     "failed_tests": []

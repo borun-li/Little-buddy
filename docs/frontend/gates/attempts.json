@@ -1,5 +1,8 @@
 {
-  "_last": {},
+  "_last": {
+    "fe-review": "600938db794b9323",
+    "fe-verify": "55b9513cc5e707be"
+  },
   "_runs": {
     "fe-product": 0,
     "fe-ux": 0,
@@ -9,8 +12,8 @@
     "fe-plan": 0,
     "fe-build": 0,
     "fe-capture-plan": 0,
-    "fe-review": 0,
-    "fe-verify": 0
+    "fe-review": 1,
+    "fe-verify": 1
   },
   "fe-product": 0,
   "fe-ux": 0,
@@ -20,6 +23,6 @@
   "fe-plan": 0,
   "fe-build": 0,
   "fe-capture-plan": 0,
-  "fe-review": 0,
-  "fe-verify": 0
+  "fe-review": 1,
+  "fe-verify": 1
 }

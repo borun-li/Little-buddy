@@ -70,15 +70,13 @@ Next agent must know (carried from be-developer #6, step 6, round 1):
 - Still open: npm test live suites not run; npm run setup does not fetch the TTS model (the brief contradicts this, see 08); REQ-015 page timing; REQ-024 tone; Wi-Fi-off run with tts.
 Next agent reads: server/tts.js:9-160; docs/backend/08-implementation-log.md § Fix round 1
 
-## fe-tester #10 · step 4 (re-judge, increment 2) · round 2 · increment 2 · 2026-11-15T10:43:13Z
-Task: re-judge Q-024 and the rows touched by the round-1 fixes (Q-030, Q-023, Q-032, Q-025) from evidence/verify-5.
-Changed: docs/frontend/04-verification.md (Round 2 table appended under Increment 2), tests/verify-i2.test.js (2 new tests reading verify-5, existing ones untouched).
-Result: done 3 (Q-024, Q-030, Q-023), not observable 2 (Q-025, Q-032), not done 0. Earlier round-1 verdicts kept.
-Tests: 26 frontend unit files by explicit list (server-* left out): 185/185 pass, 0 fail, 0 skipped. poke.test.js 20 runs: 0 failures. verify-i2.test.js 9/9 green (now in the package.json list).
-New assertions turn red on a mutated copy (988 to 989 in the long-crisis phone dump; name-field width 112 to 40 px) and stay green on unrelated copy edits.
-Q-032 short-viewport fix (FND-013) has no capture at a short height (verify-5 has none): only fnd-i2-r1-fix.test.js reads the CSS; recapture at about 390x500 if the panel wants it seen. Q-025 abort on early end is unit evidence only.
-Next agent must know: nothing started or stopped; no live calls made this round.
-Next agent reads: docs/frontend/04-verification.md § Round 2
+## fe-tester #11 · step 4 (verification doc format) · round 3 · increment 2 · 2026-11-15T11:40:00Z
+Task: fix gate fe-verify FE4.capture and FE4.verdicts by document format only; no new judging.
+Changed: docs/frontend/04-verification.md only. Added a "Current evidence: evidence/verify-5/manifest.md" line right under the title (the gate takes the first manifest mention; it was verify-3 from increment 1). Round 1 rows for Q-023, Q-024, Q-025, Q-030, Q-032 renamed "Q-0xx (round 1, superseded by round 2)" in the first cell, so the parser (fullmatch Q-\d+) counts only the round 2 rows.
+Result: verdicts unchanged from fe-tester #9 and #10 (round 2 wins for those five). Parser on the edited file: 33 rows Q-001..Q-033, each with exactly 1 verdict; first manifest found is evidence/verify-5/manifest.md.
+Tests: not run (the full gate runs the suite); no code touched.
+Next agent must know: nothing started or stopped; the round 1 rows are history, not counted.
+Next agent reads: docs/frontend/04-verification.md lines 1-4
 (Earlier fe-tester entries: git history of this file.)
 
 ## fe-engineer #33 · step 4 (review fixes) · round 1 · increment 2 · 2026-11-15T10:33:45Z
