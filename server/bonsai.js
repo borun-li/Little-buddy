@@ -3,7 +3,7 @@ import { bonsaiFiles, CONFIG } from './config.js';
 import { ApiError } from './errors.js';
 import { hanCount, languageOf } from './lang.js';
 import { log } from './log.js';
-import { LANG_RULE, MOOD_SAMPLING, MOOD_SCHEMA, MOOD_SYSTEM, MOODS, REPLY_SAMPLING, REPLY_SYSTEM } from './prompts.js';
+import { LANG_RULE, MOOD_SAMPLING, MOOD_SCHEMA, MOOD_SYSTEM, MOODS, RECALL, REPLY_SAMPLING, REPLY_SYSTEM } from './prompts.js';
 import { supervise } from './supervisor.js';
 
 const NO_THINKING = { chat_template_kwargs: { enable_thinking: false } };
@@ -22,11 +22,13 @@ export function windowOf(history, cfg = CONFIG) {
   return win;
 }
 
+// The last message carries a reminder of the newest earlier user line (03 DES-008); it is never stored, logged or counted by windowOf.
 export function toMessages(line, history, lang) {
+  const prev = history.findLast((h) => h.role === 'user')?.text;
   return [
     { role: 'system', content: `${REPLY_SYSTEM}\n${LANG_RULE[lang]}` },
     ...history.map((h) => ({ role: h.role === 'companion' ? 'assistant' : 'user', content: h.text })),
-    { role: 'user', content: line },
+    { role: 'user', content: prev === undefined ? line : `${line}\n${RECALL[lang](prev)}` },
   ];
 }
 

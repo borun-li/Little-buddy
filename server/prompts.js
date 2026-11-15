@@ -7,6 +7,13 @@ Answer the user's last message in at most 2 short sentences with at most 1 quest
 
 export const LANG_RULE = { en: 'Reply in English, at most 30 words.', zh: '只用简体中文回复，不超过 60 个字。' };
 
+// Appended to the last user message by toMessages when the window holds an earlier user line (03 DES-008, DES-010 round 4).
+// Keyed by languageOf(line), not by the earlier line's language.
+export const RECALL = {
+  en: (earlier) => `(Connect your reply to what I told you before: "${earlier}")`,
+  zh: (earlier) => `（回复时接上我前面说的：「${earlier}」）`,
+};
+
 export const MOOD_SYSTEM = `Label the feeling in the user's message with exactly one of:
 pleasant-high = happy, excited, proud
 pleasant-low = calm, relaxed, content, relieved

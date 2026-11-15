@@ -54,6 +54,15 @@
 | Gap 2 · DES-009 | `server/lang.js` exports `hanCount`; zh when han > 0 and ceil(han/2) ≥ English words (tie → zh) | 我今天很happy → zh, I love 火锅 → en, 嗯 ok → zh, I feel 难过 today → en, emoji/digits only → zh; `tests/server-unit.test.js` 22/22 pass (be-tester's file, run read-only) |
 | Gap 3 · DES-001/002 | `server/config.js` `missingHints(missing, cfg)` (by path only, order setup → Bonsai → WhisperKit, zh + en); `server/main.js` prints each missing path then each hint | `BONSAI_MODEL=2B` → only the Bonsai line; plus `STT_MODEL_DIR=/nonexistent` → Bonsai + WhisperKit lines; [] → [] (`be-developer-1-round3.log`) |
 
+### Round 4 (step 5, be-developer #2) — trigger: TC-081 fail, be-architect #4 revision of DES-008/DES-010
+| Item | Action | Result |
+|---|---|---|
+| TC-081 · DES-010 | `server/prompts.js` exports `RECALL {en, zh}`, text verbatim from 03 DES-010 | `node --check` on every `server/*.js` passes |
+| TC-081 · DES-008 | `server/bonsai.js` toMessages: prev = text of the newest `role: 'user'` entry of the window (`findLast`); last message = `line` when prev is undefined, else ``${line}\n${RECALL[lang](prev)}``. `chat` still passes the windowOf result, so the reminder is never stored, logged or counted; `history_n` unchanged | node eval: FX-002 last content = line + `\n(Connect your reply to what I told you before: "I just got the internship!")`; `[]` and companion-only history → line; zh → `（回复时接上我前面说的：「…」）`; newest of two user lines chosen; history messages unchanged. `npm test` 84/84 (`be-developer-2-npm-test.log`). Backend unit + fakes 36/38: TC-012 and TC-031 fail only on the last-content assertion (old expectation `=== line`), as be-architect #4 listed for be-tester (`be-developer-2-unit-fakes.log`) |
+| Instance A | stopped node 82765 via the PID file (children 82771/82772 exited, 4400/4401 free); started `PORT=4400 BONSAI_PORT=4401 node server/main.js` → node 91736 (stt 91742, bonsai 91743), log `be-developer-2-server.log`, ready in 79.6 s (stt load 78.7 s) | FX-002 once by curl: 200 `{"reply":"I'm so proud of you for landing that internship! It's brave to face new challenges, even when it feels lonely right now.","mood":"unpleasant-low"}`, 2441 ms; server log has 0 lines with the reminder or user text |
+
+Not re-run here: FX-004 and the context cases after the prompt change (DES-010 step 2) — be-architect #4 measured them with RECALL (`be-architect-4-context.log`: FX-002 34/34, FX-003 29/30, FX-004 mood 9/10 ×2); the live re-run belongs to be-tester's TC-081 / TC-049..051 pass. No deviation from 03 this round.
+
 ## Notes for maintainers
 - Run your own instance on free ports (`PORT`, `BONSAI_PORT`); 4317 is the user's preview. `server/main.js` exits 1 with the variable name when a port is taken.
 - Importing `server/main.js` does not start the server (entry-point guard), so tests can import `parseTurn`, `readBody`, `route`.
