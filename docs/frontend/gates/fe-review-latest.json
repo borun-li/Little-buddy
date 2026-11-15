@@ -1,18 +1,14 @@
 {
   "phase": "fe-review",
-  "time": "2026-11-15T11:27:53Z",
+  "time": "2026-11-15T11:28:27Z",
   "project": "/Users/apple/Desktop/Hackathon/Local_AI_Hackathon",
   "run_dir": "docs/frontend",
-  "overall": "fail",
-  "consecutive_failures": 2,
-  "failed_runs": 2,
+  "overall": "pass",
+  "consecutive_failures": 0,
+  "failed_runs": 0,
   "fix_round_cap": 2,
   "escalate": false,
-  "fail_by_owner": {
-    "orchestrator": [
-      "FE4.tree-unchanged"
-    ]
-  },
+  "fail_by_owner": {},
   "checks": [
     {
       "id": "ALL.state",
@@ -23,15 +19,10 @@
     },
     {
       "id": "FE4.tree-unchanged",
-      "status": "fail",
-      "message": "Files changed while reviewers ran (PLAYBOOK §4.3)",
+      "status": "pass",
+      "message": "Tree unchanged during review",
       "owner": "orchestrator",
-      "details": [
-        "docs/backend/gates/p6-20261115T112752Z.json",
-        "docs/backend/gates/attempts.json",
-        "docs/backend/gates/p6-latest.json",
-        "docs/backend/run-log.jsonl"
-      ]
+      "details": []
     },
     {
       "id": "ALL.upstream",
