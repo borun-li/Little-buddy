@@ -1,18 +1,14 @@
 {
   "phase": "fe-verify",
-  "time": "2026-11-15T11:39:09Z",
+  "time": "2026-11-15T11:50:12Z",
   "project": "/Users/apple/Desktop/Hackathon/Local_AI_Hackathon",
   "run_dir": "docs/frontend",
-  "overall": "fail",
-  "consecutive_failures": 2,
-  "failed_runs": 2,
+  "overall": "pass",
+  "consecutive_failures": 0,
+  "failed_runs": 0,
   "fix_round_cap": 2,
   "escalate": false,
-  "fail_by_owner": {
-    "orchestrator": [
-      "FE4.evidence"
-    ]
-  },
+  "fail_by_owner": {},
   "checks": [
     {
       "id": "ALL.state",
@@ -41,8 +37,8 @@
       "message": "tests green",
       "owner": "fe-engineer",
       "details": [
-        "$ npm test -> exit 0 (640.9s), log: /Users/apple/Desktop/Hackathon/Local_AI_Hackathon/docs/frontend/gates/logs/2026-11-15T112827Z-test.log",
-        "counts: {'failed': 0, 'skipped': 0, 'xpassed': 0, 'passed': 300, 'xfailed': 0, 'errors': 0}",
+        "$ npm test -> exit 0 (640.1s), log: /Users/apple/Desktop/Hackathon/Local_AI_Hackathon/docs/frontend/gates/logs/2026-11-15T113931Z-test.log",
+        "counts: {'xpassed': 0, 'failed': 0, 'xfailed': 0, 'skipped': 0, 'passed': 300, 'errors': 0}",
         "per-test results: report from gates.json junit: test-results/junit.xml"
       ]
     },
@@ -90,14 +86,10 @@
     },
     {
       "id": "FE4.evidence",
-      "status": "fail",
-      "message": "Cited evidence files not in the capture folder",
-      "owner": "orchestrator",
-      "details": [
-        ".aria.yml",
-        ".dom.html",
-        "package.json"
-      ]
+      "status": "pass",
+      "message": "Manifest present; 112 cited files exist",
+      "owner": "fe-tester",
+      "details": []
     },
     {
       "id": "LOG.valid",
