@@ -13,18 +13,18 @@ Next agent must know:
 Read beyond the list: docs/frontend/00-requirements.md A1; idea.md § 情绪模型 — mood labels; ~/.claude/gates/gatelib/checks.py:812-881 — meta/compare rules.
 Next agent reads: tests/fixtures/candidates/FX-00n/meta.json (rules, runs, pass, manual)
 
-## be-architect #3 · step 4 (design amendment) · round 1 · 2026-11-15T00:32:17Z
-Task: resolve be-developer #1's design gaps 1–3 (08 § Design gaps) with one rule each.
-Changed: docs/backend/03-detailed-design.md (+26/-10) — DES-002 `historyBudget: 2000` (replaces historyBudgetChars 6000) + `missingHints()`; DES-007 windowOf weight = len + 1.5 × Han; DES-009 `hanCount()` export, zh when ceil(han/2) ≥ English words, example "I love 火锅" → en (1:2); DES-001 step 1 prints missingHints; §9 respond row (seam text changed). docs/backend/02-architecture.md (+7/-5) — §2 row, §4 new row 前文窗口 + 语言 row, §5 rows. docs/backend/logs/be-architect-3-window.log (new).
-Result: cold reply+mood on idle instance A: 6000-char-class windows 13.3 s–504; weighted 2000 → zh 6.7–7.1 s, en 6.5–7.0 s (n=4 each); prefill ≈ 130 token/s dominates (direct timings). New lang rule passes all TC-008 cases + TC-037 (node eval, not a test run). DES ≤ 117 words, prose > 50 = [] (gatelib parsers). Gate p2 not run.
+## be-architect #4 · step 5 (design revision) · round 1 · 2026-11-15T02:32:27Z
+Task: one rule each for TC-081 (FX-002 context use, REQ-007) and TC-073 (stt_warm not in 03 §6), measured.
+Changed: docs/backend/03-detailed-design.md (+30/-4) — DES-008 toMessages appends RECALL[lang](prev) to the last user message when the window has a user entry (prev = newest user text); DES-010 new export RECALL {en, zh} + steps 2-3; §6 +8 events already emitted by code (stt_warm, stt_error, stt_bad_line, stt_stdin_error, child_error, child_warm_failed, static_read_failed, boot_failed). REPLY_SYSTEM, sampling, MOOD_* unchanged. Logs: docs/backend/logs/be-architect-4-context.log (summary), -raw.log, -bench-script.log.
+Result: FX-002 refers back: current prompt 21/54 (live 4400 5/20, 4401 4/10, own 12/24); RECALL 34/34 (own 24/24, 4401 10/10). FX-003 mentions 考 29/30 vs 14/30. FX-004 2 rounds mood 9/10 each (05 only), langs 20/20; FX-001 3/3; all shape checks pass. DES-008 119 words (gatelib), prose > 50 = []. Gate p2 not run.
 Next agent must know:
-- Code to change: `server/config.js` (limits key + missingHints), `server/bonsai.js` windowOf, `server/lang.js` (hanCount, ceil(han/2)), `server/main.js` step 1 hints.
-- Tests to change: TC-013 (expected 40; 10; 10 stays; 20; 5×1500 → 1; Han case 21×'好'×40 → 20), TC-015 (limits deepEqual `historyBudget: 2000`), TC-031 fakes (40×200 → 1+10+1 messages); TC-016 should add missingHints cases; TC-008/TC-037 code unchanged, 04 text + TC-037 comment stale.
-- Pitfalls: latency drifted ~20 % slower over 15 min of back-to-back runs (thermal?); en 1000-char run 1 = 10.5 s outlier (1/30, unexplained).
-- Tried, did not work: plain char budget (zh needs ~850, starves en); block-wise window (page sends last 40, backend cannot align blocks without a seam change).
-- Left open: 60 s zh voice line (300 chars) at the new window unmeasured (old window 12.2–13.4 s respond); orchestrator re-copies 03 §9 respond row into contract §2.
-Read beyond the list: ~/.claude/gates/gatelib/docs.py:48-51 (CJK counted 2 per word); docs/backend/04-test-plan.md TC-008/013/031/037.
-Next agent reads: docs/backend/03-detailed-design.md DES-001 step 1, DES-002, DES-007 windowOf comment, DES-009; docs/backend/logs/be-architect-3-window.log
+- Code: server/prompts.js add RECALL (03 DES-010 text verbatim); server/bonsai.js toMessages last message per DES-008 code block.
+- Tests: TC-012 (tests/server-unit.test.js:175) and TC-031 (tests/server-fakes.test.js:198) assert last content === line; must expect line + "\n" + RECALL[lang](prev). TC-073 allow-list tests/server-boot.test.js:62 must hold the 16 events of 03 §6.
+- Pitfalls: Bonsai's chat template raises on a system message not first, so the reminder must live in the user turn; wording is fragile (a "begin with that earlier thing" rule gave 1/12).
+- Tried, did not work: system-prompt rewrites alone (c1/c4/c5/c6/c8: 8-83 %); quoting prev before the line as "(Earlier I said …)" 5/12.
+- Left open: zh+RECALL one Latin word leak in 46 replies ("reconciled"; base 0/36, n too small to attribute) and 2/30 zh replies misstate the exam as 没过; unrelated follow-ups now name the earlier topic 6/6.
+Read beyond the list: ~/.claude/gates/gatelib/docs.py (word count); stt/Sources/CompanionSTT/main.swift:76-100 (stt_error values); bonsai chat template via 4451 /props.
+Next agent reads: docs/backend/03-detailed-design.md DES-008, DES-010, §6; docs/backend/logs/be-architect-4-context.log
 
 ## fe-ux #5 · step 4 (frontend review fix, UX) · round 1 · increment 1 · 2026-11-15T01:46:57Z
 Task: decide FND-003 (what a screen-reader user hears when listening starts; reword `hints.micOpening`) and the hint-rule conflict behind FND-001, in 01-ux.md § Increment 1.

@@ -734,3 +734,13 @@ companion-stt: id=117 ms=3147
 {"t":"2026-11-15T02:19:19.086Z","level":"info","event":"respond_done","ms":1456,"reply_ms":1456,"mood_ms":1019,"lang":"en","mood_fallback":false,"history_n":2}
 {"t":"2026-11-15T02:19:20.336Z","level":"info","event":"respond_done","ms":1241,"reply_ms":1241,"mood_ms":933,"lang":"en","mood_fallback":false,"history_n":2}
 {"t":"2026-11-15T02:19:21.861Z","level":"info","event":"respond_done","ms":1516,"reply_ms":1516,"mood_ms":1019,"lang":"en","mood_fallback":false,"history_n":2}
+{"t":"2026-11-15T02:24:27.648Z","level":"info","event":"respond_done","ms":7623,"reply_ms":7623,"mood_ms":6824,"lang":"en","mood_fallback":false,"history_n":2}
+{"t":"2026-11-15T02:24:30.704Z","level":"info","event":"respond_done","ms":3034,"reply_ms":3034,"mood_ms":2346,"lang":"en","mood_fallback":false,"history_n":2}
+{"t":"2026-11-15T02:24:33.437Z","level":"info","event":"respond_done","ms":2714,"reply_ms":2714,"mood_ms":2131,"lang":"en","mood_fallback":false,"history_n":2}
+{"t":"2026-11-15T02:24:36.335Z","level":"info","event":"respond_done","ms":2877,"reply_ms":2877,"mood_ms":2385,"lang":"en","mood_fallback":false,"history_n":2}
+{"t":"2026-11-15T02:24:39.666Z","level":"info","event":"respond_done","ms":3315,"reply_ms":3315,"mood_ms":2364,"lang":"en","mood_fallback":false,"history_n":2}
+{"t":"2026-11-15T02:24:42.741Z","level":"info","event":"respond_done","ms":3057,"reply_ms":3057,"mood_ms":2543,"lang":"en","mood_fallback":false,"history_n":2}
+{"t":"2026-11-15T02:24:46.854Z","level":"info","event":"respond_done","ms":4073,"reply_ms":4073,"mood_ms":2618,"lang":"en","mood_fallback":false,"history_n":2}
+{"t":"2026-11-15T02:24:52.908Z","level":"info","event":"respond_done","ms":6038,"reply_ms":6038,"mood_ms":3941,"lang":"en","mood_fallback":false,"history_n":2}
+{"t":"2026-11-15T02:24:57.022Z","level":"info","event":"respond_done","ms":4099,"reply_ms":4099,"mood_ms":2772,"lang":"en","mood_fallback":false,"history_n":2}
+{"t":"2026-11-15T02:25:01.181Z","level":"info","event":"respond_done","ms":4145,"reply_ms":4145,"mood_ms":2502,"lang":"en","mood_fallback":false,"history_n":2}

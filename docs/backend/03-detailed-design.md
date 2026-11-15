@@ -1,6 +1,6 @@
 # Detailed design — 离线小伙伴：真实转写、Bonsai 回复与情绪、中英文
 
-- Author: be-architect #1 (Phase 2, same dispatch as `02-architecture.md`)；revised be-architect #2（round 2：上限、截止、截断、简体）；amended be-architect #3（step 4：DES-001 缺文件提示、DES-002/007 前文权重预算、DES-009 多数规则） · Input: `01-requirements.md`, `02-architecture.md` · 2026-11-14
+- Author: be-architect #1 (Phase 2, same dispatch as `02-architecture.md`)；revised be-architect #2（round 2：上限、截止、截断、简体）；amended be-architect #3（step 4：DES-001 缺文件提示、DES-002/007 前文权重预算、DES-009 多数规则）；revised #4（step 5：RECALL、§6） · Input: `01-requirements.md`, `02-architecture.md` · 2026-11-14
 - 代码 ESM JavaScript（Node ≥ 18，本机 v24.13.0，无 npm 依赖）+ Swift 5.10 包。文档中文，代码与标识符英文。
 - 证据：`docs/backend/logs/be-architect-1-bench.log`、`docs/backend/logs/be-architect-1-stt-check.log`、`docs/backend/logs/be-architect-2-stt60.log`、`docs/backend/logs/be-architect-3-window.log`。
 
@@ -190,9 +190,19 @@ export function windowOf(history: HistoryEntry[], cfg = CONFIG): HistoryEntry[]
 ### DES-008 — `server/bonsai.js` 的 `shapeReply` 与 `toMessages`
 - **Serves:** REQ-004, REQ-005, REQ-007
 - **Side:** backend
-- **Interface:** 见 DES-007。
+- **Interface:** 见 DES-007；`toMessages` 的消息（round 4 加 RECALL）：
+```js
+// prev = text of the newest role 'user' entry in win, or undefined
+[{ role: 'system', content: REPLY_SYSTEM + '\n' + LANG_RULE[lang] },
+ ...win.map(h => ({ role: h.role === 'companion' ? 'assistant' : 'user', content: h.text })),
+ { role: 'user', content: prev === undefined ? line : `${line}\n${RECALL[lang](prev)}` }]
+// fires: FX-002 -> "But I'll … lonely about it.\n(Connect your reply to what I told you before: \"I just got the internship!\")"
+// not:   history [] (FX-001, FX-004) or only companion entries -> content = line
+// RECALL text is never stored, logged or counted by windowOf; the page's history keeps only line
+// bound: prev ≤ 1500 chars, so the last message ≤ ~3100 chars ≪ 16384 tokens per slot
+```
 - **Behaviour:**
-  1. `toMessages`：`[{system: REPLY_SYSTEM + '\n' + LANG_RULE[lang]}, ...win（companion→assistant）, {user: line}]`。
+  1. `toMessages` 如上；RECALL 在最后一条 user 里，前缀缓存不变。
   2. `shapeReply` 去掉 `<think>…</think>`（含未闭合到结尾）、首尾空白和包裹引号。
   3. 在 `。！？!?.…` 连续标点后切句，标点和紧随的 emoji 留在前一句。
   4. 依次保留，至多 2 句；已有一个问句时跳过含 `?`/`？` 的句子。
@@ -225,6 +235,11 @@ export const MOODS = ['pleasant-high', 'pleasant-low', 'unpleasant-high', 'unple
 export const REPLY_SYSTEM = `You are 小伙伴 (Little Buddy), a warm, curious companion who lives only on the user's computer. You talk like a close friend: listen first, share their joy or sadness, never lecture, never act as a therapist.
 Answer the user's last message in at most 2 short sentences with at most 1 question. If it follows up on something said earlier (for example it starts with "but" or "可是"), name that earlier thing so the user knows you remember.`;
 export const LANG_RULE = { en: 'Reply in English, at most 30 words.', zh: '只用简体中文回复，不超过 60 个字。' };
+// round 4 (be-architect #4, be-architect-4-context.log): appended to the last user message by toMessages (DES-008)
+export const RECALL = {
+  en: (earlier) => `(Connect your reply to what I told you before: "${earlier}")`,
+  zh: (earlier) => `（回复时接上我前面说的：「${earlier}」）`,
+};
 export const MOOD_SYSTEM = `Label the feeling in the user's message with exactly one of:
 pleasant-high = happy, excited, proud
 pleasant-low = calm, relaxed, content, relieved
@@ -246,7 +261,8 @@ export const MOOD_SCHEMA = { type: 'json_schema', json_schema: { name: 'mood', s
 ```
 - **Behaviour:**
   1. 每次请求都带全部采样参数与 `chat_template_kwargs: { enable_thinking: false }`（`index.html:51-55`）。
-  2. 改提示词须重跑 FX-004 与前文用例（REQ-006/007），记入实现日志。
+  2. 改提示词或 `RECALL` 须重跑 FX-004 与前文用例（REQ-006/007），记入实现日志。
+  3. `RECALL` 的键是这句话的语言（`languageOf(line)`），不是前一句的语言。
 - **Errors:** 无。
 
 ### DES-011 — `stt/`（Swift 转写助手 `companion-stt`）
@@ -376,6 +392,16 @@ Node 每行一条 JSON 到 stdout；从不记 `line`、`history`、`reply`、转
 | `stt_done` | info | `ms`, `audio_ms`, `empty`, `lang` |
 | `respond_done` | info | `ms`, `reply_ms`, `mood_ms`, `lang`, `mood_fallback`, `history_n` |
 | `api_error` | warn | `route`, `code`, `stage`, `err_name` |
+| `stt_warm` | info | `load_ms`, `warm_ms` |
+| `stt_error` | warn | `error`（`bad_request` \| `bad_audio` \| `whisperkit`） |
+| `stt_bad_line` | warn | `err_name` |
+| `stt_stdin_error` | warn | `err_name`, `err_code` |
+| `child_error` | error | `name`, `err_name`, `err_code` |
+| `child_warm_failed` | error | `name`, `err_name` |
+| `static_read_failed` | error | `err_name`, `err_code` |
+| `boot_failed` | error | `err_name`, `message` |
+
+Round 4（be-architect #4）：表中最后 8 行是代码已发的事件（`grep -rn "log('" server/`），补进表而不删代码；字段只有计时、名字与错误名。TC-073 的事件白名单（`tests/server-boot.test.js:62`）须与本表 16 个事件一致，由 be-tester 改。
 
 ## 7. Dependencies
 | Name | Version | Why |
