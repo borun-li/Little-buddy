@@ -1,0 +1,26 @@
+[
+ {
+  "check": "CMD.test",
+  "approved_by": "user",
+  "date": "2026-11-15",
+  "reason": "Scope: only TC-050 / TC-052 / TC-055 (and fixture FX-004 / FX-006 through them) — known issues accepted by the user 2026-11-15 ~22:30 EST ('接受现状，记为已知问题', option text: 需要你豁免 p5 的这些失败). They are flaky: in the latest gate run only TC-052 failed (REQ-008 latency, 5th of 5 at >10 s under memory pressure); be-tester #4's run passed all 142. Any other failing TC is NOT covered."
+ },
+ {
+  "check": "P5.tc-results",
+  "approved_by": "user",
+  "date": "2026-11-15",
+  "reason": "Scope: only TC-050 / TC-052 / TC-055 (and fixture FX-004 / FX-006 through them) — known issues accepted by the user 2026-11-15 ~22:30 EST ('接受现状，记为已知问题', option text: 需要你豁免 p5 的这些失败). They are flaky: in the latest gate run only TC-052 failed (REQ-008 latency, 5th of 5 at >10 s under memory pressure); be-tester #4's run passed all 142. Any other failing TC is NOT covered."
+ },
+ {
+  "check": "P5.report-honest",
+  "approved_by": "user",
+  "date": "2026-11-15",
+  "reason": "Scope: only TC-050 / TC-052 / TC-055 (and fixture FX-004 / FX-006 through them) — known issues accepted by the user 2026-11-15 ~22:30 EST ('接受现状，记为已知问题', option text: 需要你豁免 p5 的这些失败). They are flaky: in the latest gate run only TC-052 failed (REQ-008 latency, 5th of 5 at >10 s under memory pressure); be-tester #4's run passed all 142. Any other failing TC is NOT covered."
+ },
+ {
+  "check": "P5.fixtures-used",
+  "approved_by": "user",
+  "date": "2026-11-15",
+  "reason": "Scope: only TC-050 / TC-052 / TC-055 (and fixture FX-004 / FX-006 through them) — known issues accepted by the user 2026-11-15 ~22:30 EST ('接受现状，记为已知问题', option text: 需要你豁免 p5 的这些失败). They are flaky: in the latest gate run only TC-052 failed (REQ-008 latency, 5th of 5 at >10 s under memory pressure); be-tester #4's run passed all 142. Any other failing TC is NOT covered."
+ }
+]

@@ -1,0 +1,16 @@
+[PASS] ALL.state: state.json valid  (orchestrator)
+[PASS] ALL.upstream: Upstream documents present  (be-analyst)
+[PASS] P1.req-ids: 13 REQs, ids unique  (be-analyst)
+[PASS] P1.acceptance: Every REQ has Given/When/Then  (be-analyst)
+[PASS] P1.cut-line: Every REQ is placed against the cut line  (be-analyst)
+[PASS] P1.understanding: §0 Understanding present  (be-analyst)
+[PASS] P1.source: Every REQ traces to the user's words or an artifact  (be-analyst)
+[PASS] P1.req-length: Every REQ within 60 words  (be-analyst)
+[PASS] P1.prose: No paragraph or bullet over 50 words  (be-analyst)
+[PASS] P1.fixtures: Every active REQ declares fixtures or why not  (be-analyst)
+[PASS] P1.interface: 11 [interface] REQs  (be-analyst)
+[PASS] LOG.valid: Run log intact  (orchestrator)
+[PASS] CTX.codemap: docs/codemap.md paths exist, within its cap  (be-analyst)
+[PASS] CTX.handoff: handoff.md: 1 current sections  (orchestrator)
+
+[gate] p1: PASS  report: docs/backend/gates/p1-latest.json

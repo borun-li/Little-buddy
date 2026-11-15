@@ -1,0 +1,12 @@
+- main:
+  - group "Interface language":
+    - button "中文"
+    - button "English" [pressed]: EN
+  - img "Little Buddy, worried"
+  - log "Chat":
+    - listitem: I have to give a presentation tomorrow and I'm a bit anxious.
+    - listitem: That's totally normal; everyone gets nervous before big moments. Do you want to practice your opening line together?
+  - status
+  - textbox "What you want to tell Little Buddy":
+    - /placeholder: Or type, Enter sends
+  - button "Hold to talk"

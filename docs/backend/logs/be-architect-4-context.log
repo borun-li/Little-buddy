@@ -1,0 +1,74 @@
+# be-architect #4 · step 5 round 1 · 2026-11-15 · TC-081 (REQ-007) context use; TC-073 log events
+Model: Ternary-Bonsai-2-9B-PQ2_0.gguf. Sampling: REPLY_SAMPLING / MOOD_SAMPLING imported from server/prompts.js, enable_thinking false; reply and mood calls in parallel (as server/bonsai.js chat()).
+Scoring (FX-002 meta.json manual + 04 TC-081): the shaped reply mentions the internship or the mixed feelings. ctx_kw = regex prefilter in bench.mjs; every FX-002 reply was then read by me; overrides listed below. FX-003: mentions 考 (TC-082).
+
+## Servers and commands
+- own llama-server, PID 72688, port 4451, production args (-ngl 99 -fa on -c 32768 -np 2 --no-webui), started 2026-11-15T02:17:04Z, stopped by `kill $(cat llama.pid)` (pid file = 72688) at the end; 4451 closed afterwards, 4400 health still ready.
+- instance A (node 82765): `curl -X POST --data @fx002-body.json 127.0.0.1:4400/api/respond` x20 (current prompt, real entry point); its llama child 127.0.0.1:4401 got bench requests only (base x10, c9 x10). Nothing stopped there. 4399/4398/4317 not used.
+- `node bench.mjs <port> <cand> <suite> <reps> raw.jsonl` (script: be-architect-4-bench-script.log), rows: be-architect-4-raw.log.
+
+## Candidates (all keep persona sentence, LANG_RULE, shapeReply)
+- base: current REPLY_SYSTEM + toMessages.
+- c1: rule rewritten "If the user told you something earlier in this chat, connect the new message to it: name the earlier thing in your first sentence".
+- c2: base + "(Earlier I said: "<prev>")" before the line. c3 = c1 + c2.
+- c4: "begin with that earlier thing by name (the event itself, not just "that"), then answer the new message". c5 = c4 + "If their feeling has changed since then, say that both feelings make sense."
+- c6: c5 rule placed after LANG_RULE (last system line). c8 = c6 with "mention that earlier thing by name in your reply".
+- c7: c6 + RECALL note after the line. c9: base system prompt unchanged + RECALL note after the line:
+  en `${line}\n(Connect your reply to what I told you before: "<prev>")`, zh `${line}\n（回复时接上我前面说的：「<prev>」）`; prev = newest user entry in the window; no user entry -> line only.
+
+## FX-002 context use (human-judged, shaped replies)
+| prompt | server | n | refers back | rate |
+|---|---|---|---|---|
+| base | live 4400 /api/respond | 20 | 5 | 25 % |
+| base | 4401 (instance A llama) | 10 | 4 | 40 % |
+| base | own 4451 | 24 | 12 | 50 % |
+| c1 | 4451 | 12 | 9 | 75 % |
+| c2 | 4451 | 12 | 5 | 42 % |
+| c3 | 4451 | 12 | 10 | 83 % (kw 9; #3 "even after such a great win" = yes) |
+| c4 | 4451 | 12 | 1 | 8 % |
+| c5 | 4451 | 12 | 8 | 67 % |
+| c6 | 4451 | 12 | 10 | 83 % |
+| c7 | 4451 | 12 | 12 | 100 % |
+| c8 | 4451 | 12 | 9 | 75 % (kw 10; #7 "something else you felt earlier" = no) |
+| **c9** | 4451 | 24 | 24 | 100 % |
+| **c9** | 4401 | 10 | 10 | 100 % |
+Other overrides: live 4400 #2 of the 2nd ten "I remember you mentioned moving away earlier" = no (false memory); live #0 of the 1st ten "even when you are excited" and #7 "How long will this internship last?" = yes; 4401 base #8 "remember the new adventure too" = no.
+P(TC-081 passes, >= 2 of 3) at the pooled rate: base 21/54 = 39 % -> 3p^2-2p^3 = 0.34; c9 34/34 -> ~1.
+Chosen: c9 (one change in toMessages, REPLY_SYSTEM untouched, best measured). c7 also 12/12 but changes REPLY_SYSTEM too and its replies read more formulaic ("That internship is amazing!" leads 7/12).
+
+## Regressions (c9 vs base; checks = FX-002 meta rules: nonempty, <=2 sentences, <=1 question, length, not a preset, no <think>)
+# raw.jsonl
+cand suite n ctx_kw all_checks lang_ok mood_ok ms_median
+base fx002 24 12 24 24 24/24 1998
+c1 fx002 12 9 12 12 12/12 1332
+c2 fx002 12 5 12 12 12/12 1361
+c3 fx002 12 9 12 12 12/12 1589
+c4 fx002 12 1 12 12 12/12 1811
+c5 fx002 12 8 12 12 12/12 1973
+c6 fx002 12 10 12 12 12/12 2080
+c7 fx002 12 12 12 12 12/12 1744
+c8 fx002 12 10 12 12 12/12 1938
+c9 fx002 24 24 24 24 24/24 1908
+c9 fx003 30 29 30 29 - 1773
+c9 unrel 6 - 6 6 - 1920
+c9 mixen 6 - 6 6 - 4412
+c9 mixzh 16 - 16 16 - 2132
+base fx003 30 14 30 30 - 1774
+base unrel 6 - 6 6 - 1753
+base mixen 6 - 6 6 - 2348
+base mixzh 6 - 6 6 - 2101
+c9 fx001 3 - 3 3 3/3 2255
+c9 fx004 20 - 20 20 18/20 2515
+# raw4401.jsonl
+cand suite n ctx_kw all_checks lang_ok mood_ok ms_median
+base fx002 10 4 10 10 10/10 4343
+c9 fx002 10 10 10 10 10/10 4451
+- FX-002 c9: 34/34 all checks, language en, mood unpleasant-low 34/34; median ms 1908 (base 1998) on 4451, 4451 vs 4343 on shared 4401.
+- FX-003 (zh, TC-082) c9: 29/30 mention 考 (base 14/30). Language: c9 29/30 zh, 1 'other' ("…你们一定会 reconciled 的，对吗？"); base 30/30. Two c9 replies misstate the exam as 没过 (2/30; base 0/30). All other checks 30/30 both.
+- Mixed language (line language != earlier line): MIX-EN c9 6/6 en, MIX-ZH c9 16/16 zh (base 6/6, 6/6). Leak total with RECALL zh: 1/46 replies; base zh with history 0/36; earlier test-results/backend-replies.jsonl (base) 0/155 zh replies with a Latin word.
+- FX-001 c9 x3: all checks, en, pleasant-high 3/3 (history [] -> messages identical to base).
+- FX-004 c9 x2 rounds: checks 20/20, reply language 20/20, mood 9/10 per round (miss FX-004-05 pleasant-low both rounds, known; >= 8/10 bar met). History [] -> messages identical to base; MOOD_SYSTEM untouched.
+- Unrelated follow-up ("Hmm, just got home." after the internship pair): c9 names the internship 6/6 ("So now that you have your internship, how is your commute going?"); base hints at "big day" 5/6. Accepted: not against any REQ, reads like a friend.
+
+## TC-073
+`grep -rn "log('" server/` -> 16 events; 8 not in 03 §6: stt_warm (stt.js:68), stt_error, stt_bad_line, stt_stdin_error (stt.js), child_error, child_warm_failed (supervisor.js), static_read_failed (static.js), boot_failed (main.js). Fields are timings, names, error names; stt_error.error is one of bad_request|bad_audio|whisperkit (stt/Sources/CompanionSTT/main.swift:76,79,100). Decision: add all 8 to §6, code unchanged; tests/server-boot.test.js:62 allow-list must list the 16.

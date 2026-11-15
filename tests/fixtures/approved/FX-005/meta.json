@@ -1,0 +1,12 @@
+{
+  "req": "REQ-001",
+  "reqs": [
+    "REQ-001",
+    "REQ-002"
+  ],
+  "source": "input: test_audio/hello.wav (5.6 s, 24 kHz mono Float32) converted with `afconvert -f WAVE -d LEI16@16000 -c 1` to the seam format (03 §9; DES-005 rejects the original — see design_contradictions). text_reference [unverified]: no script for this recording exists in the project; taken from whisperkit-cli's transcript in docs/backend/logs/be-analyst-1-whisperkit-hello.log:3 (a captured output, not an independent source) — the user should confirm the spoken words at Plan.",
+  "compare": "numeric:0.15",
+  "compare_note": "Send input.wav as the body with Content-Type audio/wav (03 §9); response 200 {text}. WER of text vs text_reference after lowercasing and removing punctuation (en tokens = words; zh tokens = characters, whitespace ignored) must be within 0.15 of 0 (REQ-001). language: computed from text with the rule 'en = Latin letters, no Han; zh = Han characters, no Latin word; no other script (Cyrillic, kana, Hangul…)' and compared exactly (REQ-002).",
+  "runs": 3,
+  "pass": "REQ-001: error rate <= 0.15 (after warm-up); REQ-002: language matches in 3/3 runs (FX-006 + FX-007 = 6/6)"
+}

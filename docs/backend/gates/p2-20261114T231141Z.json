@@ -1,0 +1,179 @@
+{
+  "phase": "p2",
+  "time": "2026-11-14T23:11:41Z",
+  "project": "/Users/apple/Desktop/Hackathon/Local_AI_Hackathon",
+  "run_dir": "docs/backend",
+  "overall": "pass",
+  "consecutive_failures": 0,
+  "failed_runs": 0,
+  "fix_round_cap": 2,
+  "escalate": false,
+  "fail_by_owner": {},
+  "checks": [
+    {
+      "id": "P2.prototype-first",
+      "status": "pass",
+      "message": "Prototype approved before design (or not a Full development run)",
+      "owner": "orchestrator",
+      "details": []
+    },
+    {
+      "id": "ALL.state",
+      "status": "pass",
+      "message": "state.json valid",
+      "owner": "orchestrator",
+      "details": []
+    },
+    {
+      "id": "ALL.upstream",
+      "status": "pass",
+      "message": "Upstream documents present",
+      "owner": "be-architect",
+      "details": []
+    },
+    {
+      "id": "P2.coverage",
+      "status": "pass",
+      "message": "Every active REQ is covered",
+      "owner": "be-architect",
+      "details": []
+    },
+    {
+      "id": "P2.length",
+      "status": "pass",
+      "message": "81 words of prose (limit 800)",
+      "owner": "be-architect",
+      "details": []
+    },
+    {
+      "id": "P2.prose",
+      "status": "pass",
+      "message": "No paragraph or bullet over 50 words",
+      "owner": "be-architect",
+      "details": []
+    },
+    {
+      "id": "ALL.upstream",
+      "status": "pass",
+      "message": "Upstream documents present",
+      "owner": "be-architect",
+      "details": []
+    },
+    {
+      "id": "P3.des-ids",
+      "status": "pass",
+      "message": "15 DES, ids unique",
+      "owner": "be-architect",
+      "details": []
+    },
+    {
+      "id": "P3.serves",
+      "status": "pass",
+      "message": "Every DES serves existing REQs",
+      "owner": "be-architect",
+      "details": []
+    },
+    {
+      "id": "P3.side",
+      "status": "pass",
+      "message": "Every DES has a side",
+      "owner": "be-architect",
+      "details": []
+    },
+    {
+      "id": "P3.req-claimed",
+      "status": "pass",
+      "message": "Every active REQ is claimed",
+      "owner": "be-architect",
+      "details": []
+    },
+    {
+      "id": "P3.des-length",
+      "status": "pass",
+      "message": "Every DES within 120 words",
+      "owner": "be-architect",
+      "details": []
+    },
+    {
+      "id": "P3.prose",
+      "status": "pass",
+      "message": "No paragraph or bullet over 50 words",
+      "owner": "be-architect",
+      "details": []
+    },
+    {
+      "id": "P3.contract",
+      "status": "pass",
+      "message": "3 frontend DES in contract",
+      "owner": "be-architect",
+      "details": []
+    },
+    {
+      "id": "ROLE.none",
+      "status": "unavailable",
+      "message": "No role rules for be-architect",
+      "owner": "be-architect",
+      "details": []
+    },
+    {
+      "id": "PLAN.inputs",
+      "status": "pass",
+      "message": "Every declared fixture has an input",
+      "owner": "be-analyst",
+      "details": []
+    },
+    {
+      "id": "PLAN.expected",
+      "status": "pass",
+      "message": "Every declared fixture has an expected output",
+      "owner": "be-analyst",
+      "details": []
+    },
+    {
+      "id": "PLAN.meta",
+      "status": "pass",
+      "message": "Every fixture names its REQ, source and compare rule",
+      "owner": "be-analyst",
+      "details": []
+    },
+    {
+      "id": "LOG.valid",
+      "status": "pass",
+      "message": "Run log intact",
+      "owner": "orchestrator",
+      "details": []
+    },
+    {
+      "id": "CTX.codemap",
+      "status": "pass",
+      "message": "docs/codemap.md paths exist, within its cap",
+      "owner": "be-architect",
+      "details": []
+    },
+    {
+      "id": "CTX.handoff",
+      "status": "pass",
+      "message": "handoff.md: 2 current sections",
+      "owner": "orchestrator",
+      "details": []
+    }
+  ],
+  "data": {
+    "frontend_des": [
+      "DES-013",
+      "DES-014",
+      "DES-015"
+    ],
+    "to_approve": [
+      "FX-001",
+      "FX-002",
+      "FX-003",
+      "FX-004",
+      "FX-005",
+      "FX-006",
+      "FX-007",
+      "FX-008"
+    ],
+    "review_sheet": "docs/backend/gates/plan-review.md"
+  }
+}

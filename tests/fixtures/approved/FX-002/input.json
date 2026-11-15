@@ -1,0 +1,17 @@
+{
+  "endpoint": "POST /api/respond",
+  "content_type": "application/json",
+  "body": {
+    "line": "But I'll have to move away from all my friends, and I feel really lonely about it.",
+    "history": [
+      {
+        "role": "user",
+        "text": "I just got the internship!"
+      },
+      {
+        "role": "companion",
+        "text": "That is amazing news! I can't wait to hear all about it. 🎉"
+      }
+    ]
+  }
+}

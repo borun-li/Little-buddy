@@ -1,0 +1,22 @@
+# be-developer #1 · round 3 · missingHints at boot · 2026-11-15T00:46:19Z
+$ BONSAI_MODEL=2B PORT=4408 BONSAI_PORT=4409 node server/main.js
+缺少文件 Missing: <repo>/samples/bonsai-models/gguf/models/Ternary-Bonsai-2-2B-PQ2_0.gguf
+Bonsai 文件不在：放回比赛提供的 samples/bonsai-models/，或把 BONSAI_MODEL 设为已有的大小 Bonsai file missing: restore samples/bonsai-models/ from the hackathon kit, or set BONSAI_MODEL to a size you have
+$ STT_MODEL_DIR=/nonexistent BONSAI_MODEL=2B PORT=4408 BONSAI_PORT=4409 node server/main.js
+缺少文件 Missing: <repo>/samples/bonsai-models/gguf/models/Ternary-Bonsai-2-2B-PQ2_0.gguf
+缺少文件 Missing: /nonexistent/AudioEncoder.mlmodelc
+缺少文件 Missing: /nonexistent/TextDecoder.mlmodelc
+缺少文件 Missing: /nonexistent/MelSpectrogram.mlmodelc
+Bonsai 文件不在：放回比赛提供的 samples/bonsai-models/，或把 BONSAI_MODEL 设为已有的大小 Bonsai file missing: restore samples/bonsai-models/ from the hackathon kit, or set BONSAI_MODEL to a size you have
+WhisperKit 模型不在：把已下载的模型放到上面的路径，或设 STT_MODEL_DIR / STT_TOKENIZER_DIR（setup 不下载模型） WhisperKit model missing: put the downloaded model at the path above, or set STT_MODEL_DIR / STT_TOKENIZER_DIR (setup does not download models)
+# cold 20-turn respond on restarted instance A (PORT=4400, 9B), history = bench history20 (40 entries) with a unique tag on every entry so no prefix is cached · 2026-11-15T00:46:48Z
+{"tag":"cold-20turn-en","history_sent":40,"status":200,"respond_ms":4362,"mood":"pleasant-high","reply":"That is amazing news! Congratulations on landing the role."}
+{"tag":"cold-20turn-zh","history_sent":40,"status":200,"respond_ms":5485,"mood":"unpleasant-low","reply":"别难过，朋友之间难免会有小误会，慢慢聊开就行。"}
+# windowOf / languageOf / missingHints design examples (node eval of server modules) · 2026-11-15T00:47:26Z
+我今天很happy -> zh
+I love 火锅 -> en
+嗯 ok -> zh
+I feel 难过 today -> en
+😊 123 -> zh
+windowOf: 40x200x -> 10 | 10x200x -> 10 | 21x好40 -> 20 | 5x1500 -> 1 | 1x2001 -> 0
+missingHints([]) -> [] | [gguf] -> 1 line | [whisper,gguf,stt.bin] -> 3 lines

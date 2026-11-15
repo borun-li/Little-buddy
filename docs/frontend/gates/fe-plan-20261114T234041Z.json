@@ -1,0 +1,78 @@
+{
+  "phase": "fe-plan",
+  "time": "2026-11-14T23:40:41Z",
+  "project": "/Users/apple/Desktop/Hackathon/Local_AI_Hackathon",
+  "run_dir": "docs/frontend",
+  "overall": "fail",
+  "consecutive_failures": 1,
+  "failed_runs": 1,
+  "fix_round_cap": 2,
+  "escalate": false,
+  "fail_by_owner": {
+    "orchestrator": [
+      "FEP.gates"
+    ]
+  },
+  "checks": [
+    {
+      "id": "ALL.state",
+      "status": "pass",
+      "message": "state.json valid",
+      "owner": "orchestrator",
+      "details": []
+    },
+    {
+      "id": "FEP.gates",
+      "status": "fail",
+      "message": "Earlier gates not green",
+      "owner": "orchestrator",
+      "details": [
+        "fe-queue: fail"
+      ]
+    },
+    {
+      "id": "LOG.valid",
+      "status": "pass",
+      "message": "Run log intact",
+      "owner": "orchestrator",
+      "details": []
+    },
+    {
+      "id": "CTX.codemap",
+      "status": "pass",
+      "message": "docs/codemap.md paths exist, within its cap",
+      "owner": "fe-engineer",
+      "details": []
+    },
+    {
+      "id": "CTX.handoff",
+      "status": "pass",
+      "message": "handoff.md: 5 current sections",
+      "owner": "orchestrator",
+      "details": []
+    }
+  ],
+  "data": {
+    "review_sheet": "docs/frontend/gates/plan-review.md",
+    "rows": [
+      "Q-001",
+      "Q-002",
+      "Q-003",
+      "Q-004",
+      "Q-005",
+      "Q-006",
+      "Q-007",
+      "Q-008",
+      "Q-009",
+      "Q-010",
+      "Q-011",
+      "Q-012",
+      "Q-013",
+      "Q-014",
+      "Q-015",
+      "Q-016",
+      "Q-017"
+    ],
+    "may_change": {}
+  }
+}

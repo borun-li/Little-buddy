@@ -1,0 +1,13 @@
+{
+  "status": 200,
+  "mood": "unpleasant-low",
+  "reply_checks": {
+    "nonempty": true,
+    "language": "en",
+    "sentences_le_2": true,
+    "questions_le_1": true,
+    "length_ok": true,
+    "not_a_preset": true,
+    "no_thinking_text": true
+  }
+}

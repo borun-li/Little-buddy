@@ -1,0 +1,8 @@
+{
+  "endpoint": "POST /api/transcribe",
+  "status": 200,
+  "text_reference": "可是晚上和朋友吵架了，有点难过。",
+  "language": "zh",
+  "metric": "CER",
+  "error_rate_max": 0.15
+}

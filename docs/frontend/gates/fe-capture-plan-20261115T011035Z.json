@@ -1,0 +1,50 @@
+{
+  "phase": "fe-capture-plan",
+  "time": "2026-11-15T01:10:35Z",
+  "project": "/Users/apple/Desktop/Hackathon/Local_AI_Hackathon",
+  "run_dir": "docs/frontend",
+  "overall": "pass",
+  "consecutive_failures": 0,
+  "failed_runs": 0,
+  "fix_round_cap": 2,
+  "escalate": false,
+  "fail_by_owner": {},
+  "checks": [
+    {
+      "id": "ALL.state",
+      "status": "pass",
+      "message": "state.json valid",
+      "owner": "orchestrator",
+      "details": []
+    },
+    {
+      "id": "FE4.capture-plan",
+      "status": "pass",
+      "message": "20 captures cover every row to verify",
+      "owner": "orchestrator",
+      "details": []
+    },
+    {
+      "id": "LOG.valid",
+      "status": "pass",
+      "message": "Run log intact",
+      "owner": "orchestrator",
+      "details": []
+    },
+    {
+      "id": "CTX.codemap",
+      "status": "pass",
+      "message": "docs/codemap.md paths exist, within its cap",
+      "owner": "fe-engineer",
+      "details": []
+    },
+    {
+      "id": "CTX.handoff",
+      "status": "pass",
+      "message": "handoff.md: 5 current sections",
+      "owner": "orchestrator",
+      "details": []
+    }
+  ],
+  "data": {}
+}

@@ -1,0 +1,111 @@
+{
+  "phase": "p7",
+  "time": "2026-11-15T04:22:08Z",
+  "project": "/Users/apple/Desktop/Hackathon/Local_AI_Hackathon",
+  "run_dir": "docs/backend",
+  "overall": "fail",
+  "consecutive_failures": 1,
+  "failed_runs": 1,
+  "fix_round_cap": 2,
+  "escalate": false,
+  "fail_by_owner": {
+    "orchestrator": [
+      "P7.matrix",
+      "LOG.trail"
+    ]
+  },
+  "checks": [
+    {
+      "id": "ALL.state",
+      "status": "pass",
+      "message": "state.json valid",
+      "owner": "orchestrator",
+      "details": []
+    },
+    {
+      "id": "ALL.upstream",
+      "status": "pass",
+      "message": "Upstream documents present",
+      "owner": "orchestrator",
+      "details": []
+    },
+    {
+      "id": "P7.gates",
+      "status": "pass",
+      "message": "All earlier gates green",
+      "owner": "orchestrator",
+      "details": []
+    },
+    {
+      "id": "P7.matrix",
+      "status": "fail",
+      "message": "Active REQs not verified end to end",
+      "owner": "orchestrator",
+      "details": [
+        "REQ-003: DES ['DES-006', 'DES-011', 'DES-013', 'DES-014'], TC {'TC-002': 'passed', 'TC-020': 'passed', 'TC-026': 'passed', 'TC-045': 'passed', 'TC-084': 'blocked', 'TC-089': 'passed'}, FX {'FX-008': 'passed'}",
+        "REQ-005: DES ['DES-008', 'DES-009', 'DES-010', 'DES-013', 'DES-015'], TC {'TC-008': 'passed', 'TC-012': 'passed', 'TC-031': 'passed', 'TC-037': 'passed', 'TC-046': 'passed', 'TC-050': 'passed', 'TC-051': 'passed', 'TC-084': 'blocked'}, FX {'FX-001': 'passed', 'FX-002': 'passed', 'FX-004': 'passed'}",
+        "REQ-008: DES ['DES-007', 'DES-013'], TC {'TC-013': 'passed', 'TC-033': 'passed', 'TC-052': 'passed', 'TC-071': 'blocked'}, FX n/a",
+        "REQ-009: DES ['DES-001', 'DES-002', 'DES-005', 'DES-011'], TC {'TC-015': 'passed', 'TC-017': 'passed', 'TC-019': 'passed', 'TC-036': 'passed', 'TC-058': 'passed', 'TC-059': 'passed', 'TC-072': 'blocked', 'TC-073': 'blocked', 'TC-083': 'blocked', 'TC-087': 'passed', 'TC-088': 'passed'}, FX n/a",
+        "REQ-010: DES ['DES-001', 'DES-002', 'DES-004', 'DES-005', 'DES-011', 'DES-012'], TC {'TC-015': 'passed', 'TC-016': 'passed', 'TC-017': 'passed', 'TC-018': 'passed', 'TC-021': 'passed', 'TC-035': 'passed', 'TC-038': 'passed', 'TC-040': 'passed', 'TC-058': 'passed', 'TC-070': 'blocked', 'TC-071': 'blocked', 'TC-076': 'blocked'}, FX n/a",
+        "REQ-011: DES ['DES-001', 'DES-003', 'DES-004', 'DES-006', 'DES-007', 'DES-013'], TC {'TC-005': 'passed', 'TC-006': 'passed', 'TC-007': 'passed', 'TC-016': 'passed', 'TC-022': 'passed', 'TC-023': 'passed', 'TC-024': 'passed', 'TC-027': 'passed', 'TC-028': 'passed', 'TC-032': 'passed', 'TC-033': 'passed', 'TC-034': 'passed', 'TC-038': 'passed', 'TC-053': 'passed', 'TC-055': 'passed', 'TC-074': 'blocked', 'TC-075': 'blocked', 'TC-086': 'blocked', 'TC-087': 'passed'}, FX n/a",
+        "REQ-012: DES ['DES-015'], TC {'TC-085': 'blocked'}, FX n/a"
+      ]
+    },
+    {
+      "id": "P7.open-findings",
+      "status": "pass",
+      "message": "No open blocker or major finding",
+      "owner": "orchestrator",
+      "details": []
+    },
+    {
+      "id": "LOG.trail",
+      "status": "fail",
+      "message": "Run log does not account for the run",
+      "owner": "orchestrator",
+      "details": [
+        "#23: mark for be-tester not followed by its dispatch",
+        "#24: mark for be-developer not followed by its dispatch",
+        "#38: mark for be-tester not followed by its dispatch",
+        "#39: mark for be-developer not followed by its dispatch",
+        "#43: mark for be-tester not followed by its dispatch",
+        "#63: mark for be-tester not followed by its dispatch",
+        "#95: mark for be-tester not followed by its dispatch"
+      ]
+    },
+    {
+      "id": "DEMO",
+      "status": "pass",
+      "message": "Before and after in docs/backend/evidence/demo-*",
+      "owner": "orchestrator",
+      "details": []
+    },
+    {
+      "id": "LOG.valid",
+      "status": "pass",
+      "message": "Run log intact",
+      "owner": "orchestrator",
+      "details": []
+    },
+    {
+      "id": "CTX.codemap",
+      "status": "pass",
+      "message": "docs/codemap.md paths exist, within its cap",
+      "owner": "be-tester",
+      "details": []
+    },
+    {
+      "id": "CTX.handoff",
+      "status": "pass",
+      "message": "handoff.md: 11 current sections",
+      "owner": "orchestrator",
+      "details": []
+    }
+  ],
+  "data": {
+    "not_machine_checked": [
+      "Constitution §6.6: report states what the user must do to make it live",
+      "Constitution §6.7: user accepted at Acceptance, with date"
+    ]
+  }
+}

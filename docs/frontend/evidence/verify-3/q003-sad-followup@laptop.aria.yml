@@ -1,0 +1,14 @@
+- main:
+  - group "Interface language":
+    - button "中文"
+    - button "English" [pressed]: EN
+  - img "Little Buddy, sad"
+  - log "Chat":
+    - listitem: I just got the internship!
+    - listitem: That is absolutely amazing news! I'm so proud of you for landing it.
+    - listitem: But I'll have to move away from all my friends, and I feel really lonely about it.
+    - listitem: That's tough; moving away feels like losing a part of your old life. Do you think any of them will be able to visit?
+  - status
+  - textbox "What you want to tell Little Buddy":
+    - /placeholder: Or type, Enter sends
+  - button "Hold to talk"

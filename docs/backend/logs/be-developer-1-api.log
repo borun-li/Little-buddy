@@ -1,0 +1,77 @@
+# be-developer #1 · build steps 2-3 · curl against my instance PORT=4400 BONSAI_PORT=4401 · 2026-11-14T23:59:02Z
+$ curl -X POST --data-binary @FX-006/input.wav -H 'Content-Type: audio/wav' /api/transcribe
+{"text":"I just got the internship."} [200 1.382477s]
+$ curl -X POST --data-binary @FX-007/input.wav -H 'Content-Type: audio/wav' /api/transcribe
+{"text":"可是婉双和朋友吵架了,有点难过。"} [200 1.472579s]
+$ curl -X POST --data-binary @FX-008/input.wav -H 'Content-Type: audio/wav' /api/transcribe
+{"text":""} [200 0.001199s]
+$ curl -X POST --data-binary @FX-005/input.wav -H 'Content-Type: audio/wav' /api/transcribe
+{"text":"Hello, this is a fully offline test for the local AI hackathon."} [200 1.438713s]
+$ transcribe FX-006 x3 (REQ-002 runs)
+{"text":"I just got the internship."} [200]
+{"text":"I just got the internship."} [200]
+{"text":"I just got the internship."} [200]
+$ transcribe FX-007 x3
+{"text":"可是婉双和朋友吵架了,有点难过。"} [200]
+{"text":"可是婉双和朋友吵架了,有点难过。"} [200]
+{"text":"可是婉双和朋友吵架了,有点难过。"} [200]
+$ original 24 kHz Float32 test_audio/hello.wav (expect 400)
+{"error":"bad_request"} [400]
+$ wrong content type (expect 400)
+{"error":"bad_request"} [400]
+$ 2,000,001 byte body (expect 413)
+{"error":"too_large"} [413]
+$ GET /api/nope (expect 404 bad_request)
+{"error":"bad_request"} [404]
+$ GET /api/respond (expect 404 bad_request)
+{"error":"bad_request"} [404]
+$ path traversal /../package.json and /%2e%2e/package.json (expect 404)
+[404]
+[404]
+$ /js/app.js (expect 200)
+[200 text/javascript; charset=utf-8]
+$ POST / (expect 405)
+[405]
+# REQ-009 sockets of every process I started (2026-11-15T00:09:03Z): node 38148/43970, companion-stt 38153/43989, llama-server 38154/43990
+llama-ser 38154 TCP 127.0.0.1:4401 (LISTEN)
+llama-ser 43990 TCP 127.0.0.1:4403 (LISTEN)
+node 38148 TCP 127.0.0.1:4400 (LISTEN)
+node 43970 TCP 127.0.0.1:4402 (LISTEN)
+# non-loopback lines (expect none):
+(none)
+# respond error paths on instance B (2026-11-15T00:09:15Z)
+$ bad JSON
+{"error":"bad_request"} [400]
+$ empty line after trim
+{"error":"bad_request"} [400]
+$ line 1501 chars
+{"error":"bad_request"} [400]
+$ line 1500 chars (boundary, expect 200)
+{"reply":"I hear that long string of 'a's! Are you just testing my patience or f
+$ history missing
+{"error":"bad_request"} [400]
+$ history bad role
+{"error":"bad_request"} [400]
+$ history empty text
+{"error":"bad_request"} [400]
+$ text/plain
+{"error":"bad_request"} [400]
+$ 262145-byte body
+{"error":"too_large"} [413]
+$ kill my llama-server child 43990, then respond immediately (expect 503 unavailable), then poll health
+{"error":"unavailable"} [503]
+t+1s {"ready":true,"stt":"ready","bonsai":"ready"}
+t+2s {"ready":false,"stt":"ready","bonsai":"down"}
+t+3s {"ready":false,"stt":"ready","bonsai":"down"}
+t+4s {"ready":false,"stt":"ready","bonsai":"starting"}
+$ respond while starting (expect 503 not_ready)
+{"error":"not_ready"} [503]
+ready again: {"ready":true,"stt":"ready","bonsai":"ready"}
+$ respond after restart
+{"reply":"Hello! How are you doing today?","mood":"neutral"} [200]
+$ kill my companion-stt child 43989 on B, transcribe right after (expect 503), then until ready again
+{"error":"unavailable"} [503]
+{"error":"not_ready"} [503]
+{"ready":false,"stt":"starting","bonsai":"ready"}
+ready again after ~3s: {"ready":true,"stt":"ready","bonsai":"ready"}
+{"text":"I just got the internship."} [200]

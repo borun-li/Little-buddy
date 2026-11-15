@@ -206,3 +206,215 @@ Rows "Glow change" and "Part motions" above are now built (new art has part ids)
 - **Side:** frontend
 - **Depends on:** Q-003
 - **Status:** built
+
+## Increment 1 — 2026-11-14
+
+- **Author:** fe-engineer #5 · **Status:** draft (feasibility + queue, step 2 round 2) · run `companion-full-dev`. Ids Q-010… continue; never reused.
+- Inputs: `01-ux.md` and `02-ui.md` § Increment 1, FRAME-012..016 (exported PNGs, 0 Figma calls), `docs/backend/01-requirements.md` REQ-001..013 (ids below are that file's), `docs/backend/03-detailed-design.md` DES-013..015 and §9, contract §2 (rows replaced this round) and seam table.
+- Backend half: the seam's other side is DES-001..012 (be-developer). Rows marked **backend first** cannot be seen end to end until it runs; their client logic is built and tested against an injected `fetch` and must not wait. No `server/` exists yet (checked: `ls` shows no `server/`; `package.json` still serves `web/` statically).
+
+### Earlier approved rows this round may change (PLAYBOOK §3I)
+No `OBS-###` registry exists yet (no `OBS-` in `docs/frontend`), so rows stand in for observables. Hooks `fake-input`, `reply`, `companion` stay (`docs/backend/demo-plan.json`).
+
+| Earlier row | What may change | Why |
+|---|---|---|
+| Q-001 empty page | words follow the interface language (browser default, A12); the page now also calls `health()` at open, so with no backend the hint line shows `hints.unreachable` at open | REQ-010/011/012; DES-013 |
+| Q-002 typed line | "reply ≤ 1 s" becomes ≤ 10 s; a send can now fail and return the text | REQ-008, REQ-011 |
+| Q-003 moods | caption `moods.waking` while the reply side warms (art stays `neutral`); English captions | REQ-010, REQ-012 |
+| Q-004 hold to talk | the hold is recorded; after release a transcribing turn, then real words; tag "语音" | REQ-001, REQ-003 |
+| Q-005 fake layer | `companion-client.js` becomes real; `createFakeCompanion` moves to `web/js/fake/`; `tests/fake-companion.test.js` imports change | DES-013 |
+| Q-006 offline | the only new requests are same-origin `/api/*`; `offline.test.js` must still pass; font gains Latin-1 letters (Q-017) | REQ-009 |
+| Q-007 mic hints | same words, now in two languages; the granted-state "listening at press" timing changes (DFB-005) | REQ-012; recording needs the stream |
+| Q-009 reduce motion | transcribing dots are a static "…" | `01-ux.md` loading · transcribing |
+Q-008 (20 turns) is untouched except that `history` is capped at 40 entries when sent.
+
+### Scaffold (increment 1)
+Stack unchanged: static files, vanilla ES modules, `node:test`. No new package.
+
+| File | What it does |
+|---|---|
+| `web/js/companion-client.js` | rewritten: `respond`, `transcribe(audio)`, `health()` over same-origin `/api/*`; aborts 16 s / 13 s → `timeout`; failed `fetch` → `unavailable`; non-2xx → body `error`, unknown → `failed`; sends the last 40 `history` entries, never the language; `createClient({fetch, timers})` exported so tests inject both |
+| `web/js/fake/fake-companion.js` | the old `createFakeCompanion` moved here, tests only; nothing in `web/` imports it |
+| `web/js/mic.js` | adds recording: capture while held, downsample to 16 kHz mono, `encodeWav` → `Blob audio/wav` (PCM16 LE, 44-byte header, ≤ 1,920,044 B at 60 s); tracks stopped on release; audio only in page memory (A9) |
+| `web/js/recorder-worklet.js` | AudioWorklet processor posting raw mic frames to `mic.js`; the one file the browser must fetch separately |
+| `web/js/health-watch.js` | the warming state machine: checks at open and every 2 s until both parts are ready, applies the `01-ux.md` warming table (Enter / hold / hint / caption), 30 s → `stillDown`, `awake` for 4 s only if a not-ready hint was shown; clock and `health()` injected |
+| `web/js/copy.js` | both languages in one file (zh unchanged but `voiceTag` "语音"); `setLang`, `onLang`, `t(key)`; `lang` on `<html>`; default from `navigator.language` (zh* → zh, else en, A12), not stored |
+| `web/index.html`, `web/css/page.css` | CMP-006 switch (`role=group`, two `button`s, `aria-pressed`, own `lang`); English phone composer (button hugs 154 px, input 196 px); hint line up to 3 lines at 358 px |
+| `web/js/app.js`, `log.js`, `companion.js`, `talk-button.js` | wire the above: failure returns the text; transcribing turn; re-render on language change; hold records and sends the WAV |
+| `tests/client.test.js`, `tests/wav.test.js`, `tests/health-watch.test.js`, `tests/copy.test.js` | named one by one in the `package.json` `test` script (same reason as before: a glob matching nothing exits 0) |
+
+### Feasibility notes (increment 1)
+- Recording: capture at the context's native rate and downsample in JS (box average to 16 kHz), not `AudioContext({sampleRate: 16000})`. Reason [unverified]: Firefox rejects connecting a stream of another rate to a context at 16 kHz. 60 s × 16,000 × 2 B + 44 = 1,920,044 B, under the 2,000,000 B cap (arithmetic). `encodeWav` and the downsampler are pure functions, so `node --test` covers them with no microphone.
+- Mic first-open lag (`docs/codemap.md` `mic.js` traps: first open can take > 1 s) now loses speech: the frames before the stream opens are never captured. Raised as DFB-005 (accepted by fe-ux #4, pending user at Plan).
+- Fonts: the vendored subset has `— – ’ ‘ “ ” … · •` (checked with fontTools cmap on `web/fonts/lxgw-wenkai-subset.woff2`) but not `é ü € ™ → ✓` or emoji. Real replies are free text, so these can appear and fall back to Kaiti SC (no missing-glyph box, a visible change of face). Row Q-017.
+- Real replies break one earlier assumption: copy and presets were all known characters, generated text is not. No change to the layer; `overflow-wrap: anywhere` on turns is already in `web/css/page.css:64` for long lines.
+- Timing is the backend's: `docs/backend/handoff.md` (be-architect #2) says after 20 turns every turn is cold, ≈ 10 s with STT. The page waits up to 16 s / 13 s, so it never ends before the server's own 15 s / 12 s.
+- A transcript is passed to `respond` as is; a spoken 60 s line is ≈ 1,000 characters in English (estimate, not measured), under the 1,500 cap. Anything longer is cut at 1,500 characters before sending, [unverified] default; otherwise `bad_request` shows `hints.sendDefect` for a normal line.
+- Until `server/` exists the page at `npm start` shows the unreachable hint and cannot send: that is correct behaviour, so the first runnable check of Q-010..Q-014 is the node tests plus the backend's `npm start` once be-developer lands.
+
+### Design feedback raised (for the orchestrator to file in `06-feedback.md`; id provisional)
+| DFB | To | Item | Reason and evidence | Cheaper alternative |
+|---|---|---|---|---|
+| DFB-005 | fe-ux | FLOW-005 step 1 / `docs/codemap.md` "permission granted → listening shows at press, the stream joins later" | Recording starts when the stream opens, so with the old timing the first words of a hold (up to the first-open lag, unmeasured, "> 1 s" in the codemap) are lost and the user sees "listening" while nothing is captured | Show "listening" and start the seconds when the stream opens; the button already looks pressed from the pointer-down. Other holds reopen fast (unmeasured). If fe-ux keeps "at press", the first words of a first hold can be missing |
+
+### Q-010 — Typed line gets a real reply and mood
+- **Page:** PAGE-001
+- **Frame:** FRAME-002, FRAME-006, FRAME-014
+- **States:** loading, success
+- **REQ:** REQ-004..008
+- **DES:** DES-013
+- **Files:** `companion-client.js`, `app.js`
+- **Observable:** Offline, an English line gets a Bonsai-written English reply and the matching mood; a sad follow-up recalls the first
+- **Acceptance:** Reply and mood ≤ 10 s; note Q-010; 1440, 390
+- **Priority:** P1
+- **Side:** both (backend first)
+- **Depends on:** Q-002, Q-005
+- **Status:** queued
+
+### Q-011 — A failed send gives your words back
+- **Page:** PAGE-001
+- **Frame:** FRAME-010, FRAME-013
+- **States:** error · reply
+- **REQ:** REQ-011
+- **DES:** DES-013
+- **Files:** `companion-client.js`, `app.js`, `log.js`
+- **Observable:** With the reply side stopped, the sent line leaves the chat, returns to the input, and a hint says why
+- **Acceptance:** Hint per code ≤ 2 s; note Q-011; 1440, 390
+- **Priority:** P1
+- **Side:** both for the live check
+- **Depends on:** Q-010
+- **Status:** queued
+
+### Q-012 — Companion wakes up, page says so
+- **Page:** PAGE-001
+- **Frame:** FRAME-013
+- **States:** warming, error · down
+- **REQ:** REQ-010, REQ-011
+- **DES:** DES-013
+- **Files:** `health-watch.js`, `app.js`, `companion.js`
+- **Observable:** Opened while Bonsai loads: caption "还在醒来", warming hint, Enter keeps the text; ready shows the awake hint; down shows the restart hint
+- **Acceptance:** Warming table passes with a fake clock; note Q-012; 1440, 390
+- **Priority:** P1
+- **Side:** both (backend first)
+- **Depends on:** Q-010, Q-011
+- **Status:** built (fe-engineer #11)
+- **Fix (round 1, FND-001, FND-004):** `web/js/health-watch.js` (`failed()` arms awake only for `not_ready`; first check one poll later), `web/js/app.js` (`healthHint`: health hints, awake over a health hint only, awake clears only itself).
+
+### Q-013 — The held voice is recorded as 16 kHz WAV
+- **Page:** PAGE-001
+- **Frame:** n/a — shows through Q-014 (FRAME-003, FRAME-011)
+- **States:** success
+- **REQ:** REQ-001, REQ-003
+- **DES:** DES-014
+- **Files:** `mic.js`, `recorder-worklet.js`
+- **Observable:** a 2 s hold posts a valid 16 kHz mono WAV (≈ 64,044 B in the network log); the mic light goes off at release
+- **Acceptance:** WAV header, size cap and downsampling; note Q-013
+- **Priority:** P1
+- **Side:** frontend
+- **Depends on:** Q-004
+- **Status:** queued
+
+### Q-019 — Listening starts when the mic opens
+- **Page:** PAGE-001
+- **Frame:** FRAME-003, FRAME-011
+- **States:** loading · mic opening, listening
+- **REQ:** REQ-001
+- **DES:** DFB-005
+- **Files:** `talk-button.js`, `mic.js`, `copy.js`
+- **Observable:** pressing holds the button; "listening" and its seconds appear when the mic opens, and a slow first open shows `hints.micOpening` after 0.2 s
+- **Acceptance:** 0.5 s and 60 s count from open; release before open shows `hints.tooShort`; note Q-013; 1440, 390
+- **Priority:** P1
+- **Side:** frontend
+- **Depends on:** Q-013, Q-007
+- **Status:** queued
+- **Fix (round 1, FND-003):** `web/js/talk-button.js` (`listeningNow` announced in the status line when the stream opens, cleared at hold end), `web/js/copy.js` (`listeningNow` zh/en, `hints.micOpening` reworded per 01-ux.md Words).
+
+### Q-014 — Spoken line becomes real words
+- **Page:** PAGE-001
+- **Frame:** FRAME-012, FRAME-016
+- **States:** loading · transcribing, success
+- **REQ:** REQ-001, REQ-002, REQ-008
+- **DES:** DES-013, DES-014
+- **Files:** `app.js`, `log.js`, `companion-client.js`, `voice-turn.js`, `copy.js`, `page.css`
+- **Observable:** After release your turn shows tagged 语音 with "正在转成文字…", then the words replace it, then reply and mood follow
+- **Acceptance:** Placeholder ≤ 0.3 s, words ≤ 13 s, reply ≤ 10 s; send paused meanwhile; 1440, 390
+- **Priority:** P1
+- **Side:** both (backend first)
+- **Depends on:** Q-013, Q-011, Q-012
+- **Status:** built (fe-engineer #12)
+- **Fix (round 1, FND-002):** `web/js/talk-button.js` (`setPaused(true)` cancels a running hold), `web/js/app.js` (an utterance that arrives while a reply is pending is dropped, not queued), `tests/fnd-r1-fix.test.js` (new), `package.json` (test script).
+
+### Q-018 — Silence and voice failures are told
+- **Page:** PAGE-001
+- **Frame:** FRAME-016, FRAME-013
+- **States:** empty · nothing heard, error · voice, warming
+- **REQ:** REQ-003, REQ-011
+- **DES:** DES-013
+- **Files:** `app.js`, `copy.js`, `tests/voice-hints.test.js`
+- **Observable:** Silence adds no turn and says nothing was heard; each voice failure shows its own hint; typing still works
+- **Acceptance:** No `respond` on empty text; note Q-018; 1440, 390
+- **Priority:** P1
+- **Side:** both for the live check
+- **Depends on:** Q-014
+- **Status:** built (fe-engineer #13; log.js not needed; evidence build/Q-018-*.png; `tests/voice-hints.test.js` is not yet in the package.json test script)
+
+### Q-015 — Switch the interface language
+- **Page:** PAGE-001
+- **Frame:** FRAME-012..016
+- **States:** success
+- **REQ:** REQ-012, REQ-005
+- **DES:** DES-015
+- **Files:** `copy.js`, `index.html`, `page.css`, `app.js`, `companion.js`, `log.js`, `talk-button.js` (the last three only read strings: refresh() added)
+- **Observable:** `中文 | EN` at the stage top-right switches every word outside the chat at once; focus stays; a non-Chinese browser opens in English
+- **Acceptance:** No Chinese outside chat in English; note Q-015; 1440, 390
+- **Priority:** P1
+- **Side:** frontend
+- **Depends on:** Q-001, Q-007
+- **Status:** built (fe-engineer #14; evidence build/Q-015-*.png; `tests/copy.test.js` new, in the test script with voice-hints.test.js)
+
+### Q-016 — English layout fits both sizes
+- **Page:** PAGE-001
+- **Frame:** FRAME-014, FRAME-015, FRAME-016
+- **States:** success, error (longest hint)
+- **REQ:** REQ-012
+- **DES:** DES-015
+- **Files:** `page.css`, `index.html`
+- **Observable:** On the phone in English the button reads "Hold to talk" whole; the longest caption stays on one line; the longest hint wraps without hiding the newest turn
+- **Acceptance:** Widths in note Q-016; 1440, 768, 390, 375
+- **Priority:** P1
+- **Side:** frontend
+- **Depends on:** Q-015
+- **Status:** built
+
+### Q-017 — Latin accents render in the companion's face
+- **Page:** PAGE-001
+- **Frame:** n/a — no visual of its own
+- **States:** success
+- **REQ:** REQ-005
+- **DES:** n/a
+- **Files:** `subset-font.sh`, `lxgw-wenkai-subset.woff2`
+- **Observable:** An English reply with "café" shows the accent in the same face as the rest
+- **Acceptance:** Subset cmap has U+00C0–U+00FF; `offline.test.js` green
+- **Priority:** P3
+- **Side:** frontend
+- **Depends on:** Q-006; the TTF (not committed)
+- **Status:** queued
+
+### Notes the rows point to
+- **Q-010:** acceptance also names `fake-companion.test.js` repointed; body has `line` and the last 40 `history` entries, no language; `client.test.js` also covers the 200 parse. `fake-companion.test.js` imports move to `fake/fake-companion.js`; the importer rule still holds.
+- **Q-011:** the six codes plus the page's own 16 s `timeout` and failed `fetch` → `unavailable` map to the send column of `01-ux.md` Codes. Text typed meanwhile keeps the failed line in front, joined by a space. Mood and older turns unchanged; the hint is `role=status`, up to 3 lines at 390.
+- **Q-012:** checks at open and every 2 s until both parts are ready; 30 s down → `stillDown`; `awake` 4 s only if a not-ready hint was shown. Typed text is never lost.
+- **Q-013, Q-019:** `wav.test.js` covers header fields, 2 s and 60 s lengths (60 s = 1,920,044 B, never more), 48 kHz and 44.1 kHz downsampling, silence stays silence. Nothing keeps the audio after the call (A9). Q-019 is DFB-005 (accepted, pending user at Plan): press only holds the button; listening starts when the stream opens. Trap, `docs/codemap.md` `mic.js`: browsers without the permission query treat a stream slower than 600 ms as an open prompt, and `hints.micOpening` shows at 0.2 s, so the two thresholds must not collide: the 0.2 s hint shows first, then 600 ms decides "prompt".
+- **Q-018:** empty text → `hints.nothingHeard`; voice-column key per code; voice not ready → `hints.voiceNotReady` and nothing recorded; a voice line whose reply fails returns as text; a transcript over 1,500 characters is cut before sending [unverified default].
+- **Q-015:** `copy.test.js` checks key parity zh/en; page check covers `aria-label`s, `html lang`, `aria-pressed`, Enter and Space, Shift+Tab from the input, working while pending, re-render of hint and caption, request has no language field.
+- **Q-014:** the Q-010 request follows; static "…" under reduced motion; hold and send paused while transcribing and replying (≤ 13 s and ≤ 16 s page stops).
+- **Q-016:** English phone button 154 px, input 196 px, Chinese button 124 px, no jump while listening; caption "Little Buddy · sad with you for a while" on one line at 390 (design estimate ≈ 341 px in 358 px, to be measured); `hints.sendDefect` in English ≤ 3 lines at 358 px, 2 at 559 px; 768 uses the phone layout (assumption E1).
+
+### Dependencies (increment 1)
+No new package. Browser APIs only: `fetch` + `AbortController`, `AudioContext` + `AudioWorklet`, `navigator.language`.
+
+| Row | Waits for | Why |
+|---|---|---|
+| Q-015, Q-016, Q-017 | nothing from the backend | client-only |
+| Q-013, Q-019 | nothing from the backend | recorder and encoder are tested without a server |
+| Q-010, Q-011, Q-012, Q-014, Q-018 | be-developer: DES-001..010, 012 (+ DES-011 for voice) | each replaces fake data; client logic is unit-tested first, live check needs `server/` |

@@ -7,6 +7,12 @@ const reduceMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)')
 export function createCompanion(root, caption) {
   const layers = root.querySelector('.companion__layers');
   let current = null;
+  let waking = false;
+
+  function setCaption() {
+    const phrase = waking ? copy.moods.waking.caption : copy.moods[current].caption;
+    caption.textContent = copy.companionCaption(phrase);
+  }
 
   function render(mood, animate) {
     const tpl = document.getElementById(`mood-${mood}`);
@@ -37,13 +43,17 @@ export function createCompanion(root, caption) {
     const words = copy.moods[mood];
     root.dataset.mood = mood;
     root.setAttribute('aria-label', copy.companionName(words.name));
-    caption.textContent = copy.companionCaption(words.caption);
     current = mood;
+    setCaption();
   }
 
   render('neutral', false);
   return {
     get mood() { return current; },
     setMood(mood) { if (mood !== current) render(mood, true); },
+    // The reply side is still warming: caption "还在醒来", art unchanged (FLOW-006).
+    // Q-015: caption and accessible name again in the current language
+    refresh() { root.setAttribute('aria-label', copy.companionName(copy.moods[current].name)); setCaption(); },
+    setWaking(on) { if (on !== waking) { waking = on; setCaption(); } },
   };
 }

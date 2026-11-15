@@ -1,0 +1,14 @@
+[
+ {
+  "check": "FE1.flow-length",
+  "approved_by": "user",
+  "date": "2026-11-14",
+  "reason": "Scope: only FLOW-001 (83 words) and FLOW-002 (84 words), retired in increment 1; overrun is the in-place retirement marker on text the user confirmed. Any other FLOW over 80 words is NOT covered; orchestrator checks the per-flow counts at every fe-ux run."
+ },
+ {
+  "check": "FE4.tree-unchanged",
+  "approved_by": "user",
+  "date": "2026-11-15",
+  "reason": "Scope: fe-review round 2 recheck only. The one changed file, docs/backend/handoff.md, was written by fe-tester #4 (dispatched with the reviewer per PLAYBOOK \u00a73 Phase 4.1) and by the orchestrator filing the reviewer's entry; fe-reviewer #2 wrote only 05-review.md. Remove before any later review round."
+ }
+]

@@ -1,0 +1,32 @@
+- main:
+  - group "Interface language":
+    - button "中文"
+    - button "English" [pressed]: EN
+  - img "Little Buddy, at ease"
+  - log "Chat":
+    - listitem: Hi.
+    - listitem: Hello! How's your day going so far?
+    - listitem: Long day.
+    - listitem: That sounds tough. Did something specific make it long?
+    - listitem: Tea now.
+    - listitem: I hope that tea makes you feel better. Do you like sweet or bitter?
+    - listitem: My boss praised me.
+    - listitem: That's wonderful news! I'm so happy for you.
+    - listitem: I missed dinner.
+    - listitem: Oh no, that must be disappointing after the praise. Did you have a reason to miss it?
+    - listitem: They were good.
+    - listitem: That sounds like comfort food! What was your favorite part of the meal?
+    - listitem: She sounds well.
+    - listitem: I'm glad she's doing well. Is there anything else on your mind?
+    - listitem: Maybe a walk tomorrow.
+    - listitem: That sounds like a perfect plan to recharge. Do you have any idea where you'd like to go?
+    - listitem: I like comedies.
+    - listitem: That's a great choice for a relaxing walk! Would you prefer something funny or just light-hearted?
+    - listitem: Thanks.
+    - listitem: You're welcome! Glad I could help.
+    - listitem: Good night.
+    - listitem: Little Buddy is replying
+  - status
+  - textbox "What you want to tell Little Buddy":
+    - /placeholder: Or type, Enter sends
+  - button "Hold to talk" [disabled]

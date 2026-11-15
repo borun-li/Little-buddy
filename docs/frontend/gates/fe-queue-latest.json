@@ -1,6 +1,6 @@
 {
   "phase": "fe-queue",
-  "time": "2026-11-14T20:48:33Z",
+  "time": "2026-11-14T23:46:21Z",
   "project": "/Users/apple/Desktop/Hackathon/Local_AI_Hackathon",
   "run_dir": "docs/frontend",
   "overall": "pass",
@@ -27,14 +27,14 @@
     {
       "id": "FE2.rows",
       "status": "pass",
-      "message": "9 rows complete",
+      "message": "19 rows complete",
       "owner": "fe-engineer",
       "details": []
     },
     {
       "id": "FE2.row-ids",
       "status": "pass",
-      "message": "9 Q ids new to the project",
+      "message": "19 Q ids new to the project",
       "owner": "fe-engineer",
       "details": []
     },
@@ -55,14 +55,14 @@
     {
       "id": "FE2.contract",
       "status": "pass",
-      "message": "4 capabilities, each ruled",
+      "message": "5 capabilities, each ruled",
       "owner": "fe-engineer",
       "details": []
     },
     {
       "id": "FE2.feedback",
       "status": "pass",
-      "message": "2 design-feedback items decided",
+      "message": "5 design-feedback items decided",
       "owner": "fe-engineer",
       "details": []
     },
@@ -83,7 +83,7 @@
     {
       "id": "CTX.handoff",
       "status": "pass",
-      "message": "handoff.md: 4 current sections",
+      "message": "handoff.md: 5 current sections",
       "owner": "orchestrator",
       "details": []
     }
@@ -98,7 +98,17 @@
       "Q-006",
       "Q-007",
       "Q-008",
-      "Q-009"
+      "Q-009",
+      "Q-010",
+      "Q-011",
+      "Q-012",
+      "Q-013",
+      "Q-014",
+      "Q-015",
+      "Q-016",
+      "Q-017",
+      "Q-018",
+      "Q-019"
     ]
   }
 }

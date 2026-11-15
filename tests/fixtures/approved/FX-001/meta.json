@@ -1,0 +1,25 @@
+{
+  "req": "REQ-006",
+  "reqs": [
+    "REQ-004",
+    "REQ-005",
+    "REQ-006"
+  ],
+  "source": "line: docs/backend/demo-plan.json captures[happy-en] (01 §7 FX-001). mood: REQ-006 + 01 §1 mood ids (pleasant-high = 开心/兴奋) + goal 'say a happy English line -> companion turns happy'. reply_checks: REQ-004 (<=2 sentences, <=1 question, en <=40 words, not presets.js, no thinking), REQ-005 (language of the line = en).",
+  "compare": "exact",
+  "compare_note": "Replies vary per run, so the reply is checked by properties: the test computes reply_checks from the actual reply with the rules in `rules` and compares the whole expected object exactly. Shape (POST /api/respond {line, history} -> 200 {reply, mood}) from 03 §9 / DES-001.",
+  "rules": {
+    "language": "en = at least one Latin letter and no \\p{Script=Han} character; zh = at least one Han character and no Latin word of 2+ letters; anything else = 'other'",
+    "sentences_le_2": "split after each run of 。！？!?.… ; segments with no letter or Han character (emoji, whitespace, punctuation only) do not count; count <= 2",
+    "questions_le_1": "segments (as above) containing ? or ？ <= 1",
+    "length_ok": "zh: Unicode code points of the trimmed reply <= 120; en: whitespace-separated tokens containing a Latin letter <= 40",
+    "not_a_preset": "trimmed reply is not equal to any string in PRESETS.zh.replies of web/js/fake/presets.js",
+    "no_thinking_text": "reply contains neither '<think' nor '</think>'",
+    "nonempty": "trimmed reply length >= 1"
+  },
+  "runs": 3,
+  "pass": "all 3 runs match (REQ-006: FX-001 3/3)",
+  "manual": [
+    "REQ-004: the reply responds to getting the internship (human judgement)"
+  ]
+}

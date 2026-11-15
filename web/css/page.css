@@ -35,6 +35,22 @@ p { margin: 0; }
   overflow: hidden;
   min-width: 0;
 }
+/* CMP-006 language switch: 98 x 36, top-right of the stage (24 px laptop, 8 px phone) */
+.stage { position: relative; }
+.lang-switch {
+  position: absolute; top: 8px; right: 8px; z-index: 1;
+  display: flex; gap: 2px; padding: 1px;
+  border: 1px solid var(--color-border-control); border-radius: var(--radius-control);
+}
+.lang-switch button {
+  height: 32px; padding: 0 12px; border: 0; border-radius: 4px; background: none; cursor: pointer;
+  font: 400 13px/20px var(--font-ui); color: var(--color-text-muted);
+}
+.lang-switch button:hover { color: var(--color-text-primary); }
+.lang-switch button[aria-pressed="true"] {
+  background: var(--color-turn-you-bg); color: var(--color-text-primary); font-weight: 600; cursor: default;
+}
+.lang-switch button:focus-visible { outline: 3px solid var(--color-focus-ring); outline-offset: 2px; }
 .companion__caption {
   font: 400 13px/20px var(--font-voice);
   color: var(--color-text-muted);
@@ -98,6 +114,8 @@ p { margin: 0; }
   gap: var(--space-8);
   padding: var(--space-12) var(--space-16) 20px;
 }
+/* Q-016 (DFB-004): English phone only — the button fits "Hold to talk" (154 px, kept while listening); Chinese stays 124 px */
+html[lang="en"] .composer { grid-template-columns: minmax(0, 1fr) 154px; }
 .hint {
   grid-column: 1 / -1;
   display: flex; align-items: flex-start; gap: var(--space-8);
@@ -159,13 +177,14 @@ p { margin: 0; }
 /* ---------- laptop ---------- */
 @media (min-width: 960px) {
   .page { grid-template-columns: minmax(0, 1fr) 640px; grid-template-rows: minmax(0, 1fr); }
+  .lang-switch { top: 24px; right: 24px; }
   .stage { border-bottom: 0; border-right: 1px solid var(--color-border-default); gap: var(--space-24); }
   .companion__caption { font-size: 20px; line-height: 32px; }
   .log { padding: var(--space-40) var(--space-40) 0; }
   .turn--you { max-width: 440px; }
   .turn--reply, .turn--typing { font-size: 20px; line-height: 32px; }
   .typing { height: 32px; }
-  .composer { grid-template-columns: minmax(0, 1fr); gap: var(--space-12); padding: var(--space-8) var(--space-40) var(--space-40); }
+  .composer, html[lang="en"] .composer { grid-template-columns: minmax(0, 1fr); gap: var(--space-12); padding: var(--space-8) var(--space-40) var(--space-40); }
   .hint { order: 1; }
   .talk-button { order: 2; height: 56px; }
   .field { order: 3; }
@@ -185,3 +204,8 @@ p { margin: 0; }
   .typing__static { display: inline; }
 }
 .tab-hidden * { animation-play-state: paused !important; }
+
+/* Q-014: you-transcribing turn (CMP-002): muted body, dots after the words */
+.turn--transcribing .turn__text { color: var(--color-text-muted); }
+.typing--inline { display: inline-flex; height: auto; vertical-align: middle; margin-left: 6px; }
+.typing--inline .typing__dot { background: var(--color-text-muted); }

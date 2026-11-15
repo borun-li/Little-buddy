@@ -1,0 +1,8 @@
+{
+  "selector": "[data-testid=companion]",
+  "elements": [
+    {
+      "background-color": "rgba(88, 116, 137, 0.3)"
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "endpoint": "POST /api/transcribe",
+  "status": 200,
+  "text_reference": "Hello, this is a fully offline test for the local AI hackathon.",
+  "language": "en",
+  "metric": "WER",
+  "error_rate_max": 0.15
+}

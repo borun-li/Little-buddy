@@ -1,0 +1,7 @@
+{
+  "endpoint": "POST /api/transcribe",
+  "status": 200,
+  "body": {
+    "text": ""
+  }
+}

@@ -1,6 +1,6 @@
 {
   "phase": "fe-build",
-  "time": "2026-11-14T21:59:14Z",
+  "time": "2026-11-15T02:09:27Z",
   "project": "/Users/apple/Desktop/Hackathon/Local_AI_Hackathon",
   "run_dir": "docs/frontend",
   "overall": "pass",
@@ -79,8 +79,9 @@
       "message": "tests green",
       "owner": "fe-engineer",
       "details": [
-        "$ npm test -> exit 0 (0.8s), log: /Users/apple/Desktop/Hackathon/Local_AI_Hackathon/docs/frontend/gates/logs/2026-11-14T215913Z-test.log",
-        "counts: {'passed': 23, 'errors': 0, 'xpassed': 0, 'xfailed': 0, 'failed': 0, 'skipped': 0}",
+        "reused the run of 2026-11-15T02:08:58Z: same tree and command (test_reuse_minutes)",
+        "$ npm test -> exit 0 (0.9s), log: /Users/apple/Desktop/Hackathon/Local_AI_Hackathon/docs/frontend/gates/logs/2026-11-15T020857Z-test.log",
+        "counts: {'failed': 0, 'xfailed': 0, 'skipped': 0, 'passed': 84, 'errors': 0, 'xpassed': 0}",
         "per-test results: report from gates.json junit: test-results/junit.xml"
       ]
     },
@@ -93,8 +94,8 @@
     },
     {
       "id": "FE.observables",
-      "status": "unavailable",
-      "message": "Before the Prototype stop: scaffold and prototype only",
+      "status": "pass",
+      "message": "19 approved observables intact",
       "owner": "fe-engineer",
       "details": []
     },
@@ -122,77 +123,24 @@
     {
       "id": "CTX.handoff",
       "status": "pass",
-      "message": "handoff.md: 4 current sections",
+      "message": "handoff.md: 5 current sections",
       "owner": "orchestrator",
       "details": []
     }
   ],
   "data": {
     "writer_changed": [
-      "docs/frontend/logs/fe-engineer-4-r2-npm-test.log",
-      "docs/frontend/logs/fe-engineer-4-r2-selfcheck.log",
-      "docs/frontend/logs/fe-engineer-4-r2-selfcheck/neutral-open@laptop-reduce.png",
-      "docs/frontend/logs/fe-engineer-4-r2-selfcheck/neutral-open@laptop.png",
-      "docs/frontend/logs/fe-engineer-4-r2-selfcheck/neutral-open@phone.png",
-      "docs/frontend/logs/fe-engineer-4-r2-selfcheck/neutral@laptop-reduce.png",
-      "docs/frontend/logs/fe-engineer-4-r2-selfcheck/neutral@laptop-t2.png",
-      "docs/frontend/logs/fe-engineer-4-r2-selfcheck/neutral@laptop.png",
-      "docs/frontend/logs/fe-engineer-4-r2-selfcheck/neutral@phone-t2.png",
-      "docs/frontend/logs/fe-engineer-4-r2-selfcheck/neutral@phone.png",
-      "docs/frontend/logs/fe-engineer-4-r2-selfcheck/pleasant-high@laptop-reduce.png",
-      "docs/frontend/logs/fe-engineer-4-r2-selfcheck/pleasant-high@laptop-t2.png",
-      "docs/frontend/logs/fe-engineer-4-r2-selfcheck/pleasant-high@laptop.png",
-      "docs/frontend/logs/fe-engineer-4-r2-selfcheck/pleasant-high@phone-t2.png",
-      "docs/frontend/logs/fe-engineer-4-r2-selfcheck/pleasant-high@phone.png",
-      "docs/frontend/logs/fe-engineer-4-r2-selfcheck/pleasant-low@laptop-reduce.png",
-      "docs/frontend/logs/fe-engineer-4-r2-selfcheck/pleasant-low@laptop-t2.png",
-      "docs/frontend/logs/fe-engineer-4-r2-selfcheck/pleasant-low@laptop.png",
-      "docs/frontend/logs/fe-engineer-4-r2-selfcheck/pleasant-low@phone-t2.png",
-      "docs/frontend/logs/fe-engineer-4-r2-selfcheck/pleasant-low@phone.png",
-      "docs/frontend/logs/fe-engineer-4-r2-selfcheck/results.json",
-      "docs/frontend/logs/fe-engineer-4-r2-selfcheck/selfcheck.py",
-      "docs/frontend/logs/fe-engineer-4-r2-selfcheck/unpleasant-high@laptop-reduce.png",
-      "docs/frontend/logs/fe-engineer-4-r2-selfcheck/unpleasant-high@laptop-t2.png",
-      "docs/frontend/logs/fe-engineer-4-r2-selfcheck/unpleasant-high@laptop.png",
-      "docs/frontend/logs/fe-engineer-4-r2-selfcheck/unpleasant-high@phone-t2.png",
-      "docs/frontend/logs/fe-engineer-4-r2-selfcheck/unpleasant-high@phone.png",
-      "docs/frontend/logs/fe-engineer-4-r2-selfcheck/unpleasant-low@laptop-reduce.png",
-      "docs/frontend/logs/fe-engineer-4-r2-selfcheck/unpleasant-low@laptop-t2.png",
-      "docs/frontend/logs/fe-engineer-4-r2-selfcheck/unpleasant-low@laptop.png",
-      "docs/frontend/logs/fe-engineer-4-r2-selfcheck/unpleasant-low@phone-t2.png",
-      "docs/frontend/logs/fe-engineer-4-r2-selfcheck/unpleasant-low@phone.png",
-      "docs/frontend/logs/orchestrator-npm-test-r2.log",
-      "tests/companion.test.js",
-      "docs/codemap.md",
-      "docs/frontend/03-queue.md",
-      "docs/frontend/evidence/demo-after/happy-turn@laptop.dom.html",
-      "docs/frontend/evidence/demo-after/happy-turn@laptop.png",
-      "docs/frontend/evidence/demo-after/happy-turn@phone.dom.html",
-      "docs/frontend/evidence/demo-after/happy-turn@phone.png",
-      "docs/frontend/evidence/demo-after/manifest.json",
-      "docs/frontend/evidence/demo-after/manifest.md",
-      "docs/frontend/evidence/demo-after/open@laptop.dom.html",
-      "docs/frontend/evidence/demo-after/open@laptop.png",
-      "docs/frontend/evidence/demo-after/open@phone.dom.html",
-      "docs/frontend/evidence/demo-after/open@phone.png",
-      "docs/frontend/evidence/demo-after/sad-turn@laptop.dom.html",
-      "docs/frontend/evidence/demo-after/sad-turn@laptop.png",
-      "docs/frontend/evidence/demo-after/sad-turn@phone.dom.html",
-      "docs/frontend/evidence/demo-after/sad-turn@phone.png",
-      "docs/frontend/handoff.md",
       "docs/frontend/run-log.jsonl",
       "package.json",
-      "web/css/companion.css",
-      "web/index.html",
-      "web/js/companion.js"
+      "web/js/talk-button.js"
     ],
     "counts": {
-      "passed": 23,
-      "errors": 0,
-      "xpassed": 0,
-      "xfailed": 0,
       "failed": 0,
-      "skipped": 0
+      "xfailed": 0,
+      "skipped": 0,
+      "passed": 84,
+      "errors": 0,
+      "xpassed": 0
     }
   }
 }

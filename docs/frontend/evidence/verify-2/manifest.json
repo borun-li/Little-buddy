@@ -1,0 +1,888 @@
+{
+  "round": "2",
+  "time": "2026-11-15T01:59:52Z",
+  "fingerprint": "525f2683e928d8c5",
+  "surface": "web",
+  "entries": [
+    {
+      "id": "q001-open",
+      "row": "Q-001",
+      "state": "empty",
+      "size": "laptop",
+      "width": 1440,
+      "height": 900,
+      "url": "http://127.0.0.1:4399/",
+      "files": {
+        "dom.html": "q001-open@laptop.dom.html",
+        "styles.json": "q001-open@laptop.styles.json",
+        "aria.yml": "q001-open@laptop.aria.yml",
+        "png": "q001-open@laptop.png"
+      },
+      "ok": true,
+      "instrument": "playwright-core + Chrome: DOM, computed styles, ARIA snapshot, screenshot",
+      "time": "2026-11-15T01:59:52Z",
+      "fingerprint": "525f2683e928d8c5",
+      "surface": "web"
+    },
+    {
+      "id": "q001-open",
+      "row": "Q-001",
+      "state": "empty",
+      "size": "phone",
+      "width": 390,
+      "height": 844,
+      "url": "http://127.0.0.1:4399/",
+      "files": {
+        "dom.html": "q001-open@phone.dom.html",
+        "styles.json": "q001-open@phone.styles.json",
+        "aria.yml": "q001-open@phone.aria.yml",
+        "png": "q001-open@phone.png"
+      },
+      "ok": true,
+      "instrument": "playwright-core + Chrome: DOM, computed styles, ARIA snapshot, screenshot",
+      "time": "2026-11-15T01:59:52Z",
+      "fingerprint": "525f2683e928d8c5",
+      "surface": "web"
+    },
+    {
+      "id": "q002-typed-zh",
+      "row": "Q-002",
+      "state": "success",
+      "size": "laptop",
+      "width": 1440,
+      "height": 900,
+      "url": "http://127.0.0.1:4399/",
+      "files": {
+        "dom.html": "q002-typed-zh@laptop.dom.html",
+        "styles.json": "q002-typed-zh@laptop.styles.json",
+        "aria.yml": "q002-typed-zh@laptop.aria.yml",
+        "png": "q002-typed-zh@laptop.png"
+      },
+      "ok": true,
+      "instrument": "playwright-core + Chrome: DOM, computed styles, ARIA snapshot, screenshot",
+      "time": "2026-11-15T01:59:52Z",
+      "fingerprint": "525f2683e928d8c5",
+      "surface": "web"
+    },
+    {
+      "id": "q002-typed-zh",
+      "row": "Q-002",
+      "state": "success",
+      "size": "phone",
+      "width": 390,
+      "height": 844,
+      "url": "http://127.0.0.1:4399/",
+      "files": {
+        "dom.html": "q002-typed-zh@phone.dom.html",
+        "styles.json": "q002-typed-zh@phone.styles.json",
+        "aria.yml": "q002-typed-zh@phone.aria.yml",
+        "png": "q002-typed-zh@phone.png"
+      },
+      "ok": true,
+      "instrument": "playwright-core + Chrome: DOM, computed styles, ARIA snapshot, screenshot",
+      "time": "2026-11-15T01:59:52Z",
+      "fingerprint": "525f2683e928d8c5",
+      "surface": "web"
+    },
+    {
+      "id": "q003-sad-followup",
+      "row": "Q-003",
+      "state": "success",
+      "size": "laptop",
+      "width": 1440,
+      "height": 900,
+      "url": "http://127.0.0.1:4399/",
+      "files": {
+        "dom.html": "q003-sad-followup@laptop.dom.html",
+        "styles.json": "q003-sad-followup@laptop.styles.json",
+        "aria.yml": "q003-sad-followup@laptop.aria.yml",
+        "png": "q003-sad-followup@laptop.png"
+      },
+      "ok": true,
+      "instrument": "playwright-core + Chrome: DOM, computed styles, ARIA snapshot, screenshot",
+      "time": "2026-11-15T01:59:52Z",
+      "fingerprint": "525f2683e928d8c5",
+      "surface": "web"
+    },
+    {
+      "id": "q003-sad-followup",
+      "row": "Q-003",
+      "state": "success",
+      "size": "phone",
+      "width": 390,
+      "height": 844,
+      "url": "http://127.0.0.1:4399/",
+      "files": {
+        "dom.html": "q003-sad-followup@phone.dom.html",
+        "styles.json": "q003-sad-followup@phone.styles.json",
+        "aria.yml": "q003-sad-followup@phone.aria.yml",
+        "png": "q003-sad-followup@phone.png"
+      },
+      "ok": true,
+      "instrument": "playwright-core + Chrome: DOM, computed styles, ARIA snapshot, screenshot",
+      "time": "2026-11-15T01:59:52Z",
+      "fingerprint": "525f2683e928d8c5",
+      "surface": "web"
+    },
+    {
+      "id": "q004-talk-idle",
+      "row": "Q-004",
+      "state": "idle (hold needs a mic: not capturable by this tool)",
+      "size": "laptop",
+      "width": 1440,
+      "height": 900,
+      "url": "http://127.0.0.1:4399/",
+      "files": {
+        "dom.html": "q004-talk-idle@laptop.dom.html",
+        "styles.json": "q004-talk-idle@laptop.styles.json",
+        "aria.yml": "q004-talk-idle@laptop.aria.yml",
+        "png": "q004-talk-idle@laptop.png"
+      },
+      "ok": true,
+      "instrument": "playwright-core + Chrome: DOM, computed styles, ARIA snapshot, screenshot",
+      "time": "2026-11-15T01:59:52Z",
+      "fingerprint": "525f2683e928d8c5",
+      "surface": "web"
+    },
+    {
+      "id": "q004-talk-idle",
+      "row": "Q-004",
+      "state": "idle (hold needs a mic: not capturable by this tool)",
+      "size": "phone",
+      "width": 390,
+      "height": 844,
+      "url": "http://127.0.0.1:4399/",
+      "files": {
+        "dom.html": "q004-talk-idle@phone.dom.html",
+        "styles.json": "q004-talk-idle@phone.styles.json",
+        "aria.yml": "q004-talk-idle@phone.aria.yml",
+        "png": "q004-talk-idle@phone.png"
+      },
+      "ok": true,
+      "instrument": "playwright-core + Chrome: DOM, computed styles, ARIA snapshot, screenshot",
+      "time": "2026-11-15T01:59:52Z",
+      "fingerprint": "525f2683e928d8c5",
+      "surface": "web"
+    },
+    {
+      "id": "q005-real-layer",
+      "row": "Q-005",
+      "state": "success (real layer replaced the fake)",
+      "size": "laptop",
+      "width": 1440,
+      "height": 900,
+      "url": "http://127.0.0.1:4399/",
+      "files": {
+        "dom.html": "q005-real-layer@laptop.dom.html",
+        "styles.json": "q005-real-layer@laptop.styles.json",
+        "aria.yml": "q005-real-layer@laptop.aria.yml",
+        "png": "q005-real-layer@laptop.png"
+      },
+      "ok": true,
+      "instrument": "playwright-core + Chrome: DOM, computed styles, ARIA snapshot, screenshot",
+      "time": "2026-11-15T01:59:52Z",
+      "fingerprint": "525f2683e928d8c5",
+      "surface": "web"
+    },
+    {
+      "id": "q005-real-layer",
+      "row": "Q-005",
+      "state": "success (real layer replaced the fake)",
+      "size": "phone",
+      "width": 390,
+      "height": 844,
+      "url": "http://127.0.0.1:4399/",
+      "files": {
+        "dom.html": "q005-real-layer@phone.dom.html",
+        "styles.json": "q005-real-layer@phone.styles.json",
+        "aria.yml": "q005-real-layer@phone.aria.yml",
+        "png": "q005-real-layer@phone.png"
+      },
+      "ok": true,
+      "instrument": "playwright-core + Chrome: DOM, computed styles, ARIA snapshot, screenshot",
+      "time": "2026-11-15T01:59:52Z",
+      "fingerprint": "525f2683e928d8c5",
+      "surface": "web"
+    },
+    {
+      "id": "q006-offline-open",
+      "row": "Q-006",
+      "state": "offline (instance has no external calls; Wi-Fi-off run is the user's check)",
+      "size": "laptop",
+      "width": 1440,
+      "height": 900,
+      "url": "http://127.0.0.1:4399/",
+      "files": {
+        "dom.html": "q006-offline-open@laptop.dom.html",
+        "styles.json": "q006-offline-open@laptop.styles.json",
+        "aria.yml": "q006-offline-open@laptop.aria.yml",
+        "png": "q006-offline-open@laptop.png"
+      },
+      "ok": true,
+      "instrument": "playwright-core + Chrome: DOM, computed styles, ARIA snapshot, screenshot",
+      "time": "2026-11-15T01:59:52Z",
+      "fingerprint": "525f2683e928d8c5",
+      "surface": "web"
+    },
+    {
+      "id": "q006-offline-open",
+      "row": "Q-006",
+      "state": "offline (instance has no external calls; Wi-Fi-off run is the user's check)",
+      "size": "phone",
+      "width": 390,
+      "height": 844,
+      "url": "http://127.0.0.1:4399/",
+      "files": {
+        "dom.html": "q006-offline-open@phone.dom.html",
+        "styles.json": "q006-offline-open@phone.styles.json",
+        "aria.yml": "q006-offline-open@phone.aria.yml",
+        "png": "q006-offline-open@phone.png"
+      },
+      "ok": true,
+      "instrument": "playwright-core + Chrome: DOM, computed styles, ARIA snapshot, screenshot",
+      "time": "2026-11-15T01:59:52Z",
+      "fingerprint": "525f2683e928d8c5",
+      "surface": "web"
+    },
+    {
+      "id": "q007-mic-idle",
+      "row": "Q-007",
+      "state": "idle (mic errors need a mic: not capturable)",
+      "size": "laptop",
+      "width": 1440,
+      "height": 900,
+      "url": "http://127.0.0.1:4399/",
+      "files": {
+        "dom.html": "q007-mic-idle@laptop.dom.html",
+        "styles.json": "q007-mic-idle@laptop.styles.json",
+        "aria.yml": "q007-mic-idle@laptop.aria.yml",
+        "png": "q007-mic-idle@laptop.png"
+      },
+      "ok": true,
+      "instrument": "playwright-core + Chrome: DOM, computed styles, ARIA snapshot, screenshot",
+      "time": "2026-11-15T01:59:52Z",
+      "fingerprint": "525f2683e928d8c5",
+      "surface": "web"
+    },
+    {
+      "id": "q007-mic-idle",
+      "row": "Q-007",
+      "state": "idle (mic errors need a mic: not capturable)",
+      "size": "phone",
+      "width": 390,
+      "height": 844,
+      "url": "http://127.0.0.1:4399/",
+      "files": {
+        "dom.html": "q007-mic-idle@phone.dom.html",
+        "styles.json": "q007-mic-idle@phone.styles.json",
+        "aria.yml": "q007-mic-idle@phone.aria.yml",
+        "png": "q007-mic-idle@phone.png"
+      },
+      "ok": true,
+      "instrument": "playwright-core + Chrome: DOM, computed styles, ARIA snapshot, screenshot",
+      "time": "2026-11-15T01:59:52Z",
+      "fingerprint": "525f2683e928d8c5",
+      "surface": "web"
+    },
+    {
+      "id": "q008-long",
+      "row": "Q-008",
+      "state": "success, 20 turns",
+      "size": "laptop",
+      "width": 1440,
+      "height": 900,
+      "url": "http://127.0.0.1:4399/",
+      "files": {
+        "dom.html": "q008-long@laptop.dom.html",
+        "styles.json": "q008-long@laptop.styles.json",
+        "aria.yml": "q008-long@laptop.aria.yml",
+        "png": "q008-long@laptop.png"
+      },
+      "ok": true,
+      "instrument": "playwright-core + Chrome: DOM, computed styles, ARIA snapshot, screenshot",
+      "time": "2026-11-15T01:59:52Z",
+      "fingerprint": "525f2683e928d8c5",
+      "surface": "web"
+    },
+    {
+      "id": "q008-long",
+      "row": "Q-008",
+      "state": "success, 20 turns",
+      "size": "phone",
+      "width": 390,
+      "height": 844,
+      "url": "http://127.0.0.1:4399/",
+      "files": {
+        "dom.html": "q008-long@phone.dom.html",
+        "styles.json": "q008-long@phone.styles.json",
+        "aria.yml": "q008-long@phone.aria.yml",
+        "png": "q008-long@phone.png"
+      },
+      "ok": true,
+      "instrument": "playwright-core + Chrome: DOM, computed styles, ARIA snapshot, screenshot",
+      "time": "2026-11-15T01:59:52Z",
+      "fingerprint": "525f2683e928d8c5",
+      "surface": "web"
+    },
+    {
+      "id": "q009-motion",
+      "row": "Q-009",
+      "state": "default motion (reduce-motion emulation not available in this tool)",
+      "size": "laptop",
+      "width": 1440,
+      "height": 900,
+      "url": "http://127.0.0.1:4399/",
+      "files": {
+        "dom.html": "q009-motion@laptop.dom.html",
+        "styles.json": "q009-motion@laptop.styles.json",
+        "aria.yml": "q009-motion@laptop.aria.yml",
+        "png": "q009-motion@laptop.png"
+      },
+      "ok": true,
+      "instrument": "playwright-core + Chrome: DOM, computed styles, ARIA snapshot, screenshot",
+      "time": "2026-11-15T01:59:52Z",
+      "fingerprint": "525f2683e928d8c5",
+      "surface": "web"
+    },
+    {
+      "id": "q009-motion",
+      "row": "Q-009",
+      "state": "default motion (reduce-motion emulation not available in this tool)",
+      "size": "phone",
+      "width": 390,
+      "height": 844,
+      "url": "http://127.0.0.1:4399/",
+      "files": {
+        "dom.html": "q009-motion@phone.dom.html",
+        "styles.json": "q009-motion@phone.styles.json",
+        "aria.yml": "q009-motion@phone.aria.yml",
+        "png": "q009-motion@phone.png"
+      },
+      "ok": true,
+      "instrument": "playwright-core + Chrome: DOM, computed styles, ARIA snapshot, screenshot",
+      "time": "2026-11-15T01:59:52Z",
+      "fingerprint": "525f2683e928d8c5",
+      "surface": "web"
+    },
+    {
+      "id": "q010-typed-en",
+      "row": "Q-010",
+      "state": "success",
+      "size": "laptop",
+      "width": 1440,
+      "height": 900,
+      "url": "http://127.0.0.1:4399/",
+      "files": {
+        "dom.html": "q010-typed-en@laptop.dom.html",
+        "styles.json": "q010-typed-en@laptop.styles.json",
+        "aria.yml": "q010-typed-en@laptop.aria.yml",
+        "png": "q010-typed-en@laptop.png"
+      },
+      "ok": true,
+      "instrument": "playwright-core + Chrome: DOM, computed styles, ARIA snapshot, screenshot",
+      "time": "2026-11-15T01:59:52Z",
+      "fingerprint": "525f2683e928d8c5",
+      "surface": "web"
+    },
+    {
+      "id": "q010-typed-en",
+      "row": "Q-010",
+      "state": "success",
+      "size": "phone",
+      "width": 390,
+      "height": 844,
+      "url": "http://127.0.0.1:4399/",
+      "files": {
+        "dom.html": "q010-typed-en@phone.dom.html",
+        "styles.json": "q010-typed-en@phone.styles.json",
+        "aria.yml": "q010-typed-en@phone.aria.yml",
+        "png": "q010-typed-en@phone.png"
+      },
+      "ok": true,
+      "instrument": "playwright-core + Chrome: DOM, computed styles, ARIA snapshot, screenshot",
+      "time": "2026-11-15T01:59:52Z",
+      "fingerprint": "525f2683e928d8c5",
+      "surface": "web"
+    },
+    {
+      "id": "q011-send-idle",
+      "row": "Q-011",
+      "state": "idle (failed send needs a failing backend: not capturable)",
+      "size": "laptop",
+      "width": 1440,
+      "height": 900,
+      "url": "http://127.0.0.1:4399/",
+      "files": {
+        "dom.html": "q011-send-idle@laptop.dom.html",
+        "styles.json": "q011-send-idle@laptop.styles.json",
+        "aria.yml": "q011-send-idle@laptop.aria.yml",
+        "png": "q011-send-idle@laptop.png"
+      },
+      "ok": true,
+      "instrument": "playwright-core + Chrome: DOM, computed styles, ARIA snapshot, screenshot",
+      "time": "2026-11-15T01:59:52Z",
+      "fingerprint": "525f2683e928d8c5",
+      "surface": "web"
+    },
+    {
+      "id": "q011-send-idle",
+      "row": "Q-011",
+      "state": "idle (failed send needs a failing backend: not capturable)",
+      "size": "phone",
+      "width": 390,
+      "height": 844,
+      "url": "http://127.0.0.1:4399/",
+      "files": {
+        "dom.html": "q011-send-idle@phone.dom.html",
+        "styles.json": "q011-send-idle@phone.styles.json",
+        "aria.yml": "q011-send-idle@phone.aria.yml",
+        "png": "q011-send-idle@phone.png"
+      },
+      "ok": true,
+      "instrument": "playwright-core + Chrome: DOM, computed styles, ARIA snapshot, screenshot",
+      "time": "2026-11-15T01:59:52Z",
+      "fingerprint": "525f2683e928d8c5",
+      "surface": "web"
+    },
+    {
+      "id": "q012-ready",
+      "row": "Q-012",
+      "state": "ready after warm-up (warming state not capturable on a warm instance)",
+      "size": "laptop",
+      "width": 1440,
+      "height": 900,
+      "url": "http://127.0.0.1:4399/",
+      "files": {
+        "dom.html": "q012-ready@laptop.dom.html",
+        "styles.json": "q012-ready@laptop.styles.json",
+        "aria.yml": "q012-ready@laptop.aria.yml",
+        "png": "q012-ready@laptop.png"
+      },
+      "ok": true,
+      "instrument": "playwright-core + Chrome: DOM, computed styles, ARIA snapshot, screenshot",
+      "time": "2026-11-15T01:59:52Z",
+      "fingerprint": "525f2683e928d8c5",
+      "surface": "web"
+    },
+    {
+      "id": "q012-ready",
+      "row": "Q-012",
+      "state": "ready after warm-up (warming state not capturable on a warm instance)",
+      "size": "phone",
+      "width": 390,
+      "height": 844,
+      "url": "http://127.0.0.1:4399/",
+      "files": {
+        "dom.html": "q012-ready@phone.dom.html",
+        "styles.json": "q012-ready@phone.styles.json",
+        "aria.yml": "q012-ready@phone.aria.yml",
+        "png": "q012-ready@phone.png"
+      },
+      "ok": true,
+      "instrument": "playwright-core + Chrome: DOM, computed styles, ARIA snapshot, screenshot",
+      "time": "2026-11-15T01:59:52Z",
+      "fingerprint": "525f2683e928d8c5",
+      "surface": "web"
+    },
+    {
+      "id": "q013-voice-idle",
+      "row": "Q-013",
+      "state": "idle (recording needs a mic: not capturable)",
+      "size": "laptop",
+      "width": 1440,
+      "height": 900,
+      "url": "http://127.0.0.1:4399/",
+      "files": {
+        "dom.html": "q013-voice-idle@laptop.dom.html",
+        "styles.json": "q013-voice-idle@laptop.styles.json",
+        "aria.yml": "q013-voice-idle@laptop.aria.yml",
+        "png": "q013-voice-idle@laptop.png"
+      },
+      "ok": true,
+      "instrument": "playwright-core + Chrome: DOM, computed styles, ARIA snapshot, screenshot",
+      "time": "2026-11-15T01:59:52Z",
+      "fingerprint": "525f2683e928d8c5",
+      "surface": "web"
+    },
+    {
+      "id": "q013-voice-idle",
+      "row": "Q-013",
+      "state": "idle (recording needs a mic: not capturable)",
+      "size": "phone",
+      "width": 390,
+      "height": 844,
+      "url": "http://127.0.0.1:4399/",
+      "files": {
+        "dom.html": "q013-voice-idle@phone.dom.html",
+        "styles.json": "q013-voice-idle@phone.styles.json",
+        "aria.yml": "q013-voice-idle@phone.aria.yml",
+        "png": "q013-voice-idle@phone.png"
+      },
+      "ok": true,
+      "instrument": "playwright-core + Chrome: DOM, computed styles, ARIA snapshot, screenshot",
+      "time": "2026-11-15T01:59:52Z",
+      "fingerprint": "525f2683e928d8c5",
+      "surface": "web"
+    },
+    {
+      "id": "q014-voice-idle",
+      "row": "Q-014",
+      "state": "idle (voice turn needs a mic: not capturable)",
+      "size": "laptop",
+      "width": 1440,
+      "height": 900,
+      "url": "http://127.0.0.1:4399/",
+      "files": {
+        "dom.html": "q014-voice-idle@laptop.dom.html",
+        "styles.json": "q014-voice-idle@laptop.styles.json",
+        "aria.yml": "q014-voice-idle@laptop.aria.yml",
+        "png": "q014-voice-idle@laptop.png"
+      },
+      "ok": true,
+      "instrument": "playwright-core + Chrome: DOM, computed styles, ARIA snapshot, screenshot",
+      "time": "2026-11-15T01:59:52Z",
+      "fingerprint": "525f2683e928d8c5",
+      "surface": "web"
+    },
+    {
+      "id": "q014-voice-idle",
+      "row": "Q-014",
+      "state": "idle (voice turn needs a mic: not capturable)",
+      "size": "phone",
+      "width": 390,
+      "height": 844,
+      "url": "http://127.0.0.1:4399/",
+      "files": {
+        "dom.html": "q014-voice-idle@phone.dom.html",
+        "styles.json": "q014-voice-idle@phone.styles.json",
+        "aria.yml": "q014-voice-idle@phone.aria.yml",
+        "png": "q014-voice-idle@phone.png"
+      },
+      "ok": true,
+      "instrument": "playwright-core + Chrome: DOM, computed styles, ARIA snapshot, screenshot",
+      "time": "2026-11-15T01:59:52Z",
+      "fingerprint": "525f2683e928d8c5",
+      "surface": "web"
+    },
+    {
+      "id": "q015-switch-zh",
+      "row": "Q-015",
+      "state": "switched to 中文",
+      "size": "laptop",
+      "width": 1440,
+      "height": 900,
+      "url": "http://127.0.0.1:4399/",
+      "files": {
+        "dom.html": "q015-switch-zh@laptop.dom.html",
+        "styles.json": "q015-switch-zh@laptop.styles.json",
+        "aria.yml": "q015-switch-zh@laptop.aria.yml",
+        "png": "q015-switch-zh@laptop.png"
+      },
+      "ok": true,
+      "instrument": "playwright-core + Chrome: DOM, computed styles, ARIA snapshot, screenshot",
+      "time": "2026-11-15T01:59:52Z",
+      "fingerprint": "525f2683e928d8c5",
+      "surface": "web"
+    },
+    {
+      "id": "q015-switch-zh",
+      "row": "Q-015",
+      "state": "switched to 中文",
+      "size": "phone",
+      "width": 390,
+      "height": 844,
+      "url": "http://127.0.0.1:4399/",
+      "files": {
+        "dom.html": "q015-switch-zh@phone.dom.html",
+        "styles.json": "q015-switch-zh@phone.styles.json",
+        "aria.yml": "q015-switch-zh@phone.aria.yml",
+        "png": "q015-switch-zh@phone.png"
+      },
+      "ok": true,
+      "instrument": "playwright-core + Chrome: DOM, computed styles, ARIA snapshot, screenshot",
+      "time": "2026-11-15T01:59:52Z",
+      "fingerprint": "525f2683e928d8c5",
+      "surface": "web"
+    },
+    {
+      "id": "q015-switch-en",
+      "row": "Q-015",
+      "state": "switched to EN",
+      "size": "laptop",
+      "width": 1440,
+      "height": 900,
+      "url": "http://127.0.0.1:4399/",
+      "files": {
+        "dom.html": "q015-switch-en@laptop.dom.html",
+        "styles.json": "q015-switch-en@laptop.styles.json",
+        "aria.yml": "q015-switch-en@laptop.aria.yml",
+        "png": "q015-switch-en@laptop.png"
+      },
+      "ok": true,
+      "instrument": "playwright-core + Chrome: DOM, computed styles, ARIA snapshot, screenshot",
+      "time": "2026-11-15T01:59:52Z",
+      "fingerprint": "525f2683e928d8c5",
+      "surface": "web"
+    },
+    {
+      "id": "q015-switch-en",
+      "row": "Q-015",
+      "state": "switched to EN",
+      "size": "phone",
+      "width": 390,
+      "height": 844,
+      "url": "http://127.0.0.1:4399/",
+      "files": {
+        "dom.html": "q015-switch-en@phone.dom.html",
+        "styles.json": "q015-switch-en@phone.styles.json",
+        "aria.yml": "q015-switch-en@phone.aria.yml",
+        "png": "q015-switch-en@phone.png"
+      },
+      "ok": true,
+      "instrument": "playwright-core + Chrome: DOM, computed styles, ARIA snapshot, screenshot",
+      "time": "2026-11-15T01:59:52Z",
+      "fingerprint": "525f2683e928d8c5",
+      "surface": "web"
+    },
+    {
+      "id": "q016-en-layout",
+      "row": "Q-016",
+      "state": "English layout with a reply",
+      "size": "laptop",
+      "width": 1440,
+      "height": 900,
+      "url": "http://127.0.0.1:4399/",
+      "files": {
+        "dom.html": "q016-en-layout@laptop.dom.html",
+        "styles.json": "q016-en-layout@laptop.styles.json",
+        "aria.yml": "q016-en-layout@laptop.aria.yml",
+        "png": "q016-en-layout@laptop.png"
+      },
+      "ok": true,
+      "instrument": "playwright-core + Chrome: DOM, computed styles, ARIA snapshot, screenshot",
+      "time": "2026-11-15T01:59:52Z",
+      "fingerprint": "525f2683e928d8c5",
+      "surface": "web"
+    },
+    {
+      "id": "q016-en-layout",
+      "row": "Q-016",
+      "state": "English layout with a reply",
+      "size": "phone",
+      "width": 390,
+      "height": 844,
+      "url": "http://127.0.0.1:4399/",
+      "files": {
+        "dom.html": "q016-en-layout@phone.dom.html",
+        "styles.json": "q016-en-layout@phone.styles.json",
+        "aria.yml": "q016-en-layout@phone.aria.yml",
+        "png": "q016-en-layout@phone.png"
+      },
+      "ok": true,
+      "instrument": "playwright-core + Chrome: DOM, computed styles, ARIA snapshot, screenshot",
+      "time": "2026-11-15T01:59:52Z",
+      "fingerprint": "525f2683e928d8c5",
+      "surface": "web"
+    },
+    {
+      "id": "q017-accents",
+      "row": "Q-017",
+      "state": "Latin accents in reply and own turn",
+      "size": "laptop",
+      "width": 1440,
+      "height": 900,
+      "url": "http://127.0.0.1:4399/",
+      "files": {
+        "dom.html": "q017-accents@laptop.dom.html",
+        "styles.json": "q017-accents@laptop.styles.json",
+        "aria.yml": "q017-accents@laptop.aria.yml",
+        "png": "q017-accents@laptop.png"
+      },
+      "ok": true,
+      "instrument": "playwright-core + Chrome: DOM, computed styles, ARIA snapshot, screenshot",
+      "time": "2026-11-15T01:59:52Z",
+      "fingerprint": "525f2683e928d8c5",
+      "surface": "web"
+    },
+    {
+      "id": "q017-accents",
+      "row": "Q-017",
+      "state": "Latin accents in reply and own turn",
+      "size": "phone",
+      "width": 390,
+      "height": 844,
+      "url": "http://127.0.0.1:4399/",
+      "files": {
+        "dom.html": "q017-accents@phone.dom.html",
+        "styles.json": "q017-accents@phone.styles.json",
+        "aria.yml": "q017-accents@phone.aria.yml",
+        "png": "q017-accents@phone.png"
+      },
+      "ok": true,
+      "instrument": "playwright-core + Chrome: DOM, computed styles, ARIA snapshot, screenshot",
+      "time": "2026-11-15T01:59:52Z",
+      "fingerprint": "525f2683e928d8c5",
+      "surface": "web"
+    },
+    {
+      "id": "q018-voice-idle",
+      "row": "Q-018",
+      "state": "idle (voice failures need a mic: not capturable)",
+      "size": "laptop",
+      "width": 1440,
+      "height": 900,
+      "url": "http://127.0.0.1:4399/",
+      "files": {
+        "dom.html": "q018-voice-idle@laptop.dom.html",
+        "styles.json": "q018-voice-idle@laptop.styles.json",
+        "aria.yml": "q018-voice-idle@laptop.aria.yml",
+        "png": "q018-voice-idle@laptop.png"
+      },
+      "ok": true,
+      "instrument": "playwright-core + Chrome: DOM, computed styles, ARIA snapshot, screenshot",
+      "time": "2026-11-15T01:59:52Z",
+      "fingerprint": "525f2683e928d8c5",
+      "surface": "web"
+    },
+    {
+      "id": "q018-voice-idle",
+      "row": "Q-018",
+      "state": "idle (voice failures need a mic: not capturable)",
+      "size": "phone",
+      "width": 390,
+      "height": 844,
+      "url": "http://127.0.0.1:4399/",
+      "files": {
+        "dom.html": "q018-voice-idle@phone.dom.html",
+        "styles.json": "q018-voice-idle@phone.styles.json",
+        "aria.yml": "q018-voice-idle@phone.aria.yml",
+        "png": "q018-voice-idle@phone.png"
+      },
+      "ok": true,
+      "instrument": "playwright-core + Chrome: DOM, computed styles, ARIA snapshot, screenshot",
+      "time": "2026-11-15T01:59:52Z",
+      "fingerprint": "525f2683e928d8c5",
+      "surface": "web"
+    },
+    {
+      "id": "q019-voice-idle",
+      "row": "Q-019",
+      "state": "idle (mic open timing needs a mic: not capturable)",
+      "size": "laptop",
+      "width": 1440,
+      "height": 900,
+      "url": "http://127.0.0.1:4399/",
+      "files": {
+        "dom.html": "q019-voice-idle@laptop.dom.html",
+        "styles.json": "q019-voice-idle@laptop.styles.json",
+        "aria.yml": "q019-voice-idle@laptop.aria.yml",
+        "png": "q019-voice-idle@laptop.png"
+      },
+      "ok": true,
+      "instrument": "playwright-core + Chrome: DOM, computed styles, ARIA snapshot, screenshot",
+      "time": "2026-11-15T01:59:52Z",
+      "fingerprint": "525f2683e928d8c5",
+      "surface": "web"
+    },
+    {
+      "id": "q019-voice-idle",
+      "row": "Q-019",
+      "state": "idle (mic open timing needs a mic: not capturable)",
+      "size": "phone",
+      "width": 390,
+      "height": 844,
+      "url": "http://127.0.0.1:4399/",
+      "files": {
+        "dom.html": "q019-voice-idle@phone.dom.html",
+        "styles.json": "q019-voice-idle@phone.styles.json",
+        "aria.yml": "q019-voice-idle@phone.aria.yml",
+        "png": "q019-voice-idle@phone.png"
+      },
+      "ok": true,
+      "instrument": "playwright-core + Chrome: DOM, computed styles, ARIA snapshot, screenshot",
+      "time": "2026-11-15T01:59:52Z",
+      "fingerprint": "525f2683e928d8c5",
+      "surface": "web"
+    },
+    {
+      "id": "q009-reduce-css",
+      "row": "Q-009",
+      "state": "default motion; computed animation on companion (reduce-motion emulation not available in this tool)",
+      "size": "laptop",
+      "width": 1440,
+      "height": 900,
+      "url": "http://127.0.0.1:4399/",
+      "files": {
+        "dom.html": "q009-reduce-css@laptop.dom.html",
+        "styles.json": "q009-reduce-css@laptop.styles.json",
+        "aria.yml": "q009-reduce-css@laptop.aria.yml",
+        "png": "q009-reduce-css@laptop.png"
+      },
+      "ok": true,
+      "instrument": "playwright-core + Chrome: DOM, computed styles, ARIA snapshot, screenshot",
+      "time": "2026-11-15T01:59:52Z",
+      "fingerprint": "525f2683e928d8c5",
+      "surface": "web"
+    },
+    {
+      "id": "q009-reduce-css",
+      "row": "Q-009",
+      "state": "default motion; computed animation on companion (reduce-motion emulation not available in this tool)",
+      "size": "phone",
+      "width": 390,
+      "height": 844,
+      "url": "http://127.0.0.1:4399/",
+      "files": {
+        "dom.html": "q009-reduce-css@phone.dom.html",
+        "styles.json": "q009-reduce-css@phone.styles.json",
+        "aria.yml": "q009-reduce-css@phone.aria.yml",
+        "png": "q009-reduce-css@phone.png"
+      },
+      "ok": true,
+      "instrument": "playwright-core + Chrome: DOM, computed styles, ARIA snapshot, screenshot",
+      "time": "2026-11-15T01:59:52Z",
+      "fingerprint": "525f2683e928d8c5",
+      "surface": "web"
+    },
+    {
+      "id": "q006-font",
+      "row": "Q-006",
+      "state": "reply rendered in the local font",
+      "size": "laptop",
+      "width": 1440,
+      "height": 900,
+      "url": "http://127.0.0.1:4399/",
+      "files": {
+        "dom.html": "q006-font@laptop.dom.html",
+        "styles.json": "q006-font@laptop.styles.json",
+        "aria.yml": "q006-font@laptop.aria.yml",
+        "png": "q006-font@laptop.png"
+      },
+      "ok": true,
+      "instrument": "playwright-core + Chrome: DOM, computed styles, ARIA snapshot, screenshot",
+      "time": "2026-11-15T01:59:52Z",
+      "fingerprint": "525f2683e928d8c5",
+      "surface": "web"
+    },
+    {
+      "id": "q006-font",
+      "row": "Q-006",
+      "state": "reply rendered in the local font",
+      "size": "phone",
+      "width": 390,
+      "height": 844,
+      "url": "http://127.0.0.1:4399/",
+      "files": {
+        "dom.html": "q006-font@phone.dom.html",
+        "styles.json": "q006-font@phone.styles.json",
+        "aria.yml": "q006-font@phone.aria.yml",
+        "png": "q006-font@phone.png"
+      },
+      "ok": true,
+      "instrument": "playwright-core + Chrome: DOM, computed styles, ARIA snapshot, screenshot",
+      "time": "2026-11-15T01:59:52Z",
+      "fingerprint": "525f2683e928d8c5",
+      "surface": "web"
+    }
+  ]
+}

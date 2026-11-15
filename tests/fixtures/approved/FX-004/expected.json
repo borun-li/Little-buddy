@@ -1,0 +1,64 @@
+{
+  "cases": [
+    {
+      "id": "FX-004-01",
+      "status": 200,
+      "mood": "pleasant-high",
+      "reply_language": "zh"
+    },
+    {
+      "id": "FX-004-02",
+      "status": 200,
+      "mood": "unpleasant-low",
+      "reply_language": "zh"
+    },
+    {
+      "id": "FX-004-03",
+      "status": 200,
+      "mood": "unpleasant-high",
+      "reply_language": "zh"
+    },
+    {
+      "id": "FX-004-04",
+      "status": 200,
+      "mood": "pleasant-low",
+      "reply_language": "zh"
+    },
+    {
+      "id": "FX-004-05",
+      "status": 200,
+      "mood": "neutral",
+      "reply_language": "zh"
+    },
+    {
+      "id": "FX-004-06",
+      "status": 200,
+      "mood": "pleasant-high",
+      "reply_language": "en"
+    },
+    {
+      "id": "FX-004-07",
+      "status": 200,
+      "mood": "unpleasant-low",
+      "reply_language": "en"
+    },
+    {
+      "id": "FX-004-08",
+      "status": 200,
+      "mood": "unpleasant-high",
+      "reply_language": "en"
+    },
+    {
+      "id": "FX-004-09",
+      "status": 200,
+      "mood": "pleasant-low",
+      "reply_language": "en"
+    },
+    {
+      "id": "FX-004-10",
+      "status": 200,
+      "mood": "neutral",
+      "reply_language": "en"
+    }
+  ]
+}

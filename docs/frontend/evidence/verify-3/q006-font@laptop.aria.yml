@@ -1,0 +1,12 @@
+- main:
+  - group "Interface language":
+    - button "中文"
+    - button "English" [pressed]: EN
+  - img "Little Buddy, happy"
+  - log "Chat":
+    - listitem: I just got the internship!
+    - listitem: That is amazing news! I'm so excited for you.
+  - status
+  - textbox "What you want to tell Little Buddy":
+    - /placeholder: Or type, Enter sends
+  - button "Hold to talk"
