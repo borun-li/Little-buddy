@@ -165,14 +165,22 @@ test('TC-011 shapeReply length caps: zh <= 120 code points, en <= 40 words; firs
 
 test('TC-012 toMessages = system(REPLY_SYSTEM + LANG_RULE last) + history (companion -> assistant) + user line', async () => {
   const { toMessages } = await imp('server/bonsai.js');
-  const { REPLY_SYSTEM, LANG_RULE } = await imp('server/prompts.js');
+  const { REPLY_SYSTEM, LANG_RULE, RECALL } = await imp('server/prompts.js');
   const hist = [{ role: 'user', text: 'I just got the internship!' }, { role: 'companion', text: 'Great!' }];
   const m = toMessages('But I will move.', hist, 'en');
   assert.equal(m.length, 4);
   assert.equal(m[0].role, 'system');
   assert.ok(m[0].content.startsWith(REPLY_SYSTEM));
   assert.ok(m[0].content.endsWith(LANG_RULE.en), 'LANG_RULE is the last line (prefix caching)');
-  assert.deepEqual(m.slice(1), [{ role: 'user', content: 'I just got the internship!' }, { role: 'assistant', content: 'Great!' }, { role: 'user', content: 'But I will move.' }]);
+  assert.deepEqual(m.slice(1), [{ role: 'user', content: 'I just got the internship!' }, { role: 'assistant', content: 'Great!' }, { role: 'user', content: 'But I will move.\n' + RECALL.en('I just got the internship!') }]);
+  assert.equal(m.at(-1).content, 'But I will move.\n(Connect your reply to what I told you before: "I just got the internship!")', 'DES-008 fires example');
+  // not fired: only companion entries in the window, or no history -> the line alone
+  assert.equal(toMessages('Thanks', [{ role: 'companion', text: 'Hi!' }], 'en').at(-1).content, 'Thanks');
+  assert.equal(toMessages('Thanks', [], 'en').at(-1).content, 'Thanks');
+  // prev is the NEWEST user entry; key is the language of the line, not of prev
+  const two = [{ role: 'user', text: 'old' }, { role: 'companion', text: 'a' }, { role: 'user', text: '今天开心' }, { role: 'companion', text: 'b' }];
+  assert.equal(toMessages('But sad', two, 'en').at(-1).content, 'But sad\n' + RECALL.en('今天开心'));
+  assert.equal(toMessages('可是难过', two, 'zh').at(-1).content, '可是难过\n' + RECALL.zh('今天开心'));
   assert.ok(toMessages('嗯', [], 'zh')[0].content.endsWith(LANG_RULE.zh));
   assert.equal(toMessages('嗯', [], 'zh').length, 2);
 });

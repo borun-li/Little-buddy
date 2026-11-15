@@ -1,6 +1,6 @@
 # Test Plan — 离线小伙伴：真实转写、Bonsai 回复与情绪、中英文（backend, run companion-full-dev）
 
-- Author: be-tester #1 (Backend Phase 4, round 1) · 2026-11-14
+- Author: be-tester #1 (Backend Phase 4, round 1) · 2026-11-14; amended be-tester #3 (step 5 round 2: DES-008 RECALL, §6 events, gate wiring, boot group manual)
 - Derived from `01-requirements.md` (§1, §5, §7), `03-detailed-design.md` (§1–§3, §9) and the locked fixtures `tests/fixtures/approved/FX-001..008` only — **not** from the implementation.
 - TC ids start at TC-001 (no earlier TCs exist in the repo). Every automated TC id is in the test's name; fixtures are tagged `[FX-nnn]`.
 
@@ -12,16 +12,19 @@ Four layers, all `node:test`, no npm dependencies, same style as the existing `t
 | Pure logic | `tests/server-unit.test.js` | WAV parsing, error mapping, language majority, reply shaping, history window, prompts constants, config and missing-file list, static serving | real modules from 03 §1; temp dirs and local HTTP servers only |
 | Process protocol | `tests/server-fakes.test.js` | supervisor, `stt.js`, `bonsai.js` against test doubles of the two children (`tests/support/fake-stt.cjs`, `fake-llama.cjs`): errors, timeouts, mood fallback, request shape | real server modules; children are doubles that follow the DES-006 line protocol and an OpenAI-style llama-server |
 | Live stack | `tests/server-live.test.js` | the real HTTP seam (03 §9): FX-001..008, FX-004 mood rounds, timing with 20 turns, bad input, limits, routes, loopback | fully real (Bonsai 9B + WhisperKit) at `COMPANION_URL` |
-| Boot / failure | `tests/server-boot.test.js` | starts its own `node server/main.js` on free ports: ready ≤ 120 s, first turn ≤ 10 s, kill a child → 503 ≤ 2 s and recovery, log hygiene, clean stop | real; opt-in `COMPANION_BOOT=1` |
+| Boot / failure | `tests/server-boot.test.js` | starts its own `node server/main.js` on free ports: ready ≤ 120 s, first turn ≤ 10 s, kill a child → 503 ≤ 2 s and recovery, log hygiene, clean stop | real; **not in `npm test`** (manual/blocked group, see below); opt-in `COMPANION_BOOT=1` |
 
 Reply text varies per run, so replies are judged by **properties** computed with the `rules` in each fixture's `meta.json` (language, ≤ 2 sentences, ≤ 1 question, length, not a preset, no thinking text); mood is compared exactly. Fixture inputs and expected files are loaded from `tests/fixtures/approved/` and never edited. Judgements a machine cannot make (does the reply respond to the internship, does it mention the exam) are manual TCs; the live run writes every reply to `test-results/backend-replies.jsonl` so the human reads them without re-running.
 
 Skips are explicit: the live file probes `GET {COMPANION_URL}/api/health` (default `http://127.0.0.1:4400`; waits up to `COMPANION_READY_MS`, default 130 s, for `ready:true`) and skips every live TC with the reason when nothing answers; it refuses port 4317 (the user's preview). The boot file skips with a reason unless `COMPANION_BOOT=1`. A skip is never a pass: Phase 5 reports it as `blocked`.
 
+**Gate wiring (round 2).** `npm test` (gate p5, `test-results/junit.xml`) runs the frontend files plus `server-unit`, `server-fakes` and `server-live` (`COMPANION_URL` defaults to `http://127.0.0.1:4400`; it must be up). The boot file is **not** in `npm test`: it starts a third 9B Bonsai instance next to the live one (24 GB Mac, about 80 s warm-up, long first-run compile, kills children), which risks starving the live stack and the other agents' instances. Its TCs (TC-070..076) are therefore **Mode: manual**, run on request with `COMPANION_BOOT=1 npm run test:backend` when the machine is otherwise idle, and are reported `blocked` in any run that does not do so.
+
 ## 2. Test environment
 | Item | Value |
 |---|---|
-| Command (all backend tests) | `npm run test:backend` (JUnit: `test-results/junit-backend.xml`). `npm test` is unchanged. |
+| Command (gate) | `npm test` (frontend + backend unit, fakes, live; JUnit `test-results/junit.xml`; `COMPANION_URL` default `http://127.0.0.1:4400`) |
+| Command (all backend tests incl. boot file) | `npm run test:backend` (JUnit: `test-results/junit-backend.xml`) |
 | Command (live, own server) | `PORT=4400 BONSAI_PORT=4401 node server/main.js` in one shell (record the PID; stop only it), then `COMPANION_URL=http://127.0.0.1:4400 npm run test:backend` |
 | Command (boot suite) | `COMPANION_BOOT=1 npm run test:backend` (starts and stops its own server on two free ports) |
 | One file | `node --test tests/server-unit.test.js` (likewise for the others) |
@@ -96,7 +99,7 @@ Level: unit / integration (modules + doubles, or the HTTP seam) / e2e (boots the
 
 ### TC-012 — `toMessages`
 - **Verifies:** REQ-005, REQ-007  **Level:** unit  **Mode:** automated
-- **Steps:** build messages for en and zh with a 2-entry history.  **Expected result:** system message = `REPLY_SYSTEM` … ending with `LANG_RULE[lang]`; `companion` → `assistant`; user line last.  **Observed how:** `deepEqual`.
+- **Steps:** build messages for en and zh with a 2-entry history.  **Expected result:** system message = `REPLY_SYSTEM` … ending with `LANG_RULE[lang]`; `companion` → `assistant`; user line last. Round 2 (DES-008): when the window holds an earlier `user` entry the last message is `line + "\n" + RECALL[lang](prev)` (prev = newest user entry; key = language of the line); with only `companion` entries or no history it is `line` alone.  **Observed how:** `deepEqual`.
 
 ### TC-013 — `windowOf`
 - **Verifies:** REQ-007, REQ-008  **Level:** unit  **Mode:** automated
@@ -173,7 +176,7 @@ Level: unit / integration (modules + doubles, or the HTTP seam) / e2e (boots the
 
 ### TC-031 — What each call sees
 - **Verifies:** REQ-005, REQ-007  **Level:** integration  **Mode:** automated
-- **Steps:** English line with Chinese history; Chinese/English mixed line; 40×200-char history.  **Expected result:** mood call carries only the line; reply call has the history (companion → assistant) and the language rule of the *line*; history cut to 10 entries (1 + 10 + 1 messages) by the weight budget 2000.  **Observed how:** logged bodies.
+- **Steps:** English line with Chinese history; Chinese/English mixed line; 40×200-char history.  **Expected result:** mood call carries only the line (no RECALL); reply call's last message is `line + "\n" + RECALL.en(<earlier user line>)` (and the line alone when the window has no user entry); reply call has the history (companion → assistant) and the language rule of the *line*; history cut to 10 entries (1 + 10 + 1 messages) by the weight budget 2000.  **Observed how:** logged bodies.
 
 ### TC-032 — Reply errors and shaping
 - **Verifies:** REQ-004, REQ-011  **Level:** integration  **Mode:** automated
@@ -260,33 +263,33 @@ Level: unit / integration (modules + doubles, or the HTTP seam) / e2e (boots the
 - **Verifies:** REQ-009  **Level:** integration  **Mode:** automated
 - **Steps:** find the listener pid on the `COMPANION_URL` port and its children; `lsof -nP -i -a -p <pids>`.  **Expected result:** every address is `127.0.0.1` or `[::1]`; at least one socket seen.  **Observed how:** parsed lsof. (Wi-Fi off is TC-083.)
 
-### Boot — `tests/server-boot.test.js` (`COMPANION_BOOT=1`)
+### Boot — `tests/server-boot.test.js` (`COMPANION_BOOT=1`; manual group, not in `npm test`: a third 9B instance and ~80 s warm-up, see §1)
 ### TC-070 — Ready within 120 s
-- **Verifies:** REQ-010  **Level:** e2e  **Mode:** automated
+- **Verifies:** REQ-010  **Level:** e2e  **Mode:** manual (boot suite, `COMPANION_BOOT=1`)
 - **Preconditions:** models and compile caches present (A10); free ports chosen by the test.  **Steps:** spawn `node server/main.js` (= `npm start`).  **Expected result:** prints `就绪 Ready: http://127.0.0.1:<port>` ≤ 120 s; health ready.  **Observed how:** captured stdout and timer. A first-ever run (≈ 390 s ANE compile) is out of scope by A10 and shows as a failure with that note.
 
 ### TC-071 — First voice turn ≤ 10 s
-- **Verifies:** REQ-010, REQ-008 (FX-006)  **Level:** e2e  **Mode:** automated
+- **Verifies:** REQ-010, REQ-008 (FX-006)  **Level:** e2e  **Mode:** manual (boot suite, `COMPANION_BOOT=1`)
 - **Steps:** transcribe FX-006, respond with the text.  **Expected result:** 200 with reply and a mood; ≤ 10 s total.  **Observed how:** timer.
 
 ### TC-072 — Loopback after real turns
-- **Verifies:** REQ-009  **Level:** e2e  **Mode:** automated
+- **Verifies:** REQ-009  **Level:** e2e  **Mode:** manual (boot suite, `COMPANION_BOOT=1`)
 - **Steps:** 3 voice turns, then `lsof -nP -i -a -p` on the server and its children.  **Expected result:** loopback only; ≥ 2 children.  **Observed how:** parsed lsof.
 
 ### TC-073 — Log hygiene
-- **Verifies:** REQ-009 (A9, NFR Observability)  **Level:** e2e  **Mode:** automated
-- **Steps:** send a line with a unique marker; scan stdout.  **Expected result:** the marker and the transcript text never appear; every `{`-line is JSON with an event from DES §6; `stt_done` and `respond_done` present.  **Observed how:** regex over captured stdout.
+- **Verifies:** REQ-009 (A9, NFR Observability)  **Level:** e2e  **Mode:** manual (boot suite, `COMPANION_BOOT=1`)
+- **Steps:** send a line with a unique marker; scan stdout.  **Expected result:** the marker and the transcript text never appear; every `{`-line is JSON with an event from DES §6 (the 16 events of the table after be-architect #4); `stt_done` and `respond_done` present.  **Observed how:** regex over captured stdout.
 
 ### TC-074 — Bonsai child killed
-- **Verifies:** REQ-011  **Level:** e2e  **Mode:** automated
+- **Verifies:** REQ-011  **Level:** e2e  **Mode:** manual (boot suite, `COMPANION_BOOT=1`)
 - **Steps:** SIGKILL the test's own llama-server child; call `/api/respond`; check health; poll until it works.  **Expected result:** 503 `unavailable` or `not_ready` in < 2 s; health `ready:false`; success again after the restart (≤ 120 s).  **Observed how:** status, timer. Only the child of the PID the test started is killed.
 
 ### TC-075 — STT child killed
-- **Verifies:** REQ-011  **Level:** e2e  **Mode:** automated
+- **Verifies:** REQ-011  **Level:** e2e  **Mode:** manual (boot suite, `COMPANION_BOOT=1`)
 - **Steps:** as TC-074 for `companion-stt`.  **Expected result:** 503 in < 2 s; success after restart (≤ 700 s allows a re-load).  **Observed how:** status, timer.
 
 ### TC-076 — Clean stop
-- **Verifies:** REQ-010  **Level:** e2e  **Mode:** automated
+- **Verifies:** REQ-010  **Level:** e2e  **Mode:** manual (boot suite, `COMPANION_BOOT=1`)
 - **Steps:** SIGTERM the test's server.  **Expected result:** exits; its children are gone; port closed.  **Observed how:** `kill(pid,0)`, failed fetch.
 
 ### Manual — human judgement or things the harness cannot do

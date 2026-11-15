@@ -195,11 +195,15 @@ test('TC-031 bonsai.respond: mood call sees only the line; reply call sees the w
     const before = bodies(log).length;
     await b.respond('But I am SAD now', hist);
     let [rep, mood] = (c => [c.find((x) => !x.response_format), c.find((x) => x.response_format)])(bodies(log).slice(before));
-    assert.equal(rep.messages.at(-1).content, 'But I am SAD now');
+    assert.equal(rep.messages.at(-1).content, 'But I am SAD now\n' + P.RECALL.en(hist[0].text), 'RECALL (language of the line) appended: window holds an earlier user line');
     assert.deepEqual(rep.messages.slice(1, 3), [{ role: 'user', content: hist[0].text }, { role: 'assistant', content: '太棒了！' }]);
     assert.ok(rep.messages[0].content.endsWith(P.LANG_RULE.en), 'English line -> English rule although history is Chinese');
     assert.ok(!JSON.stringify(mood.messages).includes('今天考试过了'), 'mood call has no history');
     assert.ok(JSON.stringify(mood.messages).includes('But I am SAD now'));
+    assert.ok(!JSON.stringify(mood.messages).includes('Connect your reply'), 'mood call carries no RECALL');
+    await b.respond('Just checking', [{ role: 'companion', text: 'Hello' }]);
+    const only = bodies(log).slice(-2).find((x) => !x.response_format);
+    assert.equal(only.messages.at(-1).content, 'Just checking', 'no earlier user line -> line alone');
     const n = bodies(log).length;
     await b.respond('我今天很happy', []);
     rep = bodies(log).slice(n).find((x) => !x.response_format);

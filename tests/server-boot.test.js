@@ -59,7 +59,8 @@ describe('boot suite', { skip, timeout: 1200000 }, () => {
   test('TC-073 REQ-009/A9: stdout holds no user text, reply or transcript; each log line is JSON with a known event', async () => {
     await call(base, '/api/respond', { body: { line: 'Zebra-unique-sentence-4821 is on my mind', history: [] } });
     assert.ok(!/Zebra-unique|internship/i.test(out), 'content leaked into the log');
-    const events = ['missing_file', 'child_spawn', 'child_ready', 'child_exit', 'ready', 'stt_done', 'respond_done', 'api_error'];
+    const events = ['missing_file', 'child_spawn', 'child_ready', 'child_exit', 'ready', 'stt_done', 'respond_done', 'api_error',
+      'stt_warm', 'stt_error', 'stt_bad_line', 'stt_stdin_error', 'child_error', 'child_warm_failed', 'static_read_failed', 'boot_failed']; // the 16 of 03 §6
     const json = out.split('\n').filter((l) => l.startsWith('{'));
     assert.ok(json.length > 0);
     for (const l of json) { const o = JSON.parse(l); assert.ok(events.includes(o.event), l); }

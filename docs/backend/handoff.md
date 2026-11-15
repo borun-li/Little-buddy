@@ -59,17 +59,17 @@ Decided: risk normal (user, kickoff); 9B, setup step, argmax-oss-swift 1.1.1, po
 Open: Plan answers (design + 4 decisions, fixtures FX-001..008 lock, DFB-005, defaults in state.json open_questions).
 Next: on yes → gate.py fixtures-approve --by user; log human --stop Plan; Phase 4 build: baseline, mark be-tester then be-developer, dispatch be-developer (DES-001..012, build order 03 §8; stt first for the ~390 s warm-up) and be-tester (plan) in one message; frontend rows Q-015/016/017/013/019 can follow once backend writer is back (one team's writers at a time).
 
-## be-developer #1 · Phase 4 (build) · round 3 · 2026-11-15T00:47:37Z
-Task: implement be-architect #3's amendment: weighted window historyBudget 2000 (DES-002/007), languageOf ceil(han/2) + hanCount (DES-009), missingHints (DES-001/002); restart instance A; re-measure cold 20-turn zh/en.
-Changed: server/config.js (+15/-1: historyBudget 2000, missingHints), server/bonsai.js (+6/-3: weighted windowOf), server/lang.js (+7/-2: hanCount, ceil(han/2)), server/main.js (+2/-2: prints hints); docs/backend/08-implementation-log.md (Fix rounds 2–3, gaps 1–3 resolved); earlier rounds: server/, stt/, package.json scripts, docs/codemap.md.
-Result: all 03 examples hold (windowOf 10/10/20/1/0; lang zh/en/zh/en/zh; hints 0/1/3); npm test 37/37; tests/server-unit.test.js 22/22; cold 20-turn respond on A: en 4362 ms, zh 5485 ms (history_n 40) — evidence: docs/backend/logs/be-developer-1-round3.log
+## be-developer #2 · step 5 (fix) · round 1 · 2026-11-15T02:39:42Z
+Task: implement be-architect #4's revision (RECALL in server/prompts.js, toMessages last message per DES-008) for TC-081; restart instance A.
+Changed: server/prompts.js (+7/-0) — exports RECALL {en, zh} (03 DES-010 verbatim); server/bonsai.js (+4/-2) — toMessages appends `\n` + RECALL[lang](newest window user text) to the last user message, line alone when the window has no user entry; docs/backend/08-implementation-log.md (Fix rounds § Round 4); docs/codemap.md (server/ traps line).
+Result: npm test 84/84; backend unit+fakes 36/38, TC-012 and TC-031 red only on the old `last content === line` expectation (be-tester updates them); FX-002 curl on new instance A names the internship — evidence: docs/backend/logs/be-developer-2-npm-test.log, docs/backend/logs/be-developer-2-unit-fakes.log, docs/backend/08-implementation-log.md § Round 4
 Next agent must know:
-- Pitfalls: instance A now node 82765 (stt 82771, llama 82772) on PORT=4400 BONSAI_PORT=4401, left up for the frontend; stop only node 82765. 4317 is the user's preview.
-- Pitfalls: time latency on an idle instance (2 llama slots; concurrent traffic doubles cold turns). In docs/codemap.md backticks hold existing paths only.
-- Tried, did not work: sed -i on a live server log (server keeps writing the unlinked file).
-- Left open: 60 s zh voice line at the new window unmeasured (be-architect #3); 4B switch unmeasured.
-Read beyond the list: nothing.
-Next agent reads: docs/backend/08-implementation-log.md § Fix rounds; docs/backend/03-detailed-design.md DES-002, DES-007, DES-009
+- Pitfalls: instance A is now node 91736 (stt 91742, llama 91743) on PORT=4400 BONSAI_PORT=4401, PID in the session scratchpad server.pid, log docs/backend/logs/be-developer-2-server.log; stop only 91736. stt cold load took 78.7 s this boot.
+- Pitfalls: fixture input.json wraps the request in {endpoint, content_type, body}; POST only .body (posting the whole file gives 400 bad_request).
+- Tried, did not work: nothing.
+- Left open: TC-012, TC-031 expectations and the TC-073 allow-list (be-tester); live re-run of TC-081 and FX-004 with RECALL (be-tester).
+Read beyond the list: tests/fixtures/approved/FX-002/input.json — curl body.
+Next agent reads: server/bonsai.js:25-33 (toMessages); server/prompts.js RECALL; docs/backend/03-detailed-design.md DES-008, DES-010
 ## fe-tester #5 · step 4 (FE4.capture recapture) · round 4 · increment 1 · 2026-11-15T09:00:00Z
 Task: re-point docs/frontend/04-verification.md to evidence/verify-3/manifest.md and confirm the 19 verdicts against the verify-3 files.
 Changed: docs/frontend/04-verification.md only (header, round note, Q-010 row). Verdicts: done 7 (Q-001, 002, 003, 005, 008, 015, 017), not observable 12. Q-010 done to not observable: in verify-3 the sad follow-up reply does not show recall of the first line (mood and English reply do hold).
@@ -95,15 +95,14 @@ Next agent must know:
 - Left open: stillDown over an action hint is allowed by the rules; not covered by a browser check (unit rule in healthHint only).
 Next agent reads: web/js/app.js healthHint, tests/fnd-r1-fix.test.js
 
-## be-tester #2 · step 5 (test run) · round 1 · 2026-11-15T01:35:00Z
-Task: run TC-001..086, write 05-test-report.md, seam check from the backend side.
-Changed: docs/backend/05-test-report.md (new); docs/backend/logs/be-tester-2-live.log, be-tester-2-boot.log (new). No code or fixtures touched.
-Result: 66 pass, 2 fail, 4 blocked. Live `npm run test:backend` (4400) 58/58; `COMPANION_BOOT=1` 64/65. Fail TC-073: server/stt.js:68 logs event `stt_warm`, not in 03 section 6 list. Fail TC-081 (manual): 1/3 replies use the internship context, flaky across runs. Blocked: TC-083 (Wi-Fi), 084/085 (frontend), 086 (needs page + server stop). Seam matches contract; FX-001..008 all pass.
+## be-tester #3 · step 5 (test run) · round 2 · 2026-11-15T02:55:00Z
+Task: update TC-012, TC-031, TC-073 to DES-008/DES-010/section 6; wire backend suites into `npm test`; re-run; rewrite 05-test-report.md.
+Changed: tests/server-unit.test.js, tests/server-fakes.test.js, tests/server-boot.test.js; package.json (test script: + server-unit, server-fakes, server-live, COMPANION_URL default 4400); docs/backend/04-test-plan.md (boot TCs TC-070..076 now Mode manual, gate wiring); docs/backend/05-test-report.md; logs docs/backend/logs/be-tester-3-*.log. No server/, fixtures or .claude touched.
+Result: 57 pass, 0 fail, 11 blocked. `npm test` 142/142, 0 skipped, exit 0; all 54 automated TCs and FX-001..008 in test-results/junit.xml. Live x3: TC-081 passes 3/3, 2/3, 3/3; FX-002 x3 ok; FX-004 9 rounds all 9/10. Blocked: TC-070..076 (boot suite, not run: third 9B instance, memory), TC-083..086 (Wi-Fi/page).
 Next agent must know:
-- Pitfalls: node --test runs the 4 files in parallel, so the boot file overlaps the live file; TC-052 rose to ~6.3 s (alone ~5.0 s). backend-replies.jsonl accumulates across runs; judge by timestamp.
-- Left open: TC-073 fix is either add stt_warm to 03 section 6 (and the test list) or stop emitting it; FX-004 line 05 misses every round (9/10, margin 1).
-Next agent reads: docs/backend/05-test-report.md section 4
-- Carried from be-tester #1 (trimmed by orchestrator): plan 04 has 70 TCs (63 automated); suites tests/server-unit, server-fakes, server-live (COMPANION_URL, refuses 4317), server-boot (COMPANION_BOOT=1); `npm run test:backend` → test-results/junit-backend.xml.
+- Pitfalls: `npm test` needs 4400 up (else live TCs skip = not executed); takes ~130 s. TC-052 ran 5.0-8.96 s depending on machine load (limit 10 s). backend-replies.jsonl holds only this round (old one is .prev.jsonl).
+- Left open: boot group TC-070..076 unrun (incl. TC-073 against the 16-event list); FX-004 line 05 mislabels every round (9/10).
+Next agent reads: docs/backend/05-test-report.md sections 3 and 5
 
 ## fe-reviewer #2 · step 4 (frontend review) · round 2 · increment 1 · 2026-11-15T02:04:20Z
 Task: re-check FND-001..004 (fix commit 1ae2fab) against 4399 and the code; record in 05-review.md §5 (filed by orchestrator from the return)
