@@ -84,15 +84,13 @@ Next agent reads: docs/backend/08-implementation-log.md § Fix rounds; docs/back
 - REQ-003 1 s check now runs on `createFakeCompanion()` default delay (600 ms); the default (real) layer is left to `tests/client.test.js`. Dropped the real-`transcribe()` assertion (it would hit fetch).
 - Seam rule tightened: nothing in `web/` outside `fake/` imports `fake/` (true now). Importer rule (app.js only imports companion-client.js) unchanged.
 - `npm test`: 37 tests, 37 pass, 0 fail.
-## fe-engineer #12 · step 3 (frontend build Q-014) · round 2 · increment 1 · 2026-11-15T02:30:00Z
-Task: Q-014 — a spoken line becomes real words (REQ-001, REQ-002, REQ-008, DES-013/014).
-Changed: web/js/voice-turn.js (new, handleUtterance, DOM-free); web/js/app.js (onUtterance -> handleUtterance, send() takes a standing turn, onVoiceProblem no-op hook); web/js/log.js (addTranscribing, setWords, shared voiceTag); web/js/copy.js (voiceTag "语音", transcribing); web/css/page.css (+4 lines, transcribing turn: muted body, inline dots); tests/voice-turn.test.js (new, 5 tests) and package.json test script; docs/codemap.md; 03-queue.md Q-014 built; evidence docs/frontend/evidence/build/Q-014-{listening,transcribing,}-{1440,390}.png.
-Round 2: Q-014 Files line now lists voice-turn.js, copy.js, page.css; codemap hook line has no backticked non-path. No code changed.
-Feedback: none. Note: page.css is outside the task's file list; the transcribing look needed it.
-Result: npm test 61 pass / 0 fail. Playwright (headless Chromium with a fake mic fed FX-006/input.wav, so the real hold -> mic.js WAV -> talk-button path ran) vs 127.0.0.1:4400, 1440 and 390: transcribing turn showed ~0.1 s after release (100 ms poll), POST /api/transcribe audio/wav then POST /api/respond, turn became "I just got the internship.", Bonsai reply followed, data-mood pleasant-high, total 2.6-4.3 s. Unverified: real microphone and real permission prompt; 13 s transcribe timeout live; failure paths only by unit tests.
+## fe-engineer #13 · step 3 (frontend build Q-018) · round 1 · increment 1 · 2026-11-15T03:10:00Z
+Task: Q-018 — silence and voice failures are told (REQ-003, REQ-011, DES-013).
+Changed: web/js/app.js (onVoiceProblem shows the voice-column hint; transcript cut to 1500 chars before send); web/js/copy.js (hints.nothingHeard, voiceUnavailable, voiceTimeout, voiceFailed; voiceHintKey, MAX_VOICE_CHARS); tests/voice-hints.test.js (new, 3 tests); docs/frontend/03-queue.md Q-018 built; docs/codemap.md; evidence docs/frontend/evidence/build/Q-018-{nothing-heard,voice-error}-{1440,390}.png. log.js not needed.
+Feedback: none.
+Result: new test file 3/3 pass run directly; npm test 61/61 (unchanged: package.json is outside this task's files, so voice-hints.test.js is NOT in its list; add it there). Playwright vs 127.0.0.1:4400, fake mic fed FX-008/input.wav: real silence hold -> POST /api/transcribe only, no respond, 0 turns, nothingHeard hint. Route-injected /api/transcribe: timeout, failed, bad_request, too_large, unavailable show their hints, 0 turns added. not_ready injected shows the awake hint after ~150 ms because the real health says ready (artifact of injection; with a truly not-ready server the watch keeps voiceNotReady). 390 hint fits one line. Unverified: real not_ready live; 1500-char cut has no test (logic is one slice in app.js).
 Next agent must know:
-- Q-018 hooks in at app.js onVoiceProblem(kind): 'no_audio' | 'empty' | error code (timeout, failed, ...). The transcribing turn is already dropped and watch.failed already called before it runs; Q-018 only shows hints (hints.nothingHeard, voice* keys, not in copy.js yet).
-- Pitfalls: send() has a `turn` option for a voice turn already in the log (pending stays on from transcribing); a failed respond on a voice line returns the words to the input (Q-011 path). A stray `watch.start();` line sits inside onSendFailed (pre-existing, harmless, not removed).
-- Left open: English words for transcribing are Q-015; macOS sed -i misbehaved in this harness, use python for edits.
-Next agent reads: web/js/voice-turn.js; web/js/app.js onVoiceProblem / send
-- Carried (trimmed): Q-012 health-watch.js and app.js watch/showHint/isPaused; Q-011 dropFailed; Q-019 talk-button finish() awaits mic.wav() then onUtterance(blob|null).
+- Q-015 (English) must add the same new hint keys to en; copy.js now also exports voiceHintKey and MAX_VOICE_CHARS.
+- no_audio maps to nothingHeard (talk-button already handles too-short holds with tooShort).
+- A stray `watch.start();` inside onSendFailed (pre-existing) still there.
+Next agent reads: web/js/copy.js; web/js/app.js onVoiceProblem

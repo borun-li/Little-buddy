@@ -27,6 +27,10 @@ export const COPY = {
       micOpening: '麦克风正在打开，看到秒数再开口。',
       warming: '小伙伴还在醒来，通常一两分钟。可以先打字，醒了再发。',
       voiceNotReady: '语音还没准备好，先打字吧。',
+      nothingHeard: '没听到说话声。按住再说一次，或者打字。',
+      voiceUnavailable: '没连上，这段话没转成文字。按住再说一次，或者打字。',
+      voiceTimeout: '转文字太久，没成功。按住再说一次，或者打字。',
+      voiceFailed: '这段话没转成文字。按住再说一次，或者打字。',
       awake: '小伙伴醒了，说说看吧。',
       unreachable: '小伙伴暂时没连上，正在重新启动，稍等一下。',
       stillDown: '还是没连上。请重新启动小伙伴（在终端里重新运行 npm start）。',
@@ -50,3 +54,14 @@ export const COPY = {
 };
 
 export const copy = COPY.zh;
+
+// Q-018: 01-ux.md Codes, voice column. kind is 'no_audio', 'empty' or a transcribe error code.
+const VOICE_HINT_KEY = {
+  no_audio: 'nothingHeard', empty: 'nothingHeard',
+  not_ready: 'voiceNotReady', unavailable: 'voiceUnavailable', timeout: 'voiceTimeout',
+  failed: 'voiceFailed', bad_request: 'voiceFailed', too_large: 'voiceFailed',
+};
+export function voiceHintKey(kind) {
+  return VOICE_HINT_KEY[kind] ?? 'voiceFailed'; // an unknown code is a failed transcription, never shown raw
+}
+export const MAX_VOICE_CHARS = 1500; // [unverified default] a transcript is cut to this before it is sent

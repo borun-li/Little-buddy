@@ -14,7 +14,7 @@ Invariants: the only importer of `web/js/companion-client.js`; page memory only 
 ## `web/js/voice-turn.js`
 Does: Q-014 handleUtterance(audio, deps): null audio → hook only; else pause send/hold, transcribing turn, transcribe(audio), words replace the turn in place and follow app.js send() (same turn, then typing, respond, mood). Failure drops the turn, calls watch.failed(code); empty text drops the turn, no respond.  Used by: `web/js/app.js`
 Invariants: no DOM, everything injected.  Tests: `tests/voice-turn.test.js`
-Traps: Q-018 fills the onVoiceProblem(kind) hook in `web/js/app.js` ('no_audio' | 'empty' | error code); today a no-op. A failed respond for a voice line returns the words to the input (Q-011 path).
+Traps: Q-018 filled the onVoiceProblem(kind) hook in `web/js/app.js` ('no_audio' | 'empty' | error code): it shows the voice-column hint via voiceHintKey in `web/js/copy.js` (unknown code → voiceFailed); transcripts are cut to MAX_VOICE_CHARS (1500) in app.js before sending. Tests: `tests/voice-hints.test.js`. A failed respond for a voice line returns the words to the input (Q-011 path).
 
 ## `web/js/health-watch.js`
 Does: Q-012 warming state machine. createHealthWatch({health, onChange, now, timers}) → {state, start, failed(code), stop}; state {canSend, canVoice, waking, hint}. Checks at open and every 2 s until bonsai and stt are ready; a failed check = bonsai down; 30 s down → hint stillDown; awake for 4 s only if a not-ready hint was shown; failed('not_ready'|'unavailable') resumes checks. onChange fires only when the state changes (no re-announce per poll).  Used by: `web/js/app.js`

@@ -1,6 +1,6 @@
 {
   "phase": "fe-build",
-  "time": "2026-11-15T01:02:49Z",
+  "time": "2026-11-15T01:05:29Z",
   "project": "/Users/apple/Desktop/Hackathon/Local_AI_Hackathon",
   "run_dir": "docs/frontend",
   "overall": "pass",
@@ -79,8 +79,8 @@
       "message": "tests green",
       "owner": "fe-engineer",
       "details": [
-        "$ npm test -> exit 0 (0.9s), log: /Users/apple/Desktop/Hackathon/Local_AI_Hackathon/docs/frontend/gates/logs/2026-11-15T010248Z-test.log",
-        "counts: {'skipped': 0, 'errors': 0, 'xpassed': 0, 'failed': 0, 'passed': 61, 'xfailed': 0}",
+        "$ npm test -> exit 0 (0.8s), log: /Users/apple/Desktop/Hackathon/Local_AI_Hackathon/docs/frontend/gates/logs/2026-11-15T010528Z-test.log",
+        "counts: {'passed': 61, 'xpassed': 0, 'errors': 0, 'failed': 0, 'xfailed': 0, 'skipped': 0}",
         "per-test results: report from gates.json junit: test-results/junit.xml"
       ]
     },
@@ -129,30 +129,24 @@
   ],
   "data": {
     "writer_changed": [
-      "docs/frontend/evidence/build/Q-014-1440.png",
-      "docs/frontend/evidence/build/Q-014-390.png",
-      "docs/frontend/evidence/build/Q-014-listening-1440.png",
-      "docs/frontend/evidence/build/Q-014-listening-390.png",
-      "docs/frontend/evidence/build/Q-014-transcribing-1440.png",
-      "docs/frontend/evidence/build/Q-014-transcribing-390.png",
-      "tests/voice-turn.test.js",
-      "web/js/voice-turn.js",
+      "docs/frontend/evidence/build/Q-018-nothing-heard-1440.png",
+      "docs/frontend/evidence/build/Q-018-nothing-heard-390.png",
+      "docs/frontend/evidence/build/Q-018-voice-error-1440.png",
+      "docs/frontend/evidence/build/Q-018-voice-error-390.png",
+      "tests/voice-hints.test.js",
       "docs/codemap.md",
       "docs/frontend/03-queue.md",
       "docs/frontend/run-log.jsonl",
-      "package.json",
-      "web/css/page.css",
       "web/js/app.js",
-      "web/js/copy.js",
-      "web/js/log.js"
+      "web/js/copy.js"
     ],
     "counts": {
-      "skipped": 0,
-      "errors": 0,
-      "xpassed": 0,
-      "failed": 0,
       "passed": 61,
-      "xfailed": 0
+      "xpassed": 0,
+      "errors": 0,
+      "failed": 0,
+      "xfailed": 0,
+      "skipped": 0
     }
   }
 }

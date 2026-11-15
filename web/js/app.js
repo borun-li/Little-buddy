@@ -1,6 +1,6 @@
 // Entry: turn flow idle -> pending -> idle (FLOW-001, FLOW-002). Data comes only from companion-client.js.
 import { respond, transcribe, health } from './companion-client.js';
-import { copy } from './copy.js';
+import { copy, voiceHintKey, MAX_VOICE_CHARS } from './copy.js';
 import { createLog } from './log.js';
 import { createCompanion } from './companion.js';
 import { createHealthWatch } from './health-watch.js';
@@ -51,14 +51,14 @@ const talk = createTalkButton({
     log,
     setPending,
     watch,
-    sendWords: (words, turn) => send(words, { voice: true, turn }),
-    onVoiceProblem, // Q-018 fills this in
+    sendWords: (words, turn) => send(words.slice(0, MAX_VOICE_CHARS), { voice: true, turn }),
+    onVoiceProblem,
   }),
 });
 
-// Q-018 hook: kind is 'no_audio', 'empty' (nothing heard) or an error code from transcribe. Q-014 shows
-// nothing: the transcribing turn has already left. Q-018 words the hints (hints.nothingHeard, voice*).
-function onVoiceProblem(kind) { void kind; }
+// Q-018: kind is 'no_audio', 'empty' (nothing heard) or an error code from transcribe. The transcribing
+// turn has already left (voice-turn.js); no turn is added and no respond call is made. Typing still works.
+function onVoiceProblem(kind) { showHint(voiceHintKey(kind)); }
 
 function setPending(on) {
   pending = on;

@@ -261,3 +261,11 @@ companion-stt: id=41 ms=1408
 {"t":"2026-11-15T01:02:25.004Z","level":"info","event":"respond_done","ms":2089,"reply_ms":2088,"mood_ms":1836,"lang":"zh","mood_fallback":false,"history_n":14}
 {"t":"2026-11-15T01:02:36.056Z","level":"info","event":"respond_done","ms":2272,"reply_ms":2272,"mood_ms":1923,"lang":"zh","mood_fallback":false,"history_n":16}
 {"t":"2026-11-15T01:02:43.371Z","level":"info","event":"respond_done","ms":2047,"reply_ms":2047,"mood_ms":1913,"lang":"zh","mood_fallback":false,"history_n":18}
+{"t":"2026-11-15T01:02:52.186Z","level":"info","event":"respond_done","ms":2070,"reply_ms":2070,"mood_ms":1783,"lang":"zh","mood_fallback":false,"history_n":20}
+{"t":"2026-11-15T01:02:57.549Z","level":"info","event":"respond_done","ms":1916,"reply_ms":1820,"mood_ms":1916,"lang":"zh","mood_fallback":false,"history_n":22}
+companion-stt: id=42 ms=1
+{"t":"2026-11-15T01:03:42.420Z","level":"info","event":"stt_done","ms":3,"audio_ms":1365,"empty":true,"lang":null}
+companion-stt: id=43 ms=0
+{"t":"2026-11-15T01:03:57.994Z","level":"info","event":"stt_done","ms":2,"audio_ms":1387,"empty":true,"lang":null}
+companion-stt: id=44 ms=0
+{"t":"2026-11-15T01:04:36.880Z","level":"info","event":"stt_done","ms":3,"audio_ms":1397,"empty":true,"lang":null}

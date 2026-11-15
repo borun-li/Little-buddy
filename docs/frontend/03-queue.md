@@ -347,13 +347,13 @@ Stack unchanged: static files, vanilla ES modules, `node:test`. No new package.
 - **States:** empty · nothing heard, error · voice, warming
 - **REQ:** REQ-003, REQ-011
 - **DES:** DES-013
-- **Files:** `app.js`, `log.js`, `copy.js`
+- **Files:** `app.js`, `copy.js`, `tests/voice-hints.test.js`
 - **Observable:** Silence adds no turn and says nothing was heard; each voice failure shows its own hint; typing still works
 - **Acceptance:** No `respond` on empty text; note Q-018; 1440, 390
 - **Priority:** P1
 - **Side:** both for the live check
 - **Depends on:** Q-014
-- **Status:** queued
+- **Status:** built (fe-engineer #13; log.js not needed; evidence build/Q-018-*.png; `tests/voice-hints.test.js` is not yet in the package.json test script)
 
 ### Q-015 — Switch the interface language
 - **Page:** PAGE-001
