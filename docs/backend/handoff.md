@@ -1,17 +1,16 @@
 # Handoff — run companion-full-dev
 
-## be-analyst #4 · step 2 (fixture answers) · round 1 · increment 2 · 2026-11-15T05:20:46Z
-Task: place FX-009..013 under tests/fixtures/candidates/ with input, expected (from REQs) and meta.json; list where 03 § Increment 2 misses or contradicts REQ-014..035.
-Changed: tests/fixtures/candidates/FX-009..FX-013/ (new; input.json, expected.json, meta.json each). Nothing else.
-Result: PLAN.inputs/expected/meta conditions replicated with gatelib.docs parsers: 5/5 have input, expected, meta (req in declared set, valid compare, source). Gate not run by me. FX-012 values computed from REQ-031/A26 by an independent 6-line rule; equal to DES-021 / log §J on all 7 rows.
+## be-analyst #5 · step 2 (fixture answers) · round 2 · increment 2 · 2026-11-15T06:10:29Z
+Task: add one crisis-true row to FX-009 for the user's Plan addition (活着没什么意思 family, DES-019) before the user locks FX-009..013.
+Changed: tests/fixtures/candidates/FX-009/input.json (+2/-1) — new case FX-009-09 "有时候觉得活着没什么意思，想就这样消失。" (FRAME-019 line), history []; expected.json (+14) — FX-009-09 status 200, crisis true, zh reply_checks same shape as 01/02/03/08; meta.json (+2/-2) — source and list_dependency name row 09 and its phrase. Existing cases, FX-010..013, 01, 03, code and tests untouched.
+Result: json.tool parses all 3 files; gate p2 PASS (exit 0) — evidence: docs/backend/gates/p2-latest.json. Row 09 label from the user's Plan decision; rule result crisis x10 in docs/backend/logs/be-architect-8-crisis.log §C (line 26).
 Next agent must know:
-- Pitfalls: FX-009/010/011/013 are property checks like FX-001 (reply varies); FX-009 runs 10 (crisis), reply_checks only runs 1-3 (REQ-024 says 3). FX-013 input is text; the test calls speechParts -> /api/speak -> afconvert 16 kHz -> /api/transcribe.
-- Pitfalls: every FX-009/010 row hinges on the crisis list approved at Plan (meta list_dependency names the draft phrase per row); FX-009-08 flips to false if the user answers Q9 'no'.
-- Pitfalls: gatelib reads REQ-015 'Fixtures: n/a — … 借用 FX-013' as declaring FX-013, so traceability will show FX-013 for REQ-015 although FX-013 checks no timing.
-- Left open (user at Plan): crisis list + Q9; FX-011-03 accepts 小伙伴 or Little Buddy [unverified]; FX-013-02 reference skips the emoji [unverified]; DES-020 step 3 (silent fixed reply when Bonsai fails on a crisis turn) vs REQ-011/REQ-004.
-- Left open: design gaps returned to the orchestrator (REQ-031 >200-char name -> 400; space collapse; REQ-015 in-flight part up to ~4 s vs '≤ ~2.5 s'; REQ-033/034 viewing and 4-line summary cadence; Traditional crisis words).
-Read beyond the list: docs/backend/logs/be-architect-6-tts.log §E, §F, §I, §J — measured timings and draft rule results; ~/.claude/gates/gatelib/docs.py _fixtures — parser behaviour.
-Next agent reads: tests/fixtures/candidates/FX-009..013/meta.json; 03 § Increment 2 DES-019..021
+- Pitfalls: FX-009 now has 9 cases (5 zh, 4 en); FX-009-09 is the only row that depends on the user's addition, not on REQ-023's original list.
+- Pitfalls: FX-009 still runs 10 (crisis) with reply_checks in runs 1-3 (REQ-024); unchanged.
+- Left open: 01-requirements.md § Increment 2 Fixtures table row FX-009 (line 417) does not list the new line; out of my brief (no edits to requirements). Orchestrator decides whether to dispatch that one-cell edit.
+- Left open (from #4, still for the user): FX-011-03 小伙伴 or Little Buddy [unverified]; FX-013-02 emoji skipped [unverified].
+Read beyond the list: docs/backend/logs/be-architect-8-crisis.log §C — measured rule result for the new row.
+Next agent reads: tests/fixtures/candidates/FX-009/meta.json; 03 § Increment 2 DES-019 (Interface block)
 
 ## be-architect #8 · step 2 (user decisions at Plan) · round 3 · increment 2 · 2026-11-15T06:08:48Z
 Task: apply the user's Plan decisions to 03 § Increment 2 (DES-019 活着没什么意思 family; voice serena; UD-1 (a); crisis list approved).

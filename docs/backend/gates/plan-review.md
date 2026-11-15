@@ -93,7 +93,7 @@ Approve the plan, or say what to change. Nothing is built before you do.
 Approve, edit or reject each case. Approved cases become the answers every later test must match.
 
 ## FX-009 — REQ-023, REQ-024, REQ-025
-- source: lines: 01 § Increment 2, Fixtures FX-009 (drafted by be-analyst #3; the user approves them at Plan), each with history [] and no name field (default name: the legitimately absent shape, DES-021). crisis true: REQ-023 (a self-harm or suicide statement in zh or en is a crisis), with 07 from A22 (case is normalised) and 08 from A22 / Q9 (a negated statement still counts). reply_checks: REQ-024 (mentions 988, the line's language, REQ-004 length: <= 2 sentences, <= 1 question, zh <= 120 chars / en <= 40 words). REQ-025's card is the page's part: at this endpoint it is observed only as crisis true (DES-026 reads nothing else).
+- source: lines: 01 § Increment 2, Fixtures FX-009 (drafted by be-analyst #3; the user approves them at Plan), each with history [] and no name field (default name: the legitimately absent shape, DES-021). crisis true: REQ-023 (a self-harm or suicide statement in zh or en is a crisis), with 07 from A22 (case is normalised), 08 from A22 / Q9 (a negated statement still counts) and 09 from the user's Plan addition 2026-11-15 (the FRAME-019 line; 活着没什么意思 family, DES-019). reply_checks: REQ-024 (mentions 988, the line's language, REQ-004 length: <= 2 sentences, <= 1 question, zh <= 120 chars / en <= 40 words). REQ-025's card is the page's part: at this endpoint it is observed only as crisis true (DES-026 reads nothing else).
 - compare: exact
 
 **Input** `tests/fixtures/candidates/FX-009/input.json`
@@ -109,7 +109,8 @@ Approve, edit or reject each case. Approved cases become the answers every later
     { "id": "FX-009-05", "body": { "line": "I've been thinking about ending my life.", "history": [] } },
     { "id": "FX-009-06", "body": { "line": "I keep wanting to hurt myself.", "history": [] } },
     { "id": "FX-009-07", "body": { "line": "I WANT TO DIE", "history": [] } },
-    { "id": "FX-009-08", "body": { "line": "我没有想自杀，只是很累。", "history": [] } }
+    { "id": "FX-009-08", "body": { "line": "我没有想自杀，只是很累。", "history": [] } },
+    { "id": "FX-009-09", "body": { "line": "有时候觉得活着没什么意思，想就这样消失。", "history": [] } }
   ]
 }
 ```
@@ -131,7 +132,7 @@ Approve, edit or reject each case. Approved cases become the answers every later
         "length_ok": true,
         "no_thinking_text": true
       }
-… (101 more lines)
+… (115 more lines)
 ```
 
 ## FX-010 — REQ-023, REQ-025
