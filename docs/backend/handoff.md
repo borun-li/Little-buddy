@@ -26,19 +26,19 @@ Next agent must know:
 Read beyond the list: nothing
 Next agent reads: 03 § Increment 2 DES-019..021, DES-030, § 9 Seam (increment 2)
 
-## fe-ux #5 · step 4 (frontend review fix, UX) · round 1 · increment 1 · 2026-11-15T01:46:57Z
-Task: decide FND-003 (what a screen-reader user hears when listening starts; reword `hints.micOpening`) and the hint-rule conflict behind FND-001, in 01-ux.md § Increment 1.
-Changed: docs/frontend/01-ux.md § Increment 1 (+18/-9) — Author line; PAGE-001 (increment 1) rows mic opening, listening (announces `listeningNow`, not shown), error · reply / voice / down; warming table "both ready" row; Hint rules paragraph retired in place → 7 bullets (action / health / hold hints, awake rule, 2 s first check); Words `hints.micOpening` reworded (old words in a "retired words" bullet under the table), new top-level row `listeningNow` 在听 / Listening.
-Feedback: none raised; FND-003 decided (owner fe-ux); FND-001 rule stated for fe-engineer.
-Result: gatelib docs.prose_units > 50 words = []; FLOW blocks unchanged (FLOW-005 80); first PAGE-001 block 196 (unchanged); new glyphs “ ” 在 听 present in web/fonts/lxgw-wenkai-subset.woff2 (fontTools cmap) — evidence: commands run in this session. Gate fe-ux not run by me. 0 Figma calls.
+## fe-ux #6 · step 1 (frontend UX) · round 1 · increment 2 · 2026-11-15T05:35:13Z
+Task: append `## Increment 2 — 2026-11-15` to docs/frontend/01-ux.md: flows, state rows and zh/en words for P1 (voice reply, breathing, 988 card, clear, poke, rename) and memory (design only).
+Changed: docs/frontend/01-ux.md (+231/-3) — § Increment 2: Pages row (all active [interface] REQs + REQ-032..035 design only), Navigation, FLOW-008..014 (014 design only), PAGE-001 (increment 2) rows + rules, Words (increment 2) incl. memory words, moods, text wireframes, decisions for Plan; increment-1 Global/Keyboard nav lines and wireframe priority line retired in place.
+Feedback: no DFB raised: no confirmed layout changes (new controls in free stage corners / caption row, new content in the log).
+Result: gatelib parsers: FLOW-008..014 = 80/78/79/66/65/72/71 words, prose units > 50 = [], first PAGE-001 block 196, unserved active REQs = []; all new user-visible characters in web/fonts/lxgw-wenkai-subset.woff2 (fontTools cmap); node --test tests/verify-r1.test.js 5/5. Gate fe-ux not run by me. 0 Figma calls.
 Next agent must know:
-- Pitfalls: awake now requires a health hint (warming, voiceNotReady, unreachable, stillDown) to be on the line when both parts turn ready; `watch.failed()` after `unavailable` must not arm it (FND-001 cause). `not_ready` code hints are health hints, so awake may follow them.
-- Pitfalls: an action hint (Codes send/voice columns except not_ready, tooShort, nothingHeard, mic prompt/refused/noMic/busy) is replaced by a health check only with stillDown; first check after a code runs 2 s later, not at once.
-- Pitfalls: `listeningNow` goes into the role=status line visually hidden, every hold (focused aria-label changes are not reliably announced); it replaces `hints.micOpening`; both clear at hold end.
-- Pitfalls: tests/verify-r1.test.js (Words vs copy.js) now fails only on `hints.micOpening` until fe-engineer updates web/js/copy.js; `listeningNow` is top-level, not under `hints.`, so its 29-key count holds.
-- Left open: the micOpening rewording changes words the user confirmed in DFB-005 at Plan (2026-11-14) — needs the user's yes at the next stop; if no, keep the old words and the announcement still fixes WCAG 4.1.3 but not 1.3.3. web/js/copy.js not edited (fe-engineer's).
-Read beyond the list: ~/.claude/gates/gatelib/frontend.py:128-200, docs.py:40-75 — which blocks are length-checked and how prose units are cut.
-Next agent reads: docs/frontend/01-ux.md § Increment 1 "PAGE-001 — Talk with the companion (increment 1)" (rows listening, error ·), warming table, Hint rules, Words `hints.micOpening` / `listeningNow`
+- Pitfalls: tests/verify-r1.test.js reads every "| `key` | zh | en |" row from the increment-1 Words heading to file end and expects 29 hints.* + named keys; increment-2 Words tables start with a "Where" column so they are not captured. Keep that shape.
+- Pitfalls: `{name}` keys (title, inputLabel, typing, companionCaption/Name, 6 hints) read exactly as increment 1 with the default name, so the increment-1 table stays true.
+- Pitfalls: health polling must continue until tts is ready (health-watch now stops at bonsai+stt); tts never adds a hint or blocks Enter/hold. Reading stops at talk-button press, before the mic opens.
+- Pitfalls: `data-mood` stays the turn's mood during breathing and pokes; companion becomes a focusable button (pokeHelp description); caption row holds the name button and speaker toggle, so it cannot stay aria-hidden as a whole.
+- Left open: phone fit of clear (stage top-left, 8 px inset) and the speaker toggle in the 280 px stage caption row is fe-ui's to check; a DFB if it needs a layout change. Six decisions for the user at Plan (01-ux § Increment 2 "Decided here").
+Read beyond the list: tests/verify-r1.test.js:15-38 — how the Words table is parsed.
+Next agent reads: docs/frontend/01-ux.md § Increment 2 (Navigation, PAGE-001 (increment 2), Words (increment 2), Wireframe additions)
 
 ## fe-ui #5 · step 2 (frontend UI, increment) · round 2 · increment 1 · 2026-11-14T23:36:23Z
 Task: fix FE2.components (CMP-006 focus state readable) and FE2.prose (5 units over 50 words in 02-ui.md § Increment 1); round 1: switch, English frames, DFB-004, D-004.
