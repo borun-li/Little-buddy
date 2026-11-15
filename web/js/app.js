@@ -27,9 +27,12 @@ const talk = createTalkButton({
   button: $('.talk-button'),
   hint: createHint($('.hint')),
   isPaused: () => pending,
-  onUtterance: async () => {
-    const { text } = await transcribe();
-    send(text, { voice: true });
+  // Q-014 passes the held WAV and handles failures; until then the real transcribe has no audio to send.
+  onUtterance: async (audio) => {
+    try {
+      const { text } = await transcribe(audio);
+      send(text, { voice: true });
+    } catch { /* Q-014 / Q-018 words these */ }
   },
 });
 
@@ -39,13 +42,29 @@ function setPending(on) {
   field.classList.toggle('is-paused', on && input.value.trim() !== '');
 }
 
+// Hook for Q-011: it gives the words back and shows the hint for err.code. Until then the page only
+// stops waiting, so a failed send never leaves send and hold paused for good.
+function onSendFailed(err, line) {
+  void line;
+  document.querySelector('.turn--typing')?.remove();
+  setPending(false);
+  console.warn('respond failed:', err.code);
+}
+
 async function send(raw, { voice = false } = {}) {
   const line = raw.trim();
   if (!line || pending) return false;
   log.addYou(line, { voice });
   setPending(true);
   log.showTyping();
-  const { reply, mood } = await respond(line, history.slice());
+  let result;
+  try {
+    result = await respond(line, history.slice());
+  } catch (err) {
+    onSendFailed(err, line);
+    return false;
+  }
+  const { reply, mood } = result;
   history.push({ role: 'user', text: line }, { role: 'companion', text: reply });
   log.addReply(reply);
   companion.setMood(mood); // the mood changes with the reply, never at send

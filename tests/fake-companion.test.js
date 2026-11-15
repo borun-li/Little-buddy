@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
-import { createFakeCompanion, respond, transcribe } from '../web/js/companion-client.js';
+import { createFakeCompanion } from '../web/js/fake/fake-companion.js';
 import { PRESETS } from '../web/js/fake/presets.js';
 import { MOODS, moodOf } from '../web/js/fake/mood-keywords.js';
 
@@ -19,9 +19,10 @@ test('Q-005 respond returns the line mood and a reply from that mood', async () 
   }
 });
 
-test('Q-005 REQ-003 the default layer replies within 1 s', async () => {
+test('Q-005 REQ-003 the fake layer with its default delay replies within 1 s', async () => {
+  const c = createFakeCompanion();
   const t0 = performance.now();
-  const r = await respond('今天考试过了，好开心！', []);
+  const r = await c.respond('今天考试过了，好开心！', []);
   const ms = performance.now() - t0;
   assert.ok(ms <= 1000, `${ms} ms`);
   assert.equal(r.mood, 'pleasant-high');
@@ -59,7 +60,6 @@ test('Q-005 A1 transcribe walks the voice lines and covers all 5 moods', async (
   assert.deepEqual(texts.slice(0, n), PRESETS.zh.voiceLines);
   assert.equal(texts[n], texts[0], 'wraps around');
   assert.deepEqual(new Set(texts.map((t) => moodOf(t))), new Set(MOODS));
-  assert.equal(typeof (await transcribe()).text, 'string');
 });
 
 function jsFiles(dir) {
@@ -77,9 +77,9 @@ test('Q-005 REQ-007 app.js is the only importer of companion-client.js', () => {
   assert.deepEqual(importers, ['js/app.js']);
 });
 
-test('Q-005 REQ-007 nothing outside companion-client.js and fake/ imports fake/', () => {
+test('Q-005 REQ-007 nothing in web/ outside fake/ imports fake/ (the page uses the real layer)', () => {
   const offenders = jsFiles(join(WEB, 'js'))
-    .filter((p) => !p.includes('/fake/') && !p.endsWith('companion-client.js'))
+    .filter((p) => !p.includes('/fake/'))
     .filter((p) => importsOf(readFileSync(p, 'utf8')).some((s) => s.includes('fake/')))
     .map((p) => relative(WEB, p));
   assert.deepEqual(offenders, []);

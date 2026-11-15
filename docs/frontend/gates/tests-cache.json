@@ -1,45 +1,80 @@
 {
-  "sig": "df787bc797fb86ff0c02f54dddc40c3f757c416f2e3f5ed32387ce496bd4d223",
-  "time": "2026-11-14T23:26:12Z",
-  "epoch": 1794698772.531339,
+  "sig": "2abb31e8433b1c2d2aba192296a706f3dfd7ff0f34233b0d885051e1b171ade5",
+  "time": "2026-11-15T00:45:16Z",
+  "epoch": 1794703516.8756359,
   "result": {
     "cmd": "npm test",
     "exit": 0,
-    "seconds": 0.9,
+    "seconds": 0.8,
     "tail": [
-      "✔ Q-003 ids are unique across the five inlined moods (0.535292ms)",
-      "✔ DFB-003 every part id named in companion.css exists in that mood's art (0.220167ms)",
-      "✔ DFB-003 every part §7 moves has an animation, per mood (0.488542ms)",
-      "✔ REQ-006 reduced motion stops every companion animation and the glow transition (0.172125ms)",
-      "✔ Q-005 respond returns the line mood and a reply from that mood (4.597083ms)",
-      "✔ Q-005 REQ-003 the default layer replies within 1 s (602.111334ms)",
-      "✔ Q-005 A3 at least 2 replies per mood, each <= 2 sentences, <= 1 question, <= 120 chars (1.340166ms)",
-      "✔ Q-005 A3 never the same reply twice in a row (17.969125ms)",
-      "✔ Q-005 A1 transcribe walks the voice lines and covers all 5 moods (1.349041ms)",
-      "✔ Q-005 REQ-007 app.js is the only importer of companion-client.js (1.785584ms)",
-      "✔ Q-005 REQ-007 nothing outside companion-client.js and fake/ imports fake/ (0.548583ms)",
-      "✔ Q-005 every keyword maps to its own mood (0.990417ms)",
-      "✔ Q-005 the four keyword moods and neutral are the 5 demo mood ids (0.79475ms)",
-      "✔ Q-005 no keyword -> neutral (0.080625ms)",
-      "✔ Q-005 the last keyword in the line wins (0.053083ms)",
-      "✔ Q-005 a longer keyword ending at the same place wins (不开心 is sad, not happy) (0.04725ms)",
-      "✔ Q-005 demo lines: happy line smiles, sad line is sad (0.040333ms)",
-      "✔ Q-006 REQ-008 there are page files to check (0.310709ms)",
-      "✔ Q-006 REQ-008 no page file names a host other than localhost (1.415458ms)",
-      "✔ Q-006 REQ-008 every src, href and CSS url() points to a local file that exists (0.726291ms)",
-      "✔ Q-006 the voice font is the bundled WenKai subset, shipped with its licence (0.387542ms)",
-      "✔ Q-006 icons referenced with <use href=\"#...\"> are inline symbols (0.8455ms)",
-      "ℹ tests 23",
+      "✔ Q-005 A3 never the same reply twice in a row (19.439125ms)",
+      "✔ Q-005 A1 transcribe walks the voice lines and covers all 5 moods (1.279583ms)",
+      "✔ Q-005 REQ-007 app.js is the only importer of companion-client.js (1.955125ms)",
+      "✔ Q-005 REQ-007 nothing in web/ outside fake/ imports fake/ (the page uses the real layer) (0.6855ms)",
+      "✔ Q-005 every keyword maps to its own mood (1.908ms)",
+      "✔ Q-005 the four keyword moods and neutral are the 5 demo mood ids (0.367208ms)",
+      "✔ Q-005 no keyword -> neutral (0.079458ms)",
+      "✔ Q-005 the last keyword in the line wins (0.049167ms)",
+      "✔ Q-005 a longer keyword ending at the same place wins (不开心 is sad, not happy) (0.044625ms)",
+      "✔ Q-005 demo lines: happy line smiles, sad line is sad (0.04275ms)",
+      "✔ Q-006 REQ-008 there are page files to check (0.328458ms)",
+      "✔ Q-006 REQ-008 no page file names a host other than localhost (2.631792ms)",
+      "✔ Q-006 REQ-008 every src, href and CSS url() points to a local file that exists (1.677042ms)",
+      "✔ Q-006 the voice font is the bundled WenKai subset, shipped with its licence (0.515042ms)",
+      "✔ Q-006 icons referenced with <use href=\"#...\"> are inline symbols (0.864083ms)",
+      "✔ header: RIFF/WAVE, PCM, mono, 16 kHz, 16 bit, sizes consistent (5.43025ms)",
+      "✔ samples are little-endian int16, clipped (0.33025ms)",
+      "✔ 60 s is 1,920,044 B and longer input never exceeds it (51.215583ms)",
+      "✔ 48000 Hz downsamples to 16 kHz with the length and the pitch kept (6.402792ms)",
+      "✔ 44100 Hz downsamples to 16 kHz with the length and the pitch kept (5.44175ms)",
+      "✔ 16 kHz passes through; silence stays silence (1.288708ms)",
+      "✔ chunks join, downsample and cap at 60 s of input; Blob is audio/wav (166.362708ms)",
+      "ℹ tests 37",
       "ℹ suites 0",
-      "ℹ pass 23",
+      "ℹ pass 37",
       "ℹ fail 0",
       "ℹ cancelled 0",
       "ℹ skipped 0",
       "ℹ todo 0",
-      "ℹ duration_ms 666.194584"
+      "ℹ duration_ms 673.375375"
     ],
-    "log": "/Users/apple/Desktop/Hackathon/Local_AI_Hackathon/docs/frontend/gates/logs/2026-11-14T232611Z-test.log",
+    "log": "/Users/apple/Desktop/Hackathon/Local_AI_Hackathon/docs/frontend/gates/logs/2026-11-15T004516Z-test.log",
     "cases": [
+      [
+        "test",
+        "Q-010 respond posts line and history, parses 200",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-010 only the last 40 history entries are sent, no language field",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-010 each of the six error bodies maps to .code; unknown body maps to failed",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-010 failed fetch is unavailable; a 200 without a reply is failed; unknown mood is neutral",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-010 respond aborts at 16 s and transcribe at 13 s with code timeout",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-010 transcribe sends audio/wav; health returns the three fields",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-010 default timers resolve a call (the Illegal invocation bug showed only in the browser run)",
+        "passed"
+      ],
       [
         "test",
         "Q-003 each mood template is its current SVG export with every id prefixed &quot;<mood>--&quot;",
@@ -72,7 +107,7 @@
       ],
       [
         "test",
-        "Q-005 REQ-003 the default layer replies within 1 s",
+        "Q-005 REQ-003 the fake layer with its default delay replies within 1 s",
         "passed"
       ],
       [
@@ -97,7 +132,7 @@
       ],
       [
         "test",
-        "Q-005 REQ-007 nothing outside companion-client.js and fake/ imports fake/",
+        "Q-005 REQ-007 nothing in web/ outside fake/ imports fake/ (the page uses the real layer)",
         "passed"
       ],
       [
@@ -154,16 +189,51 @@
         "test",
         "Q-006 icons referenced with <use href=&quot;#...&quot;> are inline symbols",
         "passed"
+      ],
+      [
+        "test",
+        "header: RIFF/WAVE, PCM, mono, 16 kHz, 16 bit, sizes consistent",
+        "passed"
+      ],
+      [
+        "test",
+        "samples are little-endian int16, clipped",
+        "passed"
+      ],
+      [
+        "test",
+        "60 s is 1,920,044 B and longer input never exceeds it",
+        "passed"
+      ],
+      [
+        "test",
+        "48000 Hz downsamples to 16 kHz with the length and the pitch kept",
+        "passed"
+      ],
+      [
+        "test",
+        "44100 Hz downsamples to 16 kHz with the length and the pitch kept",
+        "passed"
+      ],
+      [
+        "test",
+        "16 kHz passes through; silence stays silence",
+        "passed"
+      ],
+      [
+        "test",
+        "chunks join, downsample and cap at 60 s of input; Blob is audio/wav",
+        "passed"
       ]
     ],
     "junit_note": "report from gates.json junit: test-results/junit.xml",
     "counts": {
-      "xfailed": 0,
-      "xpassed": 0,
-      "passed": 23,
+      "skipped": 0,
       "errors": 0,
+      "passed": 37,
       "failed": 0,
-      "skipped": 0
+      "xpassed": 0,
+      "xfailed": 0
     },
     "failed_tests": []
   }

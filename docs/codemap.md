@@ -12,12 +12,13 @@ Does: turn flow idle → pending → idle; Enter (not while an IME composes) sen
 Invariants: the only importer of `web/js/companion-client.js`; page memory only (A5).  Tests: `tests/fake-companion.test.js` (import seam)
 
 ## `web/js/companion-client.js`
-Does: the one replaceable data layer (REQ-007): respond(line, history) → {reply, mood} after 600 ms, transcribe() → {text} (next preset voice line, A1). Fake this round; createFakeCompanion() is exported for tests.  Used by: `web/js/app.js` only
-Invariants: nothing else imports `web/js/fake/`; replacing this one file swaps all replies and moods; seam in `contracts/FRONTEND_BACKEND_CONTRACT.md` §2.  Tests: `tests/fake-companion.test.js`
+Does: the one replaceable data layer (REQ-007), real since Q-010: respond(line, history) → {reply, mood} (POST /api/respond, aborts at 16 s), transcribe(audio) (POST /api/transcribe, 13 s; Q-014 sends the WAV), health() (GET /api/health). Failures reject with an Error whose .code is one of CODES (not_ready, unavailable, timeout, failed, bad_request, too_large).  Used by: `web/js/app.js` only
+Invariants: same-origin relative paths; last 40 history entries, never the interface language; createClient({fetch, timers}) is injectable for tests; replacing this one file swaps all replies and moods; seam in `contracts/FRONTEND_BACKEND_CONTRACT.md` §2.
+Traps: default timers are arrow wrappers, because window.setTimeout called as timers.setTimeout throws Illegal invocation in browsers (node does not, only a browser run shows it).  Tests: `tests/client.test.js`
 
 ## `web/js/fake/`
-Does: presets.js (A3 replies, A1 voice lines) and mood-keywords.js (A2: keyword ending last wins, longer wins at a tie, so 不开心 is sad; no match → neutral). Both keyed by language (zh only; English is D-001).  Used by: `web/js/companion-client.js`
-Invariants: ≥ 2 replies per mood, never the same twice in a row, ≤ 2 sentences, ≤ 1 question, ≤ 120 chars.  Tests: `tests/mood.test.js`, `tests/fake-companion.test.js`
+Does: fake-companion.js (createFakeCompanion, tests only, moved here by Q-010), presets.js (A3 replies, A1 voice lines) and mood-keywords.js (A2: keyword ending last wins, longer wins at a tie, so 不开心 is sad; no match → neutral). Keyed by language (zh only).  Used by: `tests/fake-companion.test.js`, `tests/mood.test.js`
+Invariants: nothing in web/ imports `web/js/fake/`; ≥ 2 replies per mood, never the same twice in a row, ≤ 2 sentences, ≤ 1 question, ≤ 120 chars.  Tests: `tests/mood.test.js`, `tests/fake-companion.test.js`
 
 ## `web/js/copy.js`
 Does: every user-visible word (hints, captions, accessible names, placeholder), keyed by language (zh only).  Used by: app, log, companion, talk-button

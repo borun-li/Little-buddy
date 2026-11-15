@@ -52,18 +52,31 @@ Next agent must know:
 Read beyond the list: ~/.claude/gates/gatelib/docs.py:54-70, 115-119 — prose and field parsers.
 Next agent reads: docs/frontend/02-ui.md § Increment 1 (CMP-006, CMP-003 increment 1, Frames (increment 1)); docs/frontend/06-feedback.md DFB-004
 
-## fe-engineer #5 · step 2 (frontend feasibility + queue, increment) · round 2 · increment 1 · 2026-11-14T23:46:03Z
-Task: FE2.row-length — shorten every Increment 1 row to ≤ 80 words; reflect DFB-005 (accepted) in the queue and contract.
-Changed: docs/frontend/03-queue.md — rows Q-010..Q-017 cut to ≤ 80 words, detail moved to new "Notes the rows point to"; split: Q-018 (silence and voice failures, from Q-014), Q-019 (listening starts when the mic opens, DFB-005, from Q-013); "Changed by" lines removed from Q-002/004/005 (the earlier-rows table says it). contracts/FRONTEND_BACKEND_CONTRACT.md — hold-to-talk loading row now has the mic-opening text.
-Feedback: DFB-005 accepted by fe-ux #4 (pending user at Plan); reflected in Q-019 and note Q-013.
-Result: every Q row ≤ 80 words by gatelib docs.words (script run by me, 0 over); `npm test` 23 pass / 0 fail. Gate not re-run by me. 0 Figma calls.
+## fe-engineer #7 · step 3 (frontend build Q-013) · round 1 · increment 1 · 2026-11-15T00:50:00Z
+Task: Q-013 — the held voice recorded as WAV PCM16 LE mono 16 kHz, in memory only.
+Changed: web/js/mic.js (+downsample, encodeWav, wavFromChunks, WAV_RATE, MAX_SECONDS; meter() now records through an AudioWorklet and has wav()); web/js/recorder-worklet.js (new); tests/wav.test.js (new, 7 tests); package.json (wav.test.js added to `test`).
+Feedback: none.
+Result: `npm test` 30 pass / 0 fail. Real check: WAV from encoder (2 s 440 Hz tone at 48 kHz, two chunks, 64,044 B) POSTed to http://127.0.0.1:4400/api/transcribe -> 200 `{"text":""}`; control (non-WAV bytes) -> 400 bad_request. Not run in a browser: no mic here, so the worklet path and the mic light are unverified. 0 Figma calls.
 Next agent must know:
-- Pitfalls: `hints.micOpening` shows at 0.2 s but browsers without the permission query treat a stream slower than 600 ms as an open prompt (codemap mic.js trap): show the hint first, then let 600 ms decide "prompt".
-- Pitfalls: Q-010 moves createFakeCompanion to web/js/fake/fake-companion.js; keep data-testid fake-input, reply, companion. No server/ yet.
+- Call `await hold.mic.wav()` (Blob audio/wav, or null if the worklet failed/nothing heard) BEFORE `close()`. wav() stops the tracks at once (mic light off), waits up to 300 ms for the worklet flush, then closes the context and drops the chunks. close() alone discards the audio. talk-button.js `stop()` currently calls close() first: Q-019/Q-014 must call wav() there (talk-button.js not touched by me).
+- Pitfalls: the worklet module loads after the stream opens (async addModule, local file); the first few ms of speech can be missed. Recording is capped at 60 s of input; encodeWav never exceeds 1,920,044 B.
+- Pitfalls: 600 ms prompt rule untouched (talk-button.js unchanged).
 - Tried, did not work: nothing.
-- Left open: font Latin-1 (Q-017, P3) needs the TTF; English caption width is an estimate.
-Read beyond the list: ~/.claude/gates/gatelib/docs.py words().
-Next agent reads: docs/frontend/03-queue.md § Increment 1 (rows and Notes); contracts/FRONTEND_BACKEND_CONTRACT.md §2
+- Left open: browser check of the worklet (Chrome/Safari/Firefox) at Q-019/Q-014.
+Next agent reads: web/js/mic.js; tests/wav.test.js
+
+## fe-engineer #6 · step 3 (frontend build Q-010) · round 1 · increment 1 · 2026-11-15T00:58:00Z
+Task: Q-010 — a typed line gets a real reply and mood through web/js/companion-client.js (DES-013). Placed beside #7's section, not over it: two fe-engineers ran in parallel.
+Changed: web/js/companion-client.js (rewritten: createClient({fetch, timers}), respond / transcribe(audio) / health, CODES, MOODS); web/js/fake/fake-companion.js (createFakeCompanion moved here, tests only, `git mv` was blocked so the old path is a plain move: git sees delete + new); web/js/app.js (transcribe(audio) passthrough; send catches respond errors via onSendFailed); tests/client.test.js (new, 7 tests); tests/fake-companion.test.js (imports); package.json (client.test.js added to `test`); docs/codemap.md (companion-client, fake); docs/frontend/evidence/build/Q-010-1440.png, Q-010-390.png.
+Feedback: none (the frames FRAME-014/015 are what is built; the CMP-006 switch, English words and caption are Q-015/Q-016, so the page still shows Chinese chrome).
+Result: `npm test` 37 pass / 0 fail. Live at 127.0.0.1:4400 (Chromium, en-US, 1440 and 390): "I passed my exam today, so happy!" -> reply in English, mood pleasant-high, 1.8 s; follow-up "Now I feel really sad." -> unpleasant-low, reply recalls the success; only POST /api/respond, no console error. Latency measured with Playwright from Enter to the reply element.
+Next agent must know:
+- Pitfalls: window.setTimeout called as timers.setTimeout throws Illegal invocation in browsers; node does not, so only a browser run found it. Default timers are arrow wrappers.
+- Pitfalls: app.js onSendFailed is the Q-011 hook: today it only removes the typing dots (`.turn--typing`, DOM query, replace with a log.js method), unpauses, console.warn; the own turn stays and the text is not given back, no hint. A failed send still shows nothing to the user until Q-011.
+- Pitfalls: onUtterance now calls transcribe(audio) with no audio (talk-button does not pass it): voice is broken until Q-014 wires mic.wav(); the catch swallows it. Voice demo does not work between Q-010 and Q-014.
+- Tried, did not work: nothing.
+- Left open: Latin glyphs in the WenKai subset (Q-017); hint/caption English (Q-015/016).
+Next agent reads: web/js/companion-client.js; tests/client.test.js; app.js onSendFailed and onUtterance
 
 ## orchestrator · Phase 2 · Plan stop · 2026-11-14T23:46:52Z
 State: p1 pass, p2 pass; frontend increment 1 gates fe-ux (user waiver FE1.flow-length FLOW-001/002 only), fe-ui, fe-queue, fe-plan pass. Branch companion-full-dev. Figma 12/15 this run.
@@ -95,3 +108,8 @@ Next agent must know:
 - Left open: design gaps 1–3 in 08 (6000-char window vs 15 s deadline; DES-009 "I love 火锅" rule vs example; setup hint for missing models) — to a fresh be-architect.
 Read beyond the list: ~/.claude/gates/gatelib/checks.py:373-397 — codemap check.
 Next agent reads: docs/backend/08-implementation-log.md § Design gaps; docs/codemap.md § server/, § stt/
+## fe-tester #1 · step 3 (fake-layer test repoint) · round 1 · increment 1 · 2026-11-15T01:10:00Z
+- Changed only `tests/fake-companion.test.js`: imports `createFakeCompanion` from `web/js/fake/fake-companion.js`.
+- REQ-003 1 s check now runs on `createFakeCompanion()` default delay (600 ms); the default (real) layer is left to `tests/client.test.js`. Dropped the real-`transcribe()` assertion (it would hit fetch).
+- Seam rule tightened: nothing in `web/` outside `fake/` imports `fake/` (true now). Importer rule (app.js only imports companion-client.js) unchanged.
+- `npm test`: 37 tests, 37 pass, 0 fail.
