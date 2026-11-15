@@ -52,19 +52,6 @@ Next agent must know:
 Read beyond the list: ~/.claude/gates/gatelib/docs.py:54-70, 115-119 — prose and field parsers.
 Next agent reads: docs/frontend/02-ui.md § Increment 1 (CMP-006, CMP-003 increment 1, Frames (increment 1)); docs/frontend/06-feedback.md DFB-004
 
-## fe-engineer #7 · step 3 (frontend build Q-013) · round 1 · increment 1 · 2026-11-15T00:50:00Z
-Task: Q-013 — the held voice recorded as WAV PCM16 LE mono 16 kHz, in memory only.
-Changed: web/js/mic.js (+downsample, encodeWav, wavFromChunks, WAV_RATE, MAX_SECONDS; meter() now records through an AudioWorklet and has wav()); web/js/recorder-worklet.js (new); tests/wav.test.js (new, 7 tests); package.json (wav.test.js added to `test`).
-Feedback: none.
-Result: `npm test` 30 pass / 0 fail. Real check: WAV from encoder (2 s 440 Hz tone at 48 kHz, two chunks, 64,044 B) POSTed to http://127.0.0.1:4400/api/transcribe -> 200 `{"text":""}`; control (non-WAV bytes) -> 400 bad_request. Not run in a browser: no mic here, so the worklet path and the mic light are unverified. 0 Figma calls.
-Next agent must know:
-- Call `await hold.mic.wav()` (Blob audio/wav, or null if the worklet failed/nothing heard) BEFORE `close()`. wav() stops the tracks at once (mic light off), waits up to 300 ms for the worklet flush, then closes the context and drops the chunks. close() alone discards the audio. talk-button.js `stop()` currently calls close() first: Q-019/Q-014 must call wav() there (talk-button.js not touched by me).
-- Pitfalls: the worklet module loads after the stream opens (async addModule, local file); the first few ms of speech can be missed. Recording is capped at 60 s of input; encodeWav never exceeds 1,920,044 B.
-- Pitfalls: 600 ms prompt rule untouched (talk-button.js unchanged).
-- Tried, did not work: nothing.
-- Left open: browser check of the worklet (Chrome/Safari/Firefox) at Q-019/Q-014.
-Next agent reads: web/js/mic.js; tests/wav.test.js
-
 ## fe-engineer #6 · step 3 (frontend build Q-010) · round 1 · increment 1 · 2026-11-15T00:58:00Z
 Task: Q-010 — a typed line gets a real reply and mood through web/js/companion-client.js (DES-013). Placed beside #7's section, not over it: two fe-engineers ran in parallel.
 Changed: web/js/companion-client.js (rewritten: createClient({fetch, timers}), respond / transcribe(audio) / health, CODES, MOODS); web/js/fake/fake-companion.js (createFakeCompanion moved here, tests only, `git mv` was blocked so the old path is a plain move: git sees delete + new); web/js/app.js (transcribe(audio) passthrough; send catches respond errors via onSendFailed); tests/client.test.js (new, 7 tests); tests/fake-companion.test.js (imports); package.json (client.test.js added to `test`); docs/codemap.md (companion-client, fake); docs/frontend/evidence/build/Q-010-1440.png, Q-010-390.png.
@@ -77,6 +64,7 @@ Next agent must know:
 - Tried, did not work: nothing.
 - Left open: Latin glyphs in the WenKai subset (Q-017); hint/caption English (Q-015/016).
 Next agent reads: web/js/companion-client.js; tests/client.test.js; app.js onSendFailed and onUtterance
+- From fe-engineer #7 (Q-013, trimmed by orchestrator): talk-button.js stop() calls hold.mic.close(), which drops audio — Q-019/Q-014 must `await hold.mic.wav()` first; web/js/mic.js wav() stops tracks then waits ≤300 ms for the worklet flush.
 
 ## orchestrator · Phase 2 · Plan stop · 2026-11-14T23:46:52Z
 State: p1 pass, p2 pass; frontend increment 1 gates fe-ux (user waiver FE1.flow-length FLOW-001/002 only), fe-ui, fe-queue, fe-plan pass. Branch companion-full-dev. Figma 12/15 this run.
@@ -84,30 +72,27 @@ Decided: risk normal (user, kickoff); 9B, setup step, argmax-oss-swift 1.1.1, po
 Open: Plan answers (design + 4 decisions, fixtures FX-001..008 lock, DFB-005, defaults in state.json open_questions).
 Next: on yes → gate.py fixtures-approve --by user; log human --stop Plan; Phase 4 build: baseline, mark be-tester then be-developer, dispatch be-developer (DES-001..012, build order 03 §8; stt first for the ~390 s warm-up) and be-tester (plan) in one message; frontend rows Q-015/016/017/013/019 can follow once backend writer is back (one team's writers at a time).
 
-## be-tester #1 · Phase 4 (plan + tests) · round 1 · 2026-11-15T00:20:00Z
-Task: write 04-test-plan.md from 01 and 03 only, covering REQ-001..012 and FX-001..008, and implement the tests under tests/ so Phase 5 can run them.
-Changed: docs/backend/04-test-plan.md (new); tests/server-helpers.js, server-unit.test.js, server-fakes.test.js, server-live.test.js, server-boot.test.js, tests/support/fake-stt.cjs, fake-llama.cjs (new); package.json (+1 script line `test:backend`).
-Result: 62 automated TCs (TC-001..037, 040..059, 070..076) + 7 manual (TC-080..086). Trial run, not the Phase 5 run: `npm run test:backend` passed 53/56 on a first pass while a server answered on 127.0.0.1:4400 (live suite ran), boot suite skipped (needs COMPANION_BOOT=1). Since then TC-017 (my regex bug) and TC-008 (case moved) fixed; TC-037 fails by design (see below).
+## be-tester #1 · step 4 (plan + tests) · round 2 · 2026-11-15T00:50:00Z
+Task: update tests and 04 to be-architect #3's amendment (weight budget 2000, missingHints, new DES-009 rule).
+Changed: docs/backend/04-test-plan.md (TC-008, 013, 015, 031, 037 text; new TC-038); tests/server-unit.test.js (TC-008 cases, TC-013 weight expectations, TC-015 `historyBudget: 2000`, TC-037 rewritten, new TC-038 missingHints); tests/server-fakes.test.js (TC-031: 40x200 -> 1+10+1 messages).
+Result: `node --test tests/server-unit.test.js tests/server-fakes.test.js` -> 38 pass, 0 fail (server code had already landed). Live (4400) and boot suites not run this round, as instructed. Expectations were computed from 03 by hand (e.g. 21 x 40 Han = 100 weight each -> 20; 801 Han = 2002.5 -> []), not from server code.
 Next agent must know:
-- Command: `npm run test:backend`; live needs COMPANION_URL (default http://127.0.0.1:4400; skips with reason if nothing answers, refuses 4317); boot suite `COMPANION_BOOT=1` starts its own server on free ports and stops only that PID.
-- Design contradiction (unresolved): DES-009 example "I love 火锅" -> en (3:2) vs its rule han>=words -> zh (2 Han, 2 words). The code follows the rule; TC-037 asserts the example and fails. Orchestrator / architect decide; TC-008/051 use unambiguous lines.
-- Pitfalls: replies land in test-results/backend-replies.jsonl for the manual TCs 080-082; the full live run takes ~4 min (FX-004 = 30 calls).
-- Left open: REQ-012 manual only (frontend); FX-005 text_reference [unverified].
-Read beyond the list: server/*.js was NOT read for the plan; only grepped in TC-017 and run in the trial.
-Next agent reads: docs/backend/04-test-plan.md §2, §6
+- missingHints is TC-038 (not folded into TC-016); asserts on keywords (npm run setup / BONSAI_MODEL / STT_MODEL_DIR), order stt, Bonsai, WhisperKit, one line per kind.
+- FX-005 [unverified] note removed from the plan.
+- TC-052 (REQ-008 timing) and TC-049 should be re-run live after the new window; unmeasured: 60 s zh voice line.
+Next agent reads: docs/backend/04-test-plan.md §2
 
-## be-developer #1 · Phase 4 (build) · round 2 · 2026-11-15T00:15:24Z
-Task: round 2 — CTX.codemap: `docs/codemap.md` had companion-stt in backticks (read as a path). Round 1: built DES-001..012 (03 §8).
-Changed: round 2: docs/codemap.md line 46 — backticks dropped around the process name companion-stt (nothing else). Round 1: server/ (11 files), stt/ (Package.swift, Package.resolved, Sources/CompanionSTT/main.swift), package.json (setup, start), docs/codemap.md (server/, stt/), docs/backend/08-implementation-log.md.
-Result: CTX.codemap parser replayed locally (gatelib checks.py:390-393 logic): 0 missing paths, 63 lines; gate p4 not re-run by me. Round 1: swift build pass, npm test 23/23, REQ-008 voice turn 3.6–7.1 s — evidence: docs/backend/08-implementation-log.md, docs/backend/logs/be-developer-1-*.log
+## be-developer #1 · Phase 4 (build) · round 3 · 2026-11-15T00:47:37Z
+Task: implement be-architect #3's amendment: weighted window historyBudget 2000 (DES-002/007), languageOf ceil(han/2) + hanCount (DES-009), missingHints (DES-001/002); restart instance A; re-measure cold 20-turn zh/en.
+Changed: server/config.js (+15/-1: historyBudget 2000, missingHints), server/bonsai.js (+6/-3: weighted windowOf), server/lang.js (+7/-2: hanCount, ceil(han/2)), server/main.js (+2/-2: prints hints); docs/backend/08-implementation-log.md (Fix rounds 2–3, gaps 1–3 resolved); earlier rounds: server/, stt/, package.json scripts, docs/codemap.md.
+Result: all 03 examples hold (windowOf 10/10/20/1/0; lang zh/en/zh/en/zh; hints 0/1/3); npm test 37/37; tests/server-unit.test.js 22/22; cold 20-turn respond on A: en 4362 ms, zh 5485 ms (history_n 40) — evidence: docs/backend/logs/be-developer-1-round3.log
 Next agent must know:
-- Pitfalls: in docs/codemap.md backticks hold existing repo paths only; process names, commands and identifiers go unquoted (CTX.codemap reads every backticked token as a path).
-- Pitfalls: my instance A runs on PORT=4400 BONSAI_PORT=4401 (node 51774 → stt 51780, llama 51781) for be-tester; stop only node 51774. 4317 is the user's preview.
-- Pitfalls: time latency on an idle instance; concurrent requests on 2 llama slots push cold turns to 7–9.5 s.
-- Tried, did not work: sed -i on a live server log (server keeps writing the unlinked file) — instance A restarted in round 1.
-- Left open: design gaps 1–3 in 08 (6000-char window vs 15 s deadline; DES-009 "I love 火锅" rule vs example; setup hint for missing models) — to a fresh be-architect.
-Read beyond the list: ~/.claude/gates/gatelib/checks.py:373-397 — codemap check.
-Next agent reads: docs/backend/08-implementation-log.md § Design gaps; docs/codemap.md § server/, § stt/
+- Pitfalls: instance A now node 82765 (stt 82771, llama 82772) on PORT=4400 BONSAI_PORT=4401, left up for the frontend; stop only node 82765. 4317 is the user's preview.
+- Pitfalls: time latency on an idle instance (2 llama slots; concurrent traffic doubles cold turns). In docs/codemap.md backticks hold existing paths only.
+- Tried, did not work: sed -i on a live server log (server keeps writing the unlinked file).
+- Left open: 60 s zh voice line at the new window unmeasured (be-architect #3); 4B switch unmeasured.
+Read beyond the list: nothing.
+Next agent reads: docs/backend/08-implementation-log.md § Fix rounds; docs/backend/03-detailed-design.md DES-002, DES-007, DES-009
 ## fe-tester #1 · step 3 (fake-layer test repoint) · round 1 · increment 1 · 2026-11-15T01:10:00Z
 - Changed only `tests/fake-companion.test.js`: imports `createFakeCompanion` from `web/js/fake/fake-companion.js`.
 - REQ-003 1 s check now runs on `createFakeCompanion()` default delay (600 ms); the default (real) layer is left to `tests/client.test.js`. Dropped the real-`transcribe()` assertion (it would hit fetch).

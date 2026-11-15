@@ -1,0 +1,52 @@
+$ npm test
+
+> test
+> mkdir -p test-results && node --test --test-reporter=spec --test-reporter-destination=stdout --test-reporter=junit --test-reporter-destination=test-results/junit.xml tests/mood.test.js tests/fake-companion.test.js tests/client.test.js tests/offline.test.js tests/companion.test.js tests/wav.test.js
+
+✔ Q-010 respond posts line and history, parses 200 (1.717166ms)
+✔ Q-010 only the last 40 history entries are sent, no language field (0.172667ms)
+✔ Q-010 each of the six error bodies maps to .code; unknown body maps to failed (1.029875ms)
+✔ Q-010 failed fetch is unavailable; a 200 without a reply is failed; unknown mood is neutral (0.153709ms)
+✔ Q-010 respond aborts at 16 s and transcribe at 13 s with code timeout (4.911209ms)
+✔ Q-010 transcribe sends audio/wav; health returns the three fields (0.899166ms)
+✔ Q-010 default timers resolve a call (the Illegal invocation bug showed only in the browser run) (0.233917ms)
+✔ Q-003 each mood template is its current SVG export with every id prefixed "<mood>--" (2.040167ms)
+✔ Q-003 ids are unique across the five inlined moods (0.470917ms)
+✔ DFB-003 every part id named in companion.css exists in that mood's art (0.183417ms)
+✔ DFB-003 every part §7 moves has an animation, per mood (0.477417ms)
+✔ REQ-006 reduced motion stops every companion animation and the glow transition (0.138375ms)
+✔ Q-005 respond returns the line mood and a reply from that mood (6.226333ms)
+✔ Q-005 REQ-003 the fake layer with its default delay replies within 1 s (602.339875ms)
+✔ Q-005 A3 at least 2 replies per mood, each <= 2 sentences, <= 1 question, <= 120 chars (1.000875ms)
+✔ Q-005 A3 never the same reply twice in a row (17.665208ms)
+✔ Q-005 A1 transcribe walks the voice lines and covers all 5 moods (2.54825ms)
+✔ Q-005 REQ-007 app.js is the only importer of companion-client.js (3.518666ms)
+✔ Q-005 REQ-007 nothing in web/ outside fake/ imports fake/ (the page uses the real layer) (1.670292ms)
+✔ Q-005 every keyword maps to its own mood (1.417333ms)
+✔ Q-005 the four keyword moods and neutral are the 5 demo mood ids (0.347125ms)
+✔ Q-005 no keyword -> neutral (0.073208ms)
+✔ Q-005 the last keyword in the line wins (0.051375ms)
+✔ Q-005 a longer keyword ending at the same place wins (不开心 is sad, not happy) (0.048ms)
+✔ Q-005 demo lines: happy line smiles, sad line is sad (0.04425ms)
+✔ Q-006 REQ-008 there are page files to check (0.32825ms)
+✔ Q-006 REQ-008 no page file names a host other than localhost (2.441209ms)
+✔ Q-006 REQ-008 every src, href and CSS url() points to a local file that exists (0.909125ms)
+✔ Q-006 the voice font is the bundled WenKai subset, shipped with its licence (0.39325ms)
+✔ Q-006 icons referenced with <use href="#..."> are inline symbols (1.085167ms)
+✔ header: RIFF/WAVE, PCM, mono, 16 kHz, 16 bit, sizes consistent (6.555291ms)
+✔ samples are little-endian int16, clipped (0.333084ms)
+✔ 60 s is 1,920,044 B and longer input never exceeds it (52.630125ms)
+✔ 48000 Hz downsamples to 16 kHz with the length and the pitch kept (7.575041ms)
+✔ 44100 Hz downsamples to 16 kHz with the length and the pitch kept (5.516083ms)
+✔ 16 kHz passes through; silence stays silence (1.621792ms)
+✔ chunks join, downsample and cap at 60 s of input; Blob is audio/wav (165.5755ms)
+ℹ tests 37
+ℹ suites 0
+ℹ pass 37
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 685.441917
+
+exit 0

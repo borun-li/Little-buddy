@@ -1,7 +1,7 @@
 // llama-server child and the reply + mood calls to Bonsai (03 DES-007, DES-008).
 import { bonsaiFiles, CONFIG } from './config.js';
 import { ApiError } from './errors.js';
-import { languageOf } from './lang.js';
+import { hanCount, languageOf } from './lang.js';
 import { log } from './log.js';
 import { LANG_RULE, MOOD_SAMPLING, MOOD_SCHEMA, MOOD_SYSTEM, MOODS, REPLY_SAMPLING, REPLY_SYSTEM } from './prompts.js';
 import { supervise } from './supervisor.js';
@@ -12,10 +12,13 @@ const CAPS = { zh: 120, en: 40 };
 // A sentence ends after a run of 。！？!?.… ; emoji (and closing quotes/brackets) right after it stay with it.
 const SENTENCE = /[\s\S]*?(?:[。！？!?.…]+(?:\p{Extended_Pictographic}|\p{Emoji_Modifier}|️|‍|[”’"'）)」』])*|$)/gu;
 
+// Prompt cost of a history text, ≈ 4 × tokens: Han counts 2.5, everything else 1 (03 DES-007).
+const weight = (text) => text.length + 1.5 * hanCount(text);
+
 export function windowOf(history, cfg = CONFIG) {
   const win = history.slice(-cfg.limits.historyEntries);
-  let total = win.reduce((n, h) => n + h.text.length, 0);
-  while (win.length && total > cfg.limits.historyBudgetChars) total -= win.shift().text.length;
+  let total = win.reduce((n, h) => n + weight(h.text), 0);
+  while (win.length && total > cfg.limits.historyBudget) total -= weight(win.shift().text);
   return win;
 }
 

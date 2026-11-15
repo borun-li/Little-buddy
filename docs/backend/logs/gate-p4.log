@@ -1,6 +1,8 @@
 [PASS] ALL.state: state.json valid  (orchestrator)
 [PASS] ALL.upstream: Upstream documents present  (orchestrator)
-[PASS] ROLE.shared: be-developer and be-tester were out together: their changes fit their roles combined  (be-developer+be-tester)
+[PASS] ROLE.frontend: No frontend file changed by be-developer  (be-developer)
+[PASS] ROLE.tests: No existing test changed by be-developer  (be-developer)
+[PASS] ROLE.unplanned: Every changed file is planned or logged  (be-developer)
 [PASS] P4.dependencies: Every new dependency is named in the design  (be-developer)
 [PASS] P4.secrets: No secret patterns in new code  (be-developer)
 [PASS] P4.personal-paths: No absolute personal paths in new code  (be-developer)
@@ -15,7 +17,7 @@
 [PASS] P4.plan-cases: Every TC verifies REQs and has a mode  (be-tester)
 [PASS] P4.plan-coverage: Every active REQ has a TC  (be-tester)
 [PASS] LOG.valid: Run log intact  (orchestrator)
-[PASS] CTX.codemap: docs/codemap.md paths exist, within its cap  (be-tester)
-[PASS] CTX.handoff: handoff.md: 8 current sections  (orchestrator)
+[PASS] CTX.codemap: docs/codemap.md paths exist, within its cap  (be-developer)
+[PASS] CTX.handoff: handoff.md: 9 current sections  (orchestrator)
 
 [gate] p4: PASS  report: docs/backend/gates/p4-latest.json

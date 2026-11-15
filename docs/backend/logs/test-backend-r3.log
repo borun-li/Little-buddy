@@ -1,0 +1,192 @@
+﹣ boot suite (0.2255ms) # set COMPANION_BOOT=1 to boot a private server on free ports (slow, needs models)
+{"t":"2026-11-15T00:48:01.075Z","level":"info","event":"child_spawn","name":"stt","pid":84376}
+{"t":"2026-11-15T00:48:01.076Z","level":"info","event":"child_ready","name":"stt","ms":2}
+{"t":"2026-11-15T00:48:01.128Z","level":"warn","event":"child_exit","name":"stt","code":null,"signal":"SIGTERM","restarts":0}
+{"t":"2026-11-15T00:48:03.681Z","level":"info","event":"child_spawn","name":"bonsai","pid":84406}
+{"t":"2026-11-15T00:48:03.681Z","level":"info","event":"child_ready","name":"bonsai","ms":1}
+✔ TC-021 supervise: starting -> ready after warm resolves; stop() ends only its own pid (2606.72975ms)
+{"t":"2026-11-15T00:48:03.734Z","level":"warn","event":"child_exit","name":"bonsai","code":null,"signal":"SIGKILL","restarts":0}
+{"t":"2026-11-15T00:48:05.735Z","level":"info","event":"child_spawn","name":"bonsai","pid":84437}
+{"t":"2026-11-15T00:48:05.735Z","level":"info","event":"child_ready","name":"bonsai","ms":0}
+{"t":"2026-11-15T00:48:05.773Z","level":"info","event":"child_spawn","name":"stt","pid":84438}
+{"t":"2026-11-15T00:48:05.773Z","level":"error","event":"child_warm_failed","name":"stt","err_name":"Error"}
+✔ TC-022 supervise: an unexpected exit -> down, onExit called, restarted after ~2 s with a new pid (2092.563584ms)
+{"t":"2026-11-15T00:48:05.774Z","level":"warn","event":"child_exit","name":"bonsai","code":null,"signal":"SIGTERM","restarts":1}
+{"t":"2026-11-15T00:48:05.774Z","level":"warn","event":"child_exit","name":"stt","code":null,"signal":"SIGTERM","restarts":0}
+{"t":"2026-11-15T00:48:05.825Z","level":"info","event":"child_spawn","name":"bonsai","pid":84467}
+✔ TC-023 supervise: a failing warm kills that child (51.344125ms)
+{"t":"2026-11-15T00:48:05.843Z","level":"warn","event":"child_exit","name":"bonsai","code":1,"signal":null,"restarts":0}
+{"t":"2026-11-15T00:48:07.844Z","level":"info","event":"child_spawn","name":"bonsai","pid":84496}
+{"t":"2026-11-15T00:48:07.862Z","level":"warn","event":"child_exit","name":"bonsai","code":1,"signal":null,"restarts":1}
+{"t":"2026-11-15T00:48:09.864Z","level":"info","event":"child_spawn","name":"bonsai","pid":84525}
+{"t":"2026-11-15T00:48:09.883Z","level":"warn","event":"child_exit","name":"bonsai","code":1,"signal":null,"restarts":2}
+{"t":"2026-11-15T00:48:11.885Z","level":"info","event":"child_spawn","name":"bonsai","pid":84526}
+{"t":"2026-11-15T00:48:11.904Z","level":"warn","event":"child_exit","name":"bonsai","code":1,"signal":null,"restarts":3}
+{"t":"2026-11-15T00:48:13.905Z","level":"info","event":"child_spawn","name":"bonsai","pid":84557}
+{"t":"2026-11-15T00:48:13.924Z","level":"warn","event":"child_exit","name":"bonsai","code":1,"signal":null,"restarts":4}
+{"t":"2026-11-15T00:48:15.925Z","level":"info","event":"child_spawn","name":"bonsai","pid":84587}
+{"t":"2026-11-15T00:48:15.942Z","level":"warn","event":"child_exit","name":"bonsai","code":1,"signal":null,"restarts":5}
+{"t":"2026-11-15T00:48:22.831Z","level":"info","event":"child_spawn","name":"stt","pid":84700}
+✔ TC-024 supervise: gives up after 5 restarts and stays down (slow: ~12 s) (17003.155875ms)
+{"t":"2026-11-15T00:48:23.035Z","level":"info","event":"stt_warm","load_ms":1,"warm_ms":1}
+{"t":"2026-11-15T00:48:23.035Z","level":"info","event":"child_ready","name":"stt","ms":205}
+{"t":"2026-11-15T00:48:23.035Z","level":"info","event":"stt_done","ms":0,"audio_ms":0,"empty":false,"lang":"en"}
+{"t":"2026-11-15T00:48:23.035Z","level":"info","event":"stt_done","ms":0,"audio_ms":0,"empty":false,"lang":"en"}
+{"t":"2026-11-15T00:48:23.035Z","level":"info","event":"stt_done","ms":0,"audio_ms":0,"empty":false,"lang":"en"}
+{"t":"2026-11-15T00:48:23.337Z","level":"info","event":"stt_done","ms":302,"audio_ms":0,"empty":false,"lang":"en"}
+{"t":"2026-11-15T00:48:23.338Z","level":"info","event":"child_spawn","name":"stt","pid":84701}
+✔ TC-025 stt.transcribe: trims the text, drops non-JSON stdout lines, matches answers to requests by id (509.482125ms)
+{"t":"2026-11-15T00:48:23.339Z","level":"warn","event":"child_exit","name":"stt","code":null,"signal":"SIGTERM","restarts":0}
+{"t":"2026-11-15T00:48:23.472Z","level":"info","event":"stt_warm","load_ms":1,"warm_ms":1}
+{"t":"2026-11-15T00:48:23.472Z","level":"info","event":"child_ready","name":"stt","ms":134}
+{"t":"2026-11-15T00:48:23.491Z","level":"info","event":"stt_done","ms":0,"audio_ms":0,"empty":true,"lang":null}
+{"t":"2026-11-15T00:48:23.492Z","level":"info","event":"child_spawn","name":"stt","pid":84702}
+✔ TC-026 [FX-008] stt.transcribe returns "" for nothing heard (not an error) (154.426208ms)
+{"t":"2026-11-15T00:48:23.493Z","level":"warn","event":"child_exit","name":"stt","code":null,"signal":"SIGTERM","restarts":0}
+{"t":"2026-11-15T00:48:25.096Z","level":"info","event":"stt_warm","load_ms":1,"warm_ms":1}
+{"t":"2026-11-15T00:48:25.096Z","level":"info","event":"child_ready","name":"stt","ms":1604}
+{"t":"2026-11-15T00:48:25.126Z","level":"info","event":"stt_done","ms":0,"audio_ms":0,"empty":false,"lang":"en"}
+{"t":"2026-11-15T00:48:25.127Z","level":"info","event":"child_spawn","name":"stt","pid":84732}
+✔ TC-027 stt.transcribe while starting rejects not_ready (503) (1634.747167ms)
+{"t":"2026-11-15T00:48:25.128Z","level":"warn","event":"child_exit","name":"stt","code":null,"signal":"SIGTERM","restarts":0}
+{"t":"2026-11-15T00:48:25.262Z","level":"info","event":"stt_warm","load_ms":1,"warm_ms":1}
+{"t":"2026-11-15T00:48:25.262Z","level":"info","event":"child_ready","name":"stt","ms":135}
+{"t":"2026-11-15T00:48:25.279Z","level":"warn","event":"stt_error","error":"bad_audio"}
+{"t":"2026-11-15T00:48:26.684Z","level":"info","event":"stt_done","ms":1,"audio_ms":0,"empty":false,"lang":"en"}
+{"t":"2026-11-15T00:48:26.685Z","level":"warn","event":"child_exit","name":"stt","code":7,"signal":null,"restarts":0}
+{"t":"2026-11-15T00:48:26.690Z","level":"info","event":"child_spawn","name":"bonsai","pid":84761}
+✔ TC-028 stt.transcribe failures: helper error -> failed; deadline -> timeout (late answer dropped); exit mid-flight and while down -> unavailable (1559.158875ms)
+{"t":"2026-11-15T00:48:27.213Z","level":"info","event":"respond_done","ms":5,"reply_ms":5,"mood_ms":5,"lang":"en","mood_fallback":false,"history_n":0}
+{"t":"2026-11-15T00:48:27.213Z","level":"info","event":"child_ready","name":"bonsai","ms":523}
+{"t":"2026-11-15T00:48:27.263Z","level":"info","event":"respond_done","ms":2,"reply_ms":2,"mood_ms":2,"lang":"en","mood_fallback":false,"history_n":0}
+{"t":"2026-11-15T00:48:27.267Z","level":"info","event":"child_spawn","name":"bonsai","pid":84762}
+✔ TC-029 bonsai.respond: one reply call (thinking off, REPLY_SAMPLING) and one mood call (MOOD_SCHEMA, MOOD_SAMPLING), result {reply, mood} (578.338834ms)
+{"t":"2026-11-15T00:48:27.269Z","level":"warn","event":"child_exit","name":"bonsai","code":null,"signal":"SIGTERM","restarts":0}
+{"t":"2026-11-15T00:48:27.781Z","level":"info","event":"respond_done","ms":4,"reply_ms":4,"mood_ms":4,"lang":"en","mood_fallback":false,"history_n":0}
+{"t":"2026-11-15T00:48:27.781Z","level":"info","event":"child_ready","name":"bonsai","ms":515}
+{"t":"2026-11-15T00:48:27.832Z","level":"info","event":"respond_done","ms":6,"reply_ms":5,"mood_ms":6,"lang":"en","mood_fallback":true,"history_n":0}
+{"t":"2026-11-15T00:48:27.834Z","level":"info","event":"respond_done","ms":2,"reply_ms":1,"mood_ms":null,"lang":"en","mood_fallback":true,"history_n":0}
+{"t":"2026-11-15T00:48:27.835Z","level":"info","event":"respond_done","ms":1,"reply_ms":1,"mood_ms":1,"lang":"en","mood_fallback":true,"history_n":0}
+{"t":"2026-11-15T00:48:29.335Z","level":"info","event":"respond_done","ms":1500,"reply_ms":2,"mood_ms":null,"lang":"en","mood_fallback":true,"history_n":0}
+{"t":"2026-11-15T00:48:29.337Z","level":"info","event":"respond_done","ms":2,"reply_ms":1,"mood_ms":2,"lang":"en","mood_fallback":false,"history_n":0}
+{"t":"2026-11-15T00:48:29.338Z","level":"info","event":"child_spawn","name":"bonsai","pid":84791}
+✔ TC-030 bonsai.respond mood fallback: value outside the 5 ids, failed call, unparseable answer, slow call -> neutral, reply still returned (2072.957083ms)
+{"t":"2026-11-15T00:48:29.339Z","level":"warn","event":"child_exit","name":"bonsai","code":null,"signal":"SIGTERM","restarts":0}
+{"t":"2026-11-15T00:48:29.844Z","level":"info","event":"respond_done","ms":1,"reply_ms":1,"mood_ms":1,"lang":"en","mood_fallback":false,"history_n":0}
+{"t":"2026-11-15T00:48:29.844Z","level":"info","event":"child_ready","name":"bonsai","ms":507}
+{"t":"2026-11-15T00:48:29.849Z","level":"info","event":"respond_done","ms":1,"reply_ms":1,"mood_ms":1,"lang":"en","mood_fallback":false,"history_n":2}
+{"t":"2026-11-15T00:48:29.850Z","level":"info","event":"respond_done","ms":1,"reply_ms":1,"mood_ms":1,"lang":"zh","mood_fallback":false,"history_n":0}
+{"t":"2026-11-15T00:48:29.851Z","level":"info","event":"respond_done","ms":1,"reply_ms":1,"mood_ms":1,"lang":"en","mood_fallback":false,"history_n":10}
+{"t":"2026-11-15T00:48:29.852Z","level":"info","event":"child_spawn","name":"bonsai","pid":84792}
+✔ TC-031 bonsai.respond: mood call sees only the line; reply call sees the windowed history and the language rule of the line (not of history) (514.272208ms)
+{"t":"2026-11-15T00:48:29.853Z","level":"warn","event":"child_exit","name":"bonsai","code":null,"signal":"SIGTERM","restarts":0}
+{"t":"2026-11-15T00:48:30.364Z","level":"info","event":"respond_done","ms":4,"reply_ms":4,"mood_ms":4,"lang":"en","mood_fallback":false,"history_n":0}
+{"t":"2026-11-15T00:48:30.364Z","level":"info","event":"child_ready","name":"bonsai","ms":512}
+{"t":"2026-11-15T00:48:30.422Z","level":"info","event":"respond_done","ms":3,"reply_ms":3,"mood_ms":3,"lang":"en","mood_fallback":false,"history_n":0}
+{"t":"2026-11-15T00:48:30.425Z","level":"info","event":"respond_done","ms":3,"reply_ms":2,"mood_ms":3,"lang":"en","mood_fallback":false,"history_n":0}
+{"t":"2026-11-15T00:48:30.427Z","level":"info","event":"child_spawn","name":"bonsai","pid":84821}
+✔ TC-032 bonsai.respond reply errors: non-200 -> failed; only-thinking reply -> failed; thinking stripped; shaped to the limits (573.831209ms)
+{"t":"2026-11-15T00:48:30.430Z","level":"warn","event":"child_exit","name":"bonsai","code":null,"signal":"SIGTERM","restarts":0}
+{"t":"2026-11-15T00:48:30.936Z","level":"info","event":"respond_done","ms":1,"reply_ms":1,"mood_ms":1,"lang":"en","mood_fallback":false,"history_n":0}
+{"t":"2026-11-15T00:48:30.936Z","level":"info","event":"child_ready","name":"bonsai","ms":510}
+{"t":"2026-11-15T00:48:32.141Z","level":"info","event":"respond_done","ms":3,"reply_ms":3,"mood_ms":3,"lang":"en","mood_fallback":false,"history_n":0}
+{"t":"2026-11-15T00:48:32.142Z","level":"info","event":"child_spawn","name":"bonsai","pid":84822}
+✔ TC-033 bonsai.respond: a reply slower than the deadline rejects timeout (504) at the deadline (1715.808709ms)
+{"t":"2026-11-15T00:48:32.143Z","level":"warn","event":"child_exit","name":"bonsai","code":null,"signal":"SIGTERM","restarts":0}
+{"t":"2026-11-15T00:48:34.162Z","level":"info","event":"respond_done","ms":2,"reply_ms":2,"mood_ms":2,"lang":"en","mood_fallback":false,"history_n":0}
+{"t":"2026-11-15T00:48:34.162Z","level":"info","event":"child_ready","name":"bonsai","ms":2020}
+{"t":"2026-11-15T00:48:34.184Z","level":"warn","event":"child_exit","name":"bonsai","code":9,"signal":null,"restarts":0}
+{"t":"2026-11-15T00:48:34.186Z","level":"info","event":"child_spawn","name":"bonsai","pid":84851}
+✔ TC-034 bonsai.respond: while starting -> not_ready; child dying mid-request -> unavailable; stopped -> unavailable within 2 s (2043.782833ms)
+{"t":"2026-11-15T00:48:34.692Z","level":"info","event":"respond_done","ms":1,"reply_ms":1,"mood_ms":1,"lang":"en","mood_fallback":false,"history_n":0}
+{"t":"2026-11-15T00:48:34.692Z","level":"info","event":"child_ready","name":"bonsai","ms":507}
+{"t":"2026-11-15T00:48:34.698Z","level":"info","event":"child_spawn","name":"bonsai","pid":84881}
+✔ TC-035 bonsai warm-up sends respond("Hello", []) -- both the reply call and the mood call -- before the state is ready (512.121209ms)
+{"t":"2026-11-15T00:48:34.699Z","level":"warn","event":"child_exit","name":"bonsai","code":null,"signal":"SIGTERM","restarts":0}
+{"t":"2026-11-15T00:48:35.204Z","level":"info","event":"respond_done","ms":1,"reply_ms":1,"mood_ms":1,"lang":"en","mood_fallback":false,"history_n":0}
+{"t":"2026-11-15T00:48:35.205Z","level":"info","event":"child_ready","name":"bonsai","ms":508}
+✔ TC-036 bonsai llama-server arguments: loopback only, own port, -c 32768 -np 2, no web UI (510.204708ms)
+{"t":"2026-11-15T00:48:35.208Z","level":"warn","event":"child_exit","name":"bonsai","code":null,"signal":"SIGTERM","restarts":0}
+✔ TC-040 GET /api/health: 200 {ready: true, stt: "ready", bonsai: "ready"} after warm-up (3.41975ms)
+✔ TC-041 [FX-005] POST /api/transcribe: WER <= 0.15 against the reference text in all runs (4401.608167ms)
+✔ TC-042 [FX-006] POST /api/transcribe: WER <= 0.15 against the reference text in all runs (4036.940541ms)
+✔ TC-043 [FX-007] POST /api/transcribe: CER <= 0.15 against the reference text in all runs (4466.9355ms)
+✔ TC-044 [FX-005 FX-006 FX-007] transcript keeps the spoken language in every run (en/en/zh; 3/3 each, 6/6 for FX-006+FX-007); zh is Simplified (0.540209ms)
+✔ TC-045 [FX-008] 2 s of silence: 200 {"text": ""} exactly, on every call (3.419125ms)
+✔ TC-046 [FX-001] POST /api/respond: status, mood and reply property checks equal expected.json in all 3 runs (3644.03525ms)
+✔ TC-047 [FX-002] POST /api/respond: status, mood and reply property checks equal expected.json in all 3 runs (5151.43775ms)
+✔ TC-048 [FX-003] POST /api/respond: status, mood and reply property checks equal expected.json in all 3 runs (4824.7125ms)
+round 1: 9/10 misses=FX-004-05:pleasant-low!=neutral
+round 2: 9/10 misses=FX-004-05:pleasant-low!=neutral
+round 3: 9/10 misses=FX-004-05:pleasant-low!=neutral
+✔ TC-049 [FX-004] mood: in each of 3 rounds at least 8 of 10 lines get the labelled mood; every answer is 200 (45936.154042ms)
+✔ TC-050 [FX-004] reply language equals the language of the line in 30 of 30 replies (0.090291ms)
+✔ TC-051 [FX-004] REQ-005/A3 mixed-language lines: the reply follows the majority language of the line (3 runs each) (8992.864584ms)
+REQ-008 times (ms): 4797, 4900, 5017, 4706, 4918
+✔ TC-052 [FX-006] REQ-008: with 20 turns of history, the same spoken English line takes <= 10 s from audio to reply and mood, 5 times (24344.071709ms)
+✔ TC-053 POST /api/respond rejects malformed requests with 400 {"error":"bad_request"} (15.48425ms)
+✔ TC-054 respond boundaries: line 1500 chars ok, 1501 -> 400; padded line trimmed; 45-entry history ok (last 40 used); history text 1500 ok, 1501 -> 400 (14090.265834ms)
+✖ TC-055 bodies over the limits -> 413 {"error":"too_large"} (respond > 262144 B, transcribe > 2,000,000 B) (9.056292ms)
+✔ TC-056 POST /api/transcribe rejects non-seam audio with 400 bad_request: original 24 kHz Float32 hello.wav, stereo, 44.1 kHz, webm bytes, empty body, wrong content type (8.493458ms)
+✔ TC-057 [FX-006] REQ-001: a 60 s recording (1,920,044 bytes) is accepted and transcribed within the 12 s deadline (2843.597833ms)
+✔ TC-058 routes: unknown /api/* -> 404 bad_request; GET / serves the page; POST / -> 405; path traversal -> 404; /api/health is always 200 (17.246417ms)
+✔ TC-059 REQ-009: the server process and its children touch only loopback addresses (lsof -i -n -P) (101.4375ms)
+✔ TC-001 [FX-005 FX-006 FX-007] pcmFromWav returns exactly the data chunk of the seam-format fixtures (extra chunks allowed) (1.2375ms)
+✔ TC-002 [FX-008] pcmFromWav accepts the 2 s silence WAV: 64000 bytes of PCM (0.5415ms)
+✔ TC-003 pcmFromWav rejects every non-seam format with ApiError bad_request (400) (0.589125ms)
+✔ TC-004 pcmFromWav stays inside the buffer and returns an even byte count; accepts a LIST chunk before data (0.142ms)
+✔ TC-005 CODES and ApiError carry the six codes with their HTTP statuses (03 §3) (0.394708ms)
+{"t":"2026-11-15T00:48:01.097Z","level":"warn","event":"api_error","route":"/x","code":"not_ready","stage":"bonsai","err_name":"ApiError"}
+✔ TC-006 sendError passes an ApiError through; any other exception becomes 502 failed with no message in the body or log (15.481792ms)
+{"t":"2026-11-15T00:48:01.157Z","level":"warn","event":"api_error","route":"/x","code":"timeout","stage":"request","err_name":"ApiError"}
+✔ TC-007 sendError after headers were sent only destroys the response (writes no error body) (55.280916ms)
+✔ TC-008 languageOf: zhWords = ceil(han/2) vs English words; zh on ties; no letters or Han -> zh (0.535209ms)
+✔ TC-037 languageOf: DES-009 worked example "I love 火锅" -> en (zhWords 1 : words 2) (0.074417ms)
+✔ TC-009 shapeReply strips thinking, closed or unclosed, and wrapping quotes and whitespace (1.234083ms)
+✔ TC-010 shapeReply keeps at most 2 sentences and at most 1 question; emoji stay with their sentence (0.178542ms)
+✔ TC-011 shapeReply length caps: zh <= 120 code points, en <= 40 words; first sentence only, then cut with an ellipsis (0.544459ms)
+✔ TC-012 toMessages = system(REPLY_SYSTEM + LANG_RULE last) + history (companion -> assistant) + user line (0.1955ms)
+✔ TC-013 windowOf: last 40 entries, then drop oldest until total weight (length + 1.5 per Han) <= 2000 (0.314666ms)
+✔ TC-014 prompts: the 5 mood ids, mood schema enum, sampling parameters, language rules (0.074583ms)
+✔ TC-015 CONFIG: loopback host, limits, deadlines, restarts, defaults (0.095333ms)
+✔ TC-016 bonsaiFiles and missingFiles list every absent required path and nothing when all exist (1.703083ms)
+✔ TC-017 sources: no personal absolute path, no non-loopback bind, no network download; package.json scripts per DES-012 (0.536958ms)
+✔ TC-018 serveStatic: / -> index.html, content types, no-store, HEAD without body, 404 for missing, 405 for other methods (5.061666ms)
+✔ TC-019 serveStatic never leaves the web root: /../x, /%2e%2e/x and encoded variants -> 404 (2.008583ms)
+✔ TC-020 [FX-008] isNothingHeard is true only for the empty string (0.500292ms)
+✔ TC-038 missingHints: one line per kind of missing file (stt bin / Bonsai / WhisperKit), in that order; [] -> [] (0.244625ms)
+ℹ tests 58
+ℹ suites 1
+ℹ pass 57
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 122943.305041
+
+✖ failing tests:
+
+test at tests/server-live.test.js:13:43
+✖ TC-055 bodies over the limits -> 413 {"error":"too_large"} (respond > 262144 B, transcribe > 2,000,000 B) (9.056292ms)
+  TypeError: fetch failed
+      at node:internal/deps/undici/undici:16416:13
+      at async call (file:///Users/apple/Desktop/Hackathon/Local_AI_Hackathon/tests/server-helpers.js:117:13)
+      at async TestContext.<anonymous> (file:///Users/apple/Desktop/Hackathon/Local_AI_Hackathon/tests/server-live.test.js:207:13)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    [cause]: Error: write ECONNRESET
+        at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+        at writevGeneric (node:internal/stream_base_commons:142:3)
+        at Socket._writeGeneric (node:net:964:11)
+        at Socket._writev (node:net:973:8)
+        at doWrite (node:internal/streams/writable:594:12)
+        at clearBuffer (node:internal/streams/writable:773:5)
+        at Writable.uncork (node:internal/streams/writable:529:7)
+        at AsyncWriter.write (node:internal/deps/undici/undici:8034:16)
+        at writeIterable (node:internal/deps/undici/undici:7953:23)
+        at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {
+      errno: -54,
+      code: 'ECONNRESET',
+      syscall: 'write'
+    }
+  }

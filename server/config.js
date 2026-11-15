@@ -33,7 +33,7 @@ export const CONFIG = Object.freeze({
       || join(HF, 'models', 'argmaxinc', 'whisperkit-coreml', 'openai_whisper-large-v3-v20240930_626MB'),
     tokenizerDir: process.env.STT_TOKENIZER_DIR || HF,
   },
-  limits: { lineChars: 1500, historyEntries: 40, historyTextChars: 1500, historyBudgetChars: 6000, jsonBytes: 262144, wavBytes: 2000000 },
+  limits: { lineChars: 1500, historyEntries: 40, historyTextChars: 1500, historyBudget: 2000, jsonBytes: 262144, wavBytes: 2000000 },
   deadlines: { respondMs: 15000, transcribeMs: 12000, sttBootMs: 600000, bonsaiBootMs: 60000 },
   restarts: { max: 5, delayMs: 2000 },
 });
@@ -55,4 +55,18 @@ export function missingFiles(cfg = CONFIG) {
     join(cfg.stt.tokenizerDir, 'models', 'openai', 'whisper-large-v3', 'tokenizer.json'),
   ];
   return required.filter((p) => !existsSync(p));
+}
+
+const HINTS = {
+  setup: '联网时运行一次 Run once while online: npm run setup',
+  bonsai: 'Bonsai 文件不在：放回比赛提供的 samples/bonsai-models/，或把 BONSAI_MODEL 设为已有的大小 Bonsai file missing: restore samples/bonsai-models/ from the hackathon kit, or set BONSAI_MODEL to a size you have',
+  whisper: 'WhisperKit 模型不在：把已下载的模型放到上面的路径，或设 STT_MODEL_DIR / STT_TOKENIZER_DIR（setup 不下载模型） WhisperKit model missing: put the downloaded model at the path above, or set STT_MODEL_DIR / STT_TOKENIZER_DIR (setup does not download models)',
+};
+
+// One hint per kind of missing path, in the order setup, Bonsai, WhisperKit. Classifies by path only.
+export function missingHints(missing, cfg = CONFIG) {
+  const { bin, model } = bonsaiFiles(cfg);
+  const kind = (p) => (p === cfg.stt.bin ? 'setup' : p === bin || p === model ? 'bonsai' : 'whisper');
+  const kinds = new Set(missing.map(kind));
+  return ['setup', 'bonsai', 'whisper'].filter((k) => kinds.has(k)).map((k) => HINTS[k]);
 }

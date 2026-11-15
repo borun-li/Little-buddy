@@ -37,12 +37,22 @@
 ## Design gaps found
 | # | DES / REQ | Gap | How it was resolved (architect amendment / assumption made) |
 |---|---|---|---|
-| 1 | DES-007 `windowOf`, DES-002 `historyBudgetChars: 6000`; REQ-011, REQ-004 | A cold request at the 6000-char budget takes 14.3 s or hits the 15 s deadline (2/3 runs 504) on 9B. The design bounded the window by context size (8k < 16384 tokens), not by latency. A user reaches it with long turns (e.g. a few 60 s voice turns of ~1000 chars each). REQ-008 (≤ 20 turns of normal chat, ~1300–1500 chars) is met. | Not resolved: returned to the architect (`blocked_on`). Built as designed. Options seen: a smaller budget (the measured normal 20 turns use ~1500 chars), a block-wise window so the prefix stays cached, or `BONSAI_MODEL=4B`. |
-| 2 | DES-009 | Rule vs example contradict: rule "`han > 0 && han >= words` → zh" with words = `/[A-Za-z]+/g` gives "I love 火锅" = 2 Han : 2 words → **zh**; the example says "I love 火锅 → en（3:2）". | Built the stated rule (gives zh). be-tester's TC-037 encodes the example and fails. Architect decides which one is meant (`blocked_on`). |
-| 3 | DES-001 step 1 | The missing-file hint is always "联网时运行一次 `npm run setup`", but setup only builds `stt/` and warms; it cannot supply a missing gguf (e.g. `BONSAI_MODEL=2B`, not in `samples/`) or WhisperKit model folder. | Built as designed; the printed path still names the file. Architect may split the hint per file kind. |
+| 1 | DES-007 `windowOf`, DES-002 `historyBudgetChars: 6000`; REQ-011, REQ-004 | A cold request at the 6000-char budget takes 14.3 s or hits the 15 s deadline (2/3 runs 504) on 9B. The design bounded the window by context size (8k < 16384 tokens), not by latency. A user reaches it with long turns (e.g. a few 60 s voice turns of ~1000 chars each). REQ-008 (≤ 20 turns of normal chat, ~1300–1500 chars) is met. | Resolved by be-architect #3 (03 DES-002/007: weighted budget 2000); built in round 3. |
+| 2 | DES-009 | Rule vs example contradict: rule "`han > 0 && han >= words` → zh" with words = `/[A-Za-z]+/g` gives "I love 火锅" = 2 Han : 2 words → **zh**; the example says "I love 火锅 → en（3:2）". | Resolved by be-architect #3 (03 DES-009: ceil(han/2), "I love 火锅" → en); built in round 3. |
+| 3 | DES-001 step 1 | The missing-file hint is always "联网时运行一次 `npm run setup`", but setup only builds `stt/` and warms; it cannot supply a missing gguf (e.g. `BONSAI_MODEL=2B`, not in `samples/`) or WhisperKit model folder. | Resolved by be-architect #3 (03 DES-002 `missingHints`); built in round 3. |
 
 ## Fix rounds
-(none yet)
+### Round 2 — trigger: gate p4 CTX.codemap
+| Item | Action | Result |
+|---|---|---|
+| CTX.codemap | `docs/codemap.md` line 46: backticks dropped around the process name companion-stt (read as a path) | gatelib parser replayed: 0 missing paths |
+
+### Round 3 — trigger: be-architect #3 amendment of 03 (design gaps 1–3), user approved round 3 (2026-11-15)
+| Item | Action | Result |
+|---|---|---|
+| Gap 1 · DES-002/007 | `server/config.js` limits `historyBudget: 2000` replaces `historyBudgetChars: 6000`; `server/bonsai.js` windowOf drops the oldest until Σ weight ≤ 2000, weight = length + 1.5 × hanCount | design examples: 40 × 200 'x' → 10; 10 × 200 'x' → 10; 21 × '好'×40 → 20; 5 × 1500 → 1; one 2001-char entry → [] (node eval, `be-developer-1-round3.log`). Cold 20-turn (40 entries, unique prefix) on restarted instance A: en 4362 ms, zh 5485 ms, both history_n 40, status 200 (`be-developer-1-round3.log`) |
+| Gap 2 · DES-009 | `server/lang.js` exports `hanCount`; zh when han > 0 and ceil(han/2) ≥ English words (tie → zh) | 我今天很happy → zh, I love 火锅 → en, 嗯 ok → zh, I feel 难过 today → en, emoji/digits only → zh; `tests/server-unit.test.js` 22/22 pass (be-tester's file, run read-only) |
+| Gap 3 · DES-001/002 | `server/config.js` `missingHints(missing, cfg)` (by path only, order setup → Bonsai → WhisperKit, zh + en); `server/main.js` prints each missing path then each hint | `BONSAI_MODEL=2B` → only the Bonsai line; plus `STT_MODEL_DIR=/nonexistent` → Bonsai + WhisperKit lines; [] → [] (`be-developer-1-round3.log`) |
 
 ## Notes for maintainers
 - Run your own instance on free ports (`PORT`, `BONSAI_PORT`); 4317 is the user's preview. `server/main.js` exits 1 with the variable name when a port is taken.

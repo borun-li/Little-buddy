@@ -4,7 +4,7 @@ import { createServer } from 'node:http';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createBonsai } from './bonsai.js';
-import { CONFIG, missingFiles } from './config.js';
+import { CONFIG, missingFiles, missingHints } from './config.js';
 import { ApiError, sendError } from './errors.js';
 import { log } from './log.js';
 import { serveStatic } from './static.js';
@@ -135,7 +135,7 @@ export async function main(argv) {
       log('error', 'missing_file', { path });
       say(`缺少文件 Missing: ${path}`);
     }
-    say('联网时运行一次 Run once while online: npm run setup');
+    for (const hint of missingHints(missing)) say(hint);
     process.exit(1);
   }
   if (await portAnswers(CONFIG.bonsai.port)) {
