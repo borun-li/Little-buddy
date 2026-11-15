@@ -63,6 +63,13 @@
 
 Not re-run here: FX-004 and the context cases after the prompt change (DES-010 step 2) — be-architect #4 measured them with RECALL (`be-architect-4-context.log`: FX-002 34/34, FX-003 29/30, FX-004 mood 9/10 ×2); the live re-run belongs to be-tester's TC-081 / TC-049..051 pass. No deviation from 03 this round.
 
+### Round 5 (step 5, be-developer #2 round 2) — trigger: gate p5 CMD.test (`npm test` did not run the backend suites)
+| Item | Action | Result |
+|---|---|---|
+| CMD.test | `package.json` `test` script replaced by be-tester #3's draft line, copied verbatim (`p5-r3/package.tester.json` in the session scratchpad); nothing else in the file changed (diff vs draft empty, 1 line vs HEAD). It now sets `COMPANION_URL=${COMPANION_URL:-http://127.0.0.1:4400}` and appends `tests/server-unit.test.js tests/server-fakes.test.js tests/server-live.test.js` to the same junit run (`test-results/junit.xml`); `tests/server-boot.test.js` stays in `test:backend` only | `npm test` against instance A (node 91736): 142 tests, 141 pass, 1 fail: TC-052 (times ms 6071, 7582, 8555, 9695, 11027; the 5th is over 10 s). The user accepted TC-052 as a known issue (2026-11-15), so it was left unfixed. Evidence: `be-developer-2-r2-npm-test.log` |
+
+Why a package.json change and not a design item: 03 DES-012 owns the package.json scripts. The gate reads the project test command, and the line came from be-tester as a draft because package.json belongs to be-developer. `npm test` now needs a live instance on 4400 (or `COMPANION_URL`) for the server-live suite.
+
 ## Notes for maintainers
 - Run your own instance on free ports (`PORT`, `BONSAI_PORT`); 4317 is the user's preview. `server/main.js` exits 1 with the variable name when a port is taken.
 - Importing `server/main.js` does not start the server (entry-point guard), so tests can import `parseTurn`, `readBody`, `route`.

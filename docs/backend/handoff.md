@@ -59,17 +59,18 @@ Decided: risk normal (user, kickoff); 9B, setup step, argmax-oss-swift 1.1.1, po
 Open: Plan answers (design + 4 decisions, fixtures FX-001..008 lock, DFB-005, defaults in state.json open_questions).
 Next: on yes → gate.py fixtures-approve --by user; log human --stop Plan; Phase 4 build: baseline, mark be-tester then be-developer, dispatch be-developer (DES-001..012, build order 03 §8; stt first for the ~390 s warm-up) and be-tester (plan) in one message; frontend rows Q-015/016/017/013/019 can follow once backend writer is back (one team's writers at a time).
 
-## be-developer #2 · step 5 (fix) · round 1 · 2026-11-15T02:39:42Z
-Task: implement be-architect #4's revision (RECALL in server/prompts.js, toMessages last message per DES-008) for TC-081; restart instance A.
-Changed: server/prompts.js (+7/-0) — exports RECALL {en, zh} (03 DES-010 verbatim); server/bonsai.js (+4/-2) — toMessages appends `\n` + RECALL[lang](newest window user text) to the last user message, line alone when the window has no user entry; docs/backend/08-implementation-log.md (Fix rounds § Round 4); docs/codemap.md (server/ traps line).
-Result: npm test 84/84; backend unit+fakes 36/38, TC-012 and TC-031 red only on the old `last content === line` expectation (be-tester updates them); FX-002 curl on new instance A names the internship — evidence: docs/backend/logs/be-developer-2-npm-test.log, docs/backend/logs/be-developer-2-unit-fakes.log, docs/backend/08-implementation-log.md § Round 4
+## be-developer #2 · step 5 (fix) · round 2 · 2026-11-15T03:01:53Z
+Task: CMD.test wiring: `npm test` (gate p5, junit test-results/junit.xml) runs the backend suites; be-tester #3's `test` line copied verbatim into package.json. Round 1 (same agent) added RECALL to server/prompts.js and the DES-008 toMessages change to server/bonsai.js.
+Changed: package.json (+1/-1) — `test` sets COMPANION_URL (default http://127.0.0.1:4400) and adds server-unit, server-fakes, server-live to the one junit run (server-boot stays in test:backend); docs/backend/08-implementation-log.md (Fix rounds § Round 5). Round 1: server/prompts.js (+7/-0), server/bonsai.js (+4/-2), docs/codemap.md.
+Result: npm test 142 tests, 141 pass, 1 fail (TC-052: 6071/7582/8555/9695/11027 ms, 5th over 10 s; a user-accepted known issue, not fixed) — evidence: docs/backend/logs/be-developer-2-r2-npm-test.log
 Next agent must know:
-- Pitfalls: instance A is now node 91736 (stt 91742, llama 91743) on PORT=4400 BONSAI_PORT=4401, PID in the session scratchpad server.pid, log docs/backend/logs/be-developer-2-server.log; stop only 91736. stt cold load took 78.7 s this boot.
-- Pitfalls: fixture input.json wraps the request in {endpoint, content_type, body}; POST only .body (posting the whole file gives 400 bad_request).
+- Pitfalls: instance A is node 91736 (stt 91742, llama 91743) on PORT=4400 BONSAI_PORT=4401, PID in the session scratchpad server.pid, log docs/backend/logs/be-developer-2-server.log; stop only 91736.
+- Pitfalls: npm test now takes ~150 s and needs instance A ready (server-live probes /api/health for up to COMPANION_READY_MS 130 s, then skips); behaviour with 4400 down not run.
+- Pitfalls: fixture input.json wraps the request in {endpoint, content_type, body}; POST only .body.
 - Tried, did not work: nothing.
-- Left open: TC-012, TC-031 expectations and the TC-073 allow-list (be-tester); live re-run of TC-081 and FX-004 with RECALL (be-tester).
-Read beyond the list: tests/fixtures/approved/FX-002/input.json — curl body.
-Next agent reads: server/bonsai.js:25-33 (toMessages); server/prompts.js RECALL; docs/backend/03-detailed-design.md DES-008, DES-010
+- Left open: TC-050/052/055 known issues (user accepted 2026-11-15); only TC-052 failed in this run.
+Read beyond the list: tests/server-helpers.js:99 (probeLive skip rule).
+Next agent reads: package.json `test`; docs/backend/08-implementation-log.md § Round 5
 ## fe-tester #5 · step 4 (FE4.capture recapture) · round 4 · increment 1 · 2026-11-15T09:00:00Z
 Task: re-point docs/frontend/04-verification.md to evidence/verify-3/manifest.md and confirm the 19 verdicts against the verify-3 files.
 Changed: docs/frontend/04-verification.md only (header, round note, Q-010 row). Verdicts: done 7 (Q-001, 002, 003, 005, 008, 015, 017), not observable 12. Q-010 done to not observable: in verify-3 the sad follow-up reply does not show recall of the first line (mood and English reply do hold).
