@@ -1,0 +1,10 @@
+{"t":"2026-11-15T00:11:31.897Z","level":"info","event":"child_spawn","name":"stt","pid":50551}
+{"t":"2026-11-15T00:11:31.899Z","level":"info","event":"child_spawn","name":"bonsai","pid":50552}
+启动中 Starting (stt pid 50551, bonsai pid 50552)…
+companion-stt: load_ms=867 warm_ms=675
+{"t":"2026-11-15T00:11:33.443Z","level":"info","event":"stt_warm","load_ms":867,"warm_ms":675}
+{"t":"2026-11-15T00:11:33.444Z","level":"info","event":"child_ready","name":"stt","ms":1547}
+{"t":"2026-11-15T00:11:35.763Z","level":"info","event":"respond_done","ms":2854,"reply_ms":2734,"mood_ms":2854,"lang":"en","mood_fallback":false,"history_n":0}
+{"t":"2026-11-15T00:11:35.763Z","level":"info","event":"child_ready","name":"bonsai","ms":3865}
+{"t":"2026-11-15T00:11:35.917Z","level":"info","event":"ready","url":"http://127.0.0.1:4400","boot_ms":4027}
+就绪 Ready: http://127.0.0.1:4400

@@ -1,0 +1,13 @@
+[1/1] Compiling plugin GenerateManual
+[2/2] Compiling plugin GenerateDoccReference
+Building for production...
+[2/8] Write sources
+[5/8] Write swift-version--1AB21518FC5DEDBE.txt
+[7/9] Compiling ArgmaxCore ArgmaxCoreError.swift
+[8/10] Compiling WhisperKit AudioChunker.swift
+[9/11] Compiling companion_stt main.swift
+[9/11] Write Objects.LinkFileList
+[10/11] Linking companion-stt
+Build complete! (50.22s)
+swift build -c release --package-path stt  53.32s user 3.71s system 111% cpu 51.014 total
+exit=0

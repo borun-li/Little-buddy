@@ -1,9 +1,9 @@
 # Code map
 
-Created by fe-engineer #1, 2026-11-14; rewritten by fe-engineer #3 (Phase 2b) with the real layout. Plan: `docs/frontend/03-queue.md` § Scaffold. Start: npm start → http://localhost:4317 (also http://127.0.0.1:4317). Test: npm test.
+Created by fe-engineer #1, 2026-11-14; rewritten by fe-engineer #3 (Phase 2b) with the real layout. Plan: `docs/frontend/03-queue.md` § Scaffold. Start: npm run setup once while online (builds `stt/`, warms both models), then npm start → http://127.0.0.1:4317 (PORT, BONSAI_PORT override; offline). Test: npm test. Backend map entries added by be-developer #1, 2026-11-14.
 
 ## `web/`
-Does: the companion page, static files served by `package.json` script start (python3 http.server, 127.0.0.1:4317). No build step, no npm dependency.  Entry: `web/index.html`, `web/js/app.js`  Used by: the browser; demo capture via `docs/frontend/demo-plan.json`
+Does: the companion page, static files served by `server/static.js` (npm start, 127.0.0.1:4317). No build step, no npm dependency.  Entry: `web/index.html`, `web/js/app.js`  Used by: the browser; demo capture via `docs/frontend/demo-plan.json`
 Invariants: no request to any host but localhost (REQ-008); hooks data-testid fake-input (input), reply (latest companion reply only, none at open), companion with data-mood in the 5 mood ids; mood changes when the reply appears, never at send.  Tests: `tests/offline.test.js`
 Traps: `web/index.html` holds the 5 companion SVGs inline as <template id="mood-<mood>">, copied from `docs/frontend/evidence/design/companion/` with every id prefixed <mood>-- (ids repeat across the exports); re-copy by hand if fe-ui re-exports; `tests/companion.test.js` turns red when a copy is stale. Icons are an inline Lucide sprite (#i-mic, #i-mic-off, #i-info, #i-lock) with the ISC/MIT notice in a comment. No autofocus attribute: app.js focuses the input.
 
@@ -36,6 +36,16 @@ Invariants: prefers-reduced-motion: reduce stops every animation; .tab-hidden (s
 ## `web/fonts/`
 Does: `web/fonts/lxgw-wenkai-subset.woff2` (LXGW WenKai Regular v1.522, 7,233 glyphs, 1.58 MB: ASCII, punctuation, GB2312 hanzi, every preset and copy character) and `web/fonts/OFL.txt`.  Built by: `tools/subset-font.sh` (argument: path to LXGWWenKai-Regular.ttf) (fonttools + brotli); the TTF is not committed.
 Traps: rerun the script after adding preset or copy characters outside GB2312.
+
+## `server/`
+Does: Node gateway, no npm dependency (03 DES-001..010): serves `web/`, GET /api/health, POST /api/respond, POST /api/transcribe; supervises two children (companion-stt, llama-server).  Entry: `server/main.js`:main  Used by: npm start, npm run setup (--warm-only); the page via `web/js/companion-client.js`
+Invariants: listens on 127.0.0.1 only; error bodies are {"error": code} with the 6 codes of `server/errors.js`:CODES (unknown /api/* → 404 bad_request); stdout is one JSON log line per event and never carries line, history, reply, transcript or audio; deadlines respond 15 s, transcribe 12 s (`server/config.js`:CONFIG); stops only the PIDs it spawned.  Tests: `tests/server-unit.test.js`, `tests/server-fakes.test.js`, `tests/server-boot.test.js`, `tests/server-live.test.js` (be-tester)
+Traps: importing `server/main.js` does not start it (entry guard). llama-server is started directly, never via `samples/bonsai-models/gguf/start.sh` (that script downloads). Every Bonsai request carries the sampling params and enable_thinking false (`server/bonsai.js`:post). The mood call falls back to neutral; only the reply call can fail a turn. `server/log.js` is the JSON logger.
+
+## `stt/`
+Does: Swift package companion-stt (argmax-oss-swift 1.1.1 exact): resident WhisperKit transcriber, stdin {"id","pcm16"} line → stdout {"id","text","lang","ms"} or {"id","error"}; first line {"event":"ready"}.  Entry: `stt/Sources/CompanionSTT/main.swift`  Used by: `server/stt.js`
+Invariants: WhisperKitConfig download false with explicit model and tokenizer folders (never online); energy gate (≥ 3 frames of 0.1 s with RMS > 0.02) before decoding, since 1.1.1 hard-codes noSpeechProb 0; zh output goes through ICU Hant-Hans; audio stays in memory.
+Traps: build with `swift build -c release --package-path stt`; a new binary's first model load can take minutes (ANE compile; 53 s measured 2026-11-14 with models already compiled by whisperkit-cli), so leave stt sources alone unless needed. Non-JSON stdout lines are ignored by `server/stt.js`.
 
 ## `tests/`
 Does: node:test unit tests: `tests/mood.test.js`, `tests/fake-companion.test.js`, `tests/offline.test.js`, `tests/companion.test.js` (inlined art = export, every §7 part animated and present, reduced-motion block).  Entry: npm test (files named one by one; a glob matching nothing exits 0). JUnit at test-results/junit.xml (git-ignored).

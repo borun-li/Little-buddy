@@ -1,0 +1,68 @@
+{"id":"FX-001","run":1,"want_mood":"pleasant-high","status":200,"ms":1587,"reply":"That is amazing news! I am so excited for you.","mood":"pleasant-high","lang":"en","sentences":2,"questions":0,"size":10,"think":false}
+{"id":"FX-001","run":2,"want_mood":"pleasant-high","status":200,"ms":3319,"reply":"That is amazing news! Congratulations on your new internship.","mood":"pleasant-high","lang":"en","sentences":2,"questions":0,"size":9,"think":false}
+{"id":"FX-001","run":3,"want_mood":"pleasant-high","status":200,"ms":4375,"reply":"That is amazing news! 🎉 You worked so hard for this.","mood":"pleasant-high","lang":"en","sentences":2,"questions":0,"size":11,"think":false}
+{"id":"FX-002","run":1,"want_mood":"unpleasant-low","status":200,"ms":3038,"reply":"I remember your excitement earlier; this is a tough trade-off though. It's okay to feel sad while still being thrilled!","mood":"unpleasant-low","lang":"en","sentences":2,"questions":0,"size":20,"think":false}
+{"id":"FX-002","run":2,"want_mood":"unpleasant-low","status":200,"ms":2574,"reply":"It's totally normal to feel sad when leaving everyone you love behind. You've got this!","mood":"unpleasant-low","lang":"en","sentences":2,"questions":0,"size":15,"think":false}
+{"id":"FX-002","run":3,"want_mood":"unpleasant-low","status":200,"ms":4314,"reply":"Oh no, that sounds so tough given how excited you were about the internship earlier. Do you think moving will make you miss them less?","mood":"unpleasant-low","lang":"en","sentences":2,"questions":1,"size":25,"think":false}
+{"id":"FX-003","run":1,"want_mood":"any","status":200,"ms":3994,"reply":"别难过嘛，刚才的开心还在呢。今晚好好睡一觉，明天又是新的一天啦！","mood":"unpleasant-low","lang":"zh","sentences":2,"questions":0,"size":32,"think":false}
+{"id":"FX-003","run":2,"want_mood":"any","status":200,"ms":2753,"reply":"别难过呀，刚才的开心没被毁掉呢。朋友之间偶尔有摩擦很正常，要不要聊聊怎么回事？","mood":"unpleasant-low","lang":"zh","sentences":2,"questions":1,"size":39,"think":false}
+{"id":"FX-003","run":3,"want_mood":"any","status":200,"ms":3865,"reply":"没关系，小矛盾也会过去的。你和朋友之间能这样坦诚沟通，其实挺好的呀？","mood":"unpleasant-low","lang":"zh","sentences":2,"questions":1,"size":34,"think":false}
+{"id":"FX-004-01","round":1,"want":"pleasant-high","status":200,"ms":3461,"reply":"太棒了！真为你高兴，终于松了口气。","mood":"pleasant-high","lang":"zh","sentences":2,"questions":0,"size":17,"think":false}
+{"id":"FX-004-02","round":1,"want":"unpleasant-low","status":200,"ms":3430,"reply":"抱抱你，被朋友气到了真不好受啊。要不要跟我聊聊发生什么事？","mood":"unpleasant-low","lang":"zh","sentences":2,"questions":1,"size":29,"think":false}
+{"id":"FX-004-03","round":1,"want":"unpleasant-high","status":200,"ms":3526,"reply":"抱抱你，汇报只是工作的一部分，放松一下也能做出来。需要我帮你梳理思路吗？","mood":"unpleasant-high","lang":"zh","sentences":2,"questions":1,"size":36,"think":false}
+{"id":"FX-004-04","round":1,"want":"pleasant-low","status":200,"ms":2862,"reply":"太棒了，好好喝杯茶确实能让人心情变好。你今天是在忙碌之后还是特意给自己留下的时间？","mood":"pleasant-low","lang":"zh","sentences":2,"questions":1,"size":41,"think":false}
+{"id":"FX-004-05","round":1,"want":"neutral","status":200,"ms":2605,"reply":"终于回家啦！好好放松一下。","mood":"pleasant-low","lang":"zh","sentences":2,"questions":0,"size":13,"think":false}
+{"id":"FX-004-06","round":1,"want":"pleasant-high","status":200,"ms":3296,"reply":"That is absolutely amazing news! I am so excited for you.","mood":"pleasant-high","lang":"en","sentences":2,"questions":0,"size":11,"think":false}
+{"id":"FX-004-07","round":1,"want":"unpleasant-low","status":200,"ms":3962,"reply":"I hear how sad this feels, moving away without your friends is tough. Do you think there's someone new who might become like them?","mood":"unpleasant-low","lang":"en","sentences":2,"questions":1,"size":24,"think":false}
+{"id":"FX-004-08","round":1,"want":"unpleasant-high","status":200,"ms":3307,"reply":"That's totally normal! You've got this; maybe just take some deep breaths?","mood":"unpleasant-high","lang":"en","sentences":2,"questions":1,"size":12,"think":false}
+{"id":"FX-004-09","round":1,"want":"pleasant-low","status":200,"ms":3196,"reply":"That sounds perfect! A warm drink is always great for unwinding.","mood":"pleasant-low","lang":"en","sentences":2,"questions":0,"size":11,"think":false}
+{"id":"FX-004-10","round":1,"want":"neutral","status":200,"ms":3324,"reply":"Welcome home! How was your day?","mood":"neutral","lang":"en","sentences":2,"questions":1,"size":6,"think":false}
+{"tag":"FX-004 round 1","mood_ok":9,"lang_ok":10,"of":10}
+{"id":"FX-004-01","round":2,"want":"pleasant-high","status":200,"ms":4004,"reply":"太棒了！恭喜你顺利通过考试。","mood":"pleasant-high","lang":"zh","sentences":2,"questions":0,"size":14,"think":false}
+{"id":"FX-004-02","round":2,"want":"unpleasant-low","status":200,"ms":4037,"reply":"抱抱你，有时候朋友之间的争吵确实让人心碎。要不要跟我说说发生了什么？","mood":"unpleasant-low","lang":"zh","sentences":2,"questions":1,"size":34,"think":false}
+{"id":"FX-004-03","round":2,"want":"unpleasant-high","status":200,"ms":3308,"reply":"抱抱你，汇报虽然重要但一定能准备好的。别太担心，深呼吸就好啦？","mood":"unpleasant-high","lang":"zh","sentences":2,"questions":1,"size":31,"think":false}
+{"id":"FX-004-04","round":2,"want":"pleasant-low","status":200,"ms":2635,"reply":"好呀，享受这份宁静吧！你想聊点轻松的话题吗？","mood":"pleasant-low","lang":"zh","sentences":2,"questions":1,"size":22,"think":false}
+{"id":"FX-004-05","round":2,"want":"neutral","status":200,"ms":2830,"reply":"欢迎回家呀，累了吗？","mood":"pleasant-low","lang":"zh","sentences":1,"questions":1,"size":10,"think":false}
+{"id":"FX-004-06","round":2,"want":"pleasant-high","status":200,"ms":4331,"reply":"That is such amazing news! I'm so proud of you.","mood":"pleasant-high","lang":"en","sentences":2,"questions":0,"size":10,"think":false}
+{"id":"FX-004-07","round":2,"want":"unpleasant-low","status":200,"ms":3813,"reply":"That sounds incredibly hard, leaving your friends behind must feel like a huge loss. Are there any memories or things you can carry with you that will help keep them close?","mood":"unpleasant-low","lang":"en","sentences":2,"questions":1,"size":31,"think":false}
+{"id":"FX-004-08","round":2,"want":"unpleasant-high","status":200,"ms":2062,"reply":"That sounds tough! You've got this—just take it one slide at a time.","mood":"unpleasant-high","lang":"en","sentences":2,"questions":0,"size":13,"think":false}
+{"id":"FX-004-09","round":2,"want":"pleasant-low","status":200,"ms":3331,"reply":"That sounds wonderful! A warm drink is perfect for unwinding.","mood":"pleasant-low","lang":"en","sentences":2,"questions":0,"size":10,"think":false}
+{"id":"FX-004-10","round":2,"want":"neutral","status":200,"ms":2761,"reply":"Welcome home! Did you want to talk about what happened today?","mood":"neutral","lang":"en","sentences":2,"questions":1,"size":11,"think":false}
+{"tag":"FX-004 round 2","mood_ok":9,"lang_ok":10,"of":10}
+{"id":"FX-004-01","round":3,"want":"pleasant-high","status":200,"ms":3760,"reply":"太棒了！你的努力终于得到了回报，真为你高兴！","mood":"pleasant-high","lang":"zh","sentences":2,"questions":0,"size":22,"think":false}
+{"id":"FX-004-02","round":3,"want":"unpleasant-low","status":200,"ms":4192,"reply":"抱抱你，吵架真的很难受，是不是哪里委屈了？","mood":"unpleasant-low","lang":"zh","sentences":1,"questions":1,"size":21,"think":false}
+{"id":"FX-004-03","round":3,"want":"unpleasant-high","status":200,"ms":4872,"reply":"抱抱你，明天加油！只要把准备好的材料列出来，焦虑就会好很多，需要我帮你梳理一下思路吗？","mood":"unpleasant-high","lang":"zh","sentences":2,"questions":1,"size":43,"think":false}
+{"id":"FX-004-04","round":3,"want":"pleasant-low","status":200,"ms":2754,"reply":"喝好茶确实能让人心情变好，你是在什么特别的日子里放松呢？","mood":"pleasant-low","lang":"zh","sentences":1,"questions":1,"size":28,"think":false}
+{"id":"FX-004-05","round":3,"want":"neutral","status":200,"ms":2803,"reply":"终于到家啦，欢迎回家！今天累不累呀？","mood":"pleasant-low","lang":"zh","sentences":2,"questions":1,"size":18,"think":false}
+{"id":"FX-004-06","round":3,"want":"pleasant-high","status":200,"ms":4069,"reply":"That is amazing news! I am so excited for you.","mood":"pleasant-high","lang":"en","sentences":2,"questions":0,"size":10,"think":false}
+{"id":"FX-004-07","round":3,"want":"unpleasant-low","status":200,"ms":4273,"reply":"That sounds incredibly tough. How can I be your companion while you're moving?","mood":"unpleasant-low","lang":"en","sentences":2,"questions":1,"size":13,"think":false}
+{"id":"FX-004-08","round":3,"want":"unpleasant-high","status":200,"ms":5212,"reply":"That sounds tough! Do you want to practice your opening lines with me?","mood":"unpleasant-high","lang":"en","sentences":2,"questions":1,"size":13,"think":false}
+{"id":"FX-004-09","round":3,"want":"pleasant-low","status":200,"ms":5835,"reply":"That sounds lovely! How did your day go before you took that sip?","mood":"pleasant-low","lang":"en","sentences":2,"questions":1,"size":13,"think":false}
+{"id":"FX-004-10","round":3,"want":"neutral","status":200,"ms":1782,"reply":"Welcome home! How was your day?","mood":"neutral","lang":"en","sentences":2,"questions":1,"size":6,"think":false}
+{"tag":"FX-004 round 3","mood_ok":9,"lang_ok":10,"of":10}
+{"tag":"conv","turn":1,"history_sent":0,"history_chars":0,"status":200,"ms":5480,"mood":"neutral","lang":"en","reply":"Welcome back to your day! How's your morning feeling today?"}
+{"tag":"conv","turn":2,"history_sent":2,"history_chars":78,"status":200,"ms":7378,"mood":"unpleasant-low","lang":"zh","reply":"累是正常的呀，刚睡醒有时候就是这样。要不要喝杯温水？"}
+{"tag":"conv","turn":3,"history_sent":4,"history_chars":113,"status":200,"ms":9646,"mood":"unpleasant-low","lang":"en","reply":"That sounds tough after such a long night! Do you have any specific subjects you're dreading?"}
+{"tag":"conv","turn":4,"history_sent":6,"history_chars":237,"status":200,"ms":6443,"mood":"neutral","lang":"en","reply":"Math can be tricky sometimes, don't worry if it feels hard right now. Want to break it down into small steps together?"}
+{"tag":"conv","turn":5,"history_sent":8,"history_chars":368,"status":200,"ms":4747,"mood":"pleasant-low","lang":"zh","reply":"热乎的拉面真香呀！吃饱了感觉精神一点了吗？"}
+{"tag":"conv","turn":6,"history_sent":10,"history_chars":400,"status":200,"ms":9689,"mood":"neutral","lang":"zh","reply":"豚骨汤确实很滋补呢！喝完暖和又舒服。"}
+{"tag":"conv","turn":7,"history_sent":12,"history_chars":422,"status":200,"ms":6350,"mood":"unpleasant-low","lang":"en","reply":"Oh no, that must be frustrating after such a long day! Do you think he knows how much noise it disturbs your sleep?"}
+{"tag":"conv","turn":8,"history_sent":14,"history_chars":575,"status":200,"ms":2247,"mood":"pleasant-low","lang":"en","reply":"Glad you're feeling better despite the noise! Sleep well tonight if possible."}
+{"tag":"conv","turn":9,"history_sent":16,"history_chars":673,"status":200,"ms":2740,"mood":"neutral","lang":"zh","reply":"图书馆是个好地方，能静下心来吧？"}
+{"tag":"conv","turn":10,"history_sent":18,"history_chars":697,"status":200,"ms":1854,"mood":"neutral","lang":"zh","reply":"一半的进度已经很棒了！加油完成它。"}
+{"tag":"conv","turn":11,"history_sent":20,"history_chars":724,"status":200,"ms":2436,"mood":"neutral","lang":"en","reply":"That's so sweet! Did she ask about your day or the homework?"}
+{"tag":"conv","turn":12,"history_sent":22,"history_chars":800,"status":200,"ms":2158,"mood":"pleasant-high","lang":"en","reply":"That warms my heart to hear she misses you. Does that make you feel any better?"}
+{"tag":"conv","turn":13,"history_sent":24,"history_chars":906,"status":200,"ms":2695,"mood":"neutral","lang":"en","reply":"Glad that made you feel a bit better! It's wonderful to have someone who cares so much."}
+{"tag":"conv","turn":14,"history_sent":26,"history_chars":1008,"status":200,"ms":3239,"mood":"neutral","lang":"zh","reply":"今晚挑一部轻松的电影吧，放松一下心情。有什么类型的片喜欢？"}
+{"tag":"conv","turn":15,"history_sent":28,"history_chars":1045,"status":200,"ms":2432,"mood":"pleasant-low","lang":"zh","reply":"好的，那选部轻松愉快的喜剧吧！想不想聊聊电影名？"}
+{"tag":"conv","turn":16,"history_sent":30,"history_chars":1076,"status":200,"ms":3387,"mood":"neutral","lang":"en","reply":"That's great news! Did you hear back from them yet?"}
+{"tag":"conv","turn":17,"history_sent":32,"history_chars":1165,"status":200,"ms":2155,"mood":"neutral","lang":"en","reply":"A startup sounds like an exciting challenge! How did the interview go so far?"}
+{"tag":"conv","turn":18,"history_sent":34,"history_chars":1276,"status":200,"ms":4072,"mood":"unpleasant-high","lang":"zh","reply":"面试确实紧张，但你的准备肯定很充分，加油！"}
+{"tag":"conv","turn":19,"history_sent":36,"history_chars":1305,"status":200,"ms":2106,"mood":"pleasant-low","lang":"zh","reply":"不客气呀，随时都在呢！"}
+{"tag":"conv","turn":20,"history_sent":38,"history_chars":1324,"status":200,"ms":3031,"mood":"neutral","lang":"en","reply":"Ready whenever you are! Just focus on the math one step at a time."}
+{"tag":"conv","turn":21,"history_sent":40,"history_chars":1417,"status":200,"ms":2410,"mood":"pleasant-high","lang":"en","reply":"That is absolutely amazing news! Congratulations on getting the software engineering internship!"}
+{"tag":"conv","turn":22,"history_sent":40,"history_chars":1461,"status":200,"ms":8761,"mood":"unpleasant-low","lang":"zh","reply":"虽然拿到了实习的好消息，但朋友之间的争执确实让人难过。先别自责，等心情平复了再聊聊吧？"}
+{"tag":"conv","turn":23,"history_sent":40,"history_chars":1485,"status":200,"ms":7355,"mood":"pleasant-low","lang":"en","reply":"That makes you feel better! It's great that you both resolved it."}
+{"tag":"conv","turn":24,"history_sent":40,"history_chars":1460,"status":200,"ms":8649,"mood":"pleasant-low","lang":"zh","reply":"泡茶确实很惬意！这种放松的感觉能帮你更好地准备明天要做的实习面试吗？"}
+{"tag":"conv","turn":25,"history_sent":40,"history_chars":1377,"status":200,"ms":9088,"mood":"unpleasant-high","lang":"en","reply":"That's totally normal! Take a deep breath, you've got this."}
+{"tag":"conv","turn":26,"history_sent":40,"history_chars":1466,"status":200,"ms":9534,"mood":"pleasant-low","lang":"zh","reply":"欢迎回家！好好休息，明天的Presentation 加油！"}

@@ -1,0 +1,38 @@
+$ npm test
+
+> test
+> mkdir -p test-results && node --test --test-reporter=spec --test-reporter-destination=stdout --test-reporter=junit --test-reporter-destination=test-results/junit.xml tests/mood.test.js tests/fake-companion.test.js tests/offline.test.js tests/companion.test.js
+
+✔ Q-003 each mood template is its current SVG export with every id prefixed "<mood>--" (1.279ms)
+✔ Q-003 ids are unique across the five inlined moods (0.475334ms)
+✔ DFB-003 every part id named in companion.css exists in that mood's art (0.184208ms)
+✔ DFB-003 every part §7 moves has an animation, per mood (0.471541ms)
+✔ REQ-006 reduced motion stops every companion animation and the glow transition (0.133375ms)
+✔ Q-005 respond returns the line mood and a reply from that mood (5.058625ms)
+✔ Q-005 REQ-003 the default layer replies within 1 s (601.368875ms)
+✔ Q-005 A3 at least 2 replies per mood, each <= 2 sentences, <= 1 question, <= 120 chars (1.412625ms)
+✔ Q-005 A3 never the same reply twice in a row (16.605875ms)
+✔ Q-005 A1 transcribe walks the voice lines and covers all 5 moods (1.480084ms)
+✔ Q-005 REQ-007 app.js is the only importer of companion-client.js (1.90625ms)
+✔ Q-005 REQ-007 nothing outside companion-client.js and fake/ imports fake/ (0.606833ms)
+✔ Q-005 every keyword maps to its own mood (1.300417ms)
+✔ Q-005 the four keyword moods and neutral are the 5 demo mood ids (0.318042ms)
+✔ Q-005 no keyword -> neutral (0.070417ms)
+✔ Q-005 the last keyword in the line wins (0.0505ms)
+✔ Q-005 a longer keyword ending at the same place wins (不开心 is sad, not happy) (0.045625ms)
+✔ Q-005 demo lines: happy line smiles, sad line is sad (0.039458ms)
+✔ Q-006 REQ-008 there are page files to check (0.328334ms)
+✔ Q-006 REQ-008 no page file names a host other than localhost (1.119708ms)
+✔ Q-006 REQ-008 every src, href and CSS url() points to a local file that exists (0.705792ms)
+✔ Q-006 the voice font is the bundled WenKai subset, shipped with its licence (0.414625ms)
+✔ Q-006 icons referenced with <use href="#..."> are inline symbols (0.824958ms)
+ℹ tests 23
+ℹ suites 0
+ℹ pass 23
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 668.068458
+
+exit 0

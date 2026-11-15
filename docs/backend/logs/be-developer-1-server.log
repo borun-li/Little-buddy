@@ -1,0 +1,14 @@
+{"t":"2026-11-15T00:12:48.264Z","level":"info","event":"child_spawn","name":"stt","pid":51780}
+{"t":"2026-11-15T00:12:48.265Z","level":"info","event":"child_spawn","name":"bonsai","pid":51781}
+启动中 Starting (stt pid 51780, bonsai pid 51781)…
+companion-stt: load_ms=868 warm_ms=718
+{"t":"2026-11-15T00:12:49.854Z","level":"info","event":"stt_warm","load_ms":868,"warm_ms":718}
+{"t":"2026-11-15T00:12:49.855Z","level":"info","event":"child_ready","name":"stt","ms":1592}
+{"t":"2026-11-15T00:12:52.130Z","level":"info","event":"respond_done","ms":2855,"reply_ms":2734,"mood_ms":2855,"lang":"en","mood_fallback":false,"history_n":0}
+{"t":"2026-11-15T00:12:52.130Z","level":"info","event":"child_ready","name":"bonsai","ms":3865}
+{"t":"2026-11-15T00:12:52.290Z","level":"info","event":"ready","url":"http://127.0.0.1:4400","boot_ms":4035}
+就绪 Ready: http://127.0.0.1:4400
+{"t":"2026-11-15T00:14:57.374Z","level":"info","event":"respond_done","ms":1375,"reply_ms":1375,"mood_ms":1098,"lang":"en","mood_fallback":false,"history_n":0}
+{"t":"2026-11-15T00:14:59.256Z","level":"info","event":"respond_done","ms":1866,"reply_ms":1866,"mood_ms":1590,"lang":"en","mood_fallback":false,"history_n":2}
+companion-stt: id=1 ms=1345
+{"t":"2026-11-15T00:15:00.611Z","level":"info","event":"stt_done","ms":1345,"audio_ms":1505,"empty":false,"lang":"en"}

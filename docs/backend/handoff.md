@@ -69,3 +69,28 @@ State: p1 pass, p2 pass; frontend increment 1 gates fe-ux (user waiver FE1.flow-
 Decided: risk normal (user, kickoff); 9B, setup step, argmax-oss-swift 1.1.1, port 4317 = be-architect recommendations, pending user; DFB-004 by fe-ui #5; DFB-005 accepted by fe-ux #4 pending user; PAGE-001 increment block accepted as increment structure (orchestrator).
 Open: Plan answers (design + 4 decisions, fixtures FX-001..008 lock, DFB-005, defaults in state.json open_questions).
 Next: on yes → gate.py fixtures-approve --by user; log human --stop Plan; Phase 4 build: baseline, mark be-tester then be-developer, dispatch be-developer (DES-001..012, build order 03 §8; stt first for the ~390 s warm-up) and be-tester (plan) in one message; frontend rows Q-015/016/017/013/019 can follow once backend writer is back (one team's writers at a time).
+
+## be-tester #1 · Phase 4 (plan + tests) · round 1 · 2026-11-15T00:20:00Z
+Task: write 04-test-plan.md from 01 and 03 only, covering REQ-001..012 and FX-001..008, and implement the tests under tests/ so Phase 5 can run them.
+Changed: docs/backend/04-test-plan.md (new); tests/server-helpers.js, server-unit.test.js, server-fakes.test.js, server-live.test.js, server-boot.test.js, tests/support/fake-stt.cjs, fake-llama.cjs (new); package.json (+1 script line `test:backend`).
+Result: 62 automated TCs (TC-001..037, 040..059, 070..076) + 7 manual (TC-080..086). Trial run, not the Phase 5 run: `npm run test:backend` passed 53/56 on a first pass while a server answered on 127.0.0.1:4400 (live suite ran), boot suite skipped (needs COMPANION_BOOT=1). Since then TC-017 (my regex bug) and TC-008 (case moved) fixed; TC-037 fails by design (see below).
+Next agent must know:
+- Command: `npm run test:backend`; live needs COMPANION_URL (default http://127.0.0.1:4400; skips with reason if nothing answers, refuses 4317); boot suite `COMPANION_BOOT=1` starts its own server on free ports and stops only that PID.
+- Design contradiction (unresolved): DES-009 example "I love 火锅" -> en (3:2) vs its rule han>=words -> zh (2 Han, 2 words). The code follows the rule; TC-037 asserts the example and fails. Orchestrator / architect decide; TC-008/051 use unambiguous lines.
+- Pitfalls: replies land in test-results/backend-replies.jsonl for the manual TCs 080-082; the full live run takes ~4 min (FX-004 = 30 calls).
+- Left open: REQ-012 manual only (frontend); FX-005 text_reference [unverified].
+Read beyond the list: server/*.js was NOT read for the plan; only grepped in TC-017 and run in the trial.
+Next agent reads: docs/backend/04-test-plan.md §2, §6
+
+## be-developer #1 · Phase 4 (build) · round 2 · 2026-11-15T00:15:24Z
+Task: round 2 — CTX.codemap: `docs/codemap.md` had companion-stt in backticks (read as a path). Round 1: built DES-001..012 (03 §8).
+Changed: round 2: docs/codemap.md line 46 — backticks dropped around the process name companion-stt (nothing else). Round 1: server/ (11 files), stt/ (Package.swift, Package.resolved, Sources/CompanionSTT/main.swift), package.json (setup, start), docs/codemap.md (server/, stt/), docs/backend/08-implementation-log.md.
+Result: CTX.codemap parser replayed locally (gatelib checks.py:390-393 logic): 0 missing paths, 63 lines; gate p4 not re-run by me. Round 1: swift build pass, npm test 23/23, REQ-008 voice turn 3.6–7.1 s — evidence: docs/backend/08-implementation-log.md, docs/backend/logs/be-developer-1-*.log
+Next agent must know:
+- Pitfalls: in docs/codemap.md backticks hold existing repo paths only; process names, commands and identifiers go unquoted (CTX.codemap reads every backticked token as a path).
+- Pitfalls: my instance A runs on PORT=4400 BONSAI_PORT=4401 (node 51774 → stt 51780, llama 51781) for be-tester; stop only node 51774. 4317 is the user's preview.
+- Pitfalls: time latency on an idle instance; concurrent requests on 2 llama slots push cold turns to 7–9.5 s.
+- Tried, did not work: sed -i on a live server log (server keeps writing the unlinked file) — instance A restarted in round 1.
+- Left open: design gaps 1–3 in 08 (6000-char window vs 15 s deadline; DES-009 "I love 火锅" rule vs example; setup hint for missing models) — to a fresh be-architect.
+Read beyond the list: ~/.claude/gates/gatelib/checks.py:373-397 — codemap check.
+Next agent reads: docs/backend/08-implementation-log.md § Design gaps; docs/codemap.md § server/, § stt/
