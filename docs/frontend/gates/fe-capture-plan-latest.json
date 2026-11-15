@@ -1,6 +1,6 @@
 {
   "phase": "fe-capture-plan",
-  "time": "2026-11-15T01:55:52Z",
+  "time": "2026-11-15T09:38:15Z",
   "project": "/Users/apple/Desktop/Hackathon/Local_AI_Hackathon",
   "run_dir": "docs/frontend",
   "overall": "pass",
@@ -20,7 +20,7 @@
     {
       "id": "FE4.capture-plan",
       "status": "pass",
-      "message": "22 captures cover every row to verify",
+      "message": "38 captures cover every row to verify",
       "owner": "orchestrator",
       "details": []
     },
@@ -35,7 +35,7 @@
       "id": "CTX.codemap",
       "status": "pass",
       "message": "docs/codemap.md paths exist, within its cap",
-      "owner": "fe-tester",
+      "owner": "fe-engineer",
       "details": []
     },
     {
