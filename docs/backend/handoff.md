@@ -59,17 +59,16 @@ Open: backend review round 1 — candidates docs/backend/logs/review-r1-candidat
 Next: run any gate (so the hook re-marks be-reviewer), dispatch fresh be-reviewer #1 to merge → 06-review-report.md, gate p6; fixes for blocker/majors (be-developer; R-2/R-3 may need be-architect); minors → deferred.md; re-run p4/p5; then demo after (start own instance on 4399, gate.py demo after), 07-acceptance.md, p7, Acceptance stop with the user (Wi-Fi off, real mic); then increment 2 at Phase 1 (be-analyst).
 Trap: docs/backend/logs/be-developer-2-server.log is instance A's live log in a tracked file — it trips P6 tree-unchanged; restart instance A with its log outside the project before the coordinator runs.
 
-## be-developer #6 · step 6 (review fixes) · round 1 · increment 2 · 2026-11-15T10:26:00Z
-Task: fix FND-013, 014, 015, 016, 019, 020 and TC-125 to be-architect #9's revised DES-016, 017, 019..023.
-Changed: server/tts.js (slot held until the helper answers id or -1; abort or timeout settles at once and writes nothing; 30 s overdue → SIGKILL → restart; queue cap 4), server/config.js (speakQueue 4, ttsOverdueMs 30000), server/main.js:72 (isWellFormed), server/crisis.js (GREETING_RE end of clause), server/prompts.js (CRISIS_MARK, NAME_RULE), server/bonsai.js:86, stt/Sources/CompanionTTS/main.swift:16 (rebuilt), tests/dev-increment2.test.js (12 tests). 08 fix round 1 (deviations 16–17; #10/#11 superseded), codemap.
-Result: swift build pass, 0 warnings. unit + fakes + dev + tester's server-tts-serial: 90/90. Live on new instance A: crisis rows ok, name 988 → CRISIS_LINE, lone surrogate → 400, a part aborted at 0.5 s then a short part → 200 (queued_ms 2364), name 团子 ×5 → 0 with 小伙伴.
-Next agent must know:
-- Pitfalls: instance A is now node 31464 on 4400/4401 (PID in scratchpad server.pid, log in scratchpad instanceA.log). The old 37595 tree is stopped.
-- Pitfalls: in main.swift a bare `.none` for `chunkingStrategy` is Optional.none (nil → `.sentence`). Keep `.none as TextChunkingStrategy` (08 dev. 16).
-- Pitfalls: npm run setup does NOT fetch the TTS model (design: never download); the brief contradiction is still open in 08.
-- Tried, did not work: `TextChunkingStrategy.none` is correct Swift, but TC-147's regex wants the literal `.none`, so it was replaced by the `as` form.
-- Left open: npm test (live suites) not run this round; REQ-015 page timing; REQ-024 tone; Wi-Fi-off run with tts.
-Next agent reads: server/tts.js:9-160; docs/backend/08-implementation-log.md § Fix round 1 (step 6, be-developer #6)
+## be-developer #7 · step 6 (codemap token) · round 2 · increment 2 · 2026-11-15T10:52:36Z
+Task: gate CTX.codemap: backticks only around real repo paths.
+Changed: docs/codemap.md:81 (stt/ entry): `.none as TextChunkingStrategy` lost its backticks; the words are unchanged. Nothing else touched.
+Result: a check script went through all 120 backticked tokens in docs/codemap.md; every path part (before ':') exists, apart from the allowed command `swift build -c release --package-path stt`. missing=0.
+Next agent must know (carried from be-developer #6, step 6, round 1):
+- The FND-013/014/015/016/019/020 and TC-125 fixes are in facf812; 08 § Fix round 1 has deviations 16–17.
+- Instance A is node 31464 on 4400/4401 (PID in scratchpad server.pid, log in scratchpad instanceA.log). The old 37595 tree is stopped.
+- In main.swift keep `.none as TextChunkingStrategy`. A bare .none is nil and gives sentence chunking.
+- Still open: npm test live suites not run; npm run setup does not fetch the TTS model (the brief contradicts this, see 08); REQ-015 page timing; REQ-024 tone; Wi-Fi-off run with tts.
+Next agent reads: server/tts.js:9-160; docs/backend/08-implementation-log.md § Fix round 1
 
 ## fe-tester #10 · step 4 (re-judge, increment 2) · round 2 · increment 2 · 2026-11-15T10:43:13Z
 Task: re-judge Q-024 and the rows touched by the round-1 fixes (Q-030, Q-023, Q-032, Q-025) from evidence/verify-5.
@@ -91,17 +90,18 @@ Next agent reads: docs/frontend/04-verification.md § Round 2
 - Tests: new `tests/fnd-i2-r1-fix.test.js` (7); `tests/verify-i2.test.js` added to the package.json test script before `tests/crisis-card.test.js`. 27 frontend files: 185 pass, 0 fail. No existing test edited.
 - `docs/codemap.md` updated. Figma calls: 0.
 
-## be-tester #9 · step 6 (tests for review fixes) · round 1 · increment 2 · 2026-11-15T10:35:00Z
-Task: tests for review round 1 design changes FND-013/014/015/016/019/020 (03 § Increment 2); plan rows TC-138..147.
-Changed: tests/support/fake-tts-serial.cjs (new, one-at-a-time helper: SLOW/HANG/NEG/ERR); tests/server-tts-serial.test.js (new, TC-138..143; in package.json `test` and `test:backend` after server-fakes); tests/server-unit.test.js (TC-144 surrogates, TC-145 bare 988, TC-146 FND-014 rows + FX-009/010, TC-147 static .none; TC-093 reads GREETING_EXCEPTIONS, TC-099 two assertions moved to the CRISIS_MARK rule, TC-015 gains speakQueue/ttsOverdueMs); tests/server-fakes.test.js (TC-137 rewritten); docs/backend/04-test-plan.md (rows, matrix).
-Result (explicit file lists, developer's code as landed at run time): server-tts-serial + server-unit + server-fakes 78/78 pass. Not run: server-live, server-boot (start servers), the p5 gate, full `npm test`.
+## be-tester #10 · step 5 (final verification, increment 2) · round 3 · increment 2 · 2026-11-15T11:10:00Z
+Task: full suite on the review-fixed code; bring 05-test-report.md § increment 2 up to date for gate p5.
+Changed: docs/backend/05-test-report.md (§7 rewritten: counts, TC-138..147 rows, TC-125, TC-136, §7.5, §7.7, §7.8); logs docs/backend/logs/be-tester-10-npm-test.log and be-tester-10-tc125-run1..6.log. No test, fixture or production file touched.
+Result: `npm test` (instance A node 31464) tests 300, pass 300, fail 0, skipped 0, 563.8 s, exit 0. Report table: 131 TCs, pass 118, fail 0, blocked 13 (TC-070..076, 084, 085, 086, 133, 134, 136).
+TC-125 (FX-011, after NAME_RULE): 7 of 7 runs pass (full run + 6 alone), so verdict pass; no waive rule needed.
+TC-136: blocked, "needs a human ear/eye; user checks at Acceptance" (fe-tester #10: Q-024, Q-030, Q-023 done; Q-025/026/027/031/032/033 not observable).
 Next agent must know:
-- TC-137/TC-093/TC-099/TC-015 changed because the design changed (deviation #10 superseded, greetings moved, bare-988 rule, new config keys), not relaxed.
-- Pitfalls: TC-147 is a source check; it passes a bare `.none` (Optional.none = nil in Swift) as well as `.none as TextChunkingStrategy`. Real proof is live audio length (TC-134).
-- The serial fake logs arrival time of each line (stdin drained at once) so a server writing early is visible; processing is strictly serial.
-- Left open: 05 report not updated (p5 re-run is step 5's job); TC-125 wording still unmeasured.
-Read beyond the list: none.
-Next agent reads: docs/backend/04-test-plan.md TC-137..TC-147; tests/server-tts-serial.test.js
+- Changed TCs TC-015/093/099/137 and new TC-138..147 all pass in the full run (TC-147 is only a source check; real proof is TC-134, a human ear).
+- Report verdicts are read from the first cell exactly pass/fail/blocked per row (docs.report_results); all 131 rows parse.
+- Increment-1 flaky notes (TC-050/052/055) are user-accepted and passed again.
+Read beyond the list: docs/frontend/04-verification.md Increment 2 (round 2), ~/.claude/gates/gatelib checks/docs.
+Next agent reads: docs/backend/05-test-report.md § 7
 
 ## fe-reviewer #4 · step 4 (re-check, increment 2) · round 2 · increment 2 · 2026-11-15T10:51:12Z
 Task: re-check FND-010, 011, 012, 013, 020 after fe-engineer #33 (b7539fa), with regressions.
