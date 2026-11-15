@@ -50,10 +50,27 @@ export const CRISIS_RULE = {
   zh: '用户可能有伤害自己的念头。只用一句温柔的话回应，表示你听到了、你在乎他；不要提问，不要诊断，不要给建议。',
   en: 'The user may be thinking about hurting themselves. Answer with one gentle sentence that shows you heard them and care; no question, no diagnosis, no advice.',
 };
-export const CRISIS_LINE = {
-  zh: '你不用一个人扛着，随时可以打给 988，或者发短信，那边有人愿意听你说。',
-  en: "You don't have to carry this alone; you can call or text 988 anytime, and someone there will listen.",
+// R0: the help line follows the region (server/region.js), the words follow the reply language.
+// mark = the line's own wording, whitespace removed, lowercased: a first sentence holding it already gives the hotline (FND-019).
+// CN 12356: the national mental health helpline, one number in all 31 provinces since 2025-05-01 (Xinhua, 2025-05-08).
+// other: no list for the region, so the reply points to a local line and the card names findahelpline.com.
+export const CRISIS_LINES = {
+  US: {
+    zh: { line: '你不用一个人扛着，随时可以打给 988，或者发短信，那边有人愿意听你说。', mark: '打给988' },
+    en: { line: "You don't have to carry this alone; you can call or text 988 anytime, and someone there will listen.", mark: 'callortext988' },
+  },
+  CN: {
+    zh: { line: '你不用一个人扛着，可以打 12356 心理援助热线，那边有人愿意听你说。', mark: '打12356' },
+    en: { line: "You don't have to carry this alone; you can call the 12356 helpline, and someone there will listen.", mark: 'the12356helpline' },
+  },
+  other: {
+    zh: { line: '你不用一个人扛着，可以打当地的心理援助热线，那边有人愿意听你说。', mark: '当地的心理援助热线' },
+    en: { line: "You don't have to carry this alone; you can call a local crisis helpline, and someone there will listen.", mark: 'localcrisishelpline' },
+  },
 };
-// CRISIS_LINE's own wording, whitespace removed, lowercased: a first sentence holding it already gives the hotline (FND-019).
-export const CRISIS_MARK = { zh: '打给988', en: 'callortext988' };
+// region: 'CN' | 'US' | null (null or unknown -> other).
+export const crisisLineOf = (lang, region) => (CRISIS_LINES[region] ?? CRISIS_LINES.other)[lang];
+// The US words under their P1 names (approved at Plan 2026-11-15).
+export const CRISIS_LINE = { zh: CRISIS_LINES.US.zh.line, en: CRISIS_LINES.US.en.line };
+export const CRISIS_MARK = { zh: CRISIS_LINES.US.zh.mark, en: CRISIS_LINES.US.en.mark };
 export const CRISIS_FALLBACK = { zh: '谢谢你愿意告诉我这些，我很在乎你。', en: 'Thank you for telling me this, and I really care about you.' };

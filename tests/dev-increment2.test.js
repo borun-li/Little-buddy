@@ -71,15 +71,15 @@ test('DES-018 speechParts: FX-013 rows, 988 spelled, hard split, nothing to read
 
 test('DES-020 crisisReply: 988 always, fallback when empty, within caps, ≤ 2 sentences', () => {
   const sentences = (s) => (s.match(SENTENCE) ?? []).map((x) => x.trim()).filter((x) => /[\p{L}\p{Script=Han}]/u.test(x));
-  assert.equal(crisisReply('', 'zh'), `${CRISIS_FALLBACK.zh}${CRISIS_LINE.zh}`);
-  assert.equal(crisisReply('', 'en'), `${CRISIS_FALLBACK.en} ${CRISIS_LINE.en}`);
+  assert.equal(crisisReply('', 'zh', 'US'), `${CRISIS_FALLBACK.zh}${CRISIS_LINE.zh}`);
+  assert.equal(crisisReply('', 'en', 'US'), `${CRISIS_FALLBACK.en} ${CRISIS_LINE.en}`);
   // FND-019: only CRISIS_LINE's own wording skips it; a bare 988 (the name "988") does not
-  assert.equal(crisisReply('You can Call or Text 988 now. Really.', 'en'), 'You can Call or Text 988 now.');
-  assert.equal(crisisReply('你可以打给 988。好吗？', 'zh'), '你可以打给 988。');
-  assert.equal(crisisReply('I am 988 and I am right here with you.', 'en'), `I am 988 and I am right here with you. ${CRISIS_LINE.en}`);
+  assert.equal(crisisReply('You can Call or Text 988 now. Really.', 'en', 'US'), 'You can Call or Text 988 now.');
+  assert.equal(crisisReply('你可以打给 988。好吗？', 'zh', 'US'), '你可以打给 988。');
+  assert.equal(crisisReply('I am 988 and I am right here with you.', 'en', 'US'), `I am 988 and I am right here with you. ${CRISIS_LINE.en}`);
   const cases = [['我听到了，你一定很难受。你愿意多说吗？', 'zh'], ['I hear you. Want to talk?', 'en'], [`${'很'.repeat(119)}。`, 'zh'], [`${Array(40).fill('word').join(' ')}.`, 'en']];
   for (const [shaped, lang] of cases) {
-    const r = crisisReply(shaped, lang);
+    const r = crisisReply(shaped, lang, 'US');
     assert.ok(r.includes('988'), r);
     assert.ok(sentences(r).length <= 2, r);
     if (lang === 'zh') assert.ok([...r].length <= 120, r);
@@ -88,7 +88,7 @@ test('DES-020 crisisReply: 988 always, fallback when empty, within caps, ≤ 2 s
 });
 
 test('DES-020 respond: crisis turn with Bonsai down → 988 reply, crisis true; other turns still unavailable', async () => {
-  const bonsai = createBonsai(); // never started: state down
+  const bonsai = createBonsai(undefined, 'US'); // never started: state down
   const r = await bonsai.respond('有时候觉得活着没什么意思，想就这样消失。', [], null);
   assert.deepEqual(r, { reply: `${CRISIS_FALLBACK.zh}${CRISIS_LINE.zh}`, mood: 'neutral', lang: 'zh', crisis: true });
   await assert.rejects(bonsai.respond('今天累死了。', [], null), { code: 'unavailable' });

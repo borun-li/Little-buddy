@@ -5,8 +5,9 @@ import { isCrisis, isStrongCrisis } from './crisis.js';
 import { ApiError } from './errors.js';
 import { hanCount, languageOf } from './lang.js';
 import { log } from './log.js';
+import { systemRegion } from './region.js';
 import {
-  CRISIS_FALLBACK, CRISIS_LINE, CRISIS_MARK, CRISIS_RULE, LANG_RULE, MOOD_SAMPLING, MOOD_SCHEMA, MOOD_SYSTEM, MOODS, RECALL, REPLY_SAMPLING, replySystem,
+  CRISIS_FALLBACK, CRISIS_RULE, crisisLineOf, LANG_RULE, MOOD_SAMPLING, MOOD_SCHEMA, MOOD_SYSTEM, MOODS, RECALL, REPLY_SAMPLING, replySystem,
 } from './prompts.js';
 import { supervise } from './supervisor.js';
 
@@ -82,22 +83,24 @@ export function shapeReply(text, lang) {
 }
 
 // Crisis turn reply (03 DES-020): the first sentence of the shaped reply (or the fixed gentle sentence when there is none),
-// then the 988 line unless the sentence already holds CRISIS_MARK (a bare '988', e.g. the name "988", does not count: FND-019);
-// the first sentence is cut so the whole stays within CAPS.
-export function crisisReply(shaped, lang) {
+// then the region's help line unless the sentence already holds its mark (a bare '988', e.g. the name "988", does not count: FND-019);
+// the first sentence is cut so the whole stays within CAPS. region: 'CN' | 'US' | null (R0; null = the international line).
+export function crisisReply(shaped, lang, region) {
+  const help = crisisLineOf(lang, region);
   let first = shaped === '' ? CRISIS_FALLBACK[lang] : shaped.match(SENTENCE)[0].trim(); // shapeReply output is trimmed: match 0 is non-empty
-  if (first.replace(/\s/g, '').toLowerCase().includes(CRISIS_MARK[lang])) return first;
+  if (first.replace(/\s/g, '').toLowerCase().includes(help.mark)) return first;
   const sep = lang === 'zh' ? '' : ' ';
-  const room = CAPS[lang] - size(CRISIS_LINE[lang], lang); // the separator adds no code point (zh) and no word (en)
+  const room = CAPS[lang] - size(help.line, lang); // the separator adds no code point (zh) and no word (en)
   if (size(first, lang) > room) {
     first = lang === 'zh'
       ? `${[...first].slice(0, room - 1).join('')}…`
       : `${first.split(/\s+/).filter(Boolean).slice(0, room).join(' ')}…`;
   }
-  return `${first}${sep}${CRISIS_LINE[lang]}`;
+  return `${first}${sep}${help.line}`;
 }
 
-export function createBonsai(cfg = CONFIG) {
+// region: the help-line region for crisis turns (server/region.js); main.js passes the one it logged at start.
+export function createBonsai(cfg = CONFIG, region = systemRegion()) {
   const base = `http://127.0.0.1:${cfg.bonsai.port}`;
   // Per-run key for llama-server (FND-003): passed by env, not argv, so it is not in `ps`; never logged, printed, stored or configurable.
   const apiKey = randomBytes(24).toString('hex');
@@ -144,7 +147,7 @@ export function createBonsai(cfg = CONFIG) {
     const { mood: value, risk } = mood.status === 'fulfilled' ? moodOf(mood.value.v) : { mood: null, risk: null };
     const crisis = strong || (risk ?? isCrisis(line));
     const crisisBy = strong ? 'strong' : risk === true ? 'model' : risk === null && crisis ? 'fallback' : null;
-    // A crisis turn never fails: when Bonsai gives no reply, the fixed gentle sentence + 988 line (UD-1 = (a), the user at Plan).
+    // A crisis turn never fails: when Bonsai gives no reply, the fixed gentle sentence + the region's help line (UD-1 = (a), the user at Plan).
     if (!crisis) {
       if (reply.status === 'rejected') throw reply.reason;
       if (!shaped) throw new ApiError('failed', 'bonsai');
@@ -154,7 +157,7 @@ export function createBonsai(cfg = CONFIG) {
       ms: Date.now() - started, reply_ms: shaped ? reply.value.ms : null, mood_ms: mood.status === 'fulfilled' ? mood.value.ms : null,
       lang, mood_fallback: fallback, history_n: win.length, crisis_by: crisisBy,
     });
-    return { reply: crisis ? crisisReply(shaped, lang) : shaped, mood: fallback ? 'neutral' : value, lang, crisis };
+    return { reply: crisis ? crisisReply(shaped, lang, region) : shaped, mood: fallback ? 'neutral' : value, lang, crisis };
   }
 
   async function warm(child) {
@@ -203,7 +206,7 @@ export function createBonsai(cfg = CONFIG) {
       const state = proc?.state ?? 'down';
       if (state !== 'ready' && isCrisis(line)) {
         const lang = languageOf(line); // Bonsai starting or down: no call made, mood neutral (03 DES-020 step 3)
-        return Promise.resolve({ reply: crisisReply('', lang), mood: 'neutral', lang, crisis: true });
+        return Promise.resolve({ reply: crisisReply('', lang, region), mood: 'neutral', lang, crisis: true });
       }
       if (state === 'starting') return Promise.reject(new ApiError('not_ready', 'bonsai'));
       if (state !== 'ready') return Promise.reject(new ApiError('unavailable', 'bonsai'));

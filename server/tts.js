@@ -170,6 +170,14 @@ function spellDigits(text) {
     .replace(/[0-9]+/g, (run) => [...run].map((d) => DIGIT_WORDS[d]).join(' '));
 }
 
+// zh: a run of 3+ digits (phone numbers, years) is read digit by digit in Chinese numerals, 1 as 幺 the way Mainland
+// phone numbers are said ("12356" → "幺二三五六", "110" → "幺幺零"). Left as Arabic digits, the voice reads them unstably:
+// another language, a wrong number ("988" → "九拜八"), or extra syllables (R0, measured 2026-11-15).
+const ZH_DIGITS = ['零', '幺', '二', '三', '四', '五', '六', '七', '八', '九'];
+function spellDigitsZh(text) {
+  return text.replace(/[0-9]{3,}/g, (run) => [...run].map((d) => ZH_DIGITS[d]).join(''));
+}
+
 const words = (s) => s.split(/\s+/).filter(Boolean);
 const units = (s, lang) => (lang === 'zh' ? [...s] : words(s));
 const sizeOf = (s, lang) => (lang === 'zh' ? (s.match(/[\p{L}\p{N}]/gu) ?? []).length : words(s).length);
@@ -187,6 +195,7 @@ function hardSplit(s, lang, cap) {
 export function speechParts(reply, lang) {
   let text = String(reply ?? '').replace(EMOJI, '');
   if (lang === 'en') text = spellDigits(text);
+  else text = spellDigitsZh(text);
   const sentences = (text.match(SENTENCE) ?? []).map((s) => s.trim()).filter(Boolean);
   const parts = [];
   const cap = () => (parts.length ? PART_CAPS.rest : PART_CAPS.first)[lang];

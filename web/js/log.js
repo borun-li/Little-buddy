@@ -17,12 +17,20 @@ function voiceTag() {
 
 const transcribingWords = () => copy.transcribing.replace(/…$/, '');
 
+// R0: copy keys of the help card's two lines (hotline, emergency) per help-line region.
+const HELP_KEYS = {
+  US: ['crisis988', 'crisis911'],
+  CN: ['crisisHotlineCN', 'crisisEmergencyCN'],
+  other: ['crisisHotlineOther', 'crisisEmergencyOther'],
+};
+
 export function createLog(scroller, list, emptyState) {
   let typing = null;
   let offer = null; // Q-028: the breathing chip's own list item, under the newest worried reply
   let offerBtn = null;
   let offerStop = false; // Q-029: the chip reads 停下 while the guide runs
   let card = null; // Q-030: the help card's own list item, under its crisis reply (one at a time)
+  let cardRegion = null; // R0: 'CN' | 'US' | null (null = the international lines)
   const emptyOriginal = emptyState;
 
   function scrollToNewest() {
@@ -41,12 +49,12 @@ export function createLog(scroller, list, emptyState) {
     card = null;
   }
 
-  // 988 and 911 are 600 weight plain text (no links); built from text nodes only.
+  // Phone numbers (988, 911, 12356, 110, 120) are 600 weight plain text (no links); built from text nodes only.
   function fillNumbers(el, text) {
     el.replaceChildren();
-    text.split(/(988|911)/).forEach((part) => {
+    text.split(/(\d{3,})/).forEach((part) => {
       if (!part) return;
-      if (part === '988' || part === '911') {
+      if (/^\d{3,}$/.test(part)) {
         const b = document.createElement('strong');
         b.textContent = part;
         el.append(b);
@@ -60,10 +68,12 @@ export function createLog(scroller, list, emptyState) {
     r?.setAttribute('aria-label', copy.crisisLabel);
     const t = card.querySelector('.crisis-card__title');
     if (t) t.textContent = copy.crisisTitle;
+    // R0: the two lines follow the help-line region (the class names keep their P1 names: hotline line, emergency line).
+    const [hotline, emergency] = HELP_KEYS[cardRegion] ?? HELP_KEYS.other;
     const a = card.querySelector('.crisis-card__988');
-    if (a) fillNumbers(a, copy.crisis988);
+    if (a) fillNumbers(a, copy[hotline]);
     const b = card.querySelector('.crisis-card__911');
-    if (b) fillNumbers(b, copy.crisis911);
+    if (b) fillNumbers(b, copy[emergency]);
     const c = card.querySelector('.crisis-card__close');
     if (c) {
       c.textContent = copy.crisisClose;
@@ -197,8 +207,10 @@ export function createLog(scroller, list, emptyState) {
     },
     // Q-030 / CMP-010: a calm region under its crisis reply; 收起 removes it and calls onClose (the page
     // moves focus to the input). A new card replaces the old one. Arriving takes no focus.
-    showCrisisCard(onClose) {
+    // region: the help-line region from the server ('CN' | 'US'); anything else shows the international lines.
+    showCrisisCard(onClose, helpRegion = null) {
       removeCard();
+      cardRegion = helpRegion === 'CN' || helpRegion === 'US' ? helpRegion : null;
       const li = document.createElement('li');
       li.className = 'turn turn--card';
       const region = document.createElement('div');

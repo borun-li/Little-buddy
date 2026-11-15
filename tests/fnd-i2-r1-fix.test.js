@@ -34,7 +34,7 @@ test('FND-010 the card is scrolled to only after its words are filled, with redu
     const scroller = { scrollHeight: 0, scrollTo() { filledAtScroll.push(li.querySelector('.crisis-card__911')?.children.length ?? 0); } };
     globalThis.window = { matchMedia: () => ({ matches: reduce }) };
     globalThis.document = { createElement: mk };
-    createLog(scroller, list, null).showCrisisCard(() => {});
+    createLog(scroller, list, null).showCrisisCard(() => {}, 'US');
     assert.deepEqual(filledAtScroll.map((n) => n > 0), [true], `reduce=${reduce}`);
   }
 });
