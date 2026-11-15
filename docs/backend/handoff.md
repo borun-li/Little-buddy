@@ -84,7 +84,8 @@ Next agent reads: docs/backend/08-implementation-log.md § Fix rounds; docs/back
 - REQ-003 1 s check now runs on `createFakeCompanion()` default delay (600 ms); the default (real) layer is left to `tests/client.test.js`. Dropped the real-`transcribe()` assertion (it would hit fetch).
 - Seam rule tightened: nothing in `web/` outside `fake/` imports `fake/` (true now). Importer rule (app.js only imports companion-client.js) unchanged.
 - `npm test`: 37 tests, 37 pass, 0 fail.
-## fe-engineer #14 · step 3 (frontend build Q-015) · round 1 · increment 1 · 2026-11-15T03:40:00Z
+## fe-engineer #14 · step 3 (frontend build Q-015) · round 2 · increment 1 · 2026-11-15T03:55:00Z
+Round 2: CTX.codemap fix only — dropped backticks from `copy` and `.lang-switch` in docs/codemap.md (not paths). No code change.
 Task: Q-015 — 中文 | EN switch and copy engine (REQ-012, DES-015).
 Changed: web/js/copy.js (en dictionary incl. every Q-011/012/018 hint, langLabel/langZh/langEn, live `copy`, setLang/getLang/resolveLang); web/js/app.js (browser default at open, applyCopy, switch wiring, hints now via the talk-button hint object); web/js/talk-button.js (hint key/refresh, show(key, icon), talk.refresh); web/js/log.js, companion.js (refresh); web/index.html, web/css/page.css (CMP-006); tests/copy.test.js (new, 5); package.json (voice-hints + copy tests added); 03-queue Q-015 built; codemap.
 Feedback: none.
