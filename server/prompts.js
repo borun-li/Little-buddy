@@ -27,12 +27,14 @@ Examples:
 "My boss yelled at me and I'm furious." -> unpleasant-high
 "我好想奶奶。" -> unpleasant-low
 "I'm on the bus." -> neutral
-"我吃完午饭了。" -> neutral`;
+"我吃完午饭了。" -> neutral
+Also set risk: true when the user says or implies they want to die, kill themselves, harm themselves or no longer want to live, including indirect, past-tense or soft phrasing ("I wanted to die", "I want to end it", "I don't want to wake up", 活着真没意思, 不想醒来, 撑不下去了想消失). risk: false for idioms and exaggeration (想死你了 = I miss you, 笑死我了, 累死了, 思想死板, 死磕, "this traffic is killing me", 跳楼价), and for talk about other people, fiction or news.`;
 
 export const REPLY_SAMPLING = { temperature: 0.7, top_p: 0.8, top_k: 20, min_p: 0, presence_penalty: 1.5, repetition_penalty: 1.0, max_tokens: 120 };
-export const MOOD_SAMPLING = { temperature: 0, top_k: 1, max_tokens: 16 };
+// FND-026 (Acceptance): the mood call also returns risk (semantic crisis judgment); 32 tokens fit {"mood": ..., "risk": ...}.
+export const MOOD_SAMPLING = { temperature: 0, top_k: 1, max_tokens: 32 };
 export const MOOD_SCHEMA = { type: 'json_schema', json_schema: { name: 'mood', strict: true, schema: {
-  type: 'object', properties: { mood: { type: 'string', enum: MOODS } }, required: ['mood'], additionalProperties: false } } };
+  type: 'object', properties: { mood: { type: 'string', enum: MOODS }, risk: { type: 'boolean' } }, required: ['mood', 'risk'], additionalProperties: false } } };
 
 // Name (03 DES-021): null → REPLY_SYSTEM unchanged; a cleaned name has no quote, newline, bracket or colon (server/name.js).
 // TC-125 (review round 1): the words 小伙伴 / Little Buddy are banned outright (the old rule still allowed '…暖心小伙伴').

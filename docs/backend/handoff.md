@@ -59,16 +59,16 @@ Open: backend review round 1 — candidates docs/backend/logs/review-r1-candidat
 Next: run any gate (so the hook re-marks be-reviewer), dispatch fresh be-reviewer #1 to merge → 06-review-report.md, gate p6; fixes for blocker/majors (be-developer; R-2/R-3 may need be-architect); minors → deferred.md; re-run p4/p5; then demo after (start own instance on 4399, gate.py demo after), 07-acceptance.md, p7, Acceptance stop with the user (Wi-Fi off, real mic); then increment 2 at Phase 1 (be-analyst).
 Trap: docs/backend/logs/be-developer-2-server.log is instance A's live log in a tracked file — it trips P6 tree-unchanged; restart instance A with its log outside the project before the coordinator runs.
 
-## be-developer #8 · step 7 (acceptance fix FND-025) · round 1 · increment 2 · 2026-11-15T13:59:20Z
-Task: fond-greeting variants of 想死你了 no longer trigger the crisis flag, real crisis lines still do; new tests green; not committed.
-Changed: server/crisis.js (+7/-3) — GREETING_RE is now the pattern rule (想死 + 你/您/你们 + optional 了啦喽咯嘞, or 想死我了/啦, then optional 啊呀哦喔噢呢嘛哈吖~, end of clause only); 妳/們 folded for the greeting step. tests/crisis-greeting.test.js (new, 2 tests). package.json (+1/-1) — new file in `test` before server-unit.
-Result: node --test crisis-greeting + dev-increment2 + server-unit: 60/60 pass — evidence: docs/backend/08-implementation-log.md § Acceptance fix FND-025
+## be-developer #9 · step 7 (acceptance change FND-026) · round 2 · increment 2 · 2026-11-15T14:12:00Z
+Task: crisis detection is semantic first (Bonsai mood call returns risk), strong words as a floor, isCrisis as fallback; new unit tests green and a live check on an own instance; not committed.
+Changed: server/prompts.js (+5/-3) — MOOD_SYSTEM risk paragraph, MOOD_SCHEMA risk (required), max_tokens 32. server/crisis.js (+22/-2) — STRONG_PHRASES, isStrongCrisis; isCrisis unchanged. server/bonsai.js (+18/-13) — verdict strong || risk, or strong || isCrisis when risk unknown; CRISIS_RULE only on strong; respond_done crisis_by. tests/crisis-semantic.test.js (new, 7 tests). package.json (+1/-1). docs/codemap.md (crisis invariant, trap).
+Result: 5 unit files 93 tests, 91 pass, 2 fail (TC-014, TC-114 pin the old behaviour); live: 15/15 crisis lines true, 8/8 idiom lines false, FX-004 9/10 (known FX-004-05 miss) — evidence: docs/backend/08-implementation-log.md § Acceptance change FND-026
 Next agent must know:
-- Pitfalls: TC-094 (tests/server-unit.test.js:436) pins TRAD_FOLD at 15 keys, so 妳/們 live in GREETING_FOLD, not TRAD_FOLD (deviation in 08). TC-093 needs GREETING_EXCEPTIONS to still include 想死你了.
-- Tried, did not work: adding 妳/們 to TRAD_FOLD as briefed — TC-094 failed 17 !== 15.
-- Left open: full npm test (live suites) not run; the page check of "想死你了啊" etc. with the user's server not done (the user's 4317 server needs a restart to load the change).
-Read beyond the list: nothing
-Next agent reads: server/crisis.js:16-49; tests/crisis-greeting.test.js
+- Pitfalls: TC-014 (tests/server-unit.test.js:214,216) pins required ['mood'] and max_tokens 16; TC-114 (tests/server-fakes.test.js:417) expects CRISIS_RULE for every FX-009 line, now only strong lines get it. Both need the tester's update, not a code change. The fake-llama.cjs mood answer has no risk, so fake-based tests exercise the isCrisis fallback.
+- Tried, did not work: nothing.
+- Left open: server-boot, server-tts-serial, server-live and full npm test not run; the user's 4317 server needs a restart to load the change; crisis_by in the log reverses the old "verdict never logged" invariant (brief item 4).
+Read beyond the list: grep of server/main.js for crisis (no match), tests/server-fakes.test.js:130-170,406-470, tests/support/fake-llama.cjs
+Next agent reads: server/bonsai.js:128-160; server/crisis.js:15-24,62-69; tests/crisis-semantic.test.js
 
 ## fe-tester #11 · step 4 (verification doc format) · round 3 · increment 2 · 2026-11-15T11:40:00Z
 Task: fix gate fe-verify FE4.capture and FE4.verdicts by document format only; no new judging.
@@ -87,6 +87,17 @@ Next agent reads: docs/frontend/04-verification.md lines 1-4
 - FND-020: `web/js/speaker.js` reading() aborts its controller when it ends early.
 - Tests: new `tests/fnd-i2-r1-fix.test.js` (7); `tests/verify-i2.test.js` added to the package.json test script before `tests/crisis-card.test.js`. 27 frontend files: 185 pass, 0 fail. No existing test edited.
 - `docs/codemap.md` updated. Figma calls: 0.
+
+## be-tester #11 · step 7 (TC-014/TC-114 for FND-026) · round 2 · increment 2 · 2026-11-15T14:40:00Z
+Task: update TC-014 and TC-114 to the FND-026 design; not committed.
+Changed: tests/server-unit.test.js:214,216 (required ['mood','risk'], max_tokens 32); tests/server-fakes.test.js TC-114 (CRISIS_RULE check only if isStrongCrisis(line); crisis:true and 988 asserts kept); docs/backend/04-test-plan.md (two change lines, Increment 2).
+Result: see run below, 5 unit files.
+Next agent must know:
+- Pitfalls: fake-based tests exercise the isCrisis fallback only; risk path is covered by tests/crisis-semantic.test.js.
+- Tried, did not work: nothing.
+- Left open: server-boot, tts-serial, live, full npm test not run.
+Read beyond the list: none
+Next agent reads: tests/server-fakes.test.js TC-114
 
 ## be-tester #10 · step 5 (final verification, increment 2) · round 3 · increment 2 · 2026-11-15T11:10:00Z
 Task: full suite on the review-fixed code; bring 05-test-report.md § increment 2 up to date for gate p5.

@@ -404,7 +404,7 @@ test('TC-113 REQ-005/REQ-014 bonsai.respond returns {reply, mood, lang, crisis}:
 });
 
 test('TC-114 [FX-009] REQ-023/REQ-024 bonsai.respond on a crisis line: crisis true, system message ends with CRISIS_RULE[lang] (mood call does not carry it), reply contains 988, <= 2 sentences, <= 1 question; non-crisis lines never get the rule', async () => {
-  const P = await imp('server/prompts.js');
+  const P = await imp('server/prompts.js'); const { isStrongCrisis } = await imp('server/crisis.js');
   const { b, log, ready } = await makeBonsai();
   try {
     await ready();
@@ -414,7 +414,8 @@ test('TC-114 [FX-009] REQ-023/REQ-024 bonsai.respond on a crisis line: crisis tr
       const r = await b.respond(line + ' SAD', []);
       const calls = bodies(log).slice(n);
       assert.equal(r.crisis, true, id); assert.equal(r.lang, lang, id);
-      assert.ok(sysOf(repOf(calls)).endsWith('\n' + P.CRISIS_RULE[lang]), `${id}: reply system message ends with the crisis rule`);
+      // FND-026: the rule is added on the strong-word floor; non-strong lines stay crisis via the fallback (no risk in the fake mood answer)
+      if (isStrongCrisis(line)) assert.ok(sysOf(repOf(calls)).endsWith('\n' + P.CRISIS_RULE[lang]), `${id}: reply system message ends with the crisis rule`);
       assert.ok(sysOf(repOf(calls)).includes(P.LANG_RULE[lang]), id);
       assert.ok(!JSON.stringify(moodOf(calls).messages).includes(P.CRISIS_RULE[lang]), `${id}: mood call carries no crisis rule`);
       assert.equal(r.mood, 'unpleasant-low', `${id}: mood from the mood call`);

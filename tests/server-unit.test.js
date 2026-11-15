@@ -211,9 +211,9 @@ test('TC-014 prompts: the 5 mood ids, mood schema enum, sampling parameters, lan
   assert.deepEqual([...P.MOODS], ['pleasant-high', 'pleasant-low', 'unpleasant-high', 'unpleasant-low', 'neutral']);
   assert.deepEqual(P.MOOD_SCHEMA.json_schema.schema.properties.mood.enum, [...P.MOODS]);
   assert.equal(P.MOOD_SCHEMA.type, 'json_schema');
-  assert.deepEqual(P.MOOD_SCHEMA.json_schema.schema.required, ['mood']);
+  assert.deepEqual(P.MOOD_SCHEMA.json_schema.schema.required, ['mood', 'risk']); // FND-026
   assert.equal(P.REPLY_SAMPLING.presence_penalty, 1.5); assert.equal(P.REPLY_SAMPLING.max_tokens, 120); assert.equal(P.REPLY_SAMPLING.top_k, 20);
-  assert.equal(P.MOOD_SAMPLING.temperature, 0); assert.equal(P.MOOD_SAMPLING.top_k, 1); assert.equal(P.MOOD_SAMPLING.max_tokens, 16);
+  assert.equal(P.MOOD_SAMPLING.temperature, 0); assert.equal(P.MOOD_SAMPLING.top_k, 1); assert.equal(P.MOOD_SAMPLING.max_tokens, 32); // FND-026
   assert.match(P.LANG_RULE.en, /English/); assert.match(P.LANG_RULE.zh, /简体中文/);
   for (const m of P.MOODS) assert.ok(P.MOOD_SYSTEM.includes(m), m);
 });

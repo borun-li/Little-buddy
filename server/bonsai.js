@@ -1,7 +1,7 @@
 // llama-server child and the reply + mood calls to Bonsai (03 DES-007, DES-008); name and crisis turn (DES-020, DES-021).
 import { randomBytes } from 'node:crypto';
 import { bonsaiFiles, CONFIG } from './config.js';
-import { isCrisis } from './crisis.js';
+import { isCrisis, isStrongCrisis } from './crisis.js';
 import { ApiError } from './errors.js';
 import { hanCount, languageOf } from './lang.js';
 import { log } from './log.js';
@@ -44,14 +44,17 @@ function unwrap(text) {
   return s;
 }
 
-// The mood call's JSON content → its mood value, or null when it is not JSON (falls back to neutral, 03 §3).
+// The mood call's JSON content → { mood, risk }: mood null when absent or not JSON (falls back to neutral, 03 §3);
+// risk null unless it is a boolean (FND-026: then the crisis verdict falls back to isCrisis).
 function moodOf(content) {
+  let o;
   try {
-    return JSON.parse(content)?.mood ?? null;
+    o = JSON.parse(content);
   } catch (err) {
-    if (err instanceof SyntaxError) return null;
+    if (err instanceof SyntaxError) return { mood: null, risk: null };
     throw err;
   }
+  return { mood: o?.mood ?? null, risk: typeof o?.risk === 'boolean' ? o.risk : null };
 }
 
 const size = (s, lang) => (lang === 'zh' ? [...s].length : s.split(/\s+/).filter(Boolean).length);
@@ -125,28 +128,31 @@ export function createBonsai(cfg = CONFIG) {
     }
   }
 
-  // The mood call never carries the name (03 DES-021 step 3).
-  async function chat(line, history, name = null, crisis = false) {
+  // The mood call never carries the name (03 DES-021 step 3). FND-026: strong = isStrongCrisis(line) (gets CRISIS_RULE); the verdict is
+  // strong || the mood call's risk, or strong || isCrisis(line) when risk is unknown (call failed, not JSON, risk missing).
+  async function chat(line, history, name = null, strong = false) {
     const started = Date.now();
     const lang = languageOf(line);
     const win = windowOf(history, cfg);
     const signal = AbortSignal.timeout(cfg.deadlines.respondMs);
     const timed = (p) => p.then((v) => ({ v, ms: Date.now() - started }));
     const [reply, mood] = await Promise.allSettled([
-      timed(post({ messages: toMessages(line, win, lang, name, crisis), ...REPLY_SAMPLING }, signal)),
+      timed(post({ messages: toMessages(line, win, lang, name, strong), ...REPLY_SAMPLING }, signal)),
       timed(post({ messages: [{ role: 'system', content: MOOD_SYSTEM }, { role: 'user', content: line }], ...MOOD_SAMPLING, response_format: MOOD_SCHEMA }, signal)),
     ]);
     const shaped = reply.status === 'fulfilled' ? shapeReply(reply.value.v, lang) : '';
+    const { mood: value, risk } = mood.status === 'fulfilled' ? moodOf(mood.value.v) : { mood: null, risk: null };
+    const crisis = strong || (risk ?? isCrisis(line));
+    const crisisBy = strong ? 'strong' : risk === true ? 'model' : risk === null && crisis ? 'fallback' : null;
     // A crisis turn never fails: when Bonsai gives no reply, the fixed gentle sentence + 988 line (UD-1 = (a), the user at Plan).
     if (!crisis) {
       if (reply.status === 'rejected') throw reply.reason;
       if (!shaped) throw new ApiError('failed', 'bonsai');
     }
-    const value = mood.status === 'fulfilled' ? moodOf(mood.value.v) : null;
     const fallback = !MOODS.includes(value);
     log('info', 'respond_done', {
       ms: Date.now() - started, reply_ms: shaped ? reply.value.ms : null, mood_ms: mood.status === 'fulfilled' ? mood.value.ms : null,
-      lang, mood_fallback: fallback, history_n: win.length,
+      lang, mood_fallback: fallback, history_n: win.length, crisis_by: crisisBy,
     });
     return { reply: crisis ? crisisReply(shaped, lang) : shaped, mood: fallback ? 'neutral' : value, lang, crisis };
   }
@@ -194,15 +200,14 @@ export function createBonsai(cfg = CONFIG) {
       return proc?.pid ?? null;
     },
     respond(line, history, name = null) {
-      const crisis = isCrisis(line);
       const state = proc?.state ?? 'down';
-      if (state !== 'ready' && crisis) {
+      if (state !== 'ready' && isCrisis(line)) {
         const lang = languageOf(line); // Bonsai starting or down: no call made, mood neutral (03 DES-020 step 3)
-        return Promise.resolve({ reply: crisisReply('', lang), mood: 'neutral', lang, crisis });
+        return Promise.resolve({ reply: crisisReply('', lang), mood: 'neutral', lang, crisis: true });
       }
       if (state === 'starting') return Promise.reject(new ApiError('not_ready', 'bonsai'));
       if (state !== 'ready') return Promise.reject(new ApiError('unavailable', 'bonsai'));
-      return chat(line, history, name, crisis);
+      return chat(line, history, name, isStrongCrisis(line));
     },
   };
 }

@@ -12,6 +12,16 @@ export const CRISIS_PHRASES = {
     'do not want to live', 'no reason to live', "don't want to be alive", 'dont want to be alive'],
 };
 
+// FND-026 (Acceptance, 2026-11-15): Bonsai's mood call judges risk; these unambiguous phrases are the floor, decided before the
+// calls so the reply prompt still gets CRISIS_RULE. A subset of CRISIS_PHRASES: TRAD_FOLD already covers their characters.
+export const STRONG_PHRASES = {
+  zh: ['自杀', '自尽', '轻生', '寻死', '想去死', '不想活', '活不下去', '结束生命', '结束自己', '了结自己', '自残', '自伤', '割腕', '上吊'],
+  en: ['suicide', 'suicidal', 'kill myself', 'killing myself', 'end my life', 'ending my life', 'take my own life', 'taking my own life',
+    'want to die', 'wanna die', 'want to be dead', 'wish i was dead', 'wish i were dead', 'better off dead', 'self-harm', 'self harm',
+    'cut myself', 'cutting myself', "don't want to live", 'dont want to live', 'do not want to live', 'no reason to live',
+    "don't want to be alive", 'dont want to be alive'],
+};
+
 // zh only, removed anywhere before matching: everyday phrases that contain a listed phrase.
 export const CRISIS_EXCEPTIONS = ['跳楼价', '跳楼大甩卖'];
 // Fond greetings, removed only at the end of a clause (nothing but end of text, punctuation, emoji or ~ follows): '想死你了！' stays
@@ -27,7 +37,9 @@ const GREETING_FOLD = { 妳: '你', 們: '们' };
 export const TRAD_FOLD = { 殺: '杀', 盡: '尽', 輕: '轻', 尋: '寻', 著: '着', 沒: '没', 義: '义', 結: '结', 傷: '伤', 殘: '残', 樓: '楼', 價: '价', 賣: '卖', 麼: '么', 麽: '么' };
 
 const escape = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-const EN_RE = new RegExp(`(?<![a-z])(?:${CRISIS_PHRASES.en.map(escape).join('|')})(?![a-z])`);
+const enRe = (list) => new RegExp(`(?<![a-z])(?:${list.map(escape).join('|')})(?![a-z])`);
+const EN_RE = enRe(CRISIS_PHRASES.en);
+const STRONG_EN_RE = enRe(STRONG_PHRASES.en);
 
 export function normalizeForCrisis(text) {
   return [...String(text).normalize('NFKC')]
@@ -39,11 +51,19 @@ export function normalizeForCrisis(text) {
     .trim();
 }
 
-// Only this line, typed or transcribed; a negated statement counts too (A22, Q9).
+// Only this line, typed or transcribed; a negated statement counts too (A22, Q9). FND-026: the fallback when Bonsai's risk is unknown.
 export function isCrisis(line) {
   const t = normalizeForCrisis(line);
   let zh = t.replace(/\s/g, '').replace(/[妳們]/g, (c) => GREETING_FOLD[c]).replace(GREETING_RE, '');
   for (const e of CRISIS_EXCEPTIONS) zh = zh.split(e).join('');
   if (CRISIS_PHRASES.zh.some((p) => zh.includes(p))) return true;
   return EN_RE.test(t);
+}
+
+// FND-026: the strong-word floor; same normalisation and en word boundaries as isCrisis.
+export function isStrongCrisis(line) {
+  const t = normalizeForCrisis(line);
+  const zh = t.replace(/\s/g, '');
+  if (STRONG_PHRASES.zh.some((p) => zh.includes(p))) return true;
+  return STRONG_EN_RE.test(t);
 }

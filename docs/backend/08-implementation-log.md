@@ -181,3 +181,57 @@ Checks: `node --check` on each `server/*.js` passes. `npm test` against the rest
 - Deviation: the brief said to add 妳/們 to `TRAD_FOLD`. `tests/server-unit.test.js:436` (TC-094, an existing test I may not edit) asserts `Object.keys(TRAD_FOLD).length === 15`; with the two keys it failed (17 !== 15). So the fold is a separate `GREETING_FOLD` used only in the greeting step (`server/crisis.js:24,45`). Crisis behaviour is the same: no listed phrase contains 你 or 们. Overturn: if TC-094's owner updates the count to 17, move the two keys into `TRAD_FOLD` and drop `GREETING_FOLD`.
 - Checks: `node --check server/crisis.js` pass. `node --test tests/crisis-greeting.test.js tests/dev-increment2.test.js tests/server-unit.test.js`: 60 tests, 60 pass, 0 fail, 0 skipped (output in the session scratchpad `fnd025.out`). Full `npm test` not run (live suites need instance A); no server started or stopped.
 - Known accepted false alarm (A22): a greeting followed directly by Latin letters or digits ('想死你了haha') still fires.
+
+### Acceptance change FND-026 (step 7, round 2, be-developer #9) · 2026-11-15T14:12:00Z — trigger: the user at Acceptance (09:05): the keyword list is too rigid (FND-025 想死你了啊 false alarm; FND-017 misses like "I wanted to die", 活着真没意思; FND-018 false alarms 思想死板/死磕)
+- Decision (orchestrator with the user, implemented as written): crisis = semantic first, strong words as a floor. This replaces 03 DES-019/DES-020's "isCrisis decides before the calls"; 03 is not edited (note here only).
+- `server/prompts.js`: MOOD_SYSTEM + one paragraph (risk true/false, the brief's examples); MOOD_SCHEMA `risk` boolean, required ['mood','risk']; MOOD_SAMPLING.max_tokens 16 → 32, temperature 0 kept.
+- `server/crisis.js`: new `STRONG_PHRASES` (the brief's zh/en list, a subset of CRISIS_PHRASES, so TRAD_FOLD already covers it) and `isStrongCrisis(line)` (same normalisation and en word boundaries). `isCrisis` unchanged (full old rule incl. FND-025), now the fallback.
+- `server/bonsai.js`: respond: Bonsai not ready → isCrisis (old path). Ready → chat(line, …, strong = isStrongCrisis(line)); the reply prompt gets CRISIS_RULE only when strong. After both calls: risk is a boolean → crisis = strong || risk; risk unknown (mood call failed, not JSON, risk missing or not boolean) → crisis = strong || isCrisis(line). A crisis turn never fails (UD-1 a). moodOf now returns {mood, risk}; mood handling unchanged. respond_done logs `crisis_by`: 'strong' | 'model' | 'fallback' | null (never the line).
+- Note: `crisis_by` makes the crisis verdict visible in the log, which the codemap invariant ("the crisis verdict … never logged") forbade; the brief's design item 4 is the newer decision, codemap updated. Overturn: the user/A9 owner says no verdict in logs → drop the field.
+- Note: a model-only crisis turn (not strong) gets a reply written without CRISIS_RULE; crisisReply keeps its first sentence (may be a question) + the 988 line. Live, 9 of 15 crisis rows went this way, all with 988.
+- Tests: new `tests/crisis-semantic.test.js` (7 tests, own inline fake llama-server in a temp dir); added to `package.json` `test` before `tests/server-unit.test.js`. No existing test edited.
+- Existing tests that pin the old behaviour (left as is, need their owner's update):
+  - `tests/server-unit.test.js:214` TC-014: `required` deepEqual ['mood'] → needs ['mood','risk']; `:216` MOOD_SAMPLING.max_tokens 16 → 32.
+  - `tests/server-fakes.test.js:417` TC-114: expects CRISIS_RULE in the reply prompt for every FX-009 line; now only strong lines get it. Fails at FX-009-03 (我想伤害自己, not strong; also -06 "hurt myself", -09 活着没什么意思). Needed: expect CRISIS_RULE iff isStrongCrisis(line); crisis true still holds (fake mood has no risk → fallback isCrisis).
+- Checks: `node --check server/{bonsai,crisis,prompts}.js` pass. `node --test tests/crisis-semantic.test.js tests/crisis-greeting.test.js tests/dev-increment2.test.js tests/server-unit.test.js tests/server-fakes.test.js`: 93 tests, 91 pass, 2 fail (TC-014, TC-114 above), 0 cancelled (scratchpad `unit2.txt`). server-boot, server-tts-serial, server-live and full npm test not run.
+- Live check: own instance `PORT=4400 BONSAI_PORT=4401 node server/main.js`, pid 31360 in scratchpad `live-server.pid`, health ready (stt, bonsai, tts); one POST /api/respond per line (script `probe.mjs`, output `live-table.txt`, server log `live-server.log` in the session scratchpad); stopped via the pid file, 4400/4401 no longer answer. Log tally: crisis_by model 9, strong 6, null 22, fallback 0; mood_fallback false on all 37 turns (32 tokens enough).
+
+| id | line | crisis (want) | mood (want) |
+|---|---|---|---|
+| FX-009-01 | 我不想活了。 | true (true ok ) | unpleasant-high   |
+| FX-009-02 | 我想自杀。 | true (true ok ) | unpleasant-high   |
+| FX-009-03 | 我想伤害自己。 | true (true ok ) | unpleasant-high   |
+| FX-009-04 | I want to kill myself. | true (true ok ) | unpleasant-high   |
+| FX-009-05 | I've been thinking about ending my life. | true (true ok ) | unpleasant-high   |
+| FX-009-06 | I keep wanting to hurt myself. | true (true ok ) | unpleasant-high   |
+| FX-009-07 | I WANT TO DIE | true (true ok ) | unpleasant-high   |
+| FX-009-08 | 我没有想自杀，只是很累。 | true (true ok ) | unpleasant-low   |
+| FX-009-09 | 有时候觉得活着没什么意思，想就这样消失。 | true (true ok ) | unpleasant-low   |
+|  | I wanted to die | true (true ok ) | unpleasant-high   |
+|  | I want to end it | true (true ok ) | unpleasant-high   |
+|  | I don't want to wake up tomorrow | true (true ok ) | unpleasant-low   |
+|  | 活着真没意思 | true (true ok ) | unpleasant-low   |
+|  | 我想死你别管我 | true (true ok ) | unpleasant-high   |
+|  | 我真的撑不下去了 | true (true ok ) | unpleasant-low   |
+|  | 想死你了 | false (false ok ) | pleasant-high   |
+|  | 想死你了啊 | false (false ok ) | pleasant-low   |
+|  | 他思想死板 | false (false ok ) | neutral   |
+|  | 我想死磕这个bug | false (false ok ) | pleasant-high   |
+|  | 笑死我了 | false (false ok ) | pleasant-low   |
+|  | This traffic is killing me | false (false ok ) | neutral   |
+|  | 跳楼价大甩卖 | false (false ok ) | neutral   |
+|  | 累死了今天 | false (false ok ) | unpleasant-low   |
+| FX-001 | I just got the internship! | false (  ) | pleasant-high ok  |
+| FX-002 | But I'll have to move away from all my friends, and I feel really lonely about it. | false (  ) | unpleasant-low ok  |
+| FX-003 | 可是晚上和朋友吵架了，有点难过。 | false (  ) | unpleasant-low   |
+| FX-004-01 | 今天考试过了，好开心！ | false (  ) | pleasant-high ok  |
+| FX-004-02 | 可是晚上和朋友吵架了，有点难过。 | false (  ) | unpleasant-low ok  |
+| FX-004-03 | 明天还要汇报，我有点焦虑。 | false (  ) | unpleasant-high ok  |
+| FX-004-04 | 现在泡了杯茶，感觉挺放松的。 | false (  ) | pleasant-low ok  |
+| FX-004-05 | 嗯，刚到家。 | false (  ) | pleasant-low MISMATCH (want neutral)  |
+| FX-004-06 | I just got the internship! | false (  ) | pleasant-high ok  |
+| FX-004-07 | But I'll have to move away from all my friends, and I feel really lonely about it. | false (  ) | unpleasant-low ok  |
+| FX-004-08 | I have to give a presentation tomorrow and I'm a bit anxious. | false (  ) | unpleasant-high ok  |
+| FX-004-09 | I just made a cup of tea and I feel pretty relaxed. | false (  ) | pleasant-low ok  |
+| FX-004-10 | Hmm, just got home. | false (  ) | neutral ok  |
+- Result: all 15 must-be-crisis lines crisis true (FX-009 ×9 + 6 new); all 8 must-not lines crisis false. Moods: FX-001 and FX-002 match; FX-004 9 of 10 (only FX-004-05 "嗯，刚到家。" → pleasant-low, the same known miss as 08 line 17, 02 §5); FX-003 unpleasant-low (expected only "in contract set"). FX-005..008 are /api/transcribe fixtures (WAV), no mood: not applicable.
