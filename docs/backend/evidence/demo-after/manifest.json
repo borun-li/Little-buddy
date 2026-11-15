@@ -1,0 +1,68 @@
+{
+  "demo": "after",
+  "time": "2026-11-15T04:20:47Z",
+  "fingerprint": "9b2b27ce00a5c643",
+  "surface": "web",
+  "entries": [
+    {
+      "id": "open",
+      "row": "goal",
+      "state": "after",
+      "size": "laptop",
+      "width": 1440,
+      "height": 900,
+      "url": "http://127.0.0.1:4399/",
+      "files": {
+        "dom.html": "open@laptop.dom.html",
+        "styles.json": "open@laptop.styles.json",
+        "aria.yml": "open@laptop.aria.yml",
+        "png": "open@laptop.png"
+      },
+      "ok": true,
+      "instrument": "playwright-core + Chrome: DOM, computed styles, ARIA snapshot, screenshot",
+      "time": "2026-11-15T04:20:47Z",
+      "fingerprint": "9b2b27ce00a5c643",
+      "surface": "web"
+    },
+    {
+      "id": "happy-en",
+      "row": "goal",
+      "state": "after",
+      "size": "laptop",
+      "width": 1440,
+      "height": 900,
+      "url": "http://127.0.0.1:4399/",
+      "files": {
+        "dom.html": "happy-en@laptop.dom.html",
+        "styles.json": "happy-en@laptop.styles.json",
+        "aria.yml": "happy-en@laptop.aria.yml",
+        "png": "happy-en@laptop.png"
+      },
+      "ok": true,
+      "instrument": "playwright-core + Chrome: DOM, computed styles, ARIA snapshot, screenshot",
+      "time": "2026-11-15T04:20:47Z",
+      "fingerprint": "9b2b27ce00a5c643",
+      "surface": "web"
+    },
+    {
+      "id": "sad-en-followup",
+      "row": "goal",
+      "state": "after",
+      "size": "laptop",
+      "width": 1440,
+      "height": 900,
+      "url": "http://127.0.0.1:4399/",
+      "files": {
+        "dom.html": "sad-en-followup@laptop.dom.html",
+        "styles.json": "sad-en-followup@laptop.styles.json",
+        "aria.yml": "sad-en-followup@laptop.aria.yml",
+        "png": "sad-en-followup@laptop.png"
+      },
+      "ok": true,
+      "instrument": "playwright-core + Chrome: DOM, computed styles, ARIA snapshot, screenshot",
+      "time": "2026-11-15T04:20:47Z",
+      "fingerprint": "9b2b27ce00a5c643",
+      "surface": "web"
+    }
+  ]
+}
