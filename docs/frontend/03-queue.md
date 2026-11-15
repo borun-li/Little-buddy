@@ -381,7 +381,7 @@ Stack unchanged: static files, vanilla ES modules, `node:test`. No new package.
 - **Priority:** P1
 - **Side:** frontend
 - **Depends on:** Q-015
-- **Status:** queued
+- **Status:** built
 
 ### Q-017 — Latin accents render in the companion's face
 - **Page:** PAGE-001

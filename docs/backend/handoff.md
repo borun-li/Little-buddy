@@ -84,15 +84,12 @@ Next agent reads: docs/backend/08-implementation-log.md § Fix rounds; docs/back
 - REQ-003 1 s check now runs on `createFakeCompanion()` default delay (600 ms); the default (real) layer is left to `tests/client.test.js`. Dropped the real-`transcribe()` assertion (it would hit fetch).
 - Seam rule tightened: nothing in `web/` outside `fake/` imports `fake/` (true now). Importer rule (app.js only imports companion-client.js) unchanged.
 - `npm test`: 37 tests, 37 pass, 0 fail.
-## fe-engineer #14 · step 3 (frontend build Q-015) · round 2 · increment 1 · 2026-11-15T03:55:00Z
-Round 2: CTX.codemap fix only — dropped backticks from `copy` and `.lang-switch` in docs/codemap.md (not paths). No code change.
-Task: Q-015 — 中文 | EN switch and copy engine (REQ-012, DES-015).
-Changed: web/js/copy.js (en dictionary incl. every Q-011/012/018 hint, langLabel/langZh/langEn, live `copy`, setLang/getLang/resolveLang); web/js/app.js (browser default at open, applyCopy, switch wiring, hints now via the talk-button hint object); web/js/talk-button.js (hint key/refresh, show(key, icon), talk.refresh); web/js/log.js, companion.js (refresh); web/index.html, web/css/page.css (CMP-006); tests/copy.test.js (new, 5); package.json (voice-hints + copy tests added); 03-queue Q-015 built; codemap.
+## fe-engineer #15 · step 3 (frontend build Q-016) · round 1 · increment 1 · 2026-11-15T04:30:00Z
+Task: Q-016 — English layout fits both sizes (REQ-012, DES-015, DFB-004).
+Changed: web/css/page.css only (`html[lang="en"] .composer` columns 1fr 154px below 960 px; laptop rule also overrides it); 03-queue Q-016 built. index.html, js unchanged (lang attribute already set by app.js).
 Feedback: none.
-Decision: removed the stray `watch.start();` in onSendFailed. 01-ux says checks resume only for failed(not_ready|unavailable), which watch.failed already does; the stray call also started polling for timeout/failed/bad_request.
-Result: npm test 69/69 (61 + voice-hints 3 + copy 5). Playwright vs 127.0.0.1:4400: en-US opens en (html lang en, EN pressed), zh-CN opens zh; mouse, Tab+Enter and Shift+Tab+Space switch both ways, focus stays on the pressed option; Shift+Tab from the input lands on EN; caption, name, placeholder, title, talk label, empty text re-render; English line "I had a rough day..." got an English reply, switched to zh while pending, POST body is only {line, history}. Screenshots build/Q-015-{1440,390}-{en,zh}.png, -1440-en-reply.png, matched by eye to FRAME-014. Font cmap covers every copy character. Not checked: hint/transcribing/voice-tag re-render in a browser (code path only; refresh() unit-untested).
-Next agent must know:
-- At 390 the English "Hold to talk" button is tight; widening is Q-016 (not built).
-- switch accessible names are 中文 / English; visible text 中文 / EN fixed in index.html.
-Next agent reads: web/css/page.css (.lang-switch, composer), web/js/copy.js
-
+Measured (Playwright vs 127.0.0.1:4400, headless chromium): 390 en button 154, input 196; zh 124/226 unchanged. 375 en 154/181. 768 en 154/574 (phone layout). Longest English hint (sendDefect) 3 lines, 72 px, pushes the log up, no overlap; 2 lines at 1440 (560 px). Longest caption "Little Buddy · sad with you for a while" 253.7 px at 390 (13 px), 390.3 px at 1440 (20 px) — design estimate 341 was wrong, fits easily on one line. Lang switch 98x36 at top-right, clear of caption; sits over the face box corner as in Q-015/FRAME-015. No horizontal overflow at 375/390/768/1440. npm test 69/69.
+Evidence: docs/frontend/evidence/build/Q-016-{390,1440,375,768}-{zh,en}.png (hint and longest caption forced into the DOM), compared by eye to FRAME-015/014.
+Not checked: listening state width in a browser (grid column is fixed, so it cannot change); real mic.
+Next agent must know: Chinese layout untouched (same widths as before).
+Next agent reads: web/css/page.css (composer)

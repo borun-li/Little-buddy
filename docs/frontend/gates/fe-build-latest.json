@@ -1,6 +1,6 @@
 {
   "phase": "fe-build",
-  "time": "2026-11-15T01:08:47Z",
+  "time": "2026-11-15T01:12:26Z",
   "project": "/Users/apple/Desktop/Hackathon/Local_AI_Hackathon",
   "run_dir": "docs/frontend",
   "overall": "pass",
@@ -79,8 +79,8 @@
       "message": "tests green",
       "owner": "fe-engineer",
       "details": [
-        "$ npm test -> exit 0 (0.9s), log: /Users/apple/Desktop/Hackathon/Local_AI_Hackathon/docs/frontend/gates/logs/2026-11-15T010846Z-test.log",
-        "counts: {'passed': 69, 'errors': 0, 'failed': 0, 'xfailed': 0, 'skipped': 0, 'xpassed': 0}",
+        "$ npm test -> exit 0 (0.9s), log: /Users/apple/Desktop/Hackathon/Local_AI_Hackathon/docs/frontend/gates/logs/2026-11-15T011225Z-test.log",
+        "counts: {'skipped': 0, 'errors': 0, 'xfailed': 0, 'failed': 0, 'passed': 69, 'xpassed': 0}",
         "per-test results: report from gates.json junit: test-results/junit.xml"
       ]
     },
@@ -129,30 +129,25 @@
   ],
   "data": {
     "writer_changed": [
-      "docs/frontend/evidence/build/Q-015-1440-en-reply.png",
-      "docs/frontend/evidence/build/Q-015-1440-en.png",
-      "docs/frontend/evidence/build/Q-015-1440-zh.png",
-      "docs/frontend/evidence/build/Q-015-390-en.png",
-      "docs/frontend/evidence/build/Q-015-390-zh.png",
-      "tests/copy.test.js",
-      "docs/codemap.md",
+      "docs/frontend/capture-plan.json",
+      "docs/frontend/evidence/build/Q-016-1440-en.png",
+      "docs/frontend/evidence/build/Q-016-1440-zh.png",
+      "docs/frontend/evidence/build/Q-016-375-en.png",
+      "docs/frontend/evidence/build/Q-016-375-zh.png",
+      "docs/frontend/evidence/build/Q-016-390-en.png",
+      "docs/frontend/evidence/build/Q-016-390-zh.png",
+      "docs/frontend/evidence/build/Q-016-768-en.png",
+      "docs/frontend/evidence/build/Q-016-768-zh.png",
       "docs/frontend/03-queue.md",
       "docs/frontend/run-log.jsonl",
-      "package.json",
-      "web/css/page.css",
-      "web/index.html",
-      "web/js/app.js",
-      "web/js/companion.js",
-      "web/js/copy.js",
-      "web/js/log.js",
-      "web/js/talk-button.js"
+      "web/css/page.css"
     ],
     "counts": {
-      "passed": 69,
-      "errors": 0,
-      "failed": 0,
-      "xfailed": 0,
       "skipped": 0,
+      "errors": 0,
+      "xfailed": 0,
+      "failed": 0,
+      "passed": 69,
       "xpassed": 0
     }
   }

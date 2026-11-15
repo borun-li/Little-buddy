@@ -114,6 +114,8 @@ p { margin: 0; }
   gap: var(--space-8);
   padding: var(--space-12) var(--space-16) 20px;
 }
+/* Q-016 (DFB-004): English phone only — the button fits "Hold to talk" (154 px, kept while listening); Chinese stays 124 px */
+html[lang="en"] .composer { grid-template-columns: minmax(0, 1fr) 154px; }
 .hint {
   grid-column: 1 / -1;
   display: flex; align-items: flex-start; gap: var(--space-8);
@@ -182,7 +184,7 @@ p { margin: 0; }
   .turn--you { max-width: 440px; }
   .turn--reply, .turn--typing { font-size: 20px; line-height: 32px; }
   .typing { height: 32px; }
-  .composer { grid-template-columns: minmax(0, 1fr); gap: var(--space-12); padding: var(--space-8) var(--space-40) var(--space-40); }
+  .composer, html[lang="en"] .composer { grid-template-columns: minmax(0, 1fr); gap: var(--space-12); padding: var(--space-8) var(--space-40) var(--space-40); }
   .hint { order: 1; }
   .talk-button { order: 2; height: 56px; }
   .field { order: 3; }
