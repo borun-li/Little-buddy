@@ -109,3 +109,10 @@ Quality model plan (opus for analyst, architect, developer, reviewers; sonnet fo
 
 ### I2.6 Waivers
 - None new. Rule 2 ("waive after ≥ 2 failed fix rounds") was not needed: every failure in increment 2 was fixed.
+
+### I2.7 Human sign-off (increment 2)
+- **Accepted by the user, 2026-11-15 ~10:35 EST**, on the real page with Wi‑Fi off ("验收通过"). Run logs: backend #219, frontend #338.
+- Checked by the user: read-aloud and stop-on-talk, breathing offer and guide, crisis card (988 / 911), poke, rename, clear — "其余功能健全".
+- Found at Acceptance and fixed the same morning: **FND-025** (fond greeting "想死你了" + particles / 啦 / 妳們 raised the card; commit 7566aa4) and **FND-026** (user decision: semantic crisis detection — Bonsai's `risk` in the mood call, strong-word floor, keyword fallback; live 15/15 crisis lines, 0/8 false alarms; commit c3959f2). User re-checked both on the page.
+- Decision 1 (FND-014) confirmed by the user: fond greetings no card, "我想死你别管我" card. FND-017 / FND-018 now covered by FND-026 (semantic judgment).
+- Not checked by the user: reduced motion and narrow width (automated captures only). Not run: TC-070..076, TC-086, TC-133 (a second 9B instance does not fit memory).

@@ -7,7 +7,7 @@
     "check": "关掉 Wi-Fi，npm start 打开页面，按住说一句开心的英文（如 \"I just got the internship!\"）：几秒内出现 Bonsai 现场生成的英文回复（不是预设句），小伙伴变开心；再说一句难过的，回复接得上前文，小伙伴变难过。"
   },
   "started_at": "2026-11-14T22:19:00Z",
-  "updated_at": "2026-11-15T04:43:33Z",
+  "updated_at": "2026-11-15T15:45:00Z",
   "status": "in_progress",
   "tier": "full",
   "risk": "normal",
@@ -147,5 +147,14 @@
     "designs": "FRAME-017..025 approved",
     "UD-1": "(a)",
     "fixtures": "FX-009..013 lock after phrase addition"
+  },
+  "accepted_inc2": {
+    "by": "user",
+    "date": "2026-11-15",
+    "words": "验收通过",
+    "fixes_at_acceptance": [
+      "FND-025 7566aa4",
+      "FND-026 c3959f2"
+    ]
   }
 }
