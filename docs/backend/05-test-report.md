@@ -1,26 +1,26 @@
 # Test Report — 离线小伙伴 backend (run companion-full-dev)
 
-- Author: be-tester #4 (Backend Phase 5, round 3, documentation only)
+- Author: be-tester #5 (Backend Phase 5, round 4: review-fix tests TC-015, TC-073 allow-list, TC-087..089)
 - Date: 2026-11-14 (log timestamps 2026-11-15 UTC)
-- Commit / working tree: HEAD 6380625 plus uncommitted work; server as left by be-developer #2 round 2, running as node 91736 on 127.0.0.1:4400 (not touched; 4317 never targeted)
+- Commit / working tree: HEAD 2ecca73 plus test edits; server node 61506 (be-developer #4) on 127.0.0.1:4400, llama-server on 4401 (not touched; 4317 never targeted)
 
-> Every result below comes from the one `npm test` run of this round (log `docs/backend/logs/be-tester-4-npm-test.log`, junit `test-results/junit.xml`), or is marked manual or blocked. Nothing is reported as a pass that was not observed in this run.
+> Every result below comes from the one `npm test` run of this round (log `docs/backend/logs/be-tester-5-npm-test.log`, junit `test-results/junit.xml`), or is marked manual or blocked. Nothing is reported as a pass that was not observed in this run.
 
 ## 1. Summary
 | Result | Count |
 |---|---|
-| Pass | 57 |
+| Pass | 60 |
 | Fail | 0 |
 | Blocked | 11 |
 
-68 TCs: 54 automated (all pass, each present by name in `test-results/junit.xml`), 14 manual (TC-080, 081, 082 pass; TC-070..076 and TC-083..086 blocked). Skipped in `npm test`: 0.
+71 TCs: 57 automated (all pass, each present by name in `test-results/junit.xml`), 14 manual (TC-080, 081, 082 pass; TC-070..076 and TC-083..086 blocked). Skipped in `npm test`: 0.
 
-Known issues accepted by the user on 2026-11-15 (no further fixes): TC-050, TC-052, TC-055. All three passed in this run, so they are recorded as `pass` and noted as flaky in §3.
+Known issues accepted by the user on 2026-11-15 (no further fixes): TC-050, TC-052, TC-055. All three passed in this run, so they are recorded as `pass` and noted as flaky in §3. Review-fix round 4: TC-015 now expects bonsaiBootMs 300000 (DES-002) and passes; new TC-087 (FND-001), TC-088 (FND-003), TC-089 (FND-002) pass.
 
 ## 2. Commands executed
 ```
 $ npm test            # http://127.0.0.1:4400 up (HTTP 200 checked before the run); unit + fakes + live suites
- -> docs/backend/logs/be-tester-4-npm-test.log   tests 142, pass 142, fail 0, cancelled 0, skipped 0, duration 146 s   exit 0
+ -> docs/backend/logs/be-tester-5-npm-test.log   tests 145, pass 145, fail 0, skipped 0, duration 202 s   exit 0
  -> test-results/junit.xml
 ```
 Replies read for the manual TCs: the last run in `test-results/backend-replies.jsonl` (the file also holds earlier runs). Ports 4399, 4317 never targeted; 4400 only read from.
@@ -44,7 +44,7 @@ One row per TC. `Mode` is automated unless stated.
 | TC-012 | REQ-007 | automated | pass | toMessages (RECALL on last user message) - ✔ in junit.xml / log |
 | TC-013 | REQ-007 | automated | pass | windowOf - ✔ in junit.xml / log |
 | TC-014 | REQ-004, REQ-006 | automated | pass | prompt constants - ✔ in junit.xml / log |
-| TC-015 | REQ-009, REQ-010 | automated | pass | config values - ✔ in junit.xml / log |
+| TC-015 | REQ-009, REQ-010 | automated | pass | config values incl. bonsaiBootMs 300000 (DES-002) - ✔ in junit.xml / log |
 | TC-016 | REQ-010, REQ-011 | automated | pass | bonsaiFiles/missingFiles - ✔ in junit.xml / log |
 | TC-017 | REQ-009 | automated | pass | sources and scripts - ✔ in junit.xml / log |
 | TC-018 | REQ-010 | automated | pass | serveStatic basics - ✔ in junit.xml / log |
@@ -102,6 +102,9 @@ One row per TC. `Mode` is automated unless stated.
 | TC-084 | REQ-003, REQ-005 | manual | blocked | page, UI language switched; see §5 |
 | TC-085 | REQ-012 | manual | blocked | frontend only; see §5 |
 | TC-086 | REQ-011 | manual | blocked | page plus a stopped server; see §5 |
+| TC-087 | REQ-011, REQ-009 | automated | pass | FND-001: "//" and "http://[" -> 400 bad_request on a throwaway server, still answers after - ✔ in junit.xml / log |
+| TC-088 | REQ-009 | automated | pass | FND-003: 4401 foreign Origin gets no matching ACAO (`none`), keyless POST 401 - ✔ in junit.xml / log |
+| TC-089 | REQ-003 | automated | pass | FND-002: generated white noise and 120 Hz hum, `{"text":""}` 3 of 3 each - ✔ in junit.xml / log |
 
 Manual judgement by be-tester #4, reading the last run in `test-results/backend-replies.jsonl` (FX tags #0..2):
 - TC-080 (FX-001), 3 replies: "That is amazing news! I am so happy for you.", "...I can't wait to hear all about it later.", "...How are you feeling about starting soon?". All celebrate the news; warm but generic (none names the internship). Pass, borderline.
@@ -132,7 +135,7 @@ None this run. Flaky, user-accepted known issues that passed this time: TC-050, 
 | TC-070 | Boot suite, manual mode (04 §1). Not run: it starts its own `node server/main.js`, a third 9B Bonsai instance beside 4400 on a 24 GB Mac, about 80 s to warm up, and SIGKILLs its own children | `COMPANION_BOOT=1 npm run test:backend` with the other instances stopped, or an orchestrator-approved slot |
 | TC-071 | Same boot group reason | Same |
 | TC-072 | Same boot group reason | Same |
-| TC-073 | Same boot group reason (allow-list now lists the 16 events of 03 §6, not run) | Same |
+| TC-073 | Same boot group reason (allow-list now lists the 17 events of 03 §6 incl. child_gave_up, not run) | Same |
 | TC-074 | Same boot group reason (kills the Bonsai child) | Same |
 | TC-075 | Same boot group reason (kills the STT child) | Same |
 | TC-076 | Same boot group reason (clean stop) | Same |
@@ -146,13 +149,13 @@ None this run. Flaky, user-accepted known issues that passed this time: TC-050, 
 |---|---|---|
 | REQ-001 | yes | TC-001, 003, 004, 025, 041, 042, 043, 056, 057 |
 | REQ-002 | yes | TC-044 |
-| REQ-003 | backend yes, page half not | TC-002, 020, 026, 045; TC-084 blocked |
+| REQ-003 | backend yes, page half not | TC-002, 020, 026, 045, 089; TC-084 blocked |
 | REQ-004 | yes | TC-009, 010, 011, 014, 029, 032, 046, 048, 054, 080, 082 |
 | REQ-005 | backend yes, UI half not | TC-008, 012, 031, 037, 046, 047, 050 (flaky, known), 051; TC-084 blocked |
 | REQ-006 | yes | TC-014, 029, 030, 046, 047, 049 |
 | REQ-007 | yes | TC-012, 013, 031, 047, 048, 054, 081, 082 |
 | REQ-008 | yes (flaky under memory pressure, known) | TC-013, 033, 052; TC-071 blocked |
-| REQ-009 | partly | TC-015, 017, 019, 036, 058, 059 pass; TC-072, 073, 083 blocked |
+| REQ-009 | partly | TC-015, 017, 019, 036, 058, 059, 087, 088 pass; TC-072, 073, 083 blocked |
 | REQ-010 | partly | TC-015, 016, 017, 018, 021, 035, 038, 040, 058 pass; TC-070, 071, 076 blocked |
-| REQ-011 | partly | TC-005, 006, 007, 016, 021-024, 027, 028, 030, 032, 033, 034, 053, 055 (flaky, known) pass; TC-074, 075, 086 blocked |
+| REQ-011 | partly | TC-005, 006, 007, 016, 021-024, 027, 028, 030, 032, 033, 034, 053, 055 (flaky, known), 087 pass; TC-074, 075, 086 blocked |
 | REQ-012 | no | TC-085 blocked (frontend) |

@@ -321,21 +321,33 @@ Level: unit / integration (modules + doubles, or the HTTP seam) / e2e (boots the
 - **Verifies:** REQ-011  **Level:** e2e  **Mode:** manual
 - **Steps:** stop the test's own server (not the preview), send a line; restart it; send again.  **Expected result:** hint within 2 s, text still in the box, resend succeeds.  **Observed how:** page. The backend half (503 ≤ 2 s, recovery) is TC-034, TC-074, TC-075.
 
+### TC-087 — Malformed request-target does not crash the gateway (FND-001)
+- **Verifies:** REQ-011, REQ-009  **Level:** integration  **Mode:** automated
+- **Preconditions:** a throwaway `http.createServer(route)` on a free port (never a live server).  **Steps:** raw socket `GET //` and `GET http://[`, then `GET /api/nope`.  **Expected result:** the first two answer 400 `{"error":"bad_request"}`; the third 404; no uncaught exception (03 DES-001, §3).  **Observed how:** raw response text.
+
+### TC-088 — llama-server refuses web origins and keyless calls (FND-003)
+- **Verifies:** REQ-009  **Level:** integration  **Mode:** automated
+- **Preconditions:** live stack, llama-server on live port + 1 (BONSAI_URL overrides).  **Steps:** GET /health and OPTIONS /v1/chat/completions with a foreign Origin; POST /v1/chat/completions with no key.  **Expected result:** no Access-Control-Allow-Origin equal to that origin or `*`, no credentials echo; POST 401 (DES-007).  **Observed how:** response headers and status.
+
+### TC-089 — Generated noise is not a transcript (FND-002)
+- **Verifies:** REQ-003  **Level:** integration  **Mode:** automated
+- **Preconditions:** live stack.  **Steps:** build in the test two 2 s 16 kHz mono PCM16 WAVs (seeded white noise RMS ~0.03; 120 Hz sine RMS ~0.03), POST each to /api/transcribe 3 times.  **Expected result:** 200 `{"text":""}` on all 6 calls (DES-011).  **Observed how:** response body. No locked fixture; inputs generated.
+
 ## 4. Negative, boundary and failure cases
-Bad input: TC-003, TC-004, TC-053, TC-054, TC-055, TC-056. Boundaries: 1500/1501 chars, 40-entry and weight-2000 history window, 120 chars / 40 words, 2,000,000-byte and 262,144-byte bodies, 60 s audio (TC-004, TC-011, TC-013, TC-054, TC-055, TC-057). Dependency down, slow or dying: TC-022..024, TC-027, TC-028, TC-033, TC-034, TC-074, TC-075. Wrong or missing output: TC-009, TC-030, TC-032 (thinking only, junk mood). Silence: TC-002, TC-020, TC-026, TC-045. Traversal: TC-019, TC-058. Privacy: TC-006, TC-073. Duplicate/concurrent: out-of-order concurrent transcriptions in TC-025.
+Bad input: TC-003, TC-004, TC-053, TC-054, TC-055, TC-056. Boundaries: 1500/1501 chars, 40-entry and weight-2000 history window, 120 chars / 40 words, 2,000,000-byte and 262,144-byte bodies, 60 s audio (TC-004, TC-011, TC-013, TC-054, TC-055, TC-057). Dependency down, slow or dying: TC-022..024, TC-027, TC-028, TC-033, TC-034, TC-074, TC-075, TC-087. Wrong or missing output: TC-009, TC-030, TC-032 (thinking only, junk mood). Silence and noise: TC-002, TC-020, TC-026, TC-045, TC-089. Traversal: TC-019, TC-058. Privacy: TC-006, TC-073. Duplicate/concurrent: out-of-order concurrent transcriptions in TC-025.
 
 ## 5. Coverage matrix
 | REQ | Test cases | Level |
 |---|---|---|
 | REQ-001 | TC-001, 003, 004, 025, 041–044, 056, 057 | unit, integration |
 | REQ-002 | TC-044 (FX-005..007) | integration |
-| REQ-003 | TC-002, 020, 026, 045 (FX-008); page half TC-084 | unit, integration, manual |
+| REQ-003 | TC-002, 020, 026, 045 (FX-008), 089; page half TC-084 | unit, integration, manual |
 | REQ-004 | TC-009–011, 014, 029, 032, 046, 048, 054, 080, 082 | unit, integration, manual |
 | REQ-005 | TC-008, 012, 031, 037, 046, 047, 050, 051, 084 | unit, integration, manual |
 | REQ-006 | TC-014, 029, 030, 046, 047, 049 | unit, integration |
 | REQ-007 | TC-012, 013, 031, 047, 048, 054, 081, 082 | unit, integration, manual |
 | REQ-008 | TC-013, 033, 052, 071 | unit, integration, e2e |
-| REQ-009 | TC-015, 017, 019, 036, 058, 059, 072, 073, 083 | unit, integration, e2e, manual |
+| REQ-009 | TC-015, 017, 019, 036, 058, 059, 072, 073, 083, 087, 088 | unit, integration, e2e, manual |
 | REQ-010 | TC-015–018, 038, 021, 035, 040, 058, 070, 071, 076 | unit, integration, e2e |
 | REQ-011 | TC-005–007, 016, 038, 021–024, 027, 028, 030, 032–034, 053, 055, 074, 075, 086 | unit, integration, e2e, manual |
 | REQ-012 | TC-085 | manual (frontend) |

@@ -258,3 +258,36 @@ T('TC-059 REQ-009: the server process and its children touch only loopback addre
   assert.ok(seen.length > 0, 'lsof listed no sockets at all');
   assert.deepEqual(bad, [], `non-loopback: ${bad.join('; ')}`);
 });
+
+// ---------- FND-003: llama-server on the stack (BONSAI_URL, default: live port + 1)
+T('TC-088 [FND-003] llama-server: a foreign Origin gets no matching Access-Control-Allow-Origin, and a keyless POST /v1/chat/completions gets 401', async () => {
+  const bonsai = process.env.BONSAI_URL || `http://127.0.0.1:${Number(new URL(B).port) + 1}`;
+  assert.notEqual(new URL(bonsai).port, '4317');
+  const evil = 'http://evil.example';
+  for (const [method, path, extra] of [['GET', '/health', {}], ['OPTIONS', '/v1/chat/completions', { 'access-control-request-method': 'POST' }]]) {
+    const r = await fetch(bonsai + path, { method, headers: { origin: evil, ...extra }, signal: AbortSignal.timeout(10000) });
+    const acao = r.headers.get('access-control-allow-origin');
+    assert.ok(acao !== evil && acao !== '*', `${method} ${path}: ACAO ${acao}`);
+    assert.notEqual(r.headers.get('access-control-allow-credentials'), 'true', 'no credentials echo');
+  }
+  const r = await fetch(`${bonsai}/v1/chat/completions`, { method: 'POST', headers: { 'content-type': 'application/json', origin: evil }, body: JSON.stringify({ messages: [{ role: 'user', content: 'hi' }], max_tokens: 1 }), signal: AbortSignal.timeout(10000) });
+  assert.equal(r.status, 401);
+  const acao = r.headers.get('access-control-allow-origin');
+  assert.ok(acao !== evil && acao !== '*', `POST: ACAO ${acao}`);
+});
+
+// ---------- FND-002: generated noise is not a transcript
+const pcmWav = (gen) => { const n = 32000, d = Buffer.alloc(n * 2); for (let i = 0; i < n; i++) d.writeInt16LE(Math.max(-32768, Math.min(32767, Math.round(gen(i) * 32767))), i * 2); return makeWav({ data: d }); };
+const prng = (seed) => () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
+const gauss = (rnd) => () => Math.sqrt(-2 * Math.log(1 - rnd())) * Math.cos(2 * Math.PI * rnd());
+T('TC-089 [FND-002] 2 s of generated white noise (RMS ~0.03) and of a 120 Hz hum (RMS ~0.03): /api/transcribe returns {"text": ""} on 3 of 3 calls each', async () => {
+  const g = gauss(prng(1));
+  const clips = { 'white noise': pcmWav(() => 0.03 * g()), 'hum 120 Hz': pcmWav((i) => 0.0425 * Math.sin((2 * Math.PI * 120 * i) / 16000)) };
+  for (const [name, wav] of Object.entries(clips)) {
+    for (let i = 0; i < 3; i++) {
+      const r = await transcribe(wav);
+      assert.equal(r.status, 200, `${name} #${i}: ${r.text}`);
+      assert.deepEqual(r.json, { text: '' }, `${name} #${i}`);
+    }
+  }
+});

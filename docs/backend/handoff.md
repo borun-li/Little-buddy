@@ -97,14 +97,14 @@ Next agent must know:
 - Left open: stillDown over an action hint is allowed by the rules; not covered by a browser check (unit rule in healthHint only).
 Next agent reads: web/js/app.js healthHint, tests/fnd-r1-fix.test.js
 
-## be-tester #4 · step 5 (test report) · round 3 · 2026-11-15T03:30:00Z
-Task: rewrite 05-test-report.md so gate p5 parses one verdict per TC row, from one real `npm test` run.
-Changed: docs/backend/05-test-report.md; docs/backend/logs/be-tester-4-npm-test.log. No tests, package.json, server, web or 04 touched.
-Result: 57 pass, 0 fail, 11 blocked. `npm test` 142/142, skipped 0, exit 0 (146 s). TC-050, 052, 055 (user-accepted known issues) passed this run, recorded pass + flaky.
+## be-tester #5 · step 5 (test report) · round 4 · 2026-11-15T04:30:00Z
+Task: bring tests in line with the review-fix design (DES-002, 03 §6) and add FND-001/002/003 regressions; re-run npm test.
+Changed: tests/server-unit.test.js (TC-015 -> bonsaiBootMs 300000; new TC-087), tests/server-boot.test.js (TC-073 allow-list 17 events), tests/server-live.test.js (new TC-088, TC-089), docs/backend/04-test-plan.md, 05-test-report.md, logs/be-tester-5-npm-test.log. No server, stt, web, package.json or fixtures touched.
+Result: 60 pass, 0 fail, 11 blocked. npm test 145/145, skipped 0, exit 0 (202 s). TC-050, 052, 055 passed (recorded pass + flaky, known issues accepted 2026-11-15). TC-073 stays blocked (boot group, manual).
 Next agent must know:
-- Pitfalls: `npm test` needs 4400 up; takes about 150 s. backend-replies.jsonl accumulates runs (read the last).
-- Left open: boot group TC-070..076 (blocked, manual); TC-083..086 (blocked).
-Next agent reads: docs/backend/05-test-report.md sections 3 and 5
+- Pitfalls: TC-087 sends "//" only to its own throwaway server; TC-088 targets llama-server at live port + 1 (BONSAI_URL overrides); TC-089 builds noise in the test (seeded), no fixtures. llama-server sends Access-Control-Allow-Credentials: false, not absent.
+- Left open: boot group TC-070..076 and TC-083..086 blocked; TC-073 allow-list updated but not run.
+Next agent reads: docs/backend/05-test-report.md sections 1, 3, 5
 
 ## fe-reviewer #2 · step 4 (frontend review) · round 2 · increment 1 · 2026-11-15T02:04:20Z
 Task: re-check FND-001..004 (fix commit 1ae2fab) against 4399 and the code; record in 05-review.md §5 (filed by orchestrator from the return)

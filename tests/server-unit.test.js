@@ -223,7 +223,7 @@ test('TC-015 CONFIG: loopback host, limits, deadlines, restarts, defaults', asyn
   const { CONFIG } = await imp('server/config.js');
   assert.equal(CONFIG.host, '127.0.0.1');
   assert.deepEqual({ ...CONFIG.limits }, { lineChars: 1500, historyEntries: 40, historyTextChars: 1500, historyBudget: 2000, jsonBytes: 262144, wavBytes: 2000000 });
-  assert.deepEqual({ ...CONFIG.deadlines }, { respondMs: 15000, transcribeMs: 12000, sttBootMs: 600000, bonsaiBootMs: 60000 });
+  assert.deepEqual({ ...CONFIG.deadlines }, { respondMs: 15000, transcribeMs: 12000, sttBootMs: 600000, bonsaiBootMs: 300000 });
   assert.ok(CONFIG.deadlines.respondMs + CONFIG.deadlines.transcribeMs < 30000, 'voice turn < 30 s (A11)');
   assert.deepEqual({ ...CONFIG.restarts }, { max: 5, delayMs: 2000 });
   if (!process.env.PORT) assert.equal(CONFIG.port, 4317);
@@ -339,4 +339,28 @@ test('TC-038 missingHints: one line per kind of missing file (stt bin / Bonsai /
   assert.equal(all.length, 3);
   assert.match(all[0], /npm run setup/); assert.match(all[1], /BONSAI_MODEL/); assert.match(all[2], /STT_MODEL_DIR/);
   for (const l of all) { assert.match(l, /[\u4e00-\u9fff]/, 'zh part'); assert.match(l, /[A-Za-z]{4,}/, 'en part'); }
+});
+
+// ---------- DES-001 / FND-001: a malformed request-target never throws out of route
+test('TC-087 [FND-001] route on a throwaway server: request-targets "//" and "http://[" answer 400 {"error":"bad_request"} and the server stays up', async () => {
+  const { route } = await imp('server/main.js');
+  const net = await import('node:net');
+  const srv = http.createServer(route);
+  await new Promise((r) => srv.listen(0, '127.0.0.1', r));
+  const { port } = srv.address();
+  let crashed = null; const onUncaught = (e) => { crashed = e; }; process.once('uncaughtException', onUncaught);
+  const raw = (target) => new Promise((resolve, reject) => {
+    const sock = net.connect(port, '127.0.0.1', () => sock.write(`GET ${target} HTTP/1.1\r\nHost: 127.0.0.1\r\nConnection: close\r\n\r\n`));
+    let b = ''; sock.on('data', (c) => (b += c)); sock.on('end', () => resolve(b)); sock.on('error', reject); sock.setTimeout(5000, () => reject(new Error('timeout')));
+  });
+  try {
+    for (const t of ['//', 'http://[']) {
+      const res = await raw(t);
+      assert.match(res, /^HTTP\/1\.1 400 /, `${t}: ${res.slice(0, 80)}`);
+      assert.deepEqual(JSON.parse(res.slice(res.indexOf('\r\n\r\n') + 4)), { error: 'bad_request' }, t);
+    }
+    const again = await raw('/api/nope');
+    assert.match(again, /^HTTP\/1\.1 404 /, 'server still answers after both');
+    assert.equal(crashed, null);
+  } finally { process.removeListener('uncaughtException', onUncaught); await new Promise((r) => srv.close(r)); }
 });

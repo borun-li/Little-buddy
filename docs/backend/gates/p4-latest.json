@@ -1,6 +1,6 @@
 {
   "phase": "p4",
-  "time": "2026-11-15T00:51:18Z",
+  "time": "2026-11-15T04:10:57Z",
   "project": "/Users/apple/Desktop/Hackathon/Local_AI_Hackathon",
   "run_dir": "docs/backend",
   "overall": "pass",
@@ -75,13 +75,15 @@
     },
     {
       "id": "CMD.test",
-      "status": "pass",
-      "message": "tests green",
+      "status": "waived",
+      "message": "tests are red",
       "owner": "be-developer",
       "details": [
-        "$ npm test -> exit 0 (0.8s), log: /Users/apple/Desktop/Hackathon/Local_AI_Hackathon/docs/backend/gates/logs/2026-11-15T005117Z-test.log",
-        "counts: {'xfailed': 0, 'failed': 0, 'xpassed': 0, 'passed': 37, 'errors': 0, 'skipped': 0}",
-        "per-test results: report from gates.json junit: test-results/junit.xml"
+        "$ npm test -> exit 1 (185.1s), log: /Users/apple/Desktop/Hackathon/Local_AI_Hackathon/docs/backend/gates/logs/2026-11-15T040752Z-test.log",
+        "counts: {'xpassed': 0, 'failed': 1, 'errors': 0, 'passed': 144, 'skipped': 0, 'xfailed': 0}",
+        "per-test results: report from gates.json junit: test-results/junit.xml",
+        "failed: test::TC-052 [FX-006] REQ-008: with 20 turns of history, the same spoken English line takes <= 10 s from audio to reply and mood, 5 times",
+        "waived by user on 2026-11-15: Scope: only TC-050 / TC-052 / TC-055 (and fixture FX-004 / FX-006 through them) — known issues accepted by the user 2026-11-15 ~22:30 EST ('接受现状，记为已知问题', option text: 需要你豁免 p5 的这些失败). They are flaky: in the latest gate run only TC-052 failed (REQ-008 latency, 5th of 5 at >10 s under memory pressure); be-tester #4's run passed all 142. Any other failing TC is NOT covered."
       ]
     },
     {
@@ -101,14 +103,14 @@
     {
       "id": "P4.plan-ids",
       "status": "pass",
-      "message": "68 TCs, ids unique",
+      "message": "71 TCs, ids unique",
       "owner": "be-tester",
       "details": []
     },
     {
       "id": "P4.tc-ids",
       "status": "pass",
-      "message": "68 TC ids new to the project",
+      "message": "71 TC ids new to the project",
       "owner": "be-tester",
       "details": []
     },
@@ -143,26 +145,29 @@
     {
       "id": "CTX.handoff",
       "status": "pass",
-      "message": "handoff.md: 9 current sections",
+      "message": "handoff.md: 11 current sections",
       "owner": "orchestrator",
       "details": []
     }
   ],
   "data": {
     "writer_changed": [
+      "docs/backend/logs/be-tester-5-npm-test.log",
       "docs/backend/04-test-plan.md",
-      "docs/backend/logs/gate-p4.log",
+      "docs/backend/05-test-report.md",
+      "docs/backend/handoff.md",
       "docs/backend/run-log.jsonl",
-      "tests/server-fakes.test.js",
+      "tests/server-boot.test.js",
+      "tests/server-live.test.js",
       "tests/server-unit.test.js"
     ],
     "counts": {
-      "xfailed": 0,
-      "failed": 0,
       "xpassed": 0,
-      "passed": 37,
+      "failed": 1,
       "errors": 0,
-      "skipped": 0
+      "passed": 144,
+      "skipped": 0,
+      "xfailed": 0
     }
   }
 }

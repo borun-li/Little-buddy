@@ -1,6 +1,6 @@
 {
   "phase": "p5",
-  "time": "2026-11-15T03:13:09Z",
+  "time": "2026-11-15T04:14:33Z",
   "project": "/Users/apple/Desktop/Hackathon/Local_AI_Hackathon",
   "run_dir": "docs/backend",
   "overall": "pass",
@@ -33,15 +33,13 @@
     },
     {
       "id": "CMD.test",
-      "status": "waived",
-      "message": "tests are red",
+      "status": "pass",
+      "message": "tests green",
       "owner": "be-developer",
       "details": [
-        "$ npm test -> exit 1 (204.4s), log: /Users/apple/Desktop/Hackathon/Local_AI_Hackathon/docs/backend/gates/logs/2026-11-15T030945Z-test.log",
-        "counts: {'passed': 141, 'failed': 1, 'errors': 0, 'xfailed': 0, 'xpassed': 0, 'skipped': 0}",
-        "per-test results: report from gates.json junit: test-results/junit.xml",
-        "failed: test::TC-052 [FX-006] REQ-008: with 20 turns of history, the same spoken English line takes <= 10 s from audio to reply and mood, 5 times",
-        "waived by user on 2026-11-15: Scope: only TC-050 / TC-052 / TC-055 (and fixture FX-004 / FX-006 through them) — known issues accepted by the user 2026-11-15 ~22:30 EST ('接受现状，记为已知问题', option text: 需要你豁免 p5 的这些失败). They are flaky: in the latest gate run only TC-052 failed (REQ-008 latency, 5th of 5 at >10 s under memory pressure); be-tester #4's run passed all 142. Any other failing TC is NOT covered."
+        "$ npm test -> exit 0 (215.5s), log: /Users/apple/Desktop/Hackathon/Local_AI_Hackathon/docs/backend/gates/logs/2026-11-15T041057Z-test.log",
+        "counts: {'passed': 145, 'xfailed': 0, 'failed': 0, 'errors': 0, 'xpassed': 0, 'skipped': 0}",
+        "per-test results: report from gates.json junit: test-results/junit.xml"
       ]
     },
     {
@@ -54,19 +52,16 @@
     {
       "id": "P5.tc-in-code",
       "status": "pass",
-      "message": "54 automated TCs found in test code",
+      "message": "57 automated TCs found in test code",
       "owner": "be-tester",
       "details": []
     },
     {
       "id": "P5.tc-results",
-      "status": "waived",
-      "message": "Automated TCs not passing in this run",
+      "status": "pass",
+      "message": "Every automated TC passed in this run",
       "owner": "be-tester",
-      "details": [
-        "TC-052: failed",
-        "waived by user on 2026-11-15: Scope: only TC-050 / TC-052 / TC-055 (and fixture FX-004 / FX-006 through them) — known issues accepted by the user 2026-11-15 ~22:30 EST ('接受现状，记为已知问题', option text: 需要你豁免 p5 的这些失败). They are flaky: in the latest gate run only TC-052 failed (REQ-008 latency, 5th of 5 at >10 s under memory pressure); be-tester #4's run passed all 142. Any other failing TC is NOT covered."
-      ]
+      "details": []
     },
     {
       "id": "P5.report-complete",
@@ -77,13 +72,10 @@
     },
     {
       "id": "P5.report-honest",
-      "status": "waived",
-      "message": "Report claims passes this run did not observe (Constitution §2.3)",
+      "status": "pass",
+      "message": "Reported passes match observed results",
       "owner": "be-tester",
-      "details": [
-        "TC-052: reported pass, observed failed",
-        "waived by user on 2026-11-15: Scope: only TC-050 / TC-052 / TC-055 (and fixture FX-004 / FX-006 through them) — known issues accepted by the user 2026-11-15 ~22:30 EST ('接受现状，记为已知问题', option text: 需要你豁免 p5 的这些失败). They are flaky: in the latest gate run only TC-052 failed (REQ-008 latency, 5th of 5 at >10 s under memory pressure); be-tester #4's run passed all 142. Any other failing TC is NOT covered."
-      ]
+      "details": []
     },
     {
       "id": "P5.fixtures",
@@ -94,13 +86,10 @@
     },
     {
       "id": "P5.fixtures-used",
-      "status": "waived",
-      "message": "Approved fixtures not exercised by a passing test (tag the test FX-nnn)",
+      "status": "pass",
+      "message": "8 approved fixtures used by passing tests",
       "owner": "be-tester",
-      "details": [
-        "FX-006: failed",
-        "waived by user on 2026-11-15: Scope: only TC-050 / TC-052 / TC-055 (and fixture FX-004 / FX-006 through them) — known issues accepted by the user 2026-11-15 ~22:30 EST ('接受现状，记为已知问题', option text: 需要你豁免 p5 的这些失败). They are flaky: in the latest gate run only TC-052 failed (REQ-008 latency, 5th of 5 at >10 s under memory pressure); be-tester #4's run passed all 142. Any other failing TC is NOT covered."
-      ]
+      "details": []
     },
     {
       "id": "LOG.valid",
@@ -119,7 +108,7 @@
     {
       "id": "CTX.handoff",
       "status": "pass",
-      "message": "handoff.md: 10 current sections",
+      "message": "handoff.md: 11 current sections",
       "owner": "orchestrator",
       "details": []
     }
@@ -172,14 +161,17 @@
       "TC-049": "passed",
       "TC-050": "passed",
       "TC-051": "passed",
-      "TC-052": "failed",
+      "TC-052": "passed",
       "TC-053": "passed",
       "TC-054": "passed",
       "TC-055": "passed",
       "TC-056": "passed",
       "TC-057": "passed",
       "TC-058": "passed",
-      "TC-059": "passed"
+      "TC-059": "passed",
+      "TC-087": "passed",
+      "TC-088": "passed",
+      "TC-089": "passed"
     },
     "tc_reported": {
       "TC-001": "pass",
@@ -253,7 +245,10 @@
       "TC-083": "blocked",
       "TC-084": "blocked",
       "TC-085": "blocked",
-      "TC-086": "blocked"
+      "TC-086": "blocked",
+      "TC-087": "pass",
+      "TC-088": "pass",
+      "TC-089": "pass"
     },
     "fx_observed": {
       "FX-001": "passed",
@@ -261,15 +256,15 @@
       "FX-003": "passed",
       "FX-004": "passed",
       "FX-005": "passed",
-      "FX-006": "failed",
+      "FX-006": "passed",
       "FX-007": "passed",
       "FX-008": "passed"
     },
     "counts": {
-      "passed": 141,
-      "failed": 1,
-      "errors": 0,
+      "passed": 145,
       "xfailed": 0,
+      "failed": 0,
+      "errors": 0,
       "xpassed": 0,
       "skipped": 0
     }
