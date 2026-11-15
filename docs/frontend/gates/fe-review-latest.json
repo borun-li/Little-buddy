@@ -1,11 +1,11 @@
 {
   "phase": "fe-review",
-  "time": "2026-11-15T11:14:54Z",
+  "time": "2026-11-15T11:27:53Z",
   "project": "/Users/apple/Desktop/Hackathon/Local_AI_Hackathon",
   "run_dir": "docs/frontend",
   "overall": "fail",
-  "consecutive_failures": 1,
-  "failed_runs": 1,
+  "consecutive_failures": 2,
+  "failed_runs": 2,
   "fix_round_cap": 2,
   "escalate": false,
   "fail_by_owner": {
@@ -27,27 +27,10 @@
       "message": "Files changed while reviewers ran (PLAYBOOK §4.3)",
       "owner": "orchestrator",
       "details": [
-        "docs/backend/gates/logs/2026-11-15T110505Z-test.log",
-        "docs/backend/gates/p5-20261115T111454Z.json",
-        "docs/backend/gates/p6-20261115T111454Z.json",
-        "docs/backend/logs/be-tester-10-npm-test.log",
-        "docs/backend/logs/be-tester-10-tc125-run1.log",
-        "docs/backend/logs/be-tester-10-tc125-run2.log",
-        "docs/backend/logs/be-tester-10-tc125-run3.log",
-        "docs/backend/logs/be-tester-10-tc125-run4.log",
-        "docs/backend/logs/be-tester-10-tc125-run5.log",
-        "docs/backend/logs/be-tester-10-tc125-run6.log",
-        "docs/backend/05-test-report.md",
-        "docs/backend/demo-plan.json",
+        "docs/backend/gates/p6-20261115T112752Z.json",
         "docs/backend/gates/attempts.json",
-        "docs/backend/gates/p5-latest.json",
         "docs/backend/gates/p6-latest.json",
-        "docs/backend/gates/snap-be-developer.json",
-        "docs/backend/gates/snap-be-tester.json",
-        "docs/backend/gates/tests-cache.json",
-        "docs/backend/handoff.md",
-        "docs/backend/run-log.jsonl",
-        "docs/codemap.md"
+        "docs/backend/run-log.jsonl"
       ]
     },
     {

@@ -169,27 +169,35 @@ FND-014, FND-017, FND-018 change the crisis list the user approved at Plan (Q7) 
 - **Status:** fixed in round 1 (re-checked by be-reviewer #4, round 2)
 
 ### FND-017 — Crisis phrasing gaps
+- **Scenario:** the user types "I wanted to die" or "活着真没意思" → crisis:false → no 988 line, no card.
 - Lines above → crisis:false; normalizeForCrisis folds no dashes (crisis.js:24-32). Code matches the approved list; coverage is the user's call. **Status:** open
 
 ### FND-018 — Crisis false alarms on 想死 inside other words
+- **Scenario:** the user types "他思想死板" or "我想死磕这个bug" → crisis:true → a 988 card appears on an ordinary line.
 - 他思想死板, 这个理想死了, 我想死磕这个bug → crisis:true (substring, crisis.js:39). A22 accepts false alarms; exceptions risk FND-014-type misses. **Status:** open
 
 ### FND-019 — "988" anywhere in the first sentence suppresses the hotline sentence
+- **Scenario:** the companion is named "988"; on a crisis turn the model writes "I am 988 and I am right here with you." → the reply carries no call-or-text line.
 - `crisisReply` returns `first` alone if it contains "988" (bonsai.js:84); name "988" survives cleanName. Card still shows. Direction: skip only when the CRISIS_LINE wording / call-text verb is present, or always append. **Status:** fixed in round 1 (re-checked by be-reviewer #4, round 2)
 
 ### FND-020 — A lone surrogate wedges the tts slot for 10 s
+- **Scenario:** a local client posts /api/speak with text "a\ud800b" → helper answers id:-1 → node drops it → read-aloud slot blocked for 10 s.
 - `{"text":"a\ud800b"}` passes parseSpeak (main.js:37); Swift decoder rejects; helper answers id:-1 (main.swift:77-78); node ignores (tts.js:60). Page parts never contain one. Direction: reject `!text.isWellFormed()` in parseSpeak and/or treat id:-1 as the in-flight answer. **Status:** fixed in round 1 (re-checked by be-reviewer #4, round 2)
 
 ### FND-021 — zh hard split cuts embedded English words
+- **Scenario:** Bonsai replies "恭喜你拿到Google的offer了！" → spoken as "恭喜你拿到Googl" / "e的offer了！".
 - tts.js:161-171 slices by code point. "恭喜你拿到Google的offer了！" → ["恭喜你拿到Googl","e的offer了！"]. Direction: a Latin/digit run is one unit. **Status:** open
 
 ### FND-022 — An over-long en token makes a part /api/speak refuses
+- **Scenario:** an en reply holds a 300-char token → part of 301 chars → /api/speak 400 → that reply is silent.
 - `speechParts('x'.repeat(300)+'.','en')` → [301] → 400. Unlikely from Bonsai. Direction: hard-split parts over speakChars. **Status:** open
 
 ### FND-023 — Name cleaning deletes combining marks and the curly apostrophe
+- **Scenario:** the user names the companion "O’Brien" or "राम" → saved and sent as "OBrien" / "रम".
 - ALLOWED lacks \p{M}; U+2019 not mapped. Back and front change together (FX-012). **Status:** open
 
 ### FND-024 — Setup fails on a transient tts restart
+- **Scenario:** during `npm run setup` the voice helper crashes once → warm-only sees tts down within the 2 s restart delay → setup exits 1 although a restart would succeed.
 - supervisor sets down for the 2 s restart delay; warm-only poll exits 1 (main.js:223-226). Direction: fail only on child_gave_up, or warn for tts. Must be listed at the stop if still open. **Status:** open
 
 ### 3. Dropped by the coordinator
