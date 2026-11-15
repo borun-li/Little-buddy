@@ -96,13 +96,11 @@ Next agent must know:
 Next agent reads: docs/backend/05-test-report.md section 4
 - Carried from be-tester #1 (trimmed by orchestrator): plan 04 has 70 TCs (63 automated); suites tests/server-unit, server-fakes, server-live (COMPANION_URL, refuses 4317), server-boot (COMPANION_BOOT=1); `npm run test:backend` → test-results/junit-backend.xml.
 
-## fe-reviewer #1 · step 4 (review coordinator) · round 1 · increment 1 · 2026-11-15T01:41:35Z
-Task: merge panel candidates A-1..A-3, I-1..I-4, E-1..E-4 and fe-tester #2's verdicts into docs/frontend/05-review.md; disprove or rank.
-Changed: docs/frontend/05-review.md (new) — 9 findings (3 major, 6 minor), 0 dropped; verdict send back. Nothing else.
-Result: every candidate reproduced against 127.0.0.1:4399. Merged I-2+E-1 → FND-001, A-3+E-4 → FND-008. Fix round: FND-001 (health-watch.js:100 failed() fakes a shown not-ready hint → "awake" replaces the failure hint), FND-002 (app.js:100 standing voice turn bypasses pending → overlapping turns, stuck typing dots), both fe-engineer; FND-003 (listening start not announced; mic-opening words are visual) fe-ux first, then fe-engineer. Deferred: FND-004..009 + tester minors Q-001..003 — evidence: scratchpad fe-reviewer-1/probe.out, hang.out
+## fe-reviewer #1 · step 4 (review coordinator) · round 2 · increment 1 · 2026-11-15T01:43:17Z
+Task: FE4.findings format fix (filed by orchestrator from the return).
+Changed: docs/frontend/05-review.md — findings table back to template columns; owner as a "- **Owner:**" line per FND.
+Result: 9 FND (0 blocker, 3 major FND-001..003, 6 minor FND-004..009); fe-review gate pass.
 Next agent must know:
-- Pitfalls: Chrome's input clientWidth already excludes padding; the panel's placeholder box figures (a11y/p3.out, my probe.out boxPx) subtract it twice — corrected numbers are in FND-008.
-- Pitfalls: FND-002 needs a pointer hold with the input focused, then Enter, then release; Space holds move focus to the button and cannot reproduce it.
-- Left open: FND-001 also covers unreachable replacing sendUnavailable after ~400 ms when health reports down; the UX "failure hint stays" rule and the warming-table hints overlap there — fe-ux may need to say which wins.
-Read beyond the list: web/js/companion-client.js:12 (5 s health timeout, for FND-005).
+- Pitfalls: fe-review reads the 4th table column as Where; FND-002 needs a pointer hold plus Enter in the focused input; Chrome input clientWidth excludes padding.
+- Left open: FND-001, FND-002 (fe-engineer), FND-003 (fe-ux then fe-engineer); 01-ux.md "failure hint stays until next send" vs warming table "newest wins" needs a fe-ux ruling.
 Next agent reads: docs/frontend/05-review.md §2; web/js/health-watch.js:59-104; web/js/app.js:24-118; web/js/talk-button.js:103-177
