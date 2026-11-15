@@ -14,6 +14,7 @@ export const COPY = {
     listeningShort: (s) => `${s} 秒`,
     listeningHelp: '松开发送 · 移开或 Esc 取消',
     listeningName: (s) => `在听，${s} 秒，松开发送`,
+    listeningNow: '在听', // announced in the status line when the stream opens, not shown (FND-003)
     voiceTag: '语音',
     transcribing: '正在转成文字…', // the trailing … is drawn as moving dots in log.js
     typing: '小伙伴正在回复',
@@ -27,7 +28,7 @@ export const COPY = {
       noMic: '没找到麦克风，打字也一样能聊。',
       busy: '麦克风被别的程序占用了，关掉再试，或者先打字。',
       tooShort: '说得太快啦，按住久一点。',
-      micOpening: '麦克风正在打开，看到秒数再开口。',
+      micOpening: '麦克风正在打开，提示“在听”时再开口。',
       warming: '小伙伴还在醒来，通常一两分钟。可以先打字，醒了再发。',
       voiceNotReady: '语音还没准备好，先打字吧。',
       nothingHeard: '没听到说话声。按住再说一次，或者打字。',
@@ -66,6 +67,7 @@ export const COPY = {
     listeningShort: (s) => `${s} s`,
     listeningHelp: 'Release to send · move off or Esc to cancel',
     listeningName: (s) => `Listening, ${s} seconds, release to send`,
+    listeningNow: 'Listening', // announced in the status line when the stream opens, not shown (FND-003)
     voiceTag: 'Voice',
     transcribing: 'Turning it into text…',
     typing: 'Little Buddy is replying',
@@ -79,7 +81,7 @@ export const COPY = {
       noMic: 'No microphone found. Typing works just as well.',
       busy: 'Another app is using the microphone. Close it and try again, or type for now.',
       tooShort: 'That was quick! Hold a little longer.',
-      micOpening: 'Opening the mic. Start talking when the seconds appear.',
+      micOpening: 'Opening the mic. Start talking when it says Listening.',
       warming: "Little Buddy is still waking up, usually within two minutes. Type now and send once it's awake.",
       voiceNotReady: "Voice isn't ready yet. Type for now.",
       nothingHeard: "I didn't hear any words. Hold and try again, or type.",

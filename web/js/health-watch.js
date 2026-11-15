@@ -97,10 +97,14 @@ export function createHealthWatch({
     // A send or a voice line failed with this code: not_ready / unavailable resume the checks.
     failed(code) {
       if (code !== 'not_ready' && code !== 'unavailable') return;
-      notReadyShown = true;
+      // A not_ready code shows a health hint (warming); unavailable shows an action hint, which "awake"
+      // never replaces (FND-001). The first check runs one poll later, so the code's hint is read first.
+      if (code === 'not_ready') notReadyShown = true;
       if (code === 'unavailable') downSince ??= now();
       if (running) return; // already checking
-      begin();
+      running = true;
+      clearTimeout2(pollTimer);
+      pollTimer = timers.setTimeout(() => { pollTimer = null; check(); }, pollMs);
     },
     stop() { running = false; token += 1; clearTimeout2(pollTimer); clearTimeout2(awakeTimer); pollTimer = awakeTimer = null; },
   };

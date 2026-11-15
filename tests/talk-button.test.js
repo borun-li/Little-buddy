@@ -66,7 +66,7 @@ test('slow open: hint at 0.2 s, listening and seconds at open, hint leaves', asy
   assert.equal(t.classes.has('is-listening'), false);
   await t.open();
   assert.equal(t.classes.has('is-listening'), true);
-  assert.equal(t.hints.at(-1), 'clear');
+  assert.deepEqual(t.hints.slice(-2), ['clear', 'listeningNow']); // micOpening leaves, then the status line announces (FND-003)
   assert.match(t.label.textContent, /1 秒/);
   t.wait(2000);
   assert.match(t.label.textContent, /2 秒/); // counted from open (2 s ago), not from the press (3 s ago)

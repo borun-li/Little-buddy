@@ -21,17 +21,28 @@ const companion = createCompanion($('[data-testid="companion"]'), $('.companion_
 const history = []; // page memory only (A5)
 let pending = false;
 
+const hint = createHint($('.hint'));
+
+// Hint rules (01-ux.md): a health check replaces only a health hint (or nothing); over an action hint
+// only stillDown; never over a hold hint. awake shows only over a health hint and clears only itself.
+const HEALTH_HINTS = new Set(['warming', 'voiceNotReady', 'unreachable', 'stillDown']);
+const HOLD_HINTS = new Set(['micOpening', 'listeningNow']);
+function healthHint(key) {
+  const cur = hint.key;
+  if (key === 'awake') { if (HEALTH_HINTS.has(cur)) showHint('awake'); return; }
+  if (!key) { if (cur === 'awake') hint.clear(); return; } // awake's own 4 s end
+  if (cur == null || cur === 'awake' || HEALTH_HINTS.has(cur) || (key === 'stillDown' && !HOLD_HINTS.has(cur))) showHint(key);
+}
+
 // FLOW-006: the watch decides what Enter and hold may do and which hint and caption show.
 const watch = createHealthWatch({
   health,
   onChange(st) {
     companion.setWaking(st.waking);
-    if (st.hint) showHint(st.hint);
-    else if (shownKey === 'awake') clearSendHint(); // the awake hint leaves by itself after 4 s
+    healthHint(st.hint);
   },
 });
 
-const hint = createHint($('.hint'));
 const talk = createTalkButton({
   button: $('.talk-button'),
   hint,
@@ -43,7 +54,8 @@ const talk = createTalkButton({
     return false;
   },
   // Q-014: the held WAV goes to transcribe, then the words follow the send path (voice-turn.js).
-  onUtterance: (audio) => handleUtterance(audio, {
+  // FND-002: a hold that ends while a reply is pending is dropped (no turn, no request); setPaused cancels it earlier.
+  onUtterance: (audio) => pending ? false : handleUtterance(audio, {
     transcribe,
     log,
     setPending,
@@ -68,16 +80,13 @@ const SEND_HINT_KEY = {
   not_ready: 'warming', unavailable: 'sendUnavailable', timeout: 'sendTimeout',
   failed: 'sendFailed', bad_request: 'sendDefect', too_large: 'sendDefect',
 };
-let shownKey = null; // the key of the send/warming hint; the one hint line is shared with the talk button
-function showHint(key) {
-  shownKey = key;
+function showHint(key) { // the one hint line is shared with the talk button; hint.key says what is on it
   hint.show(key, 'i-info');
 }
 function showSendHint(code) {
   showHint(SEND_HINT_KEY[code] ?? 'sendFailed'); // an unknown code is a failed reply, never shown raw
 }
 function clearSendHint() {
-  shownKey = null;
   hint.clear();
 }
 

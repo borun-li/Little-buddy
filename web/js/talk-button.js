@@ -9,7 +9,9 @@ const MAX_MS = 60_000;
 const MIC_OPENING_MS = 200; // slow open: tell the user to wait for the seconds (DFB-005)
 const UNKNOWN_PROMPT_MS = 600; // browser cannot report permission: a slower answer means a prompt is open
 const PROMPT_OPEN = Symbol('prompt open');
-const HINT_ICON = { prompt: 'i-mic', refused: 'i-mic-off', noMic: 'i-mic-off', busy: 'i-mic-off', tooShort: 'i-info', micOpening: 'i-mic' };
+const HINT_ICON = { prompt: 'i-mic', refused: 'i-mic-off', noMic: 'i-mic-off', busy: 'i-mic-off', tooShort: 'i-info', micOpening: 'i-mic', listeningNow: null };
+
+const hintText = (key) => (key === 'listeningNow' ? copy.listeningNow : copy.hints[key]);
 
 export function createHint(el) {
   const text = el.querySelector('.hint__text');
@@ -21,14 +23,15 @@ export function createHint(el) {
     show(key, iconId = HINT_ICON[key]) {
       const n = ++seq;
       shown = key;
-      icon.setAttribute('href', `#${iconId}`);
-      el.classList.add('is-shown');
+      // listeningNow is announced, not shown: without .is-shown the line stays visually hidden (FND-003)
+      if (iconId) icon.setAttribute('href', `#${iconId}`);
+      el.classList.toggle('is-shown', key !== 'listeningNow');
       text.textContent = '';
       // set in a later task so a repeated message (refused on each press) is announced again
-      setTimeout(() => { if (n === seq) text.textContent = copy.hints[key]; }, 30);
+      setTimeout(() => { if (n === seq) text.textContent = hintText(key); }, 30);
     },
     // Q-015: same key in the current language, set at once (not announced again)
-    refresh() { if (shown) text.textContent = copy.hints[shown]; },
+    refresh() { if (shown) text.textContent = hintText(shown); },
     clear() {
       seq += 1;
       shown = null;
@@ -125,6 +128,7 @@ export function createTalkButton({ button, hint, isPaused, onUtterance, deps = {
 
   function listen(h) {
     hint.clear();
+    hint.show('listeningNow'); // FND-003: the status line says it; the button's own label shows it
     h.micHint = false;
     h.t0 = now();
     button.classList.add('is-listening');
@@ -139,6 +143,7 @@ export function createTalkButton({ button, hint, isPaused, onUtterance, deps = {
     clearInterval(hold.timer);
     hold.mic?.close();
     hold = null;
+    hint.clear(); // hold hints leave when the hold ends
     setIdle();
   }
 
@@ -156,6 +161,7 @@ export function createTalkButton({ button, hint, isPaused, onUtterance, deps = {
     const elapsed = now() - h.t0;
     if (elapsed < MIN_MS) { stop(); hint.show('tooShort'); return; }
     clearInterval(h.timer);
+    hint.clear();
     setIdle();
     // mic.wav() stops the tracks, then close() would drop the audio: wav() first (handoff, Q-013)
     let audio = null;
@@ -211,7 +217,11 @@ export function createTalkButton({ button, hint, isPaused, onUtterance, deps = {
 
   setIdle();
   return {
-    setPaused(paused) { button.setAttribute('aria-disabled', String(paused)); },
+    // FND-002: one turn in flight. A hold still running when a reply goes pending is cancelled (audio dropped).
+    setPaused(paused) {
+      button.setAttribute('aria-disabled', String(paused));
+      if (paused && hold) cancel();
+    },
     // Q-015: the idle label in the current language; while listening, the next tick says it
     refresh() { if (!button.classList.contains('is-listening')) label.textContent = copy.talk; },
   };

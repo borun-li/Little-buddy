@@ -28,7 +28,7 @@
    ],
    "styles": {
     "selector": "[data-testid=companion]",
-    "props": [
+    "properties": [
      "background-color"
     ]
    }
@@ -120,7 +120,7 @@
    ],
    "styles": {
     "selector": "[data-testid=companion]",
-    "props": [
+    "properties": [
      "background-color"
     ]
    }
@@ -184,7 +184,7 @@
    ],
    "styles": {
     "selector": "body",
-    "props": [
+    "properties": [
      "font-family"
     ]
    }
@@ -204,7 +204,7 @@
   {
    "id": "q008-long",
    "row": "Q-008",
-   "state": "success, several turns",
+   "state": "success, 20 turns",
    "url": "/",
    "steps": [
     {
@@ -218,7 +218,7 @@
     {
      "action": "fill",
      "selector": "[data-testid=fake-input]",
-     "value": "Hi there."
+     "value": "Hi."
     },
     {
      "action": "press",
@@ -231,20 +231,12 @@
     },
     {
      "action": "wait",
-     "ms": 3000
-    },
-    {
-     "action": "waitFor",
-     "selector": "[data-testid=companion]"
-    },
-    {
-     "action": "wait",
-     "ms": 800
+     "ms": 1500
     },
     {
      "action": "fill",
      "selector": "[data-testid=fake-input]",
-     "value": "Today was long."
+     "value": "Long day."
     },
     {
      "action": "press",
@@ -257,20 +249,12 @@
     },
     {
      "action": "wait",
-     "ms": 3000
-    },
-    {
-     "action": "waitFor",
-     "selector": "[data-testid=companion]"
-    },
-    {
-     "action": "wait",
-     "ms": 800
+     "ms": 1500
     },
     {
      "action": "fill",
      "selector": "[data-testid=fake-input]",
-     "value": "I walked home in the rain."
+     "value": "Rain on the way home."
     },
     {
      "action": "press",
@@ -283,20 +267,12 @@
     },
     {
      "action": "wait",
-     "ms": 3000
-    },
-    {
-     "action": "waitFor",
-     "selector": "[data-testid=companion]"
-    },
-    {
-     "action": "wait",
-     "ms": 800
+     "ms": 1500
     },
     {
      "action": "fill",
      "selector": "[data-testid=fake-input]",
-     "value": "Now I'm drinking tea."
+     "value": "Tea now."
     },
     {
      "action": "press",
@@ -309,7 +285,295 @@
     },
     {
      "action": "wait",
-     "ms": 3000
+     "ms": 1500
+    },
+    {
+     "action": "fill",
+     "selector": "[data-testid=fake-input]",
+     "value": "Work was busy."
+    },
+    {
+     "action": "press",
+     "selector": "[data-testid=fake-input]",
+     "key": "Enter"
+    },
+    {
+     "action": "waitFor",
+     "selector": "[data-testid=reply]"
+    },
+    {
+     "action": "wait",
+     "ms": 1500
+    },
+    {
+     "action": "fill",
+     "selector": "[data-testid=fake-input]",
+     "value": "My boss praised me."
+    },
+    {
+     "action": "press",
+     "selector": "[data-testid=fake-input]",
+     "key": "Enter"
+    },
+    {
+     "action": "waitFor",
+     "selector": "[data-testid=reply]"
+    },
+    {
+     "action": "wait",
+     "ms": 1500
+    },
+    {
+     "action": "fill",
+     "selector": "[data-testid=fake-input]",
+     "value": "Then a meeting ran late."
+    },
+    {
+     "action": "press",
+     "selector": "[data-testid=fake-input]",
+     "key": "Enter"
+    },
+    {
+     "action": "waitFor",
+     "selector": "[data-testid=reply]"
+    },
+    {
+     "action": "wait",
+     "ms": 1500
+    },
+    {
+     "action": "fill",
+     "selector": "[data-testid=fake-input]",
+     "value": "I missed dinner."
+    },
+    {
+     "action": "press",
+     "selector": "[data-testid=fake-input]",
+     "key": "Enter"
+    },
+    {
+     "action": "waitFor",
+     "selector": "[data-testid=reply]"
+    },
+    {
+     "action": "wait",
+     "ms": 1500
+    },
+    {
+     "action": "fill",
+     "selector": "[data-testid=fake-input]",
+     "value": "Cooked noodles."
+    },
+    {
+     "action": "press",
+     "selector": "[data-testid=fake-input]",
+     "key": "Enter"
+    },
+    {
+     "action": "waitFor",
+     "selector": "[data-testid=reply]"
+    },
+    {
+     "action": "wait",
+     "ms": 1500
+    },
+    {
+     "action": "fill",
+     "selector": "[data-testid=fake-input]",
+     "value": "They were good."
+    },
+    {
+     "action": "press",
+     "selector": "[data-testid=fake-input]",
+     "key": "Enter"
+    },
+    {
+     "action": "waitFor",
+     "selector": "[data-testid=reply]"
+    },
+    {
+     "action": "wait",
+     "ms": 1500
+    },
+    {
+     "action": "fill",
+     "selector": "[data-testid=fake-input]",
+     "value": "Called my mom."
+    },
+    {
+     "action": "press",
+     "selector": "[data-testid=fake-input]",
+     "key": "Enter"
+    },
+    {
+     "action": "waitFor",
+     "selector": "[data-testid=reply]"
+    },
+    {
+     "action": "wait",
+     "ms": 1500
+    },
+    {
+     "action": "fill",
+     "selector": "[data-testid=fake-input]",
+     "value": "She sounds well."
+    },
+    {
+     "action": "press",
+     "selector": "[data-testid=fake-input]",
+     "key": "Enter"
+    },
+    {
+     "action": "waitFor",
+     "selector": "[data-testid=reply]"
+    },
+    {
+     "action": "wait",
+     "ms": 1500
+    },
+    {
+     "action": "fill",
+     "selector": "[data-testid=fake-input]",
+     "value": "I feel calmer."
+    },
+    {
+     "action": "press",
+     "selector": "[data-testid=fake-input]",
+     "key": "Enter"
+    },
+    {
+     "action": "waitFor",
+     "selector": "[data-testid=reply]"
+    },
+    {
+     "action": "wait",
+     "ms": 1500
+    },
+    {
+     "action": "fill",
+     "selector": "[data-testid=fake-input]",
+     "value": "Maybe a walk tomorrow."
+    },
+    {
+     "action": "press",
+     "selector": "[data-testid=fake-input]",
+     "key": "Enter"
+    },
+    {
+     "action": "waitFor",
+     "selector": "[data-testid=reply]"
+    },
+    {
+     "action": "wait",
+     "ms": 1500
+    },
+    {
+     "action": "fill",
+     "selector": "[data-testid=fake-input]",
+     "value": "Or a movie."
+    },
+    {
+     "action": "press",
+     "selector": "[data-testid=fake-input]",
+     "key": "Enter"
+    },
+    {
+     "action": "waitFor",
+     "selector": "[data-testid=reply]"
+    },
+    {
+     "action": "wait",
+     "ms": 1500
+    },
+    {
+     "action": "fill",
+     "selector": "[data-testid=fake-input]",
+     "value": "I like comedies."
+    },
+    {
+     "action": "press",
+     "selector": "[data-testid=fake-input]",
+     "key": "Enter"
+    },
+    {
+     "action": "waitFor",
+     "selector": "[data-testid=reply]"
+    },
+    {
+     "action": "wait",
+     "ms": 1500
+    },
+    {
+     "action": "fill",
+     "selector": "[data-testid=fake-input]",
+     "value": "Any ideas?"
+    },
+    {
+     "action": "press",
+     "selector": "[data-testid=fake-input]",
+     "key": "Enter"
+    },
+    {
+     "action": "waitFor",
+     "selector": "[data-testid=reply]"
+    },
+    {
+     "action": "wait",
+     "ms": 1500
+    },
+    {
+     "action": "fill",
+     "selector": "[data-testid=fake-input]",
+     "value": "Thanks."
+    },
+    {
+     "action": "press",
+     "selector": "[data-testid=fake-input]",
+     "key": "Enter"
+    },
+    {
+     "action": "waitFor",
+     "selector": "[data-testid=reply]"
+    },
+    {
+     "action": "wait",
+     "ms": 1500
+    },
+    {
+     "action": "fill",
+     "selector": "[data-testid=fake-input]",
+     "value": "Getting sleepy."
+    },
+    {
+     "action": "press",
+     "selector": "[data-testid=fake-input]",
+     "key": "Enter"
+    },
+    {
+     "action": "waitFor",
+     "selector": "[data-testid=reply]"
+    },
+    {
+     "action": "wait",
+     "ms": 1500
+    },
+    {
+     "action": "fill",
+     "selector": "[data-testid=fake-input]",
+     "value": "Good night."
+    },
+    {
+     "action": "press",
+     "selector": "[data-testid=fake-input]",
+     "key": "Enter"
+    },
+    {
+     "action": "waitFor",
+     "selector": "[data-testid=reply]"
+    },
+    {
+     "action": "wait",
+     "ms": 1500
     }
    ]
   },
@@ -550,6 +814,57 @@
      "ms": 1500
     }
    ]
+  },
+  {
+   "id": "q009-reduce-css",
+   "row": "Q-009",
+   "state": "default motion; computed animation on companion (reduce-motion emulation not available in this tool)",
+   "url": "/",
+   "steps": [
+    {
+     "action": "wait",
+     "ms": 1500
+    }
+   ],
+   "styles": {
+    "selector": "[data-testid=companion], [data-testid=companion] *",
+    "properties": [
+     "animation-name",
+     "transition-duration"
+    ]
+   }
+  },
+  {
+   "id": "q006-font",
+   "row": "Q-006",
+   "state": "reply rendered in the local font",
+   "url": "/",
+   "steps": [
+    {
+     "action": "fill",
+     "selector": "[data-testid=fake-input]",
+     "value": "I just got the internship!"
+    },
+    {
+     "action": "press",
+     "selector": "[data-testid=fake-input]",
+     "key": "Enter"
+    },
+    {
+     "action": "waitFor",
+     "selector": "[data-testid=reply]"
+    },
+    {
+     "action": "wait",
+     "ms": 2500
+    }
+   ],
+   "styles": {
+    "selector": "[data-testid=reply]",
+    "properties": [
+     "font-family"
+    ]
+   }
   }
  ]
 }

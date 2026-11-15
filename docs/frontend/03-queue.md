@@ -298,6 +298,7 @@ Stack unchanged: static files, vanilla ES modules, `node:test`. No new package.
 - **Side:** both (backend first)
 - **Depends on:** Q-010, Q-011
 - **Status:** built (fe-engineer #11)
+- **Fix (round 1, FND-001, FND-004):** `web/js/health-watch.js` (`failed()` arms awake only for `not_ready`; first check one poll later), `web/js/app.js` (`healthHint`: health hints, awake over a health hint only, awake clears only itself).
 
 ### Q-013 — The held voice is recorded as 16 kHz WAV
 - **Page:** PAGE-001
@@ -326,6 +327,7 @@ Stack unchanged: static files, vanilla ES modules, `node:test`. No new package.
 - **Side:** frontend
 - **Depends on:** Q-013, Q-007
 - **Status:** queued
+- **Fix (round 1, FND-003):** `web/js/talk-button.js` (`listeningNow` announced in the status line when the stream opens, cleared at hold end), `web/js/copy.js` (`listeningNow` zh/en, `hints.micOpening` reworded per 01-ux.md Words).
 
 ### Q-014 — Spoken line becomes real words
 - **Page:** PAGE-001
@@ -340,6 +342,7 @@ Stack unchanged: static files, vanilla ES modules, `node:test`. No new package.
 - **Side:** both (backend first)
 - **Depends on:** Q-013, Q-011, Q-012
 - **Status:** built (fe-engineer #12)
+- **Fix (round 1, FND-002):** `web/js/talk-button.js` (`setPaused(true)` cancels a running hold), `web/js/app.js` (an utterance that arrives while a reply is pending is dropped, not queued), `tests/fnd-r1-fix.test.js` (new), `package.json` (test script).
 
 ### Q-018 — Silence and voice failures are told
 - **Page:** PAGE-001

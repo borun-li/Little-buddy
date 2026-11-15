@@ -1,44 +1,44 @@
 {
-  "sig": "6983ded83bba209018bdbd2d274d9fa04374a0bfc36c724d4010b4cc99ba8e43",
-  "time": "2026-11-15T01:12:25Z",
-  "epoch": 1794705145.946851,
+  "sig": "7ce3c5611534bd864ea806bc6abec96a3ebf2430429d6ae4bed853d243f02697",
+  "time": "2026-11-15T01:55:52Z",
+  "epoch": 1794707752.16297,
   "result": {
     "cmd": "npm test",
     "exit": 0,
-    "seconds": 0.9,
+    "seconds": 0.8,
     "tail": [
-      "✔ release off the button or Esc before open: nothing shown, hint cleared (0.174ms)",
-      "✔ 0.5 s counts from open: 0.3 s after open is too short, however long the open took (0.136125ms)",
-      "✔ release 0.6 s after open: wav() before close(), blob handed to onUtterance (0.138084ms)",
-      "✔ 60 s counts from open and sends itself (2.822ms)",
-      "✔ unknown permission: hint at 0.2 s first, then 600 ms decides prompt; nothing records (0.746208ms)",
-      "✔ unknown permission, stream under 600 ms: records (0.553917ms)",
-      "✔ open fails: the error hint shows and nothing is listening (0.291083ms)",
-      "✔ Q-018 each voice problem maps to its hint key (0.334ms)",
-      "✔ Q-018 an unknown or missing code is a failed transcription (0.053083ms)",
-      "✔ Q-018 every mapped key has a non-empty zh string (0.069ms)",
-      "✔ Q-014 words replace the transcribing turn, then follow the send path with the same turn (0.671375ms)",
-      "✔ Q-014 empty transcript: the turn leaves, no send, hook gets \"empty\" (0.093333ms)",
-      "✔ Q-014 not_ready and unavailable reach watch.failed; the turn leaves; no send (0.441334ms)",
-      "✔ Q-014 no audio (null) adds no turn and sends nothing (0.086ms)",
-      "✔ Q-014 the real client posts the Blob as audio/wav to /api/transcribe and returns the text (0.2685ms)",
-      "✔ header: RIFF/WAVE, PCM, mono, 16 kHz, 16 bit, sizes consistent (3.550083ms)",
-      "✔ samples are little-endian int16, clipped (0.313625ms)",
-      "✔ 60 s is 1,920,044 B and longer input never exceeds it (51.158875ms)",
-      "✔ 48000 Hz downsamples to 16 kHz with the length and the pitch kept (6.273ms)",
-      "✔ 44100 Hz downsamples to 16 kHz with the length and the pitch kept (5.542708ms)",
-      "✔ 16 kHz passes through; silence stays silence (1.26825ms)",
-      "✔ chunks join, downsample and cap at 60 s of input; Blob is audio/wav (165.883709ms)",
-      "ℹ tests 69",
+      "✔ unknown permission, stream under 600 ms: records (0.164625ms)",
+      "✔ open fails: the error hint shows and nothing is listening (0.123834ms)",
+      "✔ Q-001 Q-015 every plain word on the page equals the confirmed Words table, zh and en (0.946416ms)",
+      "✔ Q-003 the five mood captions match FRAME-009 (zh) and the Words table (en) (0.081875ms)",
+      "✔ Q-005 only app.js imports companion-client.js, so a stub swap touches one file (0.835ms)",
+      "✔ Q-013 a 2 s hold at 48 kHz becomes a 64,044 B audio/wav blob; 60 s is capped at 1,920,044 B (16.133708ms)",
+      "✔ Q-017 the shipped font covers U+00C0-U+00FF and the punctuation replies use (73.717625ms)",
+      "✔ Q-018 each voice problem maps to its hint key (0.310208ms)",
+      "✔ Q-018 an unknown or missing code is a failed transcription (0.053375ms)",
+      "✔ Q-018 every mapped key has a non-empty zh string (0.078458ms)",
+      "✔ Q-014 words replace the transcribing turn, then follow the send path with the same turn (0.629417ms)",
+      "✔ Q-014 empty transcript: the turn leaves, no send, hook gets \"empty\" (0.096834ms)",
+      "✔ Q-014 not_ready and unavailable reach watch.failed; the turn leaves; no send (0.638292ms)",
+      "✔ Q-014 no audio (null) adds no turn and sends nothing (0.05825ms)",
+      "✔ Q-014 the real client posts the Blob as audio/wav to /api/transcribe and returns the text (0.21075ms)",
+      "✔ header: RIFF/WAVE, PCM, mono, 16 kHz, 16 bit, sizes consistent (4.061333ms)",
+      "✔ samples are little-endian int16, clipped (0.327666ms)",
+      "✔ 60 s is 1,920,044 B and longer input never exceeds it (52.600167ms)",
+      "✔ 48000 Hz downsamples to 16 kHz with the length and the pitch kept (6.428084ms)",
+      "✔ 44100 Hz downsamples to 16 kHz with the length and the pitch kept (5.546416ms)",
+      "✔ 16 kHz passes through; silence stays silence (1.291708ms)",
+      "✔ chunks join, downsample and cap at 60 s of input; Blob is audio/wav (168.769541ms)",
+      "ℹ tests 81",
       "ℹ suites 0",
-      "ℹ pass 69",
+      "ℹ pass 81",
       "ℹ fail 0",
       "ℹ cancelled 0",
       "ℹ skipped 0",
       "ℹ todo 0",
-      "ℹ duration_ms 708.238792"
+      "ℹ duration_ms 685.888458"
     ],
-    "log": "/Users/apple/Desktop/Hackathon/Local_AI_Hackathon/docs/frontend/gates/logs/2026-11-15T011225Z-test.log",
+    "log": "/Users/apple/Desktop/Hackathon/Local_AI_Hackathon/docs/frontend/gates/logs/2026-11-15T015551Z-test.log",
     "cases": [
       [
         "test",
@@ -158,6 +158,41 @@
       [
         "test",
         "Q-005 REQ-007 nothing in web/ outside fake/ imports fake/ (the page uses the real layer)",
+        "passed"
+      ],
+      [
+        "test",
+        "FND-001 failed(unavailable) does not arm awake; the first check is 2 s later",
+        "passed"
+      ],
+      [
+        "test",
+        "FND-001 failed(not_ready) still lets awake follow (a health hint was shown)",
+        "passed"
+      ],
+      [
+        "test",
+        "FND-003 listeningNow is written into the status line, kept visually hidden, key kept",
+        "passed"
+      ],
+      [
+        "test",
+        "FND-003 the stream opening announces listeningNow after micOpening",
+        "passed"
+      ],
+      [
+        "test",
+        "FND-003 listeningNow leaves when the hold ends",
+        "passed"
+      ],
+      [
+        "test",
+        "FND-002 a hold running when a reply goes pending is cancelled: mic closed, no utterance",
+        "passed"
+      ],
+      [
+        "test",
+        "FND-001/002 app.js wiring: awake gated by hint.key, utterance dropped while pending",
         "passed"
       ],
       [
@@ -312,6 +347,31 @@
       ],
       [
         "test",
+        "Q-001 Q-015 every plain word on the page equals the confirmed Words table, zh and en",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-003 the five mood captions match FRAME-009 (zh) and the Words table (en)",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-005 only app.js imports companion-client.js, so a stub swap touches one file",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-013 a 2 s hold at 48 kHz becomes a 64,044 B audio/wav blob; 60 s is capped at 1,920,044 B",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-017 the shipped font covers U+00C0-U+00FF and the punctuation replies use",
+        "passed"
+      ],
+      [
+        "test",
         "Q-018 each voice problem maps to its hint key",
         "passed"
       ],
@@ -388,11 +448,11 @@
     ],
     "junit_note": "report from gates.json junit: test-results/junit.xml",
     "counts": {
-      "skipped": 0,
-      "errors": 0,
-      "xfailed": 0,
       "failed": 0,
-      "passed": 69,
+      "passed": 81,
+      "skipped": 0,
+      "xfailed": 0,
+      "errors": 0,
       "xpassed": 0
     },
     "failed_tests": []

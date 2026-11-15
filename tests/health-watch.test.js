@@ -112,6 +112,10 @@ test('a failed send (not_ready / unavailable) resumes checks; other codes do not
   assert.equal(r.calls.length, 1);
   r.watch.failed('not_ready');
   await r.advance(0);
+  assert.equal(r.calls.length, 1); // first check one poll later, not at once (01-ux Hint rules)
+  await r.advance(1999);
+  assert.equal(r.calls.length, 1);
+  await r.advance(1);
   assert.equal(r.calls.length, 2);
   assert.equal(r.watch.state.hint, 'awake'); // a not-ready hint was shown (by the send), so awake follows
 });

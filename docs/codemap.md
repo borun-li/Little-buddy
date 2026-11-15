@@ -9,6 +9,7 @@ Traps: `web/index.html` holds the 5 companion SVGs inline as <template id="mood-
 
 ## `web/js/app.js`
 Does: turn flow idle → pending → idle; Enter (not while an IME composes) sends; Enter while pending is ignored and keeps the text; pauses the talk button ≤ 1 s. Q-011: a failed respond drops the turn (log.dropFailed), returns the line to the input in front of text typed meanwhile (focused, caret at end) and shows the send-column hint for err.code in the shared .hint line; the hint clears at the next send.  Entry: module top level  Used by: `web/index.html`
+Traps: round 1 hint rules: healthHint decides from hint.key whether a health check may replace the line (health hints only; stillDown also over action hints; never over hold hints); awake only over a health hint and clears only itself. An utterance arriving while pending is dropped; talk.setPaused(true) cancels a running hold. Tests: `tests/fnd-r1-fix.test.js`
 Invariants: the only importer of `web/js/companion-client.js`; page memory only (A5).  Tests: `tests/fake-companion.test.js` (import seam)
 
 ## `web/js/voice-turn.js`
@@ -40,7 +41,7 @@ Log renders you / you-voice / typing / reply turns, moves data-testid=reply to t
 
 ## `web/js/talk-button.js`, `web/js/mic.js`
 Does: hold by pointer or Space; release on the button sends, off it or Esc cancels; < 0.5 s too-short hint; 60 s sends itself; drives the role=status hint line. mic.js reads the permission state, opens the stream only for the level bars and stops every track on release (audio never kept), maps NotAllowedError / NotFoundError / NotReadableError to hint keys.
-Traps: permission granted → listening shows at press and the stream joins later (first open can take > 1 s); prompt → that hold never records; browsers without the permission query → a stream slower than 600 ms is treated as an open prompt. Headless Chromium auto-denies the prompt, so it shows the refused hint there.
+Traps: round 1: listeningNow is written into the role=status line without is-shown (announced, not shown) when the stream opens and cleared at hold end. permission granted → listening shows at press and the stream joins later (first open can take > 1 s); prompt → that hold never records; browsers without the permission query → a stream slower than 600 ms is treated as an open prompt. Headless Chromium auto-denies the prompt, so it shows the refused hint there.
 
 ## `web/css/`
 Does: tokens.css (02-ui §3 tokens, @font-face "LXGW WenKai Web" → the local subset, no local() source), page.css (phone below 960 px incl. 768, laptop at 960+, turns, composer, hint, focus, talk-button states), companion.css (glow disc = background of [data-testid=companion], 600 ms; each SVG glow path hidden; per-part motions on #<mood>--<part> per 02-ui §7, pivots as fill-box % measured with getBBox; crossfade, squash).

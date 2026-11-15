@@ -70,22 +70,27 @@ Next agent must know:
 - Left open: 60 s zh voice line at the new window unmeasured (be-architect #3); 4B switch unmeasured.
 Read beyond the list: nothing.
 Next agent reads: docs/backend/08-implementation-log.md § Fix rounds; docs/backend/03-detailed-design.md DES-002, DES-007, DES-009
-## fe-tester #2 · step 4 (verification) · round 1 · increment 1 · 2026-11-15T02:00:00Z
-- Wrote `docs/frontend/04-verification.md`: 7 done (Q-001, 002, 003, 005, 010, 015, 017), 0 not done, 12 not observable (Q-004, 006, 007, 008, 009, 011, 012, 013, 014, 016, 018, 019). Evidence `evidence/verify-1/manifest.md`.
-- Found: every `*.styles.json` in verify-1 is empty (`elements: [{}]`), so no computed style, width or font could be cited; the capture plan's style probes did not return values. Fix the probe before round 2.
-- Recapture wanted: Q-008 with 20 turns; Q-016 with a failed send and sizes 375/768; Q-006 with a request log and computed font; Q-009 with reduce-motion emulation. Q-004, 007, 011, 012, 013, 014, 018, 019 need a fake mic or a stopped/cold backend, otherwise the user's real-mic check at Acceptance.
-- Added `tests/verify-r1.test.js` (5 tests, Q-ids in titles, all pass, mutation-checked on a scratch copy). Not in the `package.json` test script: orchestrator to add it. Words test reads the 01-ux.md Words table as its independent source.
-- No design defects. Minor deviations listed in the file. No `web/`, `server/` or existing test touched.
+## fe-tester #3 · step 4 (test alignment) · round 1 · increment 1 · 2026-11-15T06:00:00Z
+Task: bring two tests in line with fe-ux #5's Hint rules (confirmed 2026-11-15) so `npm test` is green.
+Changed: tests/health-watch.test.js ("a failed send ... resumes checks": after `not_ready` no check at 0 ms or 1999 ms, check at 2000 ms, then awake), tests/talk-button.test.js ("slow open ...": last two hints are `clear`, `listeningNow`). Nothing else touched.
+Result: `npm test` 81/81 (was 77/79; two now green). Expectations from 01-ux.md Hint rules and the PAGE-001 listening row, not from code. Not mutation-run; fnd-r1-fix.test.js already guards the same rules from other angles.
+Next agent must know:
+- Earlier fe-tester #2 findings (verify-1 empty style probes; 12 not observable; recapture list) still stand and are not re-done here.
+Next agent reads: docs/frontend/01-ux.md Hint rules
 
-## fe-engineer #15 · step 3 (frontend build Q-016) · round 1 · increment 1 · 2026-11-15T04:30:00Z
-Task: Q-016 — English layout fits both sizes (REQ-012, DES-015, DFB-004).
-Changed: web/css/page.css only (`html[lang="en"] .composer` columns 1fr 154px below 960 px; laptop rule also overrides it); 03-queue Q-016 built. index.html, js unchanged (lang attribute already set by app.js).
-Feedback: none.
-Measured (Playwright vs 127.0.0.1:4400, headless chromium): 390 en button 154, input 196; zh 124/226 unchanged. 375 en 154/181. 768 en 154/574 (phone layout). Longest English hint (sendDefect) 3 lines, 72 px, pushes the log up, no overlap; 2 lines at 1440 (560 px). Longest caption "Little Buddy · sad with you for a while" 253.7 px at 390 (13 px), 390.3 px at 1440 (20 px) — design estimate 341 was wrong, fits easily on one line. Lang switch 98x36 at top-right, clear of caption; sits over the face box corner as in Q-015/FRAME-015. No horizontal overflow at 375/390/768/1440. npm test 69/69.
-Evidence: docs/frontend/evidence/build/Q-016-{390,1440,375,768}-{zh,en}.png (hint and longest caption forced into the DOM), compared by eye to FRAME-015/014.
-Not checked: listening state width in a browser (grid column is fixed, so it cannot change); real mic.
-Next agent must know: Chinese layout untouched (same widths as before).
-Next agent reads: web/css/page.css (composer)
+## fe-engineer #16 · step 4 (CTX.codemap fix) · round 2 · increment 1 · 2026-11-15T06:00:00Z
+Round 2: only docs/codemap.md, backticks removed from non-path words (listeningNow, setPaused, healthHint, hint.key, is-shown); the one backticked path left is tests/fnd-r1-fix.test.js. No code or tests touched. micOpening reword approval confirmed by coordinator (human conditional #172).
+Round 1 follows.
+Task: fix FND-001, FND-002, FND-003 to the 01-ux.md Hint rules; reword hints.micOpening (user's yes relayed by the coordinator).
+Changed: web/js/health-watch.js (failed(): awake armed only by not_ready; first check one poll later), web/js/app.js (healthHint gate by hint.key; utterance dropped while pending), web/js/talk-button.js (listeningNow announced, cleared at hold end; setPaused(true) cancels a hold), web/js/copy.js (listeningNow, micOpening new words), tests/fnd-r1-fix.test.js (new, 7 tests), package.json (+verify-r1, +fnd-r1-fix in test), docs/frontend/03-queue.md (Fix lines), docs/codemap.md. evidence/build/FND-001-*.png, FND-002-race.png, FND-003-listening.png.
+Feedback: none. FND-004 also fixed (awake clears only itself): browser check, tooShort survives the awake timer.
+FND-002 choice: drop, not queue (01-ux "pending → Enter ignored"; audio never kept, A9): Enter during a hold cancels the hold (mic closed); a hold that ends while pending sends nothing.
+Result: new tests 7/7 green; 5 red on the old web/js copy. Browser 4399: send/voice unavailable keep their hint after 6.5 s; race sends one request, no stray typing node; status line says "Listening" while held, empty after release. Full frontend suite 77/79: TWO EXISTING TESTS NOW RED, made wrong by the confirmed rules, not edited (dispatch forbids): tests/health-watch.test.js "a failed send ... resumes checks" (expects check at once; rule is 2 s later) and tests/talk-button.test.js "slow open ..." (expects last hint 'clear'; now 'clear','listeningNow'). verify-r1 fully green incl. micOpening. 0 Figma calls.
+Next agent must know:
+- Pitfalls: those two tests need a one-line update by whoever may edit tests; npm test is red until then.
+- Pitfalls: mocked Date starts at 0, so talk-button.t0 === 0 reads as "not open"; tick before opening the stream in tests.
+- Left open: stillDown over an action hint is allowed by the rules; not covered by a browser check (unit rule in healthHint only).
+Next agent reads: web/js/app.js healthHint, tests/fnd-r1-fix.test.js
 
 ## be-tester #2 · step 5 (test run) · round 1 · 2026-11-15T01:35:00Z
 Task: run TC-001..086, write 05-test-report.md, seam check from the backend side.
