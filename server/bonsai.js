@@ -6,7 +6,7 @@ import { ApiError } from './errors.js';
 import { hanCount, languageOf } from './lang.js';
 import { log } from './log.js';
 import {
-  CRISIS_FALLBACK, CRISIS_LINE, CRISIS_RULE, LANG_RULE, MOOD_SAMPLING, MOOD_SCHEMA, MOOD_SYSTEM, MOODS, RECALL, REPLY_SAMPLING, replySystem,
+  CRISIS_FALLBACK, CRISIS_LINE, CRISIS_MARK, CRISIS_RULE, LANG_RULE, MOOD_SAMPLING, MOOD_SCHEMA, MOOD_SYSTEM, MOODS, RECALL, REPLY_SAMPLING, replySystem,
 } from './prompts.js';
 import { supervise } from './supervisor.js';
 
@@ -79,10 +79,11 @@ export function shapeReply(text, lang) {
 }
 
 // Crisis turn reply (03 DES-020): the first sentence of the shaped reply (or the fixed gentle sentence when there is none),
-// then the 988 line unless the sentence already has 988; the first sentence is cut so the whole stays within CAPS.
+// then the 988 line unless the sentence already holds CRISIS_MARK (a bare '988', e.g. the name "988", does not count: FND-019);
+// the first sentence is cut so the whole stays within CAPS.
 export function crisisReply(shaped, lang) {
   let first = shaped === '' ? CRISIS_FALLBACK[lang] : shaped.match(SENTENCE)[0].trim(); // shapeReply output is trimmed: match 0 is non-empty
-  if (first.includes('988')) return first;
+  if (first.replace(/\s/g, '').toLowerCase().includes(CRISIS_MARK[lang])) return first;
   const sep = lang === 'zh' ? '' : ' ';
   const room = CAPS[lang] - size(CRISIS_LINE[lang], lang); // the separator adds no code point (zh) and no word (en)
   if (size(first, lang) > room) {

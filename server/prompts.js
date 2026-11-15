@@ -35,7 +35,8 @@ export const MOOD_SCHEMA = { type: 'json_schema', json_schema: { name: 'mood', s
   type: 'object', properties: { mood: { type: 'string', enum: MOODS } }, required: ['mood'], additionalProperties: false } } };
 
 // Name (03 DES-021): null → REPLY_SYSTEM unchanged; a cleaned name has no quote, newline, bracket or colon (server/name.js).
-export const NAME_RULE = (n) => `Your name is "${n}". When you mention yourself or are asked your name, say "${n}"; never call yourself 小伙伴 or Little Buddy.`;
+// TC-125 (review round 1): the words 小伙伴 / Little Buddy are banned outright (the old rule still allowed '…暖心小伙伴').
+export const NAME_RULE = (n) => `Your name is "${n}". When you mention yourself or are asked your name, say "${n}". Never write the words 小伙伴 or Little Buddy, not even to describe yourself; say 朋友 or friend instead.`;
 
 export function replySystem(name) {
   if (name === null) return REPLY_SYSTEM;
@@ -51,4 +52,6 @@ export const CRISIS_LINE = {
   zh: '你不用一个人扛着，随时可以打给 988，或者发短信，那边有人愿意听你说。',
   en: "You don't have to carry this alone; you can call or text 988 anytime, and someone there will listen.",
 };
+// CRISIS_LINE's own wording, whitespace removed, lowercased: a first sentence holding it already gives the hotline (FND-019).
+export const CRISIS_MARK = { zh: '打给988', en: 'callortext988' };
 export const CRISIS_FALLBACK = { zh: '谢谢你愿意告诉我这些，我很在乎你。', en: 'Thank you for telling me this, and I really care about you.' };

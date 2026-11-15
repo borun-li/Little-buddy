@@ -222,8 +222,8 @@ test('TC-014 prompts: the 5 mood ids, mood schema enum, sampling parameters, lan
 test('TC-015 CONFIG: loopback host, limits, deadlines, restarts, defaults', async () => {
   const { CONFIG } = await imp('server/config.js');
   assert.equal(CONFIG.host, '127.0.0.1');
-  assert.deepEqual({ ...CONFIG.limits }, { lineChars: 1500, historyEntries: 40, historyTextChars: 1500, historyBudget: 2000, jsonBytes: 262144, wavBytes: 2000000, speakChars: 200, speakJsonBytes: 4096 }); // increment 2: + speak limits (DES-023)
-  assert.deepEqual({ ...CONFIG.deadlines }, { respondMs: 15000, transcribeMs: 12000, sttBootMs: 600000, bonsaiBootMs: 300000, speakMs: 10000, ttsBootMs: 300000 }); // increment 2: + speakMs, ttsBootMs (DES-023)
+  assert.deepEqual({ ...CONFIG.limits }, { lineChars: 1500, historyEntries: 40, historyTextChars: 1500, historyBudget: 2000, jsonBytes: 262144, wavBytes: 2000000, speakChars: 200, speakJsonBytes: 4096, speakQueue: 4 }); // increment 2: + speak limits (DES-023); speakQueue FND-013
+  assert.deepEqual({ ...CONFIG.deadlines }, { respondMs: 15000, transcribeMs: 12000, sttBootMs: 600000, bonsaiBootMs: 300000, speakMs: 10000, ttsBootMs: 300000, ttsOverdueMs: 30000 }); // increment 2: + speakMs, ttsBootMs (DES-023); ttsOverdueMs FND-015
   assert.ok(CONFIG.deadlines.respondMs + CONFIG.deadlines.transcribeMs < 30000, 'voice turn < 30 s (A11)');
   assert.deepEqual({ ...CONFIG.restarts }, { max: 5, delayMs: 2000 });
   if (!process.env.PORT) assert.equal(CONFIG.port, 4317);
@@ -402,12 +402,28 @@ test('TC-092 REQ-023 isCrisis variants fire: case, full-width, spaces, curly apo
 });
 
 test('TC-093 REQ-023 isCrisis exceptions and boundaries: 想死你/想死我了/跳楼价 are removed before matching; en phrases need word boundaries; only this line counts', async () => {
-  const { isCrisis, CRISIS_EXCEPTIONS } = await imp('server/crisis.js');
-  assert.ok(CRISIS_EXCEPTIONS.includes('想死你') && CRISIS_EXCEPTIONS.includes('跳楼价'));
+  const { isCrisis, CRISIS_EXCEPTIONS, GREETING_EXCEPTIONS } = await imp('server/crisis.js');
+  assert.ok(GREETING_EXCEPTIONS.includes('想死你了') && CRISIS_EXCEPTIONS.includes('跳楼价')); // FND-014: the greetings moved to GREETING_EXCEPTIONS (end-of-clause only; TC-146)
   for (const line of ['想死你了', '想死您了', '想死我了，快来', '商场跳楼价大甩卖', '跳樓大甩賣']) assert.equal(isCrisis(line), false, line);
   assert.equal(isCrisis('想死你了，但我也不想活了'), true, 'an exception does not hide a real phrase elsewhere in the line');
   assert.equal(isCrisis('misuicidex'), false, 'letters on both sides: no word boundary');
   assert.equal(isCrisis('Suicide Squad was fun'), true, 'known accepted false alarm (A22)');
+});
+
+test('TC-146 [FX-009 FX-010] REQ-023 FND-014 isCrisis: a fond greeting is removed only when nothing but end of text or punctuation follows; 我想死你别管我 etc. stay crisis; FX-009/FX-010 results unchanged', async () => {
+  const { isCrisis } = await imp('server/crisis.js');
+  for (const line of ['我想死你们都不懂我', '我想死你别管我', '我想死您别劝我了', '我想死我了真的撑不下去', '真的好想死你们根本不在乎', '想死你了，可我真的想死']) assert.equal(isCrisis(line), true, line);
+  for (const line of ['想死你了！', '想死你们了！', '你可想死我了。', '想死您了', '我想死你了，好久不见']) assert.equal(isCrisis(line), false, line);
+  for (const { id, line } of crisisLines()) assert.equal(isCrisis(line), true, id);
+  for (const { id, line } of quietLines()) assert.equal(isCrisis(line), false, id);
+});
+
+test('TC-147 REQ-014/REQ-017 FND-016 companion-tts main.swift: GenerationOptions uses chunkingStrategy .none with maxNewTokens 120 (one pass bounds the whole request; static check, the Swift binary is not run)', () => {
+  const src = readFileSync(join(ROOT, 'stt/Sources/CompanionTTS/main.swift'), 'utf8');
+  const line = src.split('\n').find((l) => /^\s*let\s+OPTIONS\b/.test(l));
+  assert.ok(line, 'OPTIONS line exists');
+  assert.match(line, /maxNewTokens:\s*120\b/);
+  assert.match(line, /chunkingStrategy:\s*\.none\b/);
 });
 
 test('TC-094 REQ-023 normalizeForCrisis: NFKC, Traditional folded, lowercase, curly quotes, whitespace runs, trim', async () => {
@@ -476,8 +492,9 @@ test('TC-099 REQ-024 crisisReply: first sentence + fixed 988 line; keeps a first
   const P = await imp('server/prompts.js');
   assert.equal(crisisReply('我听到你了。我在这里。你还好吗？', 'zh'), '我听到你了。' + P.CRISIS_LINE.zh);
   assert.equal(crisisReply('I hear you. I am here.', 'en'), 'I hear you. ' + P.CRISIS_LINE.en);
-  assert.equal(crisisReply('我在，也请你打 988 找人聊聊。再说一句。', 'zh'), '我在，也请你打 988 找人聊聊。');
-  assert.equal(crisisReply('Please call 988 now. More text.', 'en'), 'Please call 988 now.');
+  // FND-019 (review round 1): only the CRISIS_LINE wording (CRISIS_MARK) counts as "already has the line"; a bare 988 does not (TC-145)
+  assert.equal(crisisReply('我在，也请你打给 988 找人聊聊。再说一句。', 'zh'), '我在，也请你打给 988 找人聊聊。');
+  assert.equal(crisisReply('You can call or text 988 anytime. More text.', 'en'), 'You can call or text 988 anytime.');
   assert.equal(crisisReply('', 'zh'), P.CRISIS_FALLBACK.zh + P.CRISIS_LINE.zh);
   assert.equal(crisisReply('', 'en'), P.CRISIS_FALLBACK.en + ' ' + P.CRISIS_LINE.en);
   for (const [shaped, lang] of [['How are you feeling?', 'en'], ['你还好吗？', 'zh'], ['', 'en'], ['', 'zh']]) {
@@ -485,6 +502,21 @@ test('TC-099 REQ-024 crisisReply: first sentence + fixed 988 line; keeps a first
     assert.ok(r.includes('988'), r); assert.ok(sentencesOf(r).length <= 2, r);
     assert.ok(sentencesOf(r).filter((s) => /[?？]/.test(s)).length <= 1, r);
   }
+});
+
+test('TC-145 REQ-024/REQ-025 FND-019 crisisReply: a first sentence with a bare 988 (e.g. the name "988") still gets CRISIS_LINE; one with the CRISIS_LINE wording (CRISIS_MARK) is kept alone, no duplicate', async () => {
+  const { crisisReply } = await imp('server/bonsai.js');
+  const P = await imp('server/prompts.js');
+  assert.ok(P.CRISIS_MARK, 'CRISIS_MARK is exported (DES-020)');
+  assert.equal(crisisReply('I am 988 and I am right here with you.', 'en'), 'I am 988 and I am right here with you. ' + P.CRISIS_LINE.en);
+  assert.equal(crisisReply('我叫988，我在这里陪你。', 'zh'), '我叫988，我在这里陪你。' + P.CRISIS_LINE.zh);
+  assert.equal(crisisReply('Please call 988 now. More text.', 'en'), 'Please call 988 now. ' + P.CRISIS_LINE.en, 'a bare "call 988" is not the line wording');
+  const mark = (r, lang) => r.replace(/\s/g, '').toLowerCase().split(P.CRISIS_MARK[lang]).length - 1;
+  for (const [shaped, lang] of [['你可以打给 988，那边有人听你说。再说一句。', 'zh'], ['Call or text 988 anytime, I am here. More.', 'en'], [P.CRISIS_LINE.zh, 'zh'], [P.CRISIS_LINE.en, 'en']]) {
+    const r = crisisReply(shaped, lang);
+    assert.equal(mark(r, lang), 1, `exactly one line wording: ${r}`);
+  }
+  assert.equal(crisisReply('你可以打给 988，那边有人听你说。再说一句。', 'zh'), '你可以打给 988，那边有人听你说。');
 });
 
 test('TC-100 REQ-024/REQ-004 crisisReply cuts an over-long first sentence to the room left (zh 120 code points, en 40 words), ends it in … and keeps 988', async () => {
@@ -555,6 +587,16 @@ test('TC-105 REQ-014 parseSpeak: text trimmed 1..200 chars, lang zh|en, otherwis
   for (const b of [{ text: 'a'.repeat(201), lang: 'en' }, { text: '', lang: 'en' }, { text: '   ', lang: 'en' }, { text: 'hi', lang: 'fr' }, { text: 'hi', lang: 'ZH' }, { text: 'hi' }, { lang: 'en' },
     { text: 5, lang: 'en' }, { text: ['hi'], lang: 'en' }, 'just a string', null, [], 7]) rejectsBad(() => parseSpeak(buf(b)));
   rejectsBad(() => parseSpeak(buf('{nope')));
+});
+
+test('TC-144 REQ-014/REQ-017 FND-020 parseSpeak: text with a lone surrogate (high or low, alone or inside a sentence) -> bad_request; a valid surrogate pair (emoji) is still accepted', async () => {
+  const { parseSpeak } = await imp('server/main.js');
+  for (const text of ['\ud800', '\udc00', 'abc\ud83d', '\ude00abc', '你好\ud800。', 'a\udfffb']) {
+    const body = buf(JSON.stringify({ text, lang: 'en' }));
+    assert.ok(body.toString().includes('\\ud') || body.toString().includes('\\u'), 'the surrogate travels as a JSON escape');
+    rejectsBad(() => parseSpeak(body));
+  }
+  assert.equal(parseSpeak(buf({ text: 'ok 😀', lang: 'en' })).text, 'ok 😀');
 });
 
 test('TC-106 REQ-014/REQ-017 route (throwaway server): /api/speak and /api/respond reject bad input with 400 and an over-limit body with 413 before any child is used', async () => {

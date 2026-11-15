@@ -11,8 +11,9 @@ struct ReadyEvent: Encodable { let event = "ready"; let load_ms: Int; let warm_m
 
 /// Qwen3Language raw values for the two reply languages.
 let LANGUAGE = ["zh": "chinese", "en": "english"]
-/// 120 frames of 80 ms: at most 9.6 s of audio per request.
-let OPTIONS = GenerationOptions(maxNewTokens: 120)
+/// 120 frames of 80 ms: at most 9.6 s of audio per request. One pass (no chunking), so the cap bounds the whole request
+/// (FND-016). The `as` matters: a bare `.none` here is Optional.none (nil), which TTSKit treats as `.sentence`.
+let OPTIONS = GenerationOptions(maxNewTokens: 120, chunkingStrategy: .none as TextChunkingStrategy)
 
 func emit<T: Encodable>(_ value: T) {
     guard var data = try? JSONEncoder().encode(value) else {

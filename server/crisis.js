@@ -12,8 +12,12 @@ export const CRISIS_PHRASES = {
     'do not want to live', 'no reason to live', "don't want to be alive", 'dont want to be alive'],
 };
 
-// zh only, removed before matching: everyday phrases that contain a listed phrase.
-export const CRISIS_EXCEPTIONS = ['想死你', '想死您', '想死我了', '跳楼价', '跳楼大甩卖'];
+// zh only, removed anywhere before matching: everyday phrases that contain a listed phrase.
+export const CRISIS_EXCEPTIONS = ['跳楼价', '跳楼大甩卖'];
+// Fond greetings, removed only at the end of a clause (nothing but end of text or punctuation follows): '想死你了！' stays
+// harmless, while '我想死你别管我' and '我想死我了真的撑不下去' keep 想死 (FND-014, review round 1; A22: a miss is worse than a false alarm).
+export const GREETING_EXCEPTIONS = ['想死你了', '想死你们了', '想死您了', '想死我了'];
+const GREETING_RE = new RegExp(`(?:${GREETING_EXCEPTIONS.join('|')})(?![\\p{L}\\p{N}])`, 'gu');
 
 // Every Traditional form of a character used in CRISIS_PHRASES.zh / CRISIS_EXCEPTIONS (typed text may be Traditional).
 export const TRAD_FOLD = { 殺: '杀', 盡: '尽', 輕: '轻', 尋: '寻', 著: '着', 沒: '没', 義: '义', 結: '结', 傷: '伤', 殘: '残', 樓: '楼', 價: '价', 賣: '卖', 麼: '么', 麽: '么' };
@@ -34,7 +38,7 @@ export function normalizeForCrisis(text) {
 // Only this line, typed or transcribed; a negated statement counts too (A22, Q9).
 export function isCrisis(line) {
   const t = normalizeForCrisis(line);
-  let zh = t.replace(/\s/g, '');
+  let zh = t.replace(/\s/g, '').replace(GREETING_RE, '');
   for (const e of CRISIS_EXCEPTIONS) zh = zh.split(e).join('');
   if (CRISIS_PHRASES.zh.some((p) => zh.includes(p))) return true;
   return EN_RE.test(t);

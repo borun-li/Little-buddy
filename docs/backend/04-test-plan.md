@@ -111,7 +111,7 @@ Level: unit / integration (modules + doubles, or the HTTP seam) / e2e (boots the
 
 ### TC-015 — Config values
 - **Verifies:** REQ-009, REQ-010  **Level:** unit  **Mode:** automated
-- **Steps:** read `CONFIG`.  **Expected result:** host `127.0.0.1`; limits (incl. `historyBudget: 2000`), deadlines, restarts exactly as DES-002; 15 s + 12 s < 30 s; default ports 4317/4318 and size 9B when the env vars are unset (read only).  **Observed how:** `deepEqual`.
+- **Steps:** read `CONFIG`.  **Expected result:** host `127.0.0.1`; limits (incl. `historyBudget: 2000`), deadlines, restarts exactly as DES-002; 15 s + 12 s < 30 s; default ports 4317/4318 and size 9B when the env vars are unset (read only). Increment 2 / round 1: limits gain `speakChars 200, speakJsonBytes 4096, speakQueue 4`; deadlines `speakMs 10000, ttsBootMs 300000, ttsOverdueMs 30000` (DES-023).  **Observed how:** `deepEqual`.
 
 ### TC-016 — `bonsaiFiles` / `missingFiles`
 - **Verifies:** REQ-010, REQ-011  **Level:** unit  **Mode:** automated
@@ -370,7 +370,7 @@ Requirements with no automated test case: REQ-012 (manual TC-085 only). REQ-013 
 # Increment 2 — read aloud, crisis safety net, name (be-tester #5 · step 4, round 1 · 2026-11-15)
 
 - Derived from `01-requirements.md` § Increment 2 (REQ-014..REQ-031), `03-detailed-design.md` § Increment 2 (DES-016..DES-023; frontend DES-024..028 are fe-tester's), the seam of `contracts/FRONTEND_BACKEND_CONTRACT.md` ("Seam for increment 2") and the locked fixtures `FX-009..FX-013` — **not** from the implementation, which did not exist when this was written (tests fail until it lands; see § I2.5).
-- TC ids continue after TC-089: **TC-090..TC-137** (TC-137 sits in the protocol group). Test titles carry the TC id, the REQ ids and `[FX-nnn]`. Same files and layers as § 1; new double `tests/support/fake-tts.cjs` (companion-tts protocol, DES-016). No change to `package.json`: the new tests live in the files `npm test` already runs.
+- TC ids continue after TC-089: **TC-090..TC-137**, round 1 fixes **TC-138..TC-147** (TC-137 sits in the protocol group; TC-138..TC-143 in `tests/server-tts-serial.test.js` with `tests/support/fake-tts-serial.cjs`, TC-144..TC-147 in `tests/server-unit.test.js`). Test titles carry the TC id, the REQ ids and `[FX-nnn]`. Same files and layers as § 1; new double `tests/support/fake-tts.cjs` (companion-tts protocol, DES-016). No change to `package.json`: the new tests live in the files `npm test` already runs.
 - Two P0 tests changed because the design changed their expected value: TC-029 (`respond` now returns `{reply, mood, lang, crisis}`) and TC-040 (health gains `tts`); TC-073's event allow-list grows from 17 to 23 events (03 §6). No P0 test was weakened.
 - UD-1 (a) (user at Plan): a crisis turn never errors. TC-115 tests this; it departs from REQ-011/REQ-004 by the user's decision.
 
@@ -399,7 +399,7 @@ Requirements with no automated test case: REQ-012 (manual TC-085 only). REQ-013 
 
 ### TC-093 — Crisis rule: exceptions, word boundary, accepted false alarm
 - **Verifies:** REQ-023 (A22)  **Level:** unit  **Mode:** automated
-- **Steps:** 想死你了, 想死您了, 想死我了, 商场跳楼价大甩卖 → false; 想死你了，但我也不想活了 → true; "misuicidex" → false; "Suicide Squad was fun" → true (accepted, A22).  **Expected result:** as listed.
+- **Steps:** 想死你了, 想死您了, 想死我了, 商场跳楼价大甩卖 → false; 想死你了，但我也不想活了 → true; "misuicidex" → false; "Suicide Squad was fun" → true (accepted, A22). Round 1 (FND-014): the greetings are checked in `GREETING_EXCEPTIONS`, the idioms in `CRISIS_EXCEPTIONS`; end-of-clause cases are TC-146.  **Expected result:** as listed.
 
 ### TC-094 — `normalizeForCrisis`
 - **Verifies:** REQ-023  **Level:** unit  **Mode:** automated
@@ -423,7 +423,7 @@ Requirements with no automated test case: REQ-012 (manual TC-085 only). REQ-013 
 
 ### TC-099 — `crisisReply`
 - **Verifies:** REQ-024  **Level:** unit  **Mode:** automated
-- **Steps:** model sentence + help line; first sentence already with 988 kept alone; empty → fallback + line (zh no space, en one space); questions in the model sentence.  **Expected result:** always contains 988, ≤ 2 sentences, ≤ 1 question.
+- **Steps:** model sentence + help line; first sentence already with the CRISIS_LINE wording kept alone (round 1: a bare 988 no longer counts, TC-145); empty → fallback + line (zh no space, en one space); questions in the model sentence.  **Expected result:** always contains 988, ≤ 2 sentences, ≤ 1 question.
 
 ### TC-100 — `crisisReply` length caps
 - **Verifies:** REQ-024, REQ-004  **Level:** unit  **Mode:** automated
@@ -498,9 +498,50 @@ Requirements with no automated test case: REQ-012 (manual TC-085 only). REQ-013 
 - **Verifies:** REQ-024, REQ-030  **Level:** integration  **Mode:** automated
 - **Steps:** crisis line with name Mochi.  **Expected result:** system message = `replySystem('Mochi')` `\n` `LANG_RULE.en` `\n` `CRISIS_RULE.en`.
 
-### TC-137 — A helper that never answers does not wedge read-aloud
-- **Verifies:** REQ-017  **Level:** integration  **Mode:** automated
-- **Steps:** speak `HANG` (the double never answers; deadline 500 ms), then speak again.  **Expected result:** the first is `timeout` 504; the second is served within its own deadline (DES-017 step 5 "之后写下一个"; REQ-017 "slow or errored: only silent").  **Ambiguity:** DES-017 also says one request at a time; if the architect wants "wait for the helper's answer", a helper that hangs silences read-aloud until its process dies and health stays `ready`; then this TC should change to "the helper is killed and restarted".
+### TC-137 — A helper that never answers holds the slot, is killed and restarted (CHANGED, round 1)
+- **Verifies:** REQ-017 (FND-013, FND-015)  **Level:** integration  **Mode:** automated
+- **Design change, not a relaxation.** The first version encoded 08 deviation #10 ("after a timeout the next request is written"). 03 DES-017 (review round 1) replaces it: the slot stays busy until the helper answers, so a hung helper is killed after `ttsOverdueMs` and restarted. The old expectation is superseded, not weakened.
+- **Steps:** `fake-tts.cjs` (`HANG`), `speakMs` 500, `ttsOverdueMs` 2500: speak `HANG`; speak again; wait for the restart; speak again.  **Expected result:** the first is `timeout` 504; the second waits behind the busy slot and ends `timeout` 504 without being written (the helper log has only the `HANG` line); after the kill the supervisor restarts the helper (new pid, `ready`) and the third request is served.
+
+### TC-138 — One at a time: nothing is written while the slot is busy
+- **Verifies:** REQ-017 (FND-013)  **Level:** integration  **Mode:** automated
+- **Steps:** `fake-tts-serial.cjs` (reads/answers one request at a time, logs the arrival and answer time of each line): speak a 700 ms request plus two more at once.  **Expected result:** at 300 ms only the first line has arrived; later lines arrive in FIFO order, each not before the previous answer.  **Observed:** helper jsonl log.
+
+### TC-139 — Abort while in flight: caller settled at once, slot still busy
+- **Verifies:** REQ-017, REQ-018 (FND-013)  **Level:** integration  **Mode:** automated
+- **Steps:** abort a request in flight (helper answers 900 ms later) with another call queued.  **Expected result:** the aborted caller rejects with `AbortError` within 200 ms; the queued line is written only after the late answer, then served.
+
+### TC-140 — `speakMs` in flight: `timeout`, slot held
+- **Verifies:** REQ-017 (FND-013)  **Level:** integration  **Mode:** automated
+- **Steps:** `speakMs` 1000, helper answers after 1500 ms; then speak again.  **Expected result:** the first is `timeout` 504 at ~1000 ms; nothing is written until the late answer; the second is then served.
+
+### TC-141 — Overdue helper is killed and restarted
+- **Verifies:** REQ-017 (FND-015)  **Level:** integration  **Mode:** automated
+- **Steps:** `ttsOverdueMs` 800 (config injection), `speakMs` 20000, helper never answers `HANG`; two more calls queued.  **Expected result:** all three reject `unavailable` 503 at ~800 ms (kill), the queued lines were never written, the helper restarts (new pid, `ready`) and serves a new request.
+
+### TC-142 — Queue cap 4
+- **Verifies:** REQ-017 (FND-013)  **Level:** integration  **Mode:** automated
+- **Steps:** one request in flight, five more queued (`speakQueue` 4).  **Expected result:** the oldest queued settles `unavailable` at once and is never written; the in-flight one and the other four are served in FIFO order.
+
+### TC-143 — Helper answer id -1 frees the slot
+- **Verifies:** REQ-017 (FND-020)  **Level:** integration  **Mode:** automated
+- **Steps:** helper answers `{id:-1,error}` to the slot request (`NEG`), with another call queued.  **Expected result:** the first caller gets `failed` 502 at once; the queued call and a later one are served.
+
+### TC-144 — `parseSpeak` rejects lone surrogates
+- **Verifies:** REQ-014, REQ-017 (FND-020)  **Level:** unit  **Mode:** automated
+- **Steps:** JSON bodies (escaped `\ud800`, `\udc00`, trailing high, leading low, inside a sentence); a valid emoji pair.  **Expected result:** the lone ones `bad_request` 400; the pair accepted.
+
+### TC-145 — `crisisReply`: bare 988 does not skip the line
+- **Verifies:** REQ-024, REQ-025 (FND-019)  **Level:** unit  **Mode:** automated
+- **Steps:** first sentence "I am 988 and I am right here with you." / "我叫988，我在这里陪你。" / "Please call 988 now."; first sentences with the CRISIS_LINE wording (`打给 988`, `Call or text 988`) and the line itself.  **Expected result:** the first group gets `CRISIS_LINE` appended; the second is kept alone and the wording appears exactly once. TC-099's two superseded assertions (bare-988 kept alone) changed to the wording rule.
+
+### TC-146 — Crisis rule: greeting only at end of clause
+- **Verifies:** REQ-023 (FND-014, FX-009, FX-010)  **Level:** unit  **Mode:** automated
+- **Steps:** true for 我想死你们都不懂我, 我想死你别管我, 我想死您别劝我了, 我想死我了真的撑不下去, 真的好想死你们根本不在乎, 想死你了，可我真的想死; false for 想死你了！, 想死你们了！, 你可想死我了。, 想死您了, 我想死你了，好久不见; FX-009 all true, FX-010 all false.  **Expected result:** as listed. TC-093 now reads `GREETING_EXCEPTIONS` (the greetings left `CRISIS_EXCEPTIONS`). The FND-014 rule is an orchestrator decision under A22; the user confirms at Acceptance.
+
+### TC-147 — Helper generates in one pass (static)
+- **Verifies:** REQ-014, REQ-017 (FND-016)  **Level:** unit (source check)  **Mode:** automated
+- **Steps:** read `stt/Sources/CompanionTTS/main.swift`; the `OPTIONS` line.  **Expected result:** `maxNewTokens: 120` and `chunkingStrategy: .none`.  **Limit:** a source check; it cannot tell a bare `.none` (Optional.none, nil) from `.none as TextChunkingStrategy`, and the Swift binary is not run. Live audio check stays TC-134.
 
 ### Live — `tests/server-live.test.js` (real Bonsai + WhisperKit + TTSKit)
 ### TC-120 — Health has `tts`
@@ -573,26 +614,26 @@ Requirements with no automated test case: REQ-012 (manual TC-085 only). REQ-013 
 - **Owner:** fe-tester (browser), per `docs/frontend/` plan. The backend halves are TC-130, TC-132 (read-aloud), TC-121/TC-124 (crisis flag the card reads), TC-116/TC-126 (name). Not covered by backend suites.
 
 ## I2.3 Negative, boundary and failure cases
-Bad input: TC-091, TC-096, TC-104, TC-105, TC-106, TC-126, TC-127. Boundaries: 12 code points, 200/201 chars, 4096-byte body, 120 chars / 40 words crisis cap, speech caps 10/7 and 24/16 (TC-096, TC-100, TC-102, TC-105, TC-127). Dependency down, slow or dying: TC-110, TC-111, TC-137, TC-112, TC-115, TC-133. Wrong or empty output: TC-115 (empty reply), TC-102 (`[]`). Privacy: TC-073 allow-list (tts events, no text). Duplicate/concurrent: TC-111 (queue), TC-131.
+Bad input: TC-091, TC-096, TC-104, TC-105, TC-106, TC-126, TC-127, TC-144, TC-146. Boundaries: 12 code points, 200/201 chars, 4096-byte body, 120 chars / 40 words crisis cap, speech caps 10/7 and 24/16 (TC-096, TC-100, TC-102, TC-105, TC-127). Dependency down, slow or dying: TC-110, TC-111, TC-137, TC-139..TC-143, TC-112, TC-115, TC-133. Wrong or empty output: TC-115 (empty reply), TC-102 (`[]`). Privacy: TC-073 allow-list (tts events, no text). Duplicate/concurrent: TC-111 (queue), TC-131.
 
 ## I2.4 Coverage matrix (increment 2)
 | REQ | Test cases | Level |
 |---|---|---|
-| REQ-014 | TC-101, 102, 103, 105, 106, 107, 109, 111, 113, 120, 123, 127, 128, 129; manual 134 | unit, integration, manual |
+| REQ-014 | TC-101, 102, 103, 105, 106, 107, 109, 111, 113, 120, 123, 127, 128, 129, 144, 147; manual 134 | unit, integration, manual |
 | REQ-015 | TC-102, 130; page half 136 | unit, integration, manual (page) |
 | REQ-016 | page only: TC-136 | manual (frontend) |
-| REQ-017 | TC-106, 107, 108, 110, 112, 120, 131, 137; manual 133 | unit, integration, manual |
-| REQ-018 | backend half TC-111, 132; page half 136 | integration, manual (page) |
+| REQ-017 | TC-106, 107, 108, 110, 112, 120, 131, 137, 138, 139, 140, 141, 142, 143, 144, 147; manual 133 | unit, integration, manual |
+| REQ-018 | backend half TC-111, 132, 139; page half 136 | integration, manual (page) |
 | REQ-019..022 | frontend only: TC-136 | manual (frontend) |
-| REQ-023 | TC-090..094, 114, 121, 124 | unit, integration |
-| REQ-024 | TC-098..100, 103, 114, 115, 117, 122; manual 135 | unit, integration, manual |
-| REQ-025 | backend half (crisis flag): TC-114, 115, 121, 123, 124; card: TC-136 | integration, manual (page) |
+| REQ-023 | TC-090..094, 114, 121, 124, 146 | unit, integration |
+| REQ-024 | TC-098..100, 103, 114, 115, 117, 122, 145; manual 135 | unit, integration, manual |
+| REQ-025 | backend half (crisis flag): TC-114, 115, 121, 123, 124, 145; card: TC-136 | integration, manual (page) |
 | REQ-026..029 | frontend only: TC-136 | manual (frontend) |
 | REQ-030 | TC-097, 104, 116, 117, 125 | unit, integration |
 | REQ-031 | TC-095, 096, 104, 116, 126 | unit, integration |
 | REQ-032..035 | design only; no tests | — |
 
-Fixtures: FX-009 TC-090, 114, 115, 121, 122, 123; FX-010 TC-091, 114, 124; FX-011 TC-116, 125; FX-012 TC-095, 104, 116, 126; FX-013 TC-101, 129, 130.
+Fixtures: FX-009 TC-090, 114, 115, 121, 122, 123, 146; FX-010 TC-091, 114, 124, 146; FX-011 TC-116, 125; FX-012 TC-095, 104, 116, 126; FX-013 TC-101, 129, 130.
 
 ## I2.5 Untestable or ambiguous
 | REQ / point | Why | What would make it testable |

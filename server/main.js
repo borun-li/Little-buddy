@@ -68,7 +68,8 @@ export function parseSpeak(body, limits = CONFIG.limits) {
     throw new ApiError('bad_request');
   }
   const text = data.text.trim();
-  if (!isText(text, limits.speakChars)) throw new ApiError('bad_request');
+  // A lone surrogate is refused here; the helper's JSON decoder would reject it anyway (FND-020).
+  if (!isText(text, limits.speakChars) || !text.isWellFormed()) throw new ApiError('bad_request');
   return { text, lang: data.lang };
 }
 

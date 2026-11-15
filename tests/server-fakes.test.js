@@ -506,14 +506,16 @@ test('TC-117 REQ-024/REQ-030 a crisis turn with a custom name carries both the N
   } finally { b.stop(); }
 });
 
-test('TC-137 REQ-017 tts.speak: a helper that never answers one request (deadline passed, timeout returned) does not wedge the next speak (DES-017 step 5: "after that, write the next")', async () => {
-  const { tts, ready } = await makeTts({}, { speakMs: 500 });
+test('TC-137 REQ-017 FND-013/FND-015 tts.speak: a helper that never answers holds the slot (nothing more is written, later callers time out), is killed after ttsOverdueMs and restarted, then serves (design change: replaces the superseded deviation #10 "write the next after a timeout")', async () => {
+  const { tts, reqs, ready } = await makeTts({}, { speakMs: 500, ttsOverdueMs: 2500 });
   try {
     await ready();
+    const pid0 = tts.pid;
     await assert.rejects(tts.speak('HANG now', 'en', sig().signal), (e) => e.code === 'timeout' && e.status === 504);
-    const t0 = Date.now();
+    await assert.rejects(tts.speak('fine now', 'en', sig().signal), (e) => e.code === 'timeout' && e.status === 504, 'queued behind the busy slot until its own deadline');
+    assert.deepEqual(reqs().map((r) => r.text), ['HANG now'], 'the second request was never written while the slot was busy');
+    await waitFor(() => tts.state === 'ready' && tts.pid !== pid0, 15000, 'overdue kill, then restarted helper ready');
     const wav = await tts.speak('fine now', 'en', sig().signal).catch((e) => e);
-    assert.ok(Buffer.isBuffer(wav), `the next call after a timed-out one must be served, got ${wav?.code ?? wav}`);
-    assert.ok(Date.now() - t0 < 500);
+    assert.ok(Buffer.isBuffer(wav), `after the restart the helper serves, got ${wav?.code ?? wav}`);
   } finally { tts.stop(); }
 });

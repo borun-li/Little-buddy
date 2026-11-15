@@ -9,11 +9,14 @@ import { supervise } from './supervisor.js';
 export function createTts(cfg = CONFIG) {
   let proc = null;
   let nextId = 0;
-  const queue = []; // waiting items, FIFO, memory only
-  let inFlight = null; // the item whose answer is awaited; cleared when it settles (answer, timeout, abort), then the next is written
+  const queue = []; // waiting items, FIFO, memory only, at most cfg.limits.speakQueue
+  // The slot: the item whose line was written. The helper works strictly one at a time and cannot cancel, so the slot stays
+  // busy until the helper answers that id (or id -1), even when its caller was already settled by abort or timeout (FND-013).
+  let slot = null;
+  let overdue = null; // kills a helper that has not answered the slot within ttsOverdueMs of the write (FND-015)
   let readyWaiter = null;
 
-  // Settle an item once; later answers, timeouts or aborts for it are ignored.
+  // Settle the caller once; a later answer, timeout or abort for it is ignored. Never frees the slot or writes.
   function settle(item, err, value) {
     if (item.done) return;
     item.done = true;
@@ -21,25 +24,35 @@ export function createTts(cfg = CONFIG) {
     item.signal.removeEventListener('abort', item.onAbort);
     if (err) item.reject(err);
     else item.resolve(value);
-    // DES-017 step 5: after a timeout (or abort) the next request is written; the late answer carries the old id and is dropped.
-    if (inFlight === item) {
-      inFlight = null;
-      pump();
-    }
+  }
+
+  // Settled while queued: removed, never written. Settled in flight: stays in the slot until the helper answers.
+  function drop(item, err) {
+    const i = queue.indexOf(item);
+    if (i !== -1) queue.splice(i, 1);
+    settle(item, err);
   }
 
   function pump() {
-    if (inFlight || !queue.length || !proc?.child) return;
+    const child = proc?.child;
+    if (slot || !queue.length || !child) return;
     const item = queue.shift();
-    inFlight = item;
+    slot = item;
     item.written = Date.now();
-    proc.child.stdin.write(`${JSON.stringify({ id: item.id, text: item.text, lang: item.lang })}\n`);
+    overdue = setTimeout(() => {
+      overdue = null;
+      // The supervisor logs child_exit and restarts; onExit then settles the slot and the queue `unavailable`.
+      if (slot === item && proc?.child === child) child.kill('SIGKILL');
+    }, cfg.deadlines.ttsOverdueMs);
+    child.stdin.write(`${JSON.stringify({ id: item.id, text: item.text, lang: item.lang })}\n`);
   }
 
   function failAll(code) {
-    const items = inFlight ? [inFlight, ...queue] : [...queue];
-    inFlight = null;
-    queue.length = 0; // emptied first, so settle() has nothing to write to the dead helper
+    clearTimeout(overdue);
+    overdue = null;
+    const items = slot ? [slot, ...queue] : [...queue];
+    slot = null;
+    queue.length = 0;
     for (const item of items) settle(item, new ApiError(code, 'tts'));
   }
 
@@ -56,20 +69,27 @@ export function createTts(cfg = CONFIG) {
       readyWaiter?.(msg);
       return;
     }
-    const item = inFlight;
-    if (!item || msg.id !== item.id) return; // a late answer to a request that already timed out or was aborted
-    if (msg.error) {
-      log('warn', 'tts_error', { error: msg.error });
-      settle(item, new ApiError('failed', 'tts'));
-    } else if (typeof msg.wav === 'string') {
-      log('info', 'tts_done', {
-        ms: Date.now() - item.started, queued_ms: item.written - item.started, audio_ms: msg.audio_ms ?? null, chars: item.text.length, lang: item.lang,
-      });
-      settle(item, null, Buffer.from(msg.wav, 'base64'));
-    } else {
-      log('warn', 'tts_error', { error: null });
-      settle(item, new ApiError('failed', 'tts'));
-    }
+    const item = slot;
+    // Only one line is ever outstanding, so id -1 (the helper could not read the request) answers the slot too (FND-020).
+    if (!item || (msg.id !== item.id && msg.id !== -1)) return;
+    clearTimeout(overdue);
+    overdue = null;
+    slot = null;
+    if (!item.done) {
+      if (msg.error || msg.id === -1) {
+        log('warn', 'tts_error', { error: msg.error ?? null });
+        settle(item, new ApiError('failed', 'tts'));
+      } else if (typeof msg.wav === 'string') {
+        log('info', 'tts_done', {
+          ms: Date.now() - item.started, queued_ms: item.written - item.started, audio_ms: msg.audio_ms ?? null, chars: item.text.length, lang: item.lang,
+        });
+        settle(item, null, Buffer.from(msg.wav, 'base64'));
+      } else {
+        log('warn', 'tts_error', { error: null });
+        settle(item, new ApiError('failed', 'tts'));
+      }
+    } // else: the caller was settled by abort or timeout; the late answer only frees the slot
+    pump();
   }
 
   function warm(child) {
@@ -123,19 +143,12 @@ export function createTts(cfg = CONFIG) {
       if (signal.aborted) return Promise.reject(signal.reason);
       return new Promise((resolve, reject) => {
         const item = { id: ++nextId, text, lang, signal, resolve, reject, started: Date.now(), written: null, done: false };
-        // Aborted while queued: removed, never written. Aborted in flight: the answer is dropped when it arrives.
-        item.onAbort = () => {
-          const i = queue.indexOf(item);
-          if (i !== -1) queue.splice(i, 1);
-          settle(item, signal.reason);
-        };
-        // Deadline from the call: queue wait + generation. A late answer is dropped.
-        item.timer = setTimeout(() => {
-          const i = queue.indexOf(item);
-          if (i !== -1) queue.splice(i, 1);
-          settle(item, new ApiError('timeout', 'tts'));
-        }, cfg.deadlines.speakMs);
+        item.onAbort = () => drop(item, signal.reason);
+        // Deadline from the call: queue wait + generation.
+        item.timer = setTimeout(() => drop(item, new ApiError('timeout', 'tts')), cfg.deadlines.speakMs);
         signal.addEventListener('abort', item.onAbort, { once: true });
+        // Full queue: the oldest waiting part is stale (the page has moved on), so it gives way (FND-013).
+        if (queue.length >= cfg.limits.speakQueue) drop(queue[0], new ApiError('unavailable', 'tts'));
         queue.push(item);
         pump();
       });
