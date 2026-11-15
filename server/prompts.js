@@ -33,3 +33,22 @@ export const REPLY_SAMPLING = { temperature: 0.7, top_p: 0.8, top_k: 20, min_p: 
 export const MOOD_SAMPLING = { temperature: 0, top_k: 1, max_tokens: 16 };
 export const MOOD_SCHEMA = { type: 'json_schema', json_schema: { name: 'mood', strict: true, schema: {
   type: 'object', properties: { mood: { type: 'string', enum: MOODS } }, required: ['mood'], additionalProperties: false } } };
+
+// Name (03 DES-021): null → REPLY_SYSTEM unchanged; a cleaned name has no quote, newline, bracket or colon (server/name.js).
+export const NAME_RULE = (n) => `Your name is "${n}". When you mention yourself or are asked your name, say "${n}"; never call yourself 小伙伴 or Little Buddy.`;
+
+export function replySystem(name) {
+  if (name === null) return REPLY_SYSTEM;
+  return `${REPLY_SYSTEM.replace('小伙伴 (Little Buddy)', `"${name}"`)}\n${NAME_RULE(name)}`;
+}
+
+// Crisis turn (03 DES-020). Words shown to the user at Plan and approved 2026-11-15; they appear in replies.
+export const CRISIS_RULE = {
+  zh: '用户可能有伤害自己的念头。只用一句温柔的话回应，表示你听到了、你在乎他；不要提问，不要诊断，不要给建议。',
+  en: 'The user may be thinking about hurting themselves. Answer with one gentle sentence that shows you heard them and care; no question, no diagnosis, no advice.',
+};
+export const CRISIS_LINE = {
+  zh: '你不用一个人扛着，随时可以打给 988，或者发短信，那边有人愿意听你说。',
+  en: "You don't have to carry this alone; you can call or text 988 anytime, and someone there will listen.",
+};
+export const CRISIS_FALLBACK = { zh: '谢谢你愿意告诉我这些，我很在乎你。', en: 'Thank you for telling me this, and I really care about you.' };

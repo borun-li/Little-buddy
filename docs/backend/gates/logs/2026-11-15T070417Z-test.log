@@ -1,0 +1,457 @@
+$ npm test
+
+> test
+> mkdir -p test-results && COMPANION_URL=${COMPANION_URL:-http://127.0.0.1:4400} node --test --test-reporter=spec --test-reporter-destination=stdout --test-reporter=junit --test-reporter-destination=test-results/junit.xml tests/mood.test.js tests/fake-companion.test.js tests/client.test.js tests/offline.test.js tests/companion.test.js tests/wav.test.js tests/talk-button.test.js tests/health-watch.test.js tests/voice-turn.test.js tests/voice-hints.test.js tests/copy.test.js tests/verify-r1.test.js tests/fnd-r1-fix.test.js tests/verify-r2.test.js tests/server-unit.test.js tests/server-fakes.test.js tests/server-live.test.js
+
+✔ Q-010 respond posts line and history, parses 200 (1.76125ms)
+✔ Q-010 only the last 40 history entries are sent, no language field (0.248708ms)
+✔ Q-010 each of the six error bodies maps to .code; unknown body maps to failed (1.690959ms)
+✔ Q-010 failed fetch is unavailable; a 200 without a reply is failed; unknown mood is neutral (0.556875ms)
+✔ Q-010 respond aborts at 16 s and transcribe at 13 s with code timeout (7.978334ms)
+✔ Q-010 transcribe sends audio/wav; health returns the three fields (0.621917ms)
+✔ Q-010 default timers resolve a call (the Illegal invocation bug showed only in the browser run) (0.190041ms)
+✔ Q-003 each mood template is its current SVG export with every id prefixed "<mood>--" (3.272083ms)
+✔ Q-003 ids are unique across the five inlined moods (2.887708ms)
+✔ DFB-003 every part id named in companion.css exists in that mood's art (0.591083ms)
+✔ DFB-003 every part §7 moves has an animation, per mood (0.967875ms)
+✔ REQ-006 reduced motion stops every companion animation and the glow transition (0.316625ms)
+✔ Q-015 every zh key has an en value and vice versa, same kind of value (1.595667ms)
+✔ Q-015 every en string is non-empty and the function strings take the number (0.193375ms)
+✔ Q-015 no Chinese in the English words except the two switch labels (0.178458ms)
+✔ Q-015 browser language: zh* opens in zh, anything else in en (0.128ms)
+✔ Q-015 setLang swaps the live copy object in place and ignores unknown languages (0.097458ms)
+✔ Q-005 respond returns the line mood and a reply from that mood (13.168958ms)
+✔ Q-005 REQ-003 the fake layer with its default delay replies within 1 s (602.311041ms)
+✔ Q-005 A3 at least 2 replies per mood, each <= 2 sentences, <= 1 question, <= 120 chars (0.898458ms)
+✔ Q-005 A3 never the same reply twice in a row (15.338541ms)
+✔ Q-005 A1 transcribe walks the voice lines and covers all 5 moods (1.237375ms)
+✔ Q-005 REQ-007 app.js is the only importer of companion-client.js (6.63225ms)
+✔ Q-005 REQ-007 nothing in web/ outside fake/ imports fake/ (the page uses the real layer) (1.721542ms)
+✔ FND-001 failed(unavailable) does not arm awake; the first check is 2 s later (3.955917ms)
+✔ FND-001 failed(not_ready) still lets awake follow (a health hint was shown) (0.470292ms)
+✔ FND-003 listeningNow is written into the status line, kept visually hidden, key kept (0.333958ms)
+✔ FND-003 the stream opening announces listeningNow after micOpening (1.457042ms)
+✔ FND-003 listeningNow leaves when the hold ends (0.391916ms)
+✔ FND-002 a hold running when a reply goes pending is cancelled: mic closed, no utterance (0.264416ms)
+✔ FND-001/002 app.js wiring: awake gated by hint.key, utterance dropped while pending (0.359042ms)
+✔ ready at open: no hint at all, checks stop (2.041542ms)
+✔ bonsai starting: Enter and hold blocked, warming hint, caption waking; polls every 2 s (3.008083ms)
+✔ bonsai ready, stt starting or down: sends, voice not ready, caption is the mood (0.345208ms)
+✔ warming then ready: awake hint for 4 s, then gone; checks stop (0.467792ms)
+✔ check fails or bonsai down: unreachable, then stillDown after 30 s; recovery says awake (1.359709ms)
+✔ bonsai down reported by health is the same as a failed check (0.1375ms)
+✔ a failed send (not_ready / unavailable) resumes checks; other codes do not (2.200625ms)
+✔ stop cancels pending checks (0.320167ms)
+✔ Q-005 every keyword maps to its own mood (2.81075ms)
+✔ Q-005 the four keyword moods and neutral are the 5 demo mood ids (0.624917ms)
+✔ Q-005 no keyword -> neutral (0.1435ms)
+✔ Q-005 the last keyword in the line wins (0.096584ms)
+✔ Q-005 a longer keyword ending at the same place wins (不开心 is sad, not happy) (0.087541ms)
+✔ Q-005 demo lines: happy line smiles, sad line is sad (0.082875ms)
+✔ Q-006 REQ-008 there are page files to check (1.210708ms)
+✔ Q-006 REQ-008 no page file names a host other than localhost (2.416709ms)
+✔ Q-006 REQ-008 every src, href and CSS url() points to a local file that exists (2.533583ms)
+✔ Q-006 the voice font is the bundled WenKai subset, shipped with its licence (1.08975ms)
+✔ Q-006 icons referenced with <use href="#..."> are inline symbols (2.272ms)
+{"t":"2026-11-15T07:04:17.634Z","level":"info","event":"child_spawn","name":"stt","pid":39574}
+{"t":"2026-11-15T07:04:17.637Z","level":"info","event":"child_ready","name":"stt","ms":6}
+{"t":"2026-11-15T07:04:17.690Z","level":"warn","event":"child_exit","name":"stt","code":null,"signal":"SIGTERM","restarts":0}
+{"t":"2026-11-15T07:04:20.242Z","level":"info","event":"child_spawn","name":"bonsai","pid":39626}
+{"t":"2026-11-15T07:04:20.242Z","level":"info","event":"child_ready","name":"bonsai","ms":1}
+✔ TC-021 supervise: starting -> ready after warm resolves; stop() ends only its own pid (2611.173041ms)
+{"t":"2026-11-15T07:04:20.295Z","level":"warn","event":"child_exit","name":"bonsai","code":null,"signal":"SIGKILL","restarts":0}
+bonsai 已退出 exited: code null, signal SIGKILL — 2 秒后重启 restarting in 2 s (1/5)
+{"t":"2026-11-15T07:04:22.298Z","level":"info","event":"child_spawn","name":"bonsai","pid":39655}
+{"t":"2026-11-15T07:04:22.298Z","level":"info","event":"child_ready","name":"bonsai","ms":1}
+{"t":"2026-11-15T07:04:22.340Z","level":"info","event":"child_spawn","name":"stt","pid":39656}
+{"t":"2026-11-15T07:04:22.340Z","level":"error","event":"child_warm_failed","name":"stt","err_name":"Error"}
+✔ TC-022 supervise: an unexpected exit -> down, onExit called, restarted after ~2 s with a new pid (2097.723375ms)
+stt 已退出 exited: warm failed — 2 秒后重启 restarting in 2 s (1/5)
+{"t":"2026-11-15T07:04:22.340Z","level":"warn","event":"child_exit","name":"bonsai","code":null,"signal":"SIGTERM","restarts":1}
+{"t":"2026-11-15T07:04:22.340Z","level":"warn","event":"child_exit","name":"stt","code":null,"signal":"SIGTERM","restarts":0}
+{"t":"2026-11-15T07:04:22.394Z","level":"info","event":"child_spawn","name":"bonsai","pid":39657}
+✔ TC-023 supervise: a failing warm kills that child (53.393417ms)
+{"t":"2026-11-15T07:04:22.423Z","level":"warn","event":"child_exit","name":"bonsai","code":1,"signal":null,"restarts":0}
+bonsai 已退出 exited: code 1, signal null — 2 秒后重启 restarting in 2 s (1/5)
+{"t":"2026-11-15T07:04:24.426Z","level":"info","event":"child_spawn","name":"bonsai","pid":39687}
+{"t":"2026-11-15T07:04:24.456Z","level":"warn","event":"child_exit","name":"bonsai","code":1,"signal":null,"restarts":1}
+bonsai 已退出 exited: code 1, signal null — 2 秒后重启 restarting in 2 s (2/5)
+{"t":"2026-11-15T07:04:26.458Z","level":"info","event":"child_spawn","name":"bonsai","pid":39716}
+{"t":"2026-11-15T07:04:26.489Z","level":"warn","event":"child_exit","name":"bonsai","code":1,"signal":null,"restarts":2}
+bonsai 已退出 exited: code 1, signal null — 2 秒后重启 restarting in 2 s (3/5)
+{"t":"2026-11-15T07:04:28.492Z","level":"info","event":"child_spawn","name":"bonsai","pid":39745}
+{"t":"2026-11-15T07:04:28.525Z","level":"warn","event":"child_exit","name":"bonsai","code":1,"signal":null,"restarts":3}
+bonsai 已退出 exited: code 1, signal null — 2 秒后重启 restarting in 2 s (4/5)
+{"t":"2026-11-15T07:04:30.528Z","level":"info","event":"child_spawn","name":"bonsai","pid":39774}
+{"t":"2026-11-15T07:04:30.560Z","level":"warn","event":"child_exit","name":"bonsai","code":1,"signal":null,"restarts":4}
+bonsai 已退出 exited: code 1, signal null — 2 秒后重启 restarting in 2 s (5/5)
+{"t":"2026-11-15T07:04:32.562Z","level":"info","event":"child_spawn","name":"bonsai","pid":39803}
+{"t":"2026-11-15T07:04:32.594Z","level":"warn","event":"child_exit","name":"bonsai","code":1,"signal":null,"restarts":5}
+{"t":"2026-11-15T07:04:32.594Z","level":"error","event":"child_gave_up","name":"bonsai","restarts":5}
+bonsai 已停止 gave up after 5 restarts: code 1, signal null — 修好上面的原因后重新运行 npm start  Fix the cause above, then run npm start again
+{"t":"2026-11-15T07:04:39.400Z","level":"info","event":"child_spawn","name":"stt","pid":39919}
+✔ TC-024 supervise: gives up after 5 restarts and stays down (slow: ~12 s) (17004.329375ms)
+{"t":"2026-11-15T07:04:39.697Z","level":"info","event":"stt_warm","load_ms":1,"warm_ms":1}
+{"t":"2026-11-15T07:04:39.697Z","level":"info","event":"child_ready","name":"stt","ms":298}
+{"t":"2026-11-15T07:04:39.707Z","level":"info","event":"stt_done","ms":1,"audio_ms":0,"empty":false,"lang":"en"}
+{"t":"2026-11-15T07:04:39.708Z","level":"info","event":"stt_done","ms":1,"audio_ms":0,"empty":false,"lang":"en"}
+{"t":"2026-11-15T07:04:39.708Z","level":"info","event":"stt_done","ms":0,"audio_ms":0,"empty":false,"lang":"en"}
+{"t":"2026-11-15T07:04:40.010Z","level":"info","event":"stt_done","ms":301,"audio_ms":0,"empty":false,"lang":"en"}
+{"t":"2026-11-15T07:04:40.013Z","level":"info","event":"child_spawn","name":"stt","pid":39920}
+✔ TC-025 stt.transcribe: trims the text, drops non-JSON stdout lines, matches answers to requests by id (613.496666ms)
+{"t":"2026-11-15T07:04:40.015Z","level":"warn","event":"child_exit","name":"stt","code":null,"signal":"SIGTERM","restarts":0}
+{"t":"2026-11-15T07:04:40.227Z","level":"info","event":"stt_warm","load_ms":1,"warm_ms":1}
+{"t":"2026-11-15T07:04:40.227Z","level":"info","event":"child_ready","name":"stt","ms":215}
+{"t":"2026-11-15T07:04:40.270Z","level":"info","event":"stt_done","ms":1,"audio_ms":0,"empty":true,"lang":null}
+{"t":"2026-11-15T07:04:40.273Z","level":"info","event":"child_spawn","name":"stt","pid":39921}
+✔ TC-026 [FX-008] stt.transcribe returns "" for nothing heard (not an error) (260.270833ms)
+{"t":"2026-11-15T07:04:40.274Z","level":"warn","event":"child_exit","name":"stt","code":null,"signal":"SIGTERM","restarts":0}
+{"t":"2026-11-15T07:04:42.005Z","level":"info","event":"stt_warm","load_ms":1,"warm_ms":1}
+{"t":"2026-11-15T07:04:42.005Z","level":"info","event":"child_ready","name":"stt","ms":1733}
+{"t":"2026-11-15T07:04:42.011Z","level":"info","event":"stt_done","ms":1,"audio_ms":0,"empty":false,"lang":"en"}
+{"t":"2026-11-15T07:04:42.013Z","level":"info","event":"child_spawn","name":"stt","pid":39951}
+✔ TC-027 stt.transcribe while starting rejects not_ready (503) (1740.349042ms)
+{"t":"2026-11-15T07:04:42.014Z","level":"warn","event":"child_exit","name":"stt","code":null,"signal":"SIGTERM","restarts":0}
+{"t":"2026-11-15T07:04:42.246Z","level":"info","event":"stt_warm","load_ms":1,"warm_ms":1}
+{"t":"2026-11-15T07:04:42.246Z","level":"info","event":"child_ready","name":"stt","ms":234}
+{"t":"2026-11-15T07:04:42.270Z","level":"warn","event":"stt_error","error":"bad_audio"}
+{"t":"2026-11-15T07:04:43.673Z","level":"info","event":"stt_done","ms":0,"audio_ms":0,"empty":false,"lang":"en"}
+{"t":"2026-11-15T07:04:43.677Z","level":"warn","event":"child_exit","name":"stt","code":7,"signal":null,"restarts":0}
+stt 已退出 exited: code 7, signal null — 2 秒后重启 restarting in 2 s (1/5)
+{"t":"2026-11-15T07:04:43.691Z","level":"info","event":"child_spawn","name":"bonsai","pid":39982}
+✔ TC-028 stt.transcribe failures: helper error -> failed; deadline -> timeout (late answer dropped); exit mid-flight and while down -> unavailable (1666.098ms)
+{"t":"2026-11-15T07:04:44.228Z","level":"info","event":"respond_done","ms":7,"reply_ms":6,"mood_ms":7,"lang":"en","mood_fallback":false,"history_n":0}
+{"t":"2026-11-15T07:04:44.228Z","level":"info","event":"child_ready","name":"bonsai","ms":538}
+{"t":"2026-11-15T07:04:44.279Z","level":"info","event":"respond_done","ms":4,"reply_ms":3,"mood_ms":4,"lang":"en","mood_fallback":false,"history_n":0}
+{"t":"2026-11-15T07:04:44.285Z","level":"info","event":"child_spawn","name":"bonsai","pid":39983}
+✔ TC-029 bonsai.respond: one reply call (thinking off, REPLY_SAMPLING) and one mood call (MOOD_SCHEMA, MOOD_SAMPLING), result {reply, mood} (602.924458ms)
+{"t":"2026-11-15T07:04:44.288Z","level":"warn","event":"child_exit","name":"bonsai","code":null,"signal":"SIGTERM","restarts":0}
+{"t":"2026-11-15T07:04:44.810Z","level":"info","event":"respond_done","ms":5,"reply_ms":5,"mood_ms":5,"lang":"en","mood_fallback":false,"history_n":0}
+{"t":"2026-11-15T07:04:44.810Z","level":"info","event":"child_ready","name":"bonsai","ms":526}
+{"t":"2026-11-15T07:04:44.849Z","level":"info","event":"respond_done","ms":2,"reply_ms":2,"mood_ms":2,"lang":"en","mood_fallback":true,"history_n":0}
+{"t":"2026-11-15T07:04:44.851Z","level":"info","event":"respond_done","ms":2,"reply_ms":2,"mood_ms":null,"lang":"en","mood_fallback":true,"history_n":0}
+{"t":"2026-11-15T07:04:44.853Z","level":"info","event":"respond_done","ms":2,"reply_ms":1,"mood_ms":2,"lang":"en","mood_fallback":true,"history_n":0}
+{"t":"2026-11-15T07:04:46.353Z","level":"info","event":"respond_done","ms":1500,"reply_ms":1,"mood_ms":null,"lang":"en","mood_fallback":true,"history_n":0}
+{"t":"2026-11-15T07:04:46.355Z","level":"info","event":"respond_done","ms":2,"reply_ms":2,"mood_ms":2,"lang":"en","mood_fallback":false,"history_n":0}
+{"t":"2026-11-15T07:04:46.357Z","level":"info","event":"child_spawn","name":"bonsai","pid":40012}
+✔ TC-030 bonsai.respond mood fallback: value outside the 5 ids, failed call, unparseable answer, slow call -> neutral, reply still returned (2074.776958ms)
+{"t":"2026-11-15T07:04:46.358Z","level":"warn","event":"child_exit","name":"bonsai","code":null,"signal":"SIGTERM","restarts":0}
+{"t":"2026-11-15T07:04:46.869Z","level":"info","event":"respond_done","ms":3,"reply_ms":2,"mood_ms":3,"lang":"en","mood_fallback":false,"history_n":0}
+{"t":"2026-11-15T07:04:46.869Z","level":"info","event":"child_ready","name":"bonsai","ms":512}
+{"t":"2026-11-15T07:04:46.920Z","level":"info","event":"respond_done","ms":2,"reply_ms":2,"mood_ms":2,"lang":"en","mood_fallback":false,"history_n":2}
+{"t":"2026-11-15T07:04:46.922Z","level":"info","event":"respond_done","ms":1,"reply_ms":1,"mood_ms":1,"lang":"en","mood_fallback":false,"history_n":1}
+{"t":"2026-11-15T07:04:46.924Z","level":"info","event":"respond_done","ms":1,"reply_ms":0,"mood_ms":1,"lang":"zh","mood_fallback":false,"history_n":0}
+{"t":"2026-11-15T07:04:46.925Z","level":"info","event":"respond_done","ms":1,"reply_ms":1,"mood_ms":1,"lang":"en","mood_fallback":false,"history_n":10}
+{"t":"2026-11-15T07:04:46.928Z","level":"info","event":"child_spawn","name":"bonsai","pid":40013}
+✔ TC-031 bonsai.respond: mood call sees only the line; reply call sees the windowed history and the language rule of the line (not of history) (570.593ms)
+{"t":"2026-11-15T07:04:46.929Z","level":"warn","event":"child_exit","name":"bonsai","code":null,"signal":"SIGTERM","restarts":0}
+{"t":"2026-11-15T07:04:47.441Z","level":"info","event":"respond_done","ms":3,"reply_ms":2,"mood_ms":3,"lang":"en","mood_fallback":false,"history_n":0}
+{"t":"2026-11-15T07:04:47.441Z","level":"info","event":"child_ready","name":"bonsai","ms":514}
+{"t":"2026-11-15T07:04:47.495Z","level":"info","event":"respond_done","ms":1,"reply_ms":1,"mood_ms":1,"lang":"en","mood_fallback":false,"history_n":0}
+{"t":"2026-11-15T07:04:47.497Z","level":"info","event":"respond_done","ms":2,"reply_ms":1,"mood_ms":2,"lang":"en","mood_fallback":false,"history_n":0}
+{"t":"2026-11-15T07:04:47.499Z","level":"info","event":"child_spawn","name":"bonsai","pid":40042}
+✔ TC-032 bonsai.respond reply errors: non-200 -> failed; only-thinking reply -> failed; thinking stripped; shaped to the limits (570.932667ms)
+{"t":"2026-11-15T07:04:47.500Z","level":"warn","event":"child_exit","name":"bonsai","code":null,"signal":"SIGTERM","restarts":0}
+{"t":"2026-11-15T07:04:48.011Z","level":"info","event":"respond_done","ms":2,"reply_ms":2,"mood_ms":2,"lang":"en","mood_fallback":false,"history_n":0}
+{"t":"2026-11-15T07:04:48.011Z","level":"info","event":"child_ready","name":"bonsai","ms":513}
+{"t":"2026-11-15T07:04:49.264Z","level":"info","event":"respond_done","ms":2,"reply_ms":2,"mood_ms":2,"lang":"en","mood_fallback":false,"history_n":0}
+{"t":"2026-11-15T07:04:49.266Z","level":"info","event":"child_spawn","name":"bonsai","pid":40043}
+✔ TC-033 bonsai.respond: a reply slower than the deadline rejects timeout (504) at the deadline (1767.275667ms)
+{"t":"2026-11-15T07:04:49.267Z","level":"warn","event":"child_exit","name":"bonsai","code":null,"signal":"SIGTERM","restarts":0}
+{"t":"2026-11-15T07:04:51.279Z","level":"info","event":"respond_done","ms":2,"reply_ms":2,"mood_ms":2,"lang":"en","mood_fallback":false,"history_n":0}
+{"t":"2026-11-15T07:04:51.279Z","level":"info","event":"child_ready","name":"bonsai","ms":2014}
+{"t":"2026-11-15T07:04:51.311Z","level":"warn","event":"child_exit","name":"bonsai","code":9,"signal":null,"restarts":0}
+bonsai 已退出 exited: code 9, signal null — 2 秒后重启 restarting in 2 s (1/5)
+{"t":"2026-11-15T07:04:51.313Z","level":"info","event":"child_spawn","name":"bonsai","pid":40072}
+✔ TC-034 bonsai.respond: while starting -> not_ready; child dying mid-request -> unavailable; stopped -> unavailable within 2 s (2047.008167ms)
+{"t":"2026-11-15T07:04:51.823Z","level":"info","event":"respond_done","ms":2,"reply_ms":2,"mood_ms":2,"lang":"en","mood_fallback":false,"history_n":0}
+{"t":"2026-11-15T07:04:51.823Z","level":"info","event":"child_ready","name":"bonsai","ms":510}
+{"t":"2026-11-15T07:04:51.876Z","level":"info","event":"child_spawn","name":"bonsai","pid":40101}
+✔ TC-035 bonsai warm-up sends respond("Hello", []) -- both the reply call and the mood call -- before the state is ready (562.662125ms)
+{"t":"2026-11-15T07:04:51.877Z","level":"warn","event":"child_exit","name":"bonsai","code":null,"signal":"SIGTERM","restarts":0}
+{"t":"2026-11-15T07:04:52.390Z","level":"info","event":"respond_done","ms":6,"reply_ms":4,"mood_ms":6,"lang":"en","mood_fallback":false,"history_n":0}
+{"t":"2026-11-15T07:04:52.390Z","level":"info","event":"child_ready","name":"bonsai","ms":514}
+{"t":"2026-11-15T07:04:52.441Z","level":"info","event":"child_spawn","name":"tts","pid":40103}
+✔ TC-036 bonsai llama-server arguments: loopback only, own port, -c 32768 -np 2, no web UI (563.478083ms)
+{"t":"2026-11-15T07:04:52.442Z","level":"warn","event":"child_exit","name":"bonsai","code":null,"signal":"SIGTERM","restarts":0}
+{"t":"2026-11-15T07:04:53.871Z","level":"info","event":"tts_warm","load_ms":1,"warm_ms":1}
+{"t":"2026-11-15T07:04:53.871Z","level":"info","event":"child_ready","name":"tts","ms":1431}
+{"t":"2026-11-15T07:04:53.921Z","level":"info","event":"tts_done","ms":2,"queued_ms":0,"audio_ms":100,"chars":3,"lang":"zh"}
+{"t":"2026-11-15T07:04:53.922Z","level":"info","event":"tts_done","ms":1,"queued_ms":0,"audio_ms":100,"chars":12,"lang":"en"}
+{"t":"2026-11-15T07:04:53.924Z","level":"info","event":"child_spawn","name":"tts","pid":40133}
+✔ TC-109 REQ-014 tts.speak: not_ready while starting; then a WAV (RIFF, PCM16 mono 24000 Hz); the helper gets --model-folder --tokenizer-folder --voice serena and {text, lang}; the non-JSON line is dropped (1485.184375ms)
+{"t":"2026-11-15T07:04:53.926Z","level":"warn","event":"child_exit","name":"tts","code":null,"signal":"SIGTERM","restarts":0}
+{"t":"2026-11-15T07:04:54.137Z","level":"info","event":"tts_warm","load_ms":1,"warm_ms":1}
+{"t":"2026-11-15T07:04:54.137Z","level":"info","event":"child_ready","name":"tts","ms":213}
+{"t":"2026-11-15T07:04:54.181Z","level":"warn","event":"tts_error","error":"ttskit"}
+{"t":"2026-11-15T07:04:55.185Z","level":"info","event":"tts_done","ms":1,"queued_ms":0,"audio_ms":100,"chars":8,"lang":"en"}
+{"t":"2026-11-15T07:04:55.188Z","level":"warn","event":"child_exit","name":"tts","code":7,"signal":null,"restarts":0}
+tts 已退出 exited: code 7, signal null — 2 秒后重启 restarting in 2 s (1/5)
+{"t":"2026-11-15T07:04:55.190Z","level":"info","event":"child_spawn","name":"tts","pid":40134}
+✔ TC-110 REQ-017 tts.speak failures: helper error -> failed (502); a slow answer past the deadline -> timeout (504) and is dropped; exit mid-flight and while down -> unavailable (503) (1265.435667ms)
+{"t":"2026-11-15T07:04:55.400Z","level":"info","event":"tts_warm","load_ms":1,"warm_ms":1}
+{"t":"2026-11-15T07:04:55.400Z","level":"info","event":"child_ready","name":"tts","ms":211}
+{"t":"2026-11-15T07:04:55.852Z","level":"info","event":"tts_done","ms":405,"queued_ms":0,"audio_ms":100,"chars":6,"lang":"en"}
+{"t":"2026-11-15T07:04:56.255Z","level":"info","event":"tts_done","ms":808,"queued_ms":405,"audio_ms":100,"chars":6,"lang":"en"}
+{"t":"2026-11-15T07:04:57.251Z","level":"info","event":"child_spawn","name":"tts","pid":40163}
+{"t":"2026-11-15T07:04:57.251Z","level":"warn","event":"child_exit","name":"tts","code":null,"signal":"SIGTERM","restarts":0}
+{"t":"2026-11-15T07:04:57.457Z","level":"info","event":"tts_warm","load_ms":1,"warm_ms":1}
+{"t":"2026-11-15T07:04:57.457Z","level":"info","event":"child_ready","name":"tts","ms":207}
+{"t":"2026-11-15T07:04:57.912Z","level":"info","event":"tts_done","ms":405,"queued_ms":0,"audio_ms":100,"chars":10,"lang":"en"}
+{"t":"2026-11-15T07:04:58.314Z","level":"info","event":"tts_done","ms":807,"queued_ms":405,"audio_ms":100,"chars":10,"lang":"en"}
+{"t":"2026-11-15T07:04:58.417Z","level":"info","event":"tts_done","ms":1,"queued_ms":0,"audio_ms":100,"chars":11,"lang":"en"}
+{"t":"2026-11-15T07:04:58.419Z","level":"info","event":"child_spawn","name":"tts","pid":40192}
+✔ TC-111 REQ-014/REQ-018 tts.speak queue: one request at a time in FIFO order; the deadline counts queue wait; a signal aborted while queued is never written to the helper; an in-flight abort does not break the next call (3228.849625ms)
+{"t":"2026-11-15T07:04:58.420Z","level":"warn","event":"child_exit","name":"tts","code":null,"signal":"SIGTERM","restarts":0}
+{"t":"2026-11-15T07:04:58.636Z","level":"info","event":"tts_warm","load_ms":1,"warm_ms":1}
+{"t":"2026-11-15T07:04:58.636Z","level":"info","event":"child_ready","name":"tts","ms":218}
+{"t":"2026-11-15T07:04:58.679Z","level":"warn","event":"child_exit","name":"tts","code":7,"signal":null,"restarts":0}
+tts 已退出 exited: code 7, signal null — 2 秒后重启 restarting in 2 s (1/5)
+{"t":"2026-11-15T07:04:58.681Z","level":"info","event":"child_spawn","name":"bonsai","pid":40193}
+✔ TC-112 REQ-017 tts.speak: the helper exiting rejects the in-flight call and every queued call with unavailable, and the queue is emptied (261.733541ms)
+{"t":"2026-11-15T07:04:59.193Z","level":"info","event":"respond_done","ms":3,"reply_ms":2,"mood_ms":2,"lang":"en","mood_fallback":false,"history_n":0}
+{"t":"2026-11-15T07:04:59.193Z","level":"info","event":"child_ready","name":"bonsai","ms":512}
+{"t":"2026-11-15T07:04:59.244Z","level":"info","event":"respond_done","ms":2,"reply_ms":2,"mood_ms":2,"lang":"en","mood_fallback":false,"history_n":0}
+{"t":"2026-11-15T07:04:59.246Z","level":"info","event":"respond_done","ms":1,"reply_ms":1,"mood_ms":1,"lang":"zh","mood_fallback":false,"history_n":0}
+{"t":"2026-11-15T07:04:59.247Z","level":"info","event":"respond_done","ms":1,"reply_ms":1,"mood_ms":1,"lang":"zh","mood_fallback":false,"history_n":0}
+{"t":"2026-11-15T07:04:59.250Z","level":"info","event":"child_spawn","name":"bonsai","pid":40194}
+✔ TC-113 REQ-005/REQ-014 bonsai.respond returns {reply, mood, lang, crisis}: lang is the language of the line, crisis false with no CRISIS_RULE or NAME_RULE in the prompt (568.662875ms)
+{"t":"2026-11-15T07:04:59.251Z","level":"warn","event":"child_exit","name":"bonsai","code":null,"signal":"SIGTERM","restarts":0}
+{"t":"2026-11-15T07:04:59.761Z","level":"info","event":"respond_done","ms":3,"reply_ms":3,"mood_ms":3,"lang":"en","mood_fallback":false,"history_n":0}
+{"t":"2026-11-15T07:04:59.761Z","level":"info","event":"child_ready","name":"bonsai","ms":512}
+{"t":"2026-11-15T07:04:59.814Z","level":"info","event":"respond_done","ms":2,"reply_ms":2,"mood_ms":2,"lang":"zh","mood_fallback":false,"history_n":0}
+{"t":"2026-11-15T07:04:59.818Z","level":"info","event":"respond_done","ms":2,"reply_ms":2,"mood_ms":2,"lang":"zh","mood_fallback":false,"history_n":0}
+{"t":"2026-11-15T07:04:59.820Z","level":"info","event":"respond_done","ms":2,"reply_ms":1,"mood_ms":2,"lang":"zh","mood_fallback":false,"history_n":0}
+{"t":"2026-11-15T07:04:59.822Z","level":"info","event":"respond_done","ms":2,"reply_ms":1,"mood_ms":2,"lang":"en","mood_fallback":false,"history_n":0}
+{"t":"2026-11-15T07:04:59.823Z","level":"info","event":"respond_done","ms":1,"reply_ms":1,"mood_ms":1,"lang":"en","mood_fallback":false,"history_n":0}
+{"t":"2026-11-15T07:04:59.825Z","level":"info","event":"respond_done","ms":1,"reply_ms":0,"mood_ms":1,"lang":"en","mood_fallback":false,"history_n":0}
+{"t":"2026-11-15T07:04:59.826Z","level":"info","event":"respond_done","ms":1,"reply_ms":1,"mood_ms":1,"lang":"en","mood_fallback":false,"history_n":0}
+{"t":"2026-11-15T07:04:59.828Z","level":"info","event":"respond_done","ms":1,"reply_ms":1,"mood_ms":1,"lang":"zh","mood_fallback":false,"history_n":0}
+{"t":"2026-11-15T07:04:59.830Z","level":"info","event":"respond_done","ms":2,"reply_ms":1,"mood_ms":2,"lang":"zh","mood_fallback":false,"history_n":0}
+{"t":"2026-11-15T07:04:59.831Z","level":"info","event":"respond_done","ms":1,"reply_ms":1,"mood_ms":1,"lang":"zh","mood_fallback":false,"history_n":0}
+{"t":"2026-11-15T07:04:59.832Z","level":"info","event":"respond_done","ms":1,"reply_ms":1,"mood_ms":1,"lang":"zh","mood_fallback":false,"history_n":0}
+{"t":"2026-11-15T07:04:59.834Z","level":"info","event":"respond_done","ms":2,"reply_ms":1,"mood_ms":2,"lang":"zh","mood_fallback":false,"history_n":0}
+{"t":"2026-11-15T07:04:59.835Z","level":"info","event":"respond_done","ms":1,"reply_ms":1,"mood_ms":1,"lang":"en","mood_fallback":false,"history_n":0}
+{"t":"2026-11-15T07:04:59.837Z","level":"info","event":"respond_done","ms":1,"reply_ms":0,"mood_ms":1,"lang":"en","mood_fallback":false,"history_n":0}
+{"t":"2026-11-15T07:04:59.838Z","level":"info","event":"respond_done","ms":1,"reply_ms":0,"mood_ms":1,"lang":"en","mood_fallback":false,"history_n":0}
+{"t":"2026-11-15T07:04:59.839Z","level":"info","event":"respond_done","ms":1,"reply_ms":1,"mood_ms":1,"lang":"en","mood_fallback":false,"history_n":0}
+{"t":"2026-11-15T07:04:59.842Z","level":"info","event":"child_spawn","name":"bonsai","pid":40223}
+✔ TC-114 [FX-009] REQ-023/REQ-024 bonsai.respond on a crisis line: crisis true, system message ends with CRISIS_RULE[lang] (mood call does not carry it), reply contains 988, <= 2 sentences, <= 1 question; non-crisis lines never get the rule (591.615666ms)
+{"t":"2026-11-15T07:04:59.843Z","level":"warn","event":"child_exit","name":"bonsai","code":null,"signal":"SIGTERM","restarts":0}
+{"t":"2026-11-15T07:05:00.356Z","level":"info","event":"respond_done","ms":4,"reply_ms":4,"mood_ms":4,"lang":"en","mood_fallback":false,"history_n":0}
+{"t":"2026-11-15T07:05:00.356Z","level":"info","event":"child_ready","name":"bonsai","ms":515}
+{"t":"2026-11-15T07:05:00.406Z","level":"info","event":"respond_done","ms":2,"reply_ms":null,"mood_ms":2,"lang":"en","mood_fallback":false,"history_n":0}
+{"t":"2026-11-15T07:05:00.407Z","level":"info","event":"respond_done","ms":1,"reply_ms":null,"mood_ms":1,"lang":"zh","mood_fallback":false,"history_n":0}
+{"t":"2026-11-15T07:05:00.408Z","level":"info","event":"respond_done","ms":1,"reply_ms":null,"mood_ms":1,"lang":"en","mood_fallback":false,"history_n":0}
+{"t":"2026-11-15T07:05:00.410Z","level":"info","event":"respond_done","ms":2,"reply_ms":null,"mood_ms":2,"lang":"zh","mood_fallback":false,"history_n":0}
+{"t":"2026-11-15T07:05:00.411Z","level":"info","event":"respond_done","ms":1,"reply_ms":null,"mood_ms":null,"lang":"zh","mood_fallback":true,"history_n":0}
+{"t":"2026-11-15T07:05:01.611Z","level":"info","event":"respond_done","ms":1200,"reply_ms":null,"mood_ms":1,"lang":"en","mood_fallback":false,"history_n":0}
+{"t":"2026-11-15T07:05:01.615Z","level":"info","event":"child_spawn","name":"bonsai","pid":40252}
+{"t":"2026-11-15T07:05:01.615Z","level":"warn","event":"child_exit","name":"bonsai","code":null,"signal":"SIGTERM","restarts":0}
+{"t":"2026-11-15T07:05:05.129Z","level":"info","event":"respond_done","ms":2,"reply_ms":2,"mood_ms":2,"lang":"en","mood_fallback":false,"history_n":0}
+{"t":"2026-11-15T07:05:05.129Z","level":"info","event":"child_ready","name":"bonsai","ms":3515}
+{"t":"2026-11-15T07:05:05.135Z","level":"warn","event":"child_exit","name":"bonsai","code":null,"signal":"SIGTERM","restarts":0}
+{"t":"2026-11-15T07:05:05.186Z","level":"info","event":"child_spawn","name":"bonsai","pid":40282}
+{"t":"2026-11-15T07:05:05.702Z","level":"info","event":"respond_done","ms":3,"reply_ms":3,"mood_ms":3,"lang":"en","mood_fallback":false,"history_n":0}
+{"t":"2026-11-15T07:05:05.702Z","level":"info","event":"child_ready","name":"bonsai","ms":517}
+{"t":"2026-11-15T07:05:05.750Z","level":"warn","event":"child_exit","name":"bonsai","code":9,"signal":null,"restarts":0}
+bonsai 已退出 exited: code 9, signal null — 2 秒后重启 restarting in 2 s (1/5)
+{"t":"2026-11-15T07:05:05.750Z","level":"info","event":"respond_done","ms":4,"reply_ms":null,"mood_ms":null,"lang":"en","mood_fallback":true,"history_n":0}
+{"t":"2026-11-15T07:05:05.755Z","level":"info","event":"child_spawn","name":"bonsai","pid":40311}
+✔ TC-115 [FX-009] REQ-024/REQ-025 UD-1 (a): on a crisis turn a failed, empty, slow or unavailable Bonsai gives 200-shape {crisis: true, reply: fallback + 988 line}, never an error; a normal turn still rejects (5910.878792ms)
+{"t":"2026-11-15T07:05:06.265Z","level":"info","event":"respond_done","ms":2,"reply_ms":2,"mood_ms":2,"lang":"en","mood_fallback":false,"history_n":0}
+{"t":"2026-11-15T07:05:06.265Z","level":"info","event":"child_ready","name":"bonsai","ms":511}
+{"t":"2026-11-15T07:05:06.320Z","level":"info","event":"respond_done","ms":3,"reply_ms":2,"mood_ms":3,"lang":"en","mood_fallback":false,"history_n":0}
+{"t":"2026-11-15T07:05:06.322Z","level":"info","event":"respond_done","ms":2,"reply_ms":1,"mood_ms":2,"lang":"en","mood_fallback":false,"history_n":0}
+{"t":"2026-11-15T07:05:06.323Z","level":"info","event":"respond_done","ms":1,"reply_ms":1,"mood_ms":1,"lang":"en","mood_fallback":false,"history_n":0}
+{"t":"2026-11-15T07:05:06.325Z","level":"info","event":"respond_done","ms":1,"reply_ms":1,"mood_ms":1,"lang":"en","mood_fallback":false,"history_n":0}
+{"t":"2026-11-15T07:05:06.327Z","level":"info","event":"respond_done","ms":2,"reply_ms":1,"mood_ms":2,"lang":"en","mood_fallback":false,"history_n":0}
+{"t":"2026-11-15T07:05:06.328Z","level":"info","event":"respond_done","ms":1,"reply_ms":1,"mood_ms":1,"lang":"en","mood_fallback":false,"history_n":0}
+{"t":"2026-11-15T07:05:06.329Z","level":"info","event":"respond_done","ms":1,"reply_ms":1,"mood_ms":1,"lang":"en","mood_fallback":false,"history_n":0}
+{"t":"2026-11-15T07:05:06.330Z","level":"info","event":"respond_done","ms":1,"reply_ms":1,"mood_ms":1,"lang":"zh","mood_fallback":false,"history_n":0}
+{"t":"2026-11-15T07:05:06.332Z","level":"info","event":"respond_done","ms":1,"reply_ms":0,"mood_ms":1,"lang":"zh","mood_fallback":false,"history_n":0}
+{"t":"2026-11-15T07:05:06.334Z","level":"info","event":"child_spawn","name":"bonsai","pid":40312}
+✔ TC-116 [FX-012 FX-011] REQ-030/REQ-031 name -> Bonsai: system message = replySystem(cleaned name) + LANG_RULE; null -> the unchanged default text with no NAME_RULE; the mood call never sees the name (581.404666ms)
+{"t":"2026-11-15T07:05:06.335Z","level":"warn","event":"child_exit","name":"bonsai","code":null,"signal":"SIGTERM","restarts":0}
+{"t":"2026-11-15T07:05:06.845Z","level":"info","event":"respond_done","ms":3,"reply_ms":3,"mood_ms":3,"lang":"en","mood_fallback":false,"history_n":0}
+{"t":"2026-11-15T07:05:06.845Z","level":"info","event":"child_ready","name":"bonsai","ms":512}
+{"t":"2026-11-15T07:05:06.896Z","level":"info","event":"respond_done","ms":2,"reply_ms":2,"mood_ms":2,"lang":"en","mood_fallback":false,"history_n":0}
+{"t":"2026-11-15T07:05:06.898Z","level":"info","event":"child_spawn","name":"tts","pid":40313}
+✔ TC-117 REQ-024/REQ-030 a crisis turn with a custom name carries both the NAME_RULE and the CRISIS_RULE, in that order, after the language rule (564.796542ms)
+{"t":"2026-11-15T07:05:06.900Z","level":"warn","event":"child_exit","name":"bonsai","code":null,"signal":"SIGTERM","restarts":0}
+{"t":"2026-11-15T07:05:07.128Z","level":"info","event":"tts_warm","load_ms":1,"warm_ms":1}
+{"t":"2026-11-15T07:05:07.128Z","level":"info","event":"child_ready","name":"tts","ms":231}
+{"t":"2026-11-15T07:05:07.655Z","level":"info","event":"tts_done","ms":2,"queued_ms":0,"audio_ms":100,"chars":8,"lang":"en"}
+✔ TC-137 REQ-017 tts.speak: a helper that never answers one request (deadline passed, timeout returned) does not wedge the next speak (DES-017 step 5: "after that, write the next") (758.451042ms)
+{"t":"2026-11-15T07:05:07.657Z","level":"warn","event":"child_exit","name":"tts","code":null,"signal":"SIGTERM","restarts":0}
+✔ TC-040 GET /api/health: 200 {ready: true, stt: "ready", bonsai: "ready", tts} after warm-up; tts is starting|ready|down and never decides ready (REQ-010, A18) (10.028625ms)
+✔ TC-041 [FX-005] POST /api/transcribe: WER <= 0.15 against the reference text in all runs (5961.835208ms)
+✔ TC-042 [FX-006] POST /api/transcribe: WER <= 0.15 against the reference text in all runs (5376.576125ms)
+✔ TC-043 [FX-007] POST /api/transcribe: CER <= 0.15 against the reference text in all runs (5877.791583ms)
+✔ TC-044 [FX-005 FX-006 FX-007] transcript keeps the spoken language in every run (en/en/zh; 3/3 each, 6/6 for FX-006+FX-007); zh is Simplified (0.890459ms)
+✔ TC-045 [FX-008] 2 s of silence: 200 {"text": ""} exactly, on every call (5.353583ms)
+✔ TC-046 [FX-001] POST /api/respond: status, mood and reply property checks equal expected.json in all 3 runs (12285.37625ms)
+✔ TC-047 [FX-002] POST /api/respond: status, mood and reply property checks equal expected.json in all 3 runs (12735.517417ms)
+✔ TC-048 [FX-003] POST /api/respond: status, mood and reply property checks equal expected.json in all 3 runs (14226.507542ms)
+round 1: 9/10 misses=FX-004-05:pleasant-low!=neutral
+round 2: 9/10 misses=FX-004-05:pleasant-low!=neutral
+round 3: 9/10 misses=FX-004-05:pleasant-low!=neutral
+✔ TC-049 [FX-004] mood: in each of 3 rounds at least 8 of 10 lines get the labelled mood; every answer is 200 (106093.899583ms)
+✔ TC-050 [FX-004] reply language equals the language of the line in 30 of 30 replies (0.178ms)
+✔ TC-051 [FX-004] REQ-005/A3 mixed-language lines: the reply follows the majority language of the line (3 runs each) (19859.00575ms)
+REQ-008 times (ms): 11246, 10985, 11617, 11933, 12389
+✖ TC-052 [FX-006] REQ-008: with 20 turns of history, the same spoken English line takes <= 10 s from audio to reply and mood, 5 times (58176.827167ms)
+✔ TC-053 POST /api/respond rejects malformed requests with 400 {"error":"bad_request"} (8.890792ms)
+✖ TC-054 respond boundaries: line 1500 chars ok, 1501 -> 400; padded line trimmed; 45-entry history ok (last 40 used); history text 1500 ok, 1501 -> 400 (40779.706125ms)
+✔ TC-055 bodies over the limits -> 413 {"error":"too_large"} (respond > 262144 B, transcribe > 2,000,000 B) (9.639167ms)
+✔ TC-056 POST /api/transcribe rejects non-seam audio with 400 bad_request: original 24 kHz Float32 hello.wav, stereo, 44.1 kHz, webm bytes, empty body, wrong content type (15.053ms)
+✔ TC-057 [FX-006] REQ-001: a 60 s recording (1,920,044 bytes) is accepted and transcribed within the 12 s deadline (3732.052833ms)
+✔ TC-058 routes: unknown /api/* -> 404 bad_request; GET / serves the page; POST / -> 405; path traversal -> 404; /api/health is always 200 (16.845167ms)
+✔ TC-059 REQ-009: the server process and its children touch only loopback addresses (lsof -i -n -P) (128.370042ms)
+✔ TC-088 [FND-003] llama-server: a foreign Origin gets no matching Access-Control-Allow-Origin, and a keyless POST /v1/chat/completions gets 401 (2.890583ms)
+✔ TC-089 [FND-002] 2 s of generated white noise (RMS ~0.03) and of a 120 Hz hum (RMS ~0.03): /api/transcribe returns {"text": ""} on 3 of 3 calls each (11736.909334ms)
+✔ TC-120 REQ-014/REQ-017 GET /api/health carries tts: starting|ready|down, and ready still means stt and bonsai only (A18) (0.68925ms)
+✔ TC-121 [FX-009] REQ-023/REQ-025 POST /api/respond: status 200 and crisis true for all 9 lines (incl. FX-009-08 negation, FX-009-09) in 10 of 10 runs (363355.844958ms)
+✔ TC-122 [FX-009] REQ-024 runs 1-3 of every line: the whole expected object {status, crisis, reply_checks} is exact (988, line language, <= 2 sentences, <= 1 question, length, no thinking text) (2.450916ms)
+✔ TC-123 [FX-009] REQ-014/REQ-025 respond fields: lang = language of the line, mood one of 5 ids, speech = non-empty list of non-empty strings for crisis lines; a normal line has crisis false, lang and speech too (5245.017083ms)
+✔ TC-124 [FX-010] REQ-023/REQ-025 POST /api/respond: status 200 and crisis false for all 6 near-miss lines in 10 of 10 runs (188777.379ms)
+✔ TC-125 [FX-011] REQ-030 the reply uses the name sent (团子, Mochi) and not the default names; with no name it uses a default name; 3 of 3 runs each (25816.929375ms)
+✔ TC-126 [FX-012] REQ-031 POST /api/respond with each FX-012 name answers 200 (none refused); a 5000-char name and name null are 200; a non-string name is 400 bad_request (34446.673625ms)
+✔ TC-127 REQ-014/REQ-017 POST /api/speak rejects bad input: broken JSON, lang other than zh|en, empty/blank/201-char text, non-string text -> 400 bad_request; body over 4096 B -> 413 too_large (8545.25575ms)
+✔ TC-128 REQ-014/REQ-017 POST /api/speak for a valid part: 200 audio/wav, Content-Length, Cache-Control no-store, PCM16 mono 24000 Hz, plausible length, zh and en; the audio is not stored by the server (4379.656833ms)
+✔ TC-129 [FX-013] REQ-014 the 2 FX-013 replies, split by speechParts, spoken by /api/speak and read back by /api/transcribe: audible, language exact, CER/WER <= 0.2, 3 runs each (6 of 6) (56200.592166ms)
+✔ TC-130 [FX-013] REQ-015 backend half: the first part of each FX-013 reply comes back from /api/speak within 3 s on a warm server, 5 of 5 runs each (the page adds playback start; fe-tester owns that half) (20367.946708ms)
+✔ TC-131 REQ-017 chat does not wait for read-aloud: while a long /api/speak is in flight, /api/respond (FX-001) answers 200 within the 10 s of REQ-008; and tts failure never reaches /api/respond (its body has no error field) (8303.513667ms)
+✔ TC-132 REQ-018 a client that hangs up in the middle of /api/speak does not hurt the server: health stays ok and the next /api/speak is 200 (6048.279083ms)
+✔ TC-001 [FX-005 FX-006 FX-007] pcmFromWav returns exactly the data chunk of the seam-format fixtures (extra chunks allowed) (3.126083ms)
+✔ TC-002 [FX-008] pcmFromWav accepts the 2 s silence WAV: 64000 bytes of PCM (1.008625ms)
+✔ TC-003 pcmFromWav rejects every non-seam format with ApiError bad_request (400) (1.390541ms)
+✔ TC-004 pcmFromWav stays inside the buffer and returns an even byte count; accepts a LIST chunk before data (0.539542ms)
+✔ TC-005 CODES and ApiError carry the six codes with their HTTP statuses (03 §3) (1.8275ms)
+{"t":"2026-11-15T07:04:17.758Z","level":"warn","event":"api_error","route":"/x","code":"not_ready","stage":"bonsai","err_name":"ApiError"}
+✔ TC-006 sendError passes an ApiError through; any other exception becomes 502 failed with no message in the body or log (36.018208ms)
+{"t":"2026-11-15T07:04:17.833Z","level":"warn","event":"api_error","route":"/x","code":"timeout","stage":"request","err_name":"ApiError"}
+✔ TC-007 sendError after headers were sent only destroys the response (writes no error body) (62.417375ms)
+✔ TC-008 languageOf: zhWords = ceil(han/2) vs English words; zh on ties; no letters or Han -> zh (1.00775ms)
+✔ TC-037 languageOf: DES-009 worked example "I love 火锅" -> en (zhWords 1 : words 2) (0.142375ms)
+✔ TC-009 shapeReply strips thinking, closed or unclosed, and wrapping quotes and whitespace (3.674167ms)
+✔ TC-010 shapeReply keeps at most 2 sentences and at most 1 question; emoji stay with their sentence (0.513167ms)
+✔ TC-011 shapeReply length caps: zh <= 120 code points, en <= 40 words; first sentence only, then cut with an ellipsis (0.29475ms)
+✔ TC-012 toMessages = system(REPLY_SYSTEM + LANG_RULE last) + history (companion -> assistant) + user line (0.419875ms)
+✔ TC-013 windowOf: last 40 entries, then drop oldest until total weight (length + 1.5 per Han) <= 2000 (0.545959ms)
+✔ TC-014 prompts: the 5 mood ids, mood schema enum, sampling parameters, language rules (0.135375ms)
+✔ TC-015 CONFIG: loopback host, limits, deadlines, restarts, defaults (0.16875ms)
+✔ TC-016 bonsaiFiles and missingFiles list every absent required path and nothing when all exist (2.549708ms)
+✔ TC-017 sources: no personal absolute path, no non-loopback bind, no network download; package.json scripts per DES-012 (1.402125ms)
+✔ TC-018 serveStatic: / -> index.html, content types, no-store, HEAD without body, 404 for missing, 405 for other methods (12.727542ms)
+✔ TC-019 serveStatic never leaves the web root: /../x, /%2e%2e/x and encoded variants -> 404 (6.543167ms)
+✔ TC-020 [FX-008] isNothingHeard is true only for the empty string (1.060709ms)
+✔ TC-038 missingHints: one line per kind of missing file (stt bin / Bonsai / WhisperKit), in that order; [] -> [] (0.607167ms)
+{"t":"2026-11-15T07:04:17.871Z","level":"warn","event":"api_error","route":"request","code":"bad_request","stage":"request","err_name":"ApiError"}
+{"t":"2026-11-15T07:04:17.871Z","level":"warn","event":"api_error","route":"request","code":"bad_request","stage":"request","err_name":"ApiError"}
+✔ TC-087 [FND-001] route on a throwaway server: request-targets "//" and "http://[" answer 400 {"error":"bad_request"} and the server stays up (5.705667ms)
+✔ TC-090 [FX-009] REQ-023 isCrisis is true for all 9 FX-009 lines (incl. FX-009-08 negation and FX-009-09 活着没什么意思), 10 of 10 runs each (1.63625ms)
+✔ TC-091 [FX-010] REQ-023 isCrisis is false for all 6 FX-010 near-misses and the design's extra idioms, 10 of 10 runs each (0.885375ms)
+✔ TC-092 REQ-023 isCrisis variants fire: case, full-width, spaces, curly apostrophe, Traditional typed text, the 活着没什么意思 family, one phrase per list entry (0.620792ms)
+✔ TC-093 REQ-023 isCrisis exceptions and boundaries: 想死你/想死我了/跳楼价 are removed before matching; en phrases need word boundaries; only this line counts (0.158917ms)
+✔ TC-094 REQ-023 normalizeForCrisis: NFKC, Traditional folded, lowercase, curly quotes, whitespace runs, trim (0.110125ms)
+✔ TC-095 [FX-012] REQ-031 cleanName returns the FX-012 expected value for each of the 7 inputs (1.661042ms)
+✔ TC-096 REQ-031 cleanName: any length is cleaned never refused; whitespace becomes one space; defaults -> null; non-strings -> null; NFC; 12 code points (0.710792ms)
+✔ TC-097 REQ-030 replySystem(null) is the unchanged REPLY_SYSTEM; a name replaces 小伙伴 (Little Buddy) and appends NAME_RULE (0.194ms)
+✔ TC-098 REQ-024 prompts CRISIS_RULE / CRISIS_LINE / CRISIS_FALLBACK exist for zh and en; the fixed help line has 988 and no question (0.150042ms)
+✔ TC-099 REQ-024 crisisReply: first sentence + fixed 988 line; keeps a first sentence that already has 988; empty -> fallback + line; always 988, <= 2 sentences, <= 1 question (1.373709ms)
+✔ TC-100 REQ-024/REQ-004 crisisReply cuts an over-long first sentence to the room left (zh 120 code points, en 40 words), ends it in … and keeps 988 (0.356458ms)
+✔ TC-101 [FX-013] REQ-014 speechParts: the FX-013 replies split exactly as the design says (emoji dropped) (2.002959ms)
+✔ TC-102 REQ-014/REQ-015 speechParts: caps, digit spelling (en), clause and hard splits, empty results, no text lost (2.063334ms)
+✔ TC-103 REQ-024/REQ-014 speechParts of the crisis help lines: each language yields parts with the number readable (en spells 988) (0.200208ms)
+✔ TC-104 [FX-012] REQ-031/REQ-030 parseTurn: name absent or null -> null; any string is cleaned (FX-012 expected values); a non-string -> bad_request; line/history rules unchanged (2.267292ms)
+✔ TC-105 REQ-014 parseSpeak: text trimmed 1..200 chars, lang zh|en, otherwise bad_request (0.418333ms)
+{"t":"2026-11-15T07:04:17.897Z","level":"warn","event":"api_error","route":"/api/speak","code":"bad_request","stage":"request","err_name":"ApiError"}
+{"t":"2026-11-15T07:04:17.899Z","level":"warn","event":"api_error","route":"/api/speak","code":"bad_request","stage":"request","err_name":"ApiError"}
+{"t":"2026-11-15T07:04:17.900Z","level":"warn","event":"api_error","route":"/api/speak","code":"bad_request","stage":"request","err_name":"ApiError"}
+{"t":"2026-11-15T07:04:17.901Z","level":"warn","event":"api_error","route":"/api/speak","code":"bad_request","stage":"request","err_name":"ApiError"}
+{"t":"2026-11-15T07:04:17.902Z","level":"warn","event":"api_error","route":"/api/speak","code":"bad_request","stage":"request","err_name":"ApiError"}
+{"t":"2026-11-15T07:04:17.903Z","level":"warn","event":"api_error","route":"/api/speak","code":"too_large","stage":"request","err_name":"ApiError"}
+{"t":"2026-11-15T07:04:17.905Z","level":"warn","event":"api_error","route":"/api/respond","code":"bad_request","stage":"request","err_name":"ApiError"}
+✔ TC-106 REQ-014/REQ-017 route (throwaway server): /api/speak and /api/respond reject bad input with 400 and an over-limit body with 413 before any child is used (17.837167ms)
+✔ TC-107 REQ-014/REQ-017 config: tts paths and voice serena, speak limits and deadlines, VOICES list, missingTtsFiles names the tokenizer when its dir is wrong, TTS_HINT is bilingual (0.558708ms)
+✔ TC-108 REQ-017 config: TTS_VOICE not in VOICES throws when config.js is imported; a listed voice is accepted (child process, own env copy) (101.065166ms)
+✔ press only holds: no listening, no seconds before the stream opens (2.999833ms)
+✔ slow open: hint at 0.2 s, listening and seconds at open, hint leaves (1.205542ms)
+✔ fast open: the 0.2 s hint never shows (0.512667ms)
+✔ release before open: tooShort at once, a late stream is stopped and never records (0.476291ms)
+✔ release off the button or Esc before open: nothing shown, hint cleared (0.432ms)
+✔ 0.5 s counts from open: 0.3 s after open is too short, however long the open took (0.341625ms)
+✔ release 0.6 s after open: wav() before close(), blob handed to onUtterance (0.484583ms)
+✔ 60 s counts from open and sends itself (5.17525ms)
+✔ unknown permission: hint at 0.2 s first, then 600 ms decides prompt; nothing records (1.345292ms)
+✔ unknown permission, stream under 600 ms: records (0.547333ms)
+✔ open fails: the error hint shows and nothing is listening (0.279ms)
+✔ Q-001 Q-015 every plain word on the page equals the confirmed Words table, zh and en (2.206417ms)
+✔ Q-003 the five mood captions match FRAME-009 (zh) and the Words table (en) (0.196084ms)
+✔ Q-005 only app.js imports companion-client.js, so a stub swap touches one file (2.318208ms)
+✔ Q-013 a 2 s hold at 48 kHz becomes a 64,044 B audio/wav blob; 60 s is capped at 1,920,044 B (38.758833ms)
+✔ Q-017 the shipped font covers U+00C0-U+00FF and the punctuation replies use (193.181041ms)
+✔ Q-012 warming table: warming -> voiceNotReady -> awake (4 s) -> empty; down 30 s -> stillDown (4.7165ms)
+✔ Q-019 FND-003 the listening announcement and mic-opening words equal the Words table (0.11975ms)
+✔ Q-008 the 20-turn capture alternates you / reply in order with one typing dots node last (0.701833ms)
+✔ Q-018 each voice problem maps to its hint key (0.756125ms)
+✔ Q-018 an unknown or missing code is a failed transcription (0.273875ms)
+✔ Q-018 every mapped key has a non-empty zh string (0.17125ms)
+✔ Q-014 words replace the transcribing turn, then follow the send path with the same turn (2.26975ms)
+✔ Q-014 empty transcript: the turn leaves, no send, hook gets "empty" (0.372584ms)
+✔ Q-014 not_ready and unavailable reach watch.failed; the turn leaves; no send (1.324375ms)
+✔ Q-014 no audio (null) adds no turn and sends nothing (0.241917ms)
+✔ Q-014 the real client posts the Blob as audio/wav to /api/transcribe and returns the text (0.9665ms)
+✔ header: RIFF/WAVE, PCM, mono, 16 kHz, 16 bit, sizes consistent (7.923083ms)
+✔ samples are little-endian int16, clipped (0.636666ms)
+✔ 60 s is 1,920,044 B and longer input never exceeds it (112.864208ms)
+✔ 48000 Hz downsamples to 16 kHz with the length and the pitch kept (15.417875ms)
+✔ 44100 Hz downsamples to 16 kHz with the length and the pitch kept (14.296708ms)
+✔ 16 kHz passes through; silence stays silence (4.143875ms)
+✔ chunks join, downsample and cap at 60 s of input; Blob is audio/wav (422.38ms)
+ℹ tests 187
+ℹ suites 0
+ℹ pass 185
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1018716.876041
+
+✖ failing tests:
+
+test at tests/server-live.test.js:16:43
+✖ TC-052 [FX-006] REQ-008: with 20 turns of history, the same spoken English line takes <= 10 s from audio to reply and mood, 5 times (58176.827167ms)
+  AssertionError [ERR_ASSERTION]: times ms: 11246, 10985, 11617, 11933, 12389
+      at TestContext.<anonymous> (file:///Users/apple/Desktop/Hackathon/Local_AI_Hackathon/tests/server-live.test.js:164:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/server-live.test.js:16:43
+✖ TC-054 respond boundaries: line 1500 chars ok, 1501 -> 400; padded line trimmed; 45-entry history ok (last 40 used); history text 1500 ok, 1501 -> 400 (40779.706125ms)
+  AssertionError [ERR_ASSERTION]: {"error":"timeout"}
+  
+  504 !== 200
+  
+      at TestContext.<anonymous> (file:///Users/apple/Desktop/Hackathon/Local_AI_Hackathon/tests/server-live.test.js:201:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 504,
+    expected: 200,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+exit 1

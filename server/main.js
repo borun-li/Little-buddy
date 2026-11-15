@@ -1,19 +1,22 @@
-// Entry: file check, port checks, HTTP routes, request checks, start and stop (03 DES-001).
+// Entry: file check, port checks, HTTP routes, request checks, start and stop (03 DES-001, DES-022).
 // node server/main.js [--warm-only]
 import { createServer } from 'node:http';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createBonsai } from './bonsai.js';
-import { CONFIG, missingFiles, missingHints } from './config.js';
+import { CONFIG, missingFiles, missingHints, missingTtsFiles, TTS_HINT } from './config.js';
 import { ApiError, sendError } from './errors.js';
 import { log } from './log.js';
+import { cleanName } from './name.js';
 import { serveStatic } from './static.js';
 import { createStt } from './stt.js';
 import { isReady } from './supervisor.js';
+import { createTts, speechParts } from './tts.js';
 import { pcmFromWav } from './wav.js';
 
 const WEB = join(CONFIG.repo, 'web');
-const children = { stt: createStt(), bonsai: createBonsai() };
+const children = { stt: createStt(), bonsai: createBonsai(), tts: createTts() };
+let ttsStarted = false;
 
 // Human-readable lines go to stderr; stdout carries only the JSON log (03 §6).
 const say = (text) => process.stderr.write(`${text}\n`);
@@ -33,13 +36,16 @@ export async function readBody(req, limit) {
 
 const isText = (v, max) => typeof v === 'string' && v.length >= 1 && v.length <= max;
 
-export function parseTurn(body, limits = CONFIG.limits) {
-  let data;
+function parseJson(body) {
   try {
-    data = JSON.parse(body.toString('utf8'));
+    return JSON.parse(body.toString('utf8'));
   } catch {
     throw new ApiError('bad_request'); // malformed JSON is the client's defect, reported as its code
   }
+}
+
+export function parseTurn(body, limits = CONFIG.limits) {
+  const data = parseJson(body);
   if (data === null || typeof data !== 'object' || typeof data.line !== 'string' || !Array.isArray(data.history)) {
     throw new ApiError('bad_request');
   }
@@ -51,7 +57,19 @@ export function parseTurn(body, limits = CONFIG.limits) {
     }
   }
   const history = data.history.slice(-limits.historyEntries).map(({ role, text }) => ({ role, text }));
-  return { line, history };
+  // name: absent or null = default name; any other non-string is refused; any string is cleaned, never refused (03 DES-021 step 1).
+  if (data.name !== undefined && data.name !== null && typeof data.name !== 'string') throw new ApiError('bad_request');
+  return { line, history, name: cleanName(data.name) };
+}
+
+export function parseSpeak(body, limits = CONFIG.limits) {
+  const data = parseJson(body);
+  if (data === null || typeof data !== 'object' || typeof data.text !== 'string' || (data.lang !== 'zh' && data.lang !== 'en')) {
+    throw new ApiError('bad_request');
+  }
+  const text = data.text.trim();
+  if (!isText(text, limits.speakChars)) throw new ApiError('bad_request');
+  return { text, lang: data.lang };
 }
 
 const mediaType = (req) => (req.headers['content-type'] ?? '').split(';')[0].trim().toLowerCase();
@@ -65,15 +83,28 @@ function sendJson(res, status, value) {
 function health() {
   const stt = children.stt.state;
   const bonsai = children.bonsai.state;
-  return { ready: isReady(stt) && isReady(bonsai), stt, bonsai };
+  return { ready: isReady(stt) && isReady(bonsai), stt, bonsai, tts: children.tts.state }; // ready does not wait for tts (A18)
 }
 
 async function handleApi(req, res, path) {
   if (req.method === 'GET' && path === '/api/health') return sendJson(res, 200, health());
   if (req.method === 'POST' && path === '/api/respond') {
     if (mediaType(req) !== 'application/json') throw new ApiError('bad_request');
-    const { line, history } = parseTurn(await readBody(req, CONFIG.limits.jsonBytes));
-    return sendJson(res, 200, await children.bonsai.respond(line, history));
+    const { line, history, name } = parseTurn(await readBody(req, CONFIG.limits.jsonBytes));
+    const turn = await children.bonsai.respond(line, history, name);
+    return sendJson(res, 200, { ...turn, speech: speechParts(turn.reply, turn.lang) });
+  }
+  if (req.method === 'POST' && path === '/api/speak') {
+    if (mediaType(req) !== 'application/json') throw new ApiError('bad_request');
+    const { text, lang } = parseSpeak(await readBody(req, CONFIG.limits.speakJsonBytes));
+    // The page aborts a prefetched part it no longer needs: a queued part is then never generated (03 DES-017).
+    const ac = new AbortController();
+    res.on('close', () => {
+      if (!res.writableFinished) ac.abort();
+    });
+    const wav = await children.tts.speak(text, lang, ac.signal);
+    res.writeHead(200, { 'Content-Type': 'audio/wav', 'Content-Length': wav.length, 'Cache-Control': 'no-store' });
+    return res.end(wav);
   }
   if (req.method === 'POST' && path === '/api/transcribe') {
     if (mediaType(req) !== 'audio/wav') throw new ApiError('bad_request');
@@ -131,6 +162,7 @@ function listen(server) {
 function stopChildren() {
   children.stt.stop();
   children.bonsai.stop();
+  children.tts.stop();
 }
 
 export async function main(argv) {
@@ -172,16 +204,28 @@ export async function main(argv) {
 
   children.stt.start();
   children.bonsai.start();
+  // Read-aloud files missing: chat still starts, tts stays down (REQ-017, 03 DES-022 step 1).
+  const ttsMissing = missingTtsFiles();
+  for (const path of ttsMissing) {
+    log('warn', 'tts_missing', { path });
+    say(`缺少文件 Missing: ${path}`);
+  }
+  if (ttsMissing.length) say(TTS_HINT);
+  else {
+    children.tts.start();
+    ttsStarted = true;
+  }
   const url = `http://${CONFIG.host}:${CONFIG.port}`;
-  say(`启动中 Starting (stt pid ${children.stt.pid}, bonsai pid ${children.bonsai.pid})…`);
+  say(`启动中 Starting (stt pid ${children.stt.pid}, bonsai pid ${children.bonsai.pid}, tts pid ${children.tts.pid})…`);
   const poll = setInterval(() => {
     const h = health();
-    if (warmOnly && (h.stt === 'down' || h.bonsai === 'down')) {
+    // --warm-only waits for every child it started (tts only when its files are there); any of them down fails setup.
+    if (warmOnly && (h.stt === 'down' || h.bonsai === 'down' || (ttsStarted && h.tts === 'down'))) {
       clearInterval(poll);
-      say(`预热失败 Warm-up failed: stt ${h.stt}, bonsai ${h.bonsai}`);
+      say(`预热失败 Warm-up failed: stt ${h.stt}, bonsai ${h.bonsai}, tts ${ttsStarted ? h.tts : 'not started'}`);
       process.exit(1);
     }
-    if (!h.ready) return;
+    if (!h.ready || (warmOnly && ttsStarted && h.tts !== 'ready')) return;
     clearInterval(poll);
     log('info', 'ready', { url: warmOnly ? null : url, boot_ms: Date.now() - booted });
     if (warmOnly) {

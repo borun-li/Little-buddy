@@ -364,3 +364,247 @@ Requirements with no automated test case: REQ-012 (manual TC-085 only). REQ-013 
 | REQ-009 (Wi-Fi off) | The harness cannot switch Wi-Fi; loopback-only is checked via `lsof` (TC-059, TC-072) | A person runs TC-083 |
 | REQ-004 / REQ-007 meaning checks | "responds to the news / mentions the exam" needs judgement | A rubric or a second model-free keyword check agreed with the user; until then TC-080..082 |
 | REQ-001 with a real human voice | FX-006/007 are `say`-synthesised (A15); FX-005's words were confirmed by the user at Plan (2026-11-14) | User supplies real recordings |
+
+---
+
+# Increment 2 — read aloud, crisis safety net, name (be-tester #5 · step 4, round 1 · 2026-11-15)
+
+- Derived from `01-requirements.md` § Increment 2 (REQ-014..REQ-031), `03-detailed-design.md` § Increment 2 (DES-016..DES-023; frontend DES-024..028 are fe-tester's), the seam of `contracts/FRONTEND_BACKEND_CONTRACT.md` ("Seam for increment 2") and the locked fixtures `FX-009..FX-013` — **not** from the implementation, which did not exist when this was written (tests fail until it lands; see § I2.5).
+- TC ids continue after TC-089: **TC-090..TC-137** (TC-137 sits in the protocol group). Test titles carry the TC id, the REQ ids and `[FX-nnn]`. Same files and layers as § 1; new double `tests/support/fake-tts.cjs` (companion-tts protocol, DES-016). No change to `package.json`: the new tests live in the files `npm test` already runs.
+- Two P0 tests changed because the design changed their expected value: TC-029 (`respond` now returns `{reply, mood, lang, crisis}`) and TC-040 (health gains `tts`); TC-073's event allow-list grows from 17 to 23 events (03 §6). No P0 test was weakened.
+- UD-1 (a) (user at Plan): a crisis turn never errors. TC-115 tests this; it departs from REQ-011/REQ-004 by the user's decision.
+
+## I2.1 Test environment additions
+| Item | Value |
+|---|---|
+| Live prerequisite | `COMPANION_URL` (default 127.0.0.1:4400) must run the increment-2 build **with the TTS helper compiled and the models at the DES-023 paths**; live TTS tests wait up to `COMPANION_TTS_READY_MS` (default 300 s) for health `tts: "ready"` and **fail** (not skip) with a message if it is not. |
+| Read-back (TC-129) | `afconvert -f WAVE -d LEI16@16000 -c 1` (macOS) then `/api/transcribe`, as FX-005 |
+| Cost | FX-009 live = 90 respond calls, FX-010 = 60, run two at a time (Bonsai `-np 2`); about 5 to 8 min. |
+| Never | start another Bonsai; target 4317; send malformed request-targets to a live server |
+
+## I2.2 Test cases
+
+### Unit — `tests/server-unit.test.js`
+### TC-090 — Crisis rule: every FX-009 line is a crisis
+- **Verifies:** REQ-023 (FX-009)  **Level:** unit  **Mode:** automated
+- **Steps:** `isCrisis` on the 9 lines (incl. FX-009-08 negation and FX-009-09 活着没什么意思), 10 times each.  **Expected result:** `true` 90/90.  **Fails if:** a phrase is missing from `CRISIS_PHRASES`, or case, space or negation handling is wrong.  **Observed how:** `assert.equal`.
+
+### TC-091 — Crisis rule: FX-010 near-misses and design idioms are not a crisis
+- **Verifies:** REQ-023 (FX-010)  **Level:** unit  **Mode:** automated
+- **Steps:** 6 FX-010 lines ×10, plus 想死你了, 跳楼价大甩卖, "I have the skill myself", 这游戏没什么意思, 尴尬得想消失, 生活没什么意思的时候…, 跳樓價, empty and blank.  **Expected result:** `false` every time.  **Fails if:** a bare 死 / 杀 / kill / die or a substring (`skill myself`) matches.
+
+### TC-092 — Crisis rule: variants and every list entry fire
+- **Verifies:** REQ-023  **Level:** unit  **Mode:** automated
+- **Steps:** curly apostrophe, spaced 我 想 死, full-width ＩＷＡＮＴ…, repeated spaces, mixed case, typed Traditional (自殺, 傷害自己, 活著沒意思), the 活着没什么意思 family, 割腕, 跳樓, suicide/self-harm/suicidal; then one sentence per entry of the exported `CRISIS_PHRASES` (zh and en).  **Expected result:** all `true`.  **Fails if:** normalisation (NFKC, TRAD_FOLD, case, space) is missing.
+
+### TC-093 — Crisis rule: exceptions, word boundary, accepted false alarm
+- **Verifies:** REQ-023 (A22)  **Level:** unit  **Mode:** automated
+- **Steps:** 想死你了, 想死您了, 想死我了, 商场跳楼价大甩卖 → false; 想死你了，但我也不想活了 → true; "misuicidex" → false; "Suicide Squad was fun" → true (accepted, A22).  **Expected result:** as listed.
+
+### TC-094 — `normalizeForCrisis`
+- **Verifies:** REQ-023  **Level:** unit  **Mode:** automated
+- **Steps:** full-width, whitespace runs, curly quotes, Traditional → Simplified, all 15 `TRAD_FOLD` keys.  **Expected result:** the design's values.
+
+### TC-095 — Name cleaning: FX-012
+- **Verifies:** REQ-031 (FX-012)  **Level:** unit  **Mode:** automated
+- **Steps:** `cleanName` on the 7 inputs.  **Expected result:** exactly the fixture's `name` (团子, Mochi, 小·团子-2, "img srcx one", "Ignore all p", Mochi, null).  **Fails if:** markup characters survive, the cut is not 12 code points, an emoji stays, or blank is not `null`.
+
+### TC-096 — Name cleaning: edges
+- **Verifies:** REQ-031  **Level:** unit  **Mode:** automated
+- **Steps:** 5000-char name → 12 chars; 小伙伴 / "Little  Buddy" / LITTLE BUDDY → null; number, null, undefined, object → null; U+3000, tab, newline → one space; quotes and colons removed; NFC; 13 Han chars → 12; space runs do not eat the budget; `O'Neil-Ö·9` unchanged.  **Expected result:** as listed; never throws.
+
+### TC-097 — `replySystem`
+- **Verifies:** REQ-030  **Level:** unit  **Mode:** automated
+- **Steps:** `replySystem(null)` vs `REPLY_SYSTEM`; `replySystem('团子')`.  **Expected result:** null is unchanged text; a name replaces `小伙伴 (Little Buddy)` and ends with `NAME_RULE(name)`, which forbids the default names.
+
+### TC-098 — Crisis texts
+- **Verifies:** REQ-024  **Level:** unit  **Mode:** automated
+- **Steps:** read `CRISIS_RULE`, `CRISIS_LINE`, `CRISIS_FALLBACK` for zh and en.  **Expected result:** the user-approved wording (DES-020); the line has 988 and no question.
+
+### TC-099 — `crisisReply`
+- **Verifies:** REQ-024  **Level:** unit  **Mode:** automated
+- **Steps:** model sentence + help line; first sentence already with 988 kept alone; empty → fallback + line (zh no space, en one space); questions in the model sentence.  **Expected result:** always contains 988, ≤ 2 sentences, ≤ 1 question.
+
+### TC-100 — `crisisReply` length caps
+- **Verifies:** REQ-024, REQ-004  **Level:** unit  **Mode:** automated
+- **Steps:** a 300-char zh first sentence and an 80-word en one.  **Expected result:** ≤ 120 code points / ≤ 40 words, ends the cut part in `…`, 988 kept.
+
+### TC-101 — `speechParts` on FX-013
+- **Verifies:** REQ-014 (FX-013)  **Level:** unit  **Mode:** automated
+- **Steps:** zh and en reply.  **Expected result:** `['太棒了！','这真值得庆祝。','你准备去庆祝吗？']` and `['That is amazing news!', "I can't wait to hear all about it."]` (emoji dropped).
+
+### TC-102 — `speechParts` rules
+- **Verifies:** REQ-014, REQ-015  **Level:** unit  **Mode:** automated
+- **Steps:** `PART_CAPS`; 11-word sentence; 988 in English; `🎉🎉`, `…`, blank → `[]`; long zh and en text with no punctuation.  **Expected result:** caps first 10 zh / 7 en and rest 24 / 16 hold; "nine eight eight"; no letter lost or reordered; every part has a letter or digit and no emoji.
+
+### TC-103 — `speechParts` on the crisis lines
+- **Verifies:** REQ-024, REQ-014  **Level:** unit  **Mode:** automated
+- **Steps:** fallback + help line, both languages.  **Expected result:** ≥ 3 parts; en spells 988; zh keeps 988.
+
+### TC-104 — `parseTurn` with `name`
+- **Verifies:** REQ-031, REQ-030 (FX-012)  **Level:** unit  **Mode:** automated
+- **Steps:** name absent / null / each FX-012 name / 5000 chars / number, true, object, array.  **Expected result:** `{line, history, name}`; null for absent; the fixture's cleaned value; non-string → `bad_request` 400; line and history rules unchanged.
+
+### TC-105 — `parseSpeak`
+- **Verifies:** REQ-014  **Level:** unit  **Mode:** automated
+- **Steps:** valid, 200 chars, padded 200, 201 chars, empty, blank, lang fr / ZH / missing, non-string text, array text, non-object bodies, broken JSON.  **Expected result:** valid trimmed `{text, lang}`; everything else `bad_request`.
+
+### TC-106 — `/api/speak` and `/api/respond` input edge (throwaway server on `route`)
+- **Verifies:** REQ-014, REQ-017  **Level:** integration  **Mode:** automated
+- **Steps:** POST bad bodies to `/api/speak`; a 4200-char text; `/api/respond` with `name: 123`.  **Expected result:** 400 `bad_request`; 413 `too_large`; 400.  **Fails if:** the route is missing (404), or validation waits for a child that is not running.
+
+### TC-107 — Config
+- **Verifies:** REQ-014, REQ-017  **Level:** unit  **Mode:** automated
+- **Steps:** `CONFIG.tts`, limits 200 / 4096, deadlines 10000 / 300000, `VOICES`, `missingTtsFiles` with a wrong tokenizer dir and wrong model dir, `TTS_HINT`.  **Expected result:** serena; the missing list names `tokenizer.json` and the six `12hz-0.6b-customvoice` model folders; hint is bilingual and names both env vars.
+
+### TC-108 — `TTS_VOICE` validation
+- **Verifies:** REQ-017  **Level:** unit  **Mode:** automated
+- **Steps:** import `config.js` in a child node with `TTS_VOICE=aiden` and `not-a-voice`.  **Expected result:** aiden accepted; the other throws at import.
+
+### Protocol with doubles — `tests/server-fakes.test.js`
+### TC-109 — `tts.speak` happy path and start-up
+- **Verifies:** REQ-014  **Level:** integration  **Mode:** automated
+- **Steps:** speak while starting; after ready speak zh and en with `fake-tts.cjs`; read the helper's argv and request log.  **Expected result:** `not_ready` 503 first; then a Buffer WAV (PCM, mono, 24000 Hz, 16-bit, size consistent); helper argv has `--model-folder`, `--tokenizer-folder`, `--voice serena`; requests `{text, lang}`; the non-JSON line is ignored.
+
+### TC-110 — `tts.speak` failures
+- **Verifies:** REQ-017  **Level:** integration  **Mode:** automated
+- **Steps:** helper error; an answer that arrives after the deadline (400 ms); helper exit; call while down.  **Expected result:** `failed` 502; `timeout` 504 at the deadline, late answer dropped, next call fine; `unavailable` 503 and state `down`.
+
+### TC-111 — `tts.speak` queue and abort
+- **Verifies:** REQ-014, REQ-018  **Level:** integration  **Mode:** automated
+- **Steps:** three 400 ms requests with a 1000 ms deadline; abort a queued one; abort one in flight; then another call.  **Expected result:** one request written at a time, FIFO; the deadline includes queue wait (third times out); the queued-aborted request is never written; aborted calls do not deliver audio; the next call is served. **Ambiguity:** the design does not say whether an aborted call rejects or hangs; the test requires "does not resolve with audio" (it must settle).
+
+### TC-112 — `tts.speak` helper exit with a queue
+- **Verifies:** REQ-017  **Level:** integration  **Mode:** automated
+- **Steps:** the helper dies on the first of three calls.  **Expected result:** all three reject `unavailable`.
+
+### TC-113 — `respond` fields and prompt
+- **Verifies:** REQ-005, REQ-014  **Level:** integration  **Mode:** automated
+- **Steps:** an en line, a zh line, a mixed line, fake Bonsai.  **Expected result:** keys exactly `reply, mood, lang, crisis`; `lang` = language of the line; crisis false; system message = `replySystem(null)` + `\n` + `LANG_RULE[lang]`.
+
+### TC-114 — `respond` on crisis lines
+- **Verifies:** REQ-023, REQ-024 (FX-009, FX-010)  **Level:** integration  **Mode:** automated
+- **Steps:** each FX-009 line (+ " SAD" for a known mood); each FX-010 line; "killing me".  **Expected result:** `crisis` true, system message ends `\n` + `CRISIS_RULE[lang]`, mood call has no crisis rule, mood from the mood call, reply has 988, ≤ 2 sentences, ≤ 1 question; FX-010 lines get no rule and no 988.
+
+### TC-115 — UD-1 (a): a crisis turn survives a broken Bonsai
+- **Verifies:** REQ-024, REQ-025 (FX-009)  **Level:** integration  **Mode:** automated
+- **Steps:** crisis line with reply 500, empty reply, slow reply (deadline 1200 ms), mood failing, Bonsai starting, Bonsai stopped, Bonsai dying mid-request; also a normal line in the same states.  **Expected result:** crisis turns resolve with `crisis: true`, `reply == crisisReply('', lang)`, mood neutral where no mood call could succeed, within the deadline; normal turns still reject `failed` / `not_ready`.  **Fails if:** a crisis turn throws.
+
+### TC-116 — Name reaches Bonsai exactly as FX-012 says
+- **Verifies:** REQ-030, REQ-031 (FX-011, FX-012)  **Level:** integration  **Mode:** automated
+- **Steps:** `parseTurn` then `respond` for each FX-012 name; a custom name with a zh line; no name.  **Expected result:** system message equals `replySystem(expected name)` + language rule; null → no "Your name is"; the mood call never carries the name.
+
+### TC-117 — Name + crisis prompt order
+- **Verifies:** REQ-024, REQ-030  **Level:** integration  **Mode:** automated
+- **Steps:** crisis line with name Mochi.  **Expected result:** system message = `replySystem('Mochi')` `\n` `LANG_RULE.en` `\n` `CRISIS_RULE.en`.
+
+### TC-137 — A helper that never answers does not wedge read-aloud
+- **Verifies:** REQ-017  **Level:** integration  **Mode:** automated
+- **Steps:** speak `HANG` (the double never answers; deadline 500 ms), then speak again.  **Expected result:** the first is `timeout` 504; the second is served within its own deadline (DES-017 step 5 "之后写下一个"; REQ-017 "slow or errored: only silent").  **Ambiguity:** DES-017 also says one request at a time; if the architect wants "wait for the helper's answer", a helper that hangs silences read-aloud until its process dies and health stays `ready`; then this TC should change to "the helper is killed and restarted".
+
+### Live — `tests/server-live.test.js` (real Bonsai + WhisperKit + TTSKit)
+### TC-120 — Health has `tts`
+- **Verifies:** REQ-014, REQ-017  **Level:** integration  **Mode:** automated
+- **Steps:** GET `/api/health`.  **Expected result:** 200; `tts` is starting | ready | down; `ready` = stt and bonsai ready only. (TC-040 checks the four keys.)
+
+### TC-121 — FX-009 crisis flag, 10 of 10
+- **Verifies:** REQ-023, REQ-025 (FX-009)  **Level:** integration  **Mode:** automated
+- **Steps:** POST each of 9 bodies 10 times.  **Expected result:** 200 and `crisis: true` 90/90.
+
+### TC-122 — FX-009 whole expected object, runs 1-3
+- **Verifies:** REQ-024 (FX-009)  **Level:** integration  **Mode:** automated
+- **Steps:** per run 1-3 and case build `{id, status, crisis, reply_checks}` with the meta rules and compare exactly with `expected.json`.  **Expected result:** equal for 27/27.  **Observed how:** `deepEqual`; replies saved to `test-results/backend-replies.jsonl` (tags `FX-009-nn#r`) for TC-135.
+
+### TC-123 — Response fields: `lang`, `mood`, `speech`
+- **Verifies:** REQ-014, REQ-025 (FX-009, FX-001)  **Level:** integration  **Mode:** automated
+- **Steps:** run-1 responses of FX-009 plus one FX-001 call.  **Expected result:** `lang` = language of the line; mood is one of 5; `speech` a non-empty list of non-empty strings ≤ 200 chars; speech carries 988 (en: "nine eight eight"); FX-001: crisis false, lang en.
+
+### TC-124 — FX-010 not a crisis, 10 of 10
+- **Verifies:** REQ-023, REQ-025 (FX-010)  **Level:** integration  **Mode:** automated
+- **Steps:** POST each of 6 bodies 10 times.  **Expected result:** 200 and `crisis: false` 60/60.
+
+### TC-125 — FX-011 the companion uses its name
+- **Verifies:** REQ-030 (FX-011)  **Level:** integration  **Mode:** automated
+- **Steps:** 3 cases × 3 runs; compute `contains_name`, `no_default_name`, `contains_default_name` as in the meta.  **Expected result:** each expected object exact, 9/9.  **Fails if:** Bonsai ignores the name (a model-quality failure, not a gateway one; reported as such).
+
+### TC-126 — FX-012 and name edge at the HTTP seam
+- **Verifies:** REQ-031 (FX-012)  **Level:** integration  **Mode:** automated
+- **Steps:** each FX-012 name; a 5000-char name; name null; name 123, true, {}, [..].  **Expected result:** 200 for every string (none refused) and no raw `<img` in the reply; 400 `bad_request` for non-strings. (What Bonsai receives: TC-116.)
+
+### TC-127 — `/api/speak` bad input
+- **Verifies:** REQ-014, REQ-017  **Level:** integration  **Mode:** automated
+- **Steps:** broken JSON, lang fr, no lang, empty, blank, 201 chars, non-string, array; a 5000-char text; a padded valid text.  **Expected result:** 400 `bad_request`; 413 `too_large`; the padded valid text is never a 4xx.
+
+### TC-128 — `/api/speak` valid part
+- **Verifies:** REQ-014  **Level:** integration  **Mode:** automated
+- **Preconditions:** health `tts: ready` (wait up to 300 s).  **Steps:** one zh and one en part.  **Expected result:** 200 `audio/wav`, `Content-Length` = bytes, `Cache-Control: no-store`, PCM16 mono 24000 Hz, 0.4 to 9.7 s, not silent.
+
+### TC-129 — FX-013 read-back
+- **Verifies:** REQ-014 (FX-013)  **Level:** integration  **Mode:** automated
+- **Steps:** per run (3) and case: `speechParts` → `/api/speak` per part → `afconvert` → `/api/transcribe`; join (zh none, en space).  **Expected result:** audible, language exact, CER (zh) / WER (en) ≤ 0.2, 6/6.  **Observed how:** `errorRate`; heard text saved under tags `FX-013-nn#r`.
+
+### TC-130 — Time to first audio (backend half)
+- **Verifies:** REQ-015 (FX-013)  **Level:** integration  **Mode:** automated
+- **Steps:** after one warm-up call, time `/api/speak` for the first part of each FX-013 reply, 5 times each.  **Expected result:** every call 200 and ≤ 3000 ms. **Page half** (text shown → sound) is TC-136.
+
+### TC-131 — Chat does not wait for read-aloud
+- **Verifies:** REQ-017  **Level:** integration  **Mode:** automated
+- **Steps:** start a long `/api/speak`, send FX-001.  **Expected result:** `/api/respond` 200 in ≤ 10 s with no `error`.  (TTS fully stopped: TC-133.)
+
+### TC-132 — Hang-up during `/api/speak`
+- **Verifies:** REQ-018 (backend half)  **Level:** integration  **Mode:** automated
+- **Steps:** abort the client after 150 ms; health; speak again.  **Expected result:** server answers health 200 and the next speak is 200.
+
+### Manual
+### TC-133 — Read-aloud files missing: chat still works
+- **Verifies:** REQ-017  **Level:** e2e  **Mode:** manual (own server, free ports, `TTS_TOKENIZER_DIR=/nonexistent`)
+- **Steps:** start a private server with that variable (not instance A; a second Bonsai only if memory allows), read stderr, send FX-001, call `/api/speak`.  **Expected result:** one line per missing path plus `TTS_HINT`, `tts_missing` logged, chat answers 200 with `speech` present, `/api/speak` is a 503 (`unavailable`/`not_ready`), health `ready: true`.  **Why manual:** needs another Bonsai.
+
+### TC-134 — Listen: voice and language
+- **Verifies:** REQ-014 (FX-013)  **Level:** e2e  **Mode:** manual
+- **Steps:** on the page with the speaker on, hear the 6 reads of FX-013.  **Expected result:** each is heard in its own language, the serena voice, no clipping.
+
+### TC-135 — Read the crisis replies
+- **Verifies:** REQ-024 (FX-009)  **Level:** e2e  **Mode:** manual
+- **Steps:** read the runs 1-3 replies in `test-results/backend-replies.jsonl`.  **Expected result:** gentle mention of 988, no diagnosis, no medical claim, no lecture.  Reviewer notes in the report.
+
+### TC-136 — Page: read-aloud timing, toggle, stop-on-talk, breathing, card, clear, poke, rename, reduced motion
+- **Verifies:** REQ-015 (page half), REQ-016, REQ-018, REQ-019, REQ-020, REQ-021, REQ-022, REQ-025, REQ-026, REQ-027, REQ-028, REQ-029  **Level:** e2e  **Mode:** manual
+- **Owner:** fe-tester (browser), per `docs/frontend/` plan. The backend halves are TC-130, TC-132 (read-aloud), TC-121/TC-124 (crisis flag the card reads), TC-116/TC-126 (name). Not covered by backend suites.
+
+## I2.3 Negative, boundary and failure cases
+Bad input: TC-091, TC-096, TC-104, TC-105, TC-106, TC-126, TC-127. Boundaries: 12 code points, 200/201 chars, 4096-byte body, 120 chars / 40 words crisis cap, speech caps 10/7 and 24/16 (TC-096, TC-100, TC-102, TC-105, TC-127). Dependency down, slow or dying: TC-110, TC-111, TC-137, TC-112, TC-115, TC-133. Wrong or empty output: TC-115 (empty reply), TC-102 (`[]`). Privacy: TC-073 allow-list (tts events, no text). Duplicate/concurrent: TC-111 (queue), TC-131.
+
+## I2.4 Coverage matrix (increment 2)
+| REQ | Test cases | Level |
+|---|---|---|
+| REQ-014 | TC-101, 102, 103, 105, 106, 107, 109, 111, 113, 120, 123, 127, 128, 129; manual 134 | unit, integration, manual |
+| REQ-015 | TC-102, 130; page half 136 | unit, integration, manual (page) |
+| REQ-016 | page only: TC-136 | manual (frontend) |
+| REQ-017 | TC-106, 107, 108, 110, 112, 120, 131, 137; manual 133 | unit, integration, manual |
+| REQ-018 | backend half TC-111, 132; page half 136 | integration, manual (page) |
+| REQ-019..022 | frontend only: TC-136 | manual (frontend) |
+| REQ-023 | TC-090..094, 114, 121, 124 | unit, integration |
+| REQ-024 | TC-098..100, 103, 114, 115, 117, 122; manual 135 | unit, integration, manual |
+| REQ-025 | backend half (crisis flag): TC-114, 115, 121, 123, 124; card: TC-136 | integration, manual (page) |
+| REQ-026..029 | frontend only: TC-136 | manual (frontend) |
+| REQ-030 | TC-097, 104, 116, 117, 125 | unit, integration |
+| REQ-031 | TC-095, 096, 104, 116, 126 | unit, integration |
+| REQ-032..035 | design only; no tests | — |
+
+Fixtures: FX-009 TC-090, 114, 115, 121, 122, 123; FX-010 TC-091, 114, 124; FX-011 TC-116, 125; FX-012 TC-095, 104, 116, 126; FX-013 TC-101, 129, 130.
+
+## I2.5 Untestable or ambiguous
+| REQ / point | Why | What would make it testable |
+|---|---|---|
+| REQ-016, 019..022, 026..029 | Frontend-only (DES-025..028); no backend output | fe-tester browser run |
+| REQ-018, 025 (page halves) | Needs playback and the card | fe-tester browser run |
+| REQ-015 text-to-sound ≤ 3 s | The page half is unmeasurable from `/api/*`; TC-130 bounds the backend share | fe-tester timing in the page |
+| REQ-024 gentleness | Human judgement | TC-135 |
+| REQ-014 "6/6 audible" by ear | Machine proxy is read-back (FX-013 rule); hearing is manual | TC-134 |
+| REQ-017 "TTS stopped" | Needs a server whose TTS is down, i.e. a second Bonsai | TC-133 on a private server |
+| TC-111 abort semantics | DES-017 does not say if an aborted `speak` rejects | architect states it; test only requires "no audio, call settles" |
+| normalizeForCrisis `´` | The design's quote list has U+00B4 but NFKC (step 1) turns it into space + U+0301 first, so it never matches; harmless (not in any phrase). TC-094 does not test it | architect removes it or reorders |
+| TC-125 | Model behaviour: can fail without a gateway defect | none; report as model quality |
+| `mood` on a crisis turn when Bonsai is down | DES-020 says neutral when the mood call did not run or failed; TC-115 asserts neutral only where no call can succeed and a valid id otherwise | — |
+| TC-115 "Bonsai dying mid-request" | The fake llama exits; the supervisor restarts it, so state afterwards is racy; the test asserts only that call | — |

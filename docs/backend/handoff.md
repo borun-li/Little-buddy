@@ -59,18 +59,19 @@ Open: backend review round 1 — candidates docs/backend/logs/review-r1-candidat
 Next: run any gate (so the hook re-marks be-reviewer), dispatch fresh be-reviewer #1 to merge → 06-review-report.md, gate p6; fixes for blocker/majors (be-developer; R-2/R-3 may need be-architect); minors → deferred.md; re-run p4/p5; then demo after (start own instance on 4399, gate.py demo after), 07-acceptance.md, p7, Acceptance stop with the user (Wi-Fi off, real mic); then increment 2 at Phase 1 (be-analyst).
 Trap: docs/backend/logs/be-developer-2-server.log is instance A's live log in a tracked file — it trips P6 tree-unchanged; restart instance A with its log outside the project before the coordinator runs.
 
-## be-developer #4 · step 6 (fix) · round 1 · 2026-11-15T03:55:56Z
-Task: implement be-architect #5's 03 amendment for FND-002..005, rebuild stt/, restart instance A with the new code.
-Changed: stt/Sources/CompanionSTT/main.swift (+18/-5) — fellBack + isNoise → "" / null (DES-011 6a); server/bonsai.js (+10/-3) — cors none, no-cors-credentials, no-slots, per-run LLAMA_API_KEY via env, Bearer on post, stderr pipe; server/supervisor.js (+37/-3) — env opt, 20-line stderr tail, causeOf, zh+en operator line, child_gave_up; server/config.js (+1/-1) bonsaiBootMs 300000; 08 § Round 7; codemap server/ + stt/ invariants.
-Result: noise clips 30/30 "" (5 kinds ×5 + empty); FX-005/006/007 ×3 transcribe as before; 4401 foreign Origin → ACAO none, keyless POST/props/slots 401; FX-001 ×3 200; npm test 141/142, fail TC-015 (expects old bonsaiBootMs 60000; be-tester's test) — evidence: docs/backend/logs/be-developer-4-fnd002-005.log, be-developer-4-npmtest.log
+## be-developer #5 · step 4 (build) · round 1 · increment 2 · 2026-11-15T07:03:10Z
+Task: build the backend half of increment 2 (DES-016..023): TTS helper + /api/speak, crisis rule + crisis reply (UD-1 (a)), name, respond lang/crisis/speech, health tts; fix TC-137 (orchestrator, same round).
+Changed: stt/Package.swift (+6) + stt/Sources/CompanionTTS/main.swift (new, 100): companion-tts, serena, maxNewTokens 120, zh/en caches. server/tts.js (new, 191): createTts queue + speechParts. server/crisis.js (new, 41), server/name.js (new, 19). server/prompts.js (+19), server/bonsai.js (+43/-14): SENTENCE export, crisisReply, respond(line, history, name). server/main.js (+58/-14): parseTurn name, parseSpeak, /api/speak, health tts, missing-TTS path, warm-only waits for tts. server/config.js (+34/-2). tests/dev-increment2.test.js (new, 11 unit tests, not in npm test). 08 § Increment 2 (deviations 10–15), codemap server/ + stt/, logs/be-developer-5-inc2.log.
+Result: live FX-009 27/27 crisis true + 988 (FX-009-09 3/3), FX-010 6/6 false, FX-011 9/9, FX-012 7/7 200, FX-013 15/15 speak 200 24 kHz, read back CER/WER 0. Aborted queued part never reached the helper. Unit 11/11; unit+fakes 68/68 incl. TC-137. npm test 185/187: TC-052 latency (HEAD code equally slow, A/B) and TC-054 504 (passes alone). Evidence: docs/backend/logs/be-developer-5-inc2.log
 Next agent must know:
-- Pitfalls: instance A is now node 61506 (stt 61513, llama 61514) on 4400/4401, PID in the session scratchpad server.pid, log scratchpad instanceA.log; it boots in ~4 s now (stt rebuild did not trigger an ANE recompile).
-- Pitfalls: a manual llama-server probe now needs the key, so use /health (keyless) or go through the gateway; the key exists only in the child's env.
-- Pitfalls: FX-001 input.json is a wrapper {endpoint, body}; post .body, not the file (my first probe got 400 for that).
+- Pitfalls: instance A is now node 37595 (stt 37602, bonsai 37603, tts 37604) on 4400/4401. PID in the session scratchpad server.pid, log in scratchpad instanceA.log. Boots in ~10 s.
+- Pitfalls: on a timeout or in-flight abort the tts slot is freed and the next line is written. Late answers are dropped by id, and helper id -1 is never paired (08 dev. 10–11).
+- Pitfalls: npm run setup does NOT fetch the TTS model (design says never download). The brief said it should, so this is logged as a contradiction in 08 for the user/architect.
+- Pitfalls: the machine is slower now (27% memory free under npm test), so REQ-008 TC-052 fails for old and new code alike.
 - Tried, did not work: nothing.
-- Left open: TC-015 must move to 300000 and TC-073 allow-list needs child_gave_up (be-tester); the operator line text takes policy.max/delayMs (= 03's literal 5 / 2 s with CONFIG); FND-009 still open.
-Read beyond the list: scratchpad arch5/stt main.swift (architect's probe diff, for det.langProbs use).
-Next agent reads: server/supervisor.js:14-60; server/bonsai.js:75-90,145-160; stt/Sources/CompanionSTT/main.swift:53-115; docs/backend/08-implementation-log.md § Round 7
+- Left open: REQ-015 page timing; REQ-024 tone (FX-009-03 replies ask one question despite CRISIS_RULE); Wi-Fi-off run with tts; the stale "pending Plan" text in 03 DES-023 / § 5 / § 9.
+Read beyond the list: scratchpad arch6/pkg/Sources/CompanionTTS/main.swift (architect's measurement helper).
+Next agent reads: server/tts.js:9-140; server/bonsai.js crisisReply + respond; docs/backend/08-implementation-log.md § Increment 2
 
 ## fe-tester #5 · step 4 (FE4.capture recapture) · round 4 · increment 1 · 2026-11-15T09:00:00Z
 Task: re-point docs/frontend/04-verification.md to evidence/verify-3/manifest.md and confirm the 19 verdicts against the verify-3 files.
@@ -95,14 +96,21 @@ Next agent must know:
 Read beyond the list: web/index.html, web/js/copy.js, web/js/log.js, web/js/health-watch.js, tests/verify-r1.test.js — structure and tests the rows touch.
 Next agent reads: docs/frontend/03-queue.md § Increment 2 (rows and notes), contract §2 PAGE-001
 
-## be-tester #5 · step 5 (test report) · round 4 · 2026-11-15T04:30:00Z
-Task: bring tests in line with the review-fix design (DES-002, 03 §6) and add FND-001/002/003 regressions; re-run npm test.
-Changed: tests/server-unit.test.js (TC-015 -> bonsaiBootMs 300000; new TC-087), tests/server-boot.test.js (TC-073 allow-list 17 events), tests/server-live.test.js (new TC-088, TC-089), docs/backend/04-test-plan.md, 05-test-report.md, logs/be-tester-5-npm-test.log. No server, stt, web, package.json or fixtures touched.
-Result: 60 pass, 0 fail, 11 blocked. npm test 145/145, skipped 0, exit 0 (202 s). TC-050, 052, 055 passed (recorded pass + flaky, known issues accepted 2026-11-15). TC-073 stays blocked (boot group, manual).
+## be-tester #6 · step 4 (gate fix) · round 2 · increment 2 · 2026-11-15
+Round 2 (be-tester #6, gate fix):
+Task: fix p4 P4.plan-coverage and CTX.codemap.
+Changed: docs/backend/04-test-plan.md line 572 (TC-136 Verifies lists REQ-019..022, 025..029 one by one; the gate does not parse ranges); docs/codemap.md line 56 (ready without backticks).
+Result: docs.testcases now gives TC-136 the REQs 015, 016, 018, 019-022, 025-029. Gate not re-run (17 min suite).
+Next agent must know: the plan parser reads only single REQ-nnn ids, so never write REQ-019..022 in a Verifies line.
+Round 1 entry (be-tester #5) follows.
+Task: plan and write the increment-2 backend tests (REQ-014..031, FX-009..013) to the design's interfaces, in parallel with the build.
+Changed: docs/backend/04-test-plan.md (§ Increment 2, TC-090..TC-137); tests/server-unit.test.js (TC-090..108; TC-015 gains speak limits/deadlines), tests/server-fakes.test.js (TC-109..117, 137; TC-029 gains lang, crisis), tests/server-live.test.js (TC-040 gains tts; TC-120..132), tests/server-boot.test.js (TC-073 allow-list 23 events), new tests/support/fake-tts.cjs. No server, stt, web, package.json or fixtures touched.
+Result: written 46 TCs (automated 42 across unit 19, fakes 10, live 13; manual 4: TC-133..136). Run against the partly built code: unit+fakes 67 pass, 1 fail (TC-137: tts.js waits for a hung helper's answer, so one HANG blocks later speaks until the process dies; tts.js:134). Live TC-120..132 not run to completion: instance A on 4400 still runs the old build (health has no tts, /api/speak 404).
 Next agent must know:
-- Pitfalls: TC-087 sends "//" only to its own throwaway server; TC-088 targets llama-server at live port + 1 (BONSAI_URL overrides); TC-089 builds noise in the test (seeded), no fixtures. llama-server sends Access-Control-Allow-Credentials: false, not absent.
-- Left open: boot group TC-070..076 and TC-083..086 blocked; TC-073 allow-list updated but not run.
-Next agent reads: docs/backend/05-test-report.md sections 1, 3, 5
+- Live TTS tests FAIL (not skip) if health tts is not ready after 300 s: the server at COMPANION_URL needs the compiled companion-tts and models. FX-009 + FX-010 live need about 150 respond calls (5 to 8 min).
+- TC-111 requires only "an aborted speak gives no audio and settles"; DES-017 does not say reject vs resolve. TC-094 skips U+00B4 (NFKC makes it unreachable in normalizeForCrisis).
+- Frontend-only REQs (016, 019..022, 026..029, page halves of 015, 018, 025) are TC-136, fe-tester.
+Next agent reads: docs/backend/04-test-plan.md § Increment 2 (I2.2, I2.5)
 
 ## fe-reviewer #2 · step 4 (frontend review) · round 2 · increment 1 · 2026-11-15T02:04:20Z
 Task: re-check FND-001..004 (fix commit 1ae2fab) against 4399 and the code; record in 05-review.md §5 (filed by orchestrator from the return)
