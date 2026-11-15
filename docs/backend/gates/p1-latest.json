@@ -1,6 +1,6 @@
 {
   "phase": "p1",
-  "time": "2026-11-14T22:29:32Z",
+  "time": "2026-11-15T04:51:32Z",
   "project": "/Users/apple/Desktop/Hackathon/Local_AI_Hackathon",
   "run_dir": "docs/backend",
   "overall": "pass",
@@ -27,7 +27,7 @@
     {
       "id": "P1.req-ids",
       "status": "pass",
-      "message": "13 REQs, ids unique",
+      "message": "35 REQs, ids unique",
       "owner": "be-analyst",
       "details": []
     },
@@ -83,7 +83,7 @@
     {
       "id": "P1.interface",
       "status": "pass",
-      "message": "11 [interface] REQs",
+      "message": "32 [interface] REQs",
       "owner": "be-analyst",
       "details": [
         "REQ-001",
@@ -96,7 +96,28 @@
         "REQ-008",
         "REQ-010",
         "REQ-011",
-        "REQ-012"
+        "REQ-012",
+        "REQ-014",
+        "REQ-015",
+        "REQ-016",
+        "REQ-017",
+        "REQ-018",
+        "REQ-019",
+        "REQ-020",
+        "REQ-021",
+        "REQ-022",
+        "REQ-024",
+        "REQ-025",
+        "REQ-026",
+        "REQ-027",
+        "REQ-028",
+        "REQ-029",
+        "REQ-030",
+        "REQ-031",
+        "REQ-032",
+        "REQ-033",
+        "REQ-034",
+        "REQ-035"
       ]
     },
     {
@@ -116,7 +137,7 @@
     {
       "id": "CTX.handoff",
       "status": "pass",
-      "message": "handoff.md: 1 current sections",
+      "message": "handoff.md: 11 current sections",
       "owner": "orchestrator",
       "details": []
     }
@@ -134,7 +155,25 @@
       "REQ-009",
       "REQ-010",
       "REQ-011",
-      "REQ-012"
+      "REQ-012",
+      "REQ-014",
+      "REQ-015",
+      "REQ-016",
+      "REQ-017",
+      "REQ-018",
+      "REQ-019",
+      "REQ-020",
+      "REQ-021",
+      "REQ-022",
+      "REQ-023",
+      "REQ-024",
+      "REQ-025",
+      "REQ-026",
+      "REQ-027",
+      "REQ-028",
+      "REQ-029",
+      "REQ-030",
+      "REQ-031"
     ],
     "interface_reqs": [
       "REQ-001",
@@ -147,7 +186,28 @@
       "REQ-008",
       "REQ-010",
       "REQ-011",
-      "REQ-012"
+      "REQ-012",
+      "REQ-014",
+      "REQ-015",
+      "REQ-016",
+      "REQ-017",
+      "REQ-018",
+      "REQ-019",
+      "REQ-020",
+      "REQ-021",
+      "REQ-022",
+      "REQ-024",
+      "REQ-025",
+      "REQ-026",
+      "REQ-027",
+      "REQ-028",
+      "REQ-029",
+      "REQ-030",
+      "REQ-031",
+      "REQ-032",
+      "REQ-033",
+      "REQ-034",
+      "REQ-035"
     ]
   }
 }

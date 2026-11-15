@@ -99,6 +99,36 @@
       "q": "Per-run internal llama-server API key (memory only) OK under NFR '无密钥'?",
       "default": "yes (be-architect #5 option a)",
       "show_at": "Acceptance"
+    },
+    {
+      "q": "TTS start ≤ 3 s after reply text (warm)?",
+      "default": "3 s (A16)",
+      "by": "be-analyst #3",
+      "show_at": "Plan (increment 2)"
+    },
+    {
+      "q": "TTS voice?",
+      "default": "architect offers 2 voices; user picks at Plan",
+      "by": "be-analyst #3",
+      "show_at": "Plan (increment 2)"
+    },
+    {
+      "q": "Crisis phrase list?",
+      "default": "architect drafts; user approves at Plan; FX-009/010 locked",
+      "by": "be-analyst #3",
+      "show_at": "Plan (increment 2)"
+    },
+    {
+      "q": "Privacy line unchanged with saved name?",
+      "default": "unchanged; rename spot notes 名字记在这台电脑上 (A28)",
+      "by": "be-analyst #3",
+      "show_at": "Plan (increment 2)"
+    },
+    {
+      "q": "Negated crisis lines trigger the card?",
+      "default": "yes — missed crisis worse than false alarm (A22)",
+      "by": "be-analyst #3",
+      "show_at": "Plan (increment 2)"
     }
   ],
   "notes": [

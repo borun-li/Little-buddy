@@ -1,17 +1,18 @@
 # Handoff — run companion-full-dev
 
-## be-analyst #2 · Phase 2 · round 1 · 2026-11-14T23:03:23Z
-Task: place FX-001..FX-008 under tests/fixtures/candidates/FX-nnn/ with expected outputs from the REQs; list where 02/03 miss or contradict REQ-001..REQ-012.
-Changed: tests/fixtures/candidates/FX-001..FX-008/ (new) — input.json|input.wav, expected.json, meta.json each (24 files).
-Result: 8/8 fixtures have input, expected, meta (req, source, compare valid per gatelib _valid_compare); 4 WAVs parsed: fmt 1/mono/16000/16-bit (+FLLR chunk on afconvert output); 6 design contradictions returned to the orchestrator. Gate p2 not run.
+## be-analyst #3 · step 1 (requirements) · round 1 · increment 2 · 2026-11-15T04:50:35Z
+Task: append `## Increment 2 — 2026-11-15` to docs/backend/01-requirements.md for the P1 scope (state.json increments[n=2]); retire REQ-013.
+Changed: docs/backend/01-requirements.md (+242/-1). REQ-013 heading now says retired, increment 2, replaced by REQ-023..025. The new section has REQ-014..031 above the cut: voice 014-018, breathing 019-022, 988 023-025, clear 026, poke 027, name 028-031. REQ-032..035 (memory) are below the cut, design-only. Also non-goals, A16-A30, Q5-Q9, NFR, external constraints, and FX-009..013 (inputs only).
+Result: gatelib parsers run on the file locally: 35 REQs, ids unique, every live REQ has GWT, cut and source, all ≤ 60 words, no prose unit over 50, active REQs have fixtures or n/a. Gate p1 not run by me.
 Next agent must know:
-- Pitfalls: replies are checked by computed properties (meta `rules`), compared exact; mood exact; audio uses numeric:0.15 on WER/CER vs 0. FX-003 scores no mood (not a REQ-006 fixture).
-- Pitfalls: zsh `==` in an echo argument fails ("= not found"); quote it.
-- Tried, did not work: nothing.
-- Left open: FX-005 text_reference [unverified] (only source is whisperkit-cli output, be-analyst-1-whisperkit-hello.log:3) — user confirms at Plan. FX-004 cases 05/10 neutral vs bench pleasant-low (REQ-006 margin 1).
-- Left open: history replies are verbatim raw Bonsai (pre-shapeReply), bench-raw-9B.log:146 and :148.
-Read beyond the list: docs/frontend/00-requirements.md A1; idea.md § 情绪模型 — mood labels; ~/.claude/gates/gatelib/checks.py:812-881 — meta/compare rules.
-Next agent reads: tests/fixtures/candidates/FX-00n/meta.json (rules, runs, pass, manual)
+- Pitfalls: gatelib counts CJK at 2 chars per word and skips backticked text. REQ-020, 023 and 034 are at 59-60 words, so any edit must stay within 60.
+- Pitfalls: TTS downloads by default; only `--models-path` keeps it offline. Local models are in ~/Documents/huggingface/models/argmaxinc/ttskit-coreml/qwen3_tts. TTSKit ships in the pinned argmax-oss-swift 1.1.1 (stt/.build/checkouts/argmax-oss-swift/Package.swift:25).
+- Pitfalls: REQ-018 (stop playback on hold/send) exists so the mic does not record the companion's voice into REQ-001's transcript.
+- Pitfalls: seam grows. respond needs the name (REQ-030/031), the page needs a crisis signal (REQ-025), and TTS needs a new call. The contract must be updated in Phase 2.
+- Left open: deferred.md BD-001 (TTS) is now in scope and BD-008 is design-only. Rows not edited (orchestrator's file). Increment-1 non-goal rows for 988, clear, name and TTS are superseded by the increment-2 section and were left as history.
+- Left open: FX-009/010 crisis lines, FX-011/012 names, the 3 s TTS default (A16) and the voice choice (Q6) need the user at Plan. The user's 29 s / 3.8 s TTS timings were not re-measured by me.
+Read beyond the list: `whisperkit-cli tts --help`; https://developer.chrome.com/blog/autoplay; https://988lifeline.org/ — external constraints.
+Next agent reads: docs/backend/01-requirements.md § Increment 2 (REQ-014..035, A16-A30, Fixtures — increment 2)
 
 ## be-architect #5 · step 6 (review fix design) · round 2 · 2026-11-15T03:49:10Z
 Task: P3.des-length (DES-004/007/011 > 120 words) and P3.prose (4 units > 50 words), meaning unchanged.
