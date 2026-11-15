@@ -205,3 +205,5 @@
 {"seq": 205, "ts": "2026-11-15T11:27:52Z", "event": "gate", "gate": "p6", "overall": "fail", "fails": {"orchestrator": ["P6.tree-unchanged", "P6.findings"]}, "report": "docs/backend/gates/p6-latest.json", "prev": "9df49bec2697e0d55b1abbda324c36183a177a6b279bcd0800718213d123c85c"}
 {"seq": 206, "ts": "2026-11-15T11:28:19Z", "event": "mark", "role": "be-reviewer", "prev": "85cf86db6e87b6386edb22f532d093470186bde929402850ab93a9ec3a08952f"}
 {"seq": 207, "ts": "2026-11-15T11:28:19Z", "event": "gate", "gate": "p6", "overall": "pass", "report": "docs/backend/gates/p6-latest.json", "prev": "764d3d63b0792f8b4450bd2e4bc56260258003babfd862c03d3d4e960f7dcb9f"}
+{"seq": 208, "ts": "2026-11-15T11:51:28Z", "event": "capture", "round": "demo-after", "captures": 9, "prev": "7e9aaf53bc538ed888e755971adfd3bd56ba9e42abf4121043de0aeda3958910"}
+{"seq": 209, "ts": "2026-11-15T11:51:50Z", "event": "gate", "gate": "p7", "overall": "fail", "fails": {"orchestrator": ["P7.matrix", "LOG.trail"]}, "report": "docs/backend/gates/p7-latest.json", "prev": "79a417d6a962e09ea60a409e58fd92cd1f30e7b8fbcf571aa75e2e9918392e69"}
