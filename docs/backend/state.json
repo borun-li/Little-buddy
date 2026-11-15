@@ -99,36 +99,6 @@
       "q": "Per-run internal llama-server API key (memory only) OK under NFR '无密钥'?",
       "default": "yes (be-architect #5 option a)",
       "show_at": "Acceptance"
-    },
-    {
-      "q": "TTS start ≤ 3 s after reply text (warm)?",
-      "default": "3 s (A16)",
-      "by": "be-analyst #3",
-      "show_at": "Plan (increment 2)"
-    },
-    {
-      "q": "TTS voice?",
-      "default": "architect offers 2 voices; user picks at Plan",
-      "by": "be-analyst #3",
-      "show_at": "Plan (increment 2)"
-    },
-    {
-      "q": "Crisis phrase list?",
-      "default": "architect drafts; user approves at Plan; FX-009/010 locked",
-      "by": "be-analyst #3",
-      "show_at": "Plan (increment 2)"
-    },
-    {
-      "q": "Privacy line unchanged with saved name?",
-      "default": "unchanged; rename spot notes 名字记在这台电脑上 (A28)",
-      "by": "be-analyst #3",
-      "show_at": "Plan (increment 2)"
-    },
-    {
-      "q": "Negated crisis lines trigger the card?",
-      "default": "yes — missed crisis worse than false alarm (A22)",
-      "by": "be-analyst #3",
-      "show_at": "Plan (increment 2)"
     }
   ],
   "notes": [
@@ -164,5 +134,15 @@
     "by": "user",
     "date": "2026-11-14",
     "words": "关掉Wi-Fi后可以成功运行，且效果比较好。我很满意。"
+  },
+  "decisions_at_plan_inc2": {
+    "by": "user",
+    "date": "2026-11-15",
+    "voice": "serena",
+    "crisis_list": "approved + add 活着没什么意思-type phrases",
+    "negations": "trigger",
+    "designs": "FRAME-017..025 approved",
+    "UD-1": "(a)",
+    "fixtures": "FX-009..013 lock after phrase addition"
   }
 }
