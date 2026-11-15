@@ -1,7 +1,7 @@
 # Architecture — 离线小伙伴：真实转写、Bonsai 回复与情绪、中英文
 
-- Author: be-architect #1；revised be-architect #2（round 2：设计矛盾 1–6） · Input: `01-requirements.md` · Status: draft · 2026-11-14
-- 证据：`docs/backend/logs/be-architect-1-bench.log`（4B/9B 基准）、`docs/backend/logs/be-architect-1-stt-check.log`（WhisperKit 检查）、`docs/backend/logs/be-architect-2-stt60.log`（约 60 s 转写耗时、繁转简）。
+- Author: be-architect #1；revised be-architect #2（round 2：设计矛盾 1–6）；amended be-architect #3（step 4：前文窗口按时延定、语言多数规则、缺文件提示） · Input: `01-requirements.md` · Status: draft · 2026-11-14
+- 证据：`docs/backend/logs/be-architect-1-bench.log`（4B/9B 基准）、`docs/backend/logs/be-architect-1-stt-check.log`（WhisperKit 检查）、`docs/backend/logs/be-architect-2-stt60.log`（约 60 s 转写耗时、繁转简）、`docs/backend/logs/be-architect-3-window.log`（前文长度与冷请求时延）。
 
 ## 1. Components
 一条 `npm start` 起一个 Node 进程；它在 127.0.0.1:4317 同源提供页面和 `/api/*`，并拉起两个子进程。浏览器只和 Node 说话。
@@ -30,7 +30,7 @@
 
 | Entity | Key fields | Owner | Stored in |
 |---|---|---|---|
-| 一轮请求 | `line`（1–1500 字符，去首尾空白）、`history`（≤ 40 条；进提示的合计 ≤ 6000 字符） | 页面 | 页面内存；网关请求内存 |
+| 一轮请求 | `line`（1–1500 字符，去首尾空白）、`history`（≤ 40 条；进提示的合计权重 ≤ 2000，权重 = 字符数 + 1.5 × 汉字数） | 页面 | 页面内存；网关请求内存 |
 | 前文条目 | `role`: `user`\|`companion`，`text`（1–1500 字符） | 页面 | 页面内存 |
 | 一轮结果 | `reply`（非空）、`mood`（5 个 id 之一） | 网关（由 Bonsai 生成） | 页面内存 |
 | 一段语音 | WAV 字节，≤ 2,000,000 B | 页面录音 → 网关 → 助手 | 只在内存，转写后丢弃 |
@@ -58,18 +58,20 @@
 | 音频（c, O-2） | 16 kHz 单声道 PCM 16-bit WAV，≤ 2,000,000 B（60 s = 1,920,044 B） | MediaRecorder webm/opus（AVFoundation 读不了 webm，需解码依赖）；Float32 / 24 kHz（体积翻倍、要重采样；页面从不发送，FX-005 用 `afconvert` 转成的 16 kHz 副本） |
 | 错误码（d, O-1） | 6 个码：`not_ready` `unavailable` `timeout` `failed` `bad_request` `too_large` | 只用 HTTP 状态（503 分不清"预热中"和"挂了"，fe-ux 要不同的话） |
 | 情绪（e, O-3） | 同一次 `/api/respond` 内并行两次 Bonsai 调用：自由文本回复 + 枚举情绪（temperature 0） | 单次 JSON `{mood, reply}`（9B 情绪 8/10、前文 2/6）；关键词（REQ-006 禁止） |
-| 语言（f, C-005） | 转写：WhisperKit 先判语言，只取 zh/en，再定语言转写；回复：网关按 `line` 的汉字数与英文词数取多数，写进系统提示 | 纯自动检测（静音成俄文，已观察）；跟随界面语言（违反 REQ-005） |
+| 语言（f, C-005） | 转写：WhisperKit 先判语言，只取 zh/en，再定语言转写；回复：网关按 `line` 的中文词数（汉字数 ÷ 2 向上取整）与英文词数取多数，平局 zh，写进系统提示 | 纯自动检测（静音成俄文，已观察）；跟随界面语言（违反 REQ-005） |
 | 简体（REQ-002、A4） | 助手对 zh 结果做 ICU `Hant-Hans` 转换（确定、离线、系统自带） | 只靠中文提示词引导（不确定，无法保证 6/6）；Node 侧自带繁简对照表（新数据文件，要维护） |
 | 截止（REQ-011、A11） | 服务端转写 12 s、回复 15 s；页面每次请求在服务端截止 + 1 s 自停（13 s / 16 s）；语音一轮最坏 29 s ≤ 30 s | 页面整轮一个 30 s 计时器经接缝传 `signal`（改接口签名，页面中止后服务端仍在生成、占槽位） |
 | `line` 上限 | 1500 字符：60 s 快语速英文约 1100 字符（估计，200 词/分 × 5.5 字符）；实测 52 s 合成英文 933 字符 | 500（60 s 英文会被 400，REQ-001/004 断开）；不设上限（前文撑爆上下文） |
 | 静音（REQ-003） | 助手里先过能量门（RMS > 0.02 的 0.1 s 帧 < 3 个 → `""`，不解码） | `noSpeechThreshold`（1.1.1 把 noSpeechProb 写死为 0，`TextDecoder.swift:820`，永不触发） |
+| 前文窗口（REQ-007/008） | 最近 40 条里从新往旧取，合计权重 ≤ 2000（权重 = 字符数 + 1.5 × 汉字数 ≈ 4 × token）；冷请求实测 zh 6.7–7.1 s、en 6.5–7.0 s，加转写约 1.5 s ≤ 10 s（window.log） | 6000 字符（冷请求 14.3 s 或 504）；纯字符预算（中文每字 token 是英文 2.6 倍：够中文就饿英文，够英文中文超 10 s）；成块前移（页面每轮只发最后 40 条，后端对不齐块，要改接缝；块切换那一轮仍是冷请求）；换 4B（Plan 已定 9B，前文 1/6） |
 | 模型（g） | Bonsai 2 9B | 4B：冷启动快（3.9–4.1 s），但前文 1/6、情绪 8/10（bench.log） |
 | 转写模型 | `openai_whisper-large-v3-v20240930_626MB`（spike 同款，已在本机） | 1.5 GB 完整版：同一句同样听错"晚上"，内存多一倍 |
 
 ## 5. Risks
 | Risk | Likelihood | Impact | Mitigation | Early signal |
 |---|---|---|---|---|
-| 前缀缓存失效时 20 轮冷请求 6.4–8.7 s + 转写约 2 s，超过 10 s | 高（满 40 条或超 6000 字符后窗口每轮前移，前缀变，每轮都冷；be-architect #2 发现） | REQ-008 首句不达标 | 2 槽位缓存前缀；启动时一次 `respond` 并行跑回复与情绪两次调用，两种系统提示（`REPLY_SYSTEM`、`MOOD_SYSTEM`）都进缓存；不达标则窗口改为成块前移（前缀稳定数轮）或 `BONSAI_MODEL=4B`（前文变差），回设计定 | 日志 `respond_done.ms` > 7000 |
+| 前文冷请求超过 10 s 或 15 s 截止 | 高（满 40 条后窗口每轮前移，每轮都冷；预填充约 130 token/s，window.log） | REQ-008 不达标；长前文 504 | 窗口按时延定：权重预算 2000（实测冷请求 ≤ 7.1 s）；系统提示仍进前缀缓存 | 日志 `respond_done.ms` > 8000 |
+| 长 `line`（打字 1500 汉字 ≈ 1000 token）冷请求接近 15 s | 低（60 s 中文语音约 300 字；旧窗口下实测 12.2–13.4 s，新窗口未测） | 这一轮 504（REQ-011 有交代） | 不在 REQ-008 范围；截止照旧 | `api_error` `timeout` 且 `history_n` 小 |
 | 新 Swift 二进制首次转写约 390 s（ANE 编译） | 高（每次重编译） | 每次改 `stt/` 要等数分钟 | 先建 `stt/` 并冻结；`npm run setup` 编译后即预热 | `stt` 就绪 `warm_ms` > 60000 |
 | WhisperKit 或分词器运行时联网 | 低 | REQ-009 失败 | `download: false`、显式模型和分词器目录、启动前检查文件 | 构建第 1 步断网跑 + `lsof -i` |
 | 噪声超过能量门被转成幻觉文字 | 中 | 多出一轮假话 | 门限常量可调；前端 < 0.5 s 不发；用真麦克风测 | FX-008 + 一段环境噪声 |

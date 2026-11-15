@@ -2,7 +2,7 @@
 [PASS] ALL.state: state.json valid  (orchestrator)
 [PASS] ALL.upstream: Upstream documents present  (be-architect)
 [PASS] P2.coverage: Every active REQ is covered  (be-architect)
-[PASS] P2.length: 81 words of prose (limit 800)  (be-architect)
+[PASS] P2.length: 105 words of prose (limit 800)  (be-architect)
 [PASS] P2.prose: No paragraph or bullet over 50 words  (be-architect)
 [PASS] ALL.upstream: Upstream documents present  (be-architect)
 [PASS] P3.des-ids: 15 DES, ids unique  (be-architect)
@@ -18,6 +18,6 @@
 [PASS] PLAN.meta: Every fixture names its REQ, source and compare rule  (be-analyst)
 [PASS] LOG.valid: Run log intact  (orchestrator)
 [PASS] CTX.codemap: docs/codemap.md paths exist, within its cap  (be-architect)
-[PASS] CTX.handoff: handoff.md: 5 current sections  (orchestrator)
+[PASS] CTX.handoff: handoff.md: 8 current sections  (orchestrator)
 
 [gate] p2: PASS  report: docs/backend/gates/p2-latest.json

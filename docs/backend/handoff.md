@@ -13,17 +13,18 @@ Next agent must know:
 Read beyond the list: docs/frontend/00-requirements.md A1; idea.md § 情绪模型 — mood labels; ~/.claude/gates/gatelib/checks.py:812-881 — meta/compare rules.
 Next agent reads: tests/fixtures/candidates/FX-00n/meta.json (rules, runs, pass, manual)
 
-## be-architect #2 · Phase 2 · round 2 · 2026-11-14T23:10:53Z
-Task: revise 02/03 so be-analyst #2's design contradictions 1–6 are resolved; keep the rest of #1's design.
-Changed: docs/backend/02-architecture.md (+20/-14), docs/backend/03-detailed-design.md (+33/-23) — line/history text 1–1500, body ≤ 262144, prompt history ≤ 6000 chars (windowOf); deadlines stt 12 s + respond 15 s, page aborts 13 s / 16 s (voice turn ≤ 29 s); shapeReply cut = 119 cp + … ; zh transcripts → ICU Hant-Hans; warm-up text clarified (no code change). 03 §9 seam changed. docs/backend/logs/be-architect-2-stt60.log (new).
-Result: 52–55 s clips transcribed in 4.3–5.3 s CLI wall incl. model load; Hant-Hans converts 有點難過 → 有点难过 — evidence: docs/backend/logs/be-architect-2-stt60.log. Gate parsers: every DES ≤ 117 words, 12/12 REQs claimed. Gate p2 not run.
+## be-architect #3 · step 4 (design amendment) · round 1 · 2026-11-15T00:32:17Z
+Task: resolve be-developer #1's design gaps 1–3 (08 § Design gaps) with one rule each.
+Changed: docs/backend/03-detailed-design.md (+26/-10) — DES-002 `historyBudget: 2000` (replaces historyBudgetChars 6000) + `missingHints()`; DES-007 windowOf weight = len + 1.5 × Han; DES-009 `hanCount()` export, zh when ceil(han/2) ≥ English words, example "I love 火锅" → en (1:2); DES-001 step 1 prints missingHints; §9 respond row (seam text changed). docs/backend/02-architecture.md (+7/-5) — §2 row, §4 new row 前文窗口 + 语言 row, §5 rows. docs/backend/logs/be-architect-3-window.log (new).
+Result: cold reply+mood on idle instance A: 6000-char-class windows 13.3 s–504; weighted 2000 → zh 6.7–7.1 s, en 6.5–7.0 s (n=4 each); prefill ≈ 130 token/s dominates (direct timings). New lang rule passes all TC-008 cases + TC-037 (node eval, not a test run). DES ≤ 117 words, prose > 50 = [] (gatelib parsers). Gate p2 not run.
 Next agent must know:
-- Pitfalls: contract §2 still holds the old seam (500 chars, 131072 B, 25/20/30 s); orchestrator must re-copy 03 §9. web/index.html:398 maxlength 500 stays valid (≤ 1500).
-- Pitfalls: FX-005 stays the 16 kHz PCM16 converted copy; 01 §7 still says 24 kHz Float32 — analyst/user fix at Plan.
-- Tried, did not work: nothing.
-- Left open: after 20 turns the 40-entry window slides every turn → prompt prefix changes → every turn is cold (6.4–8.7 s + STT ≈ 10 s). Not redesigned this round; 02 §5 row 1 names the fallback (block-wise window or 4B), measured at build step 4.
-Read beyond the list: docs/backend/logs/be-architect-1-bench.log, bench-scripts.log:254-277 (history20 = 979 chars); ~/.claude/gates/gatelib/docs.py (word counting).
-Next agent reads: docs/backend/03-detailed-design.md §9, DES-002, DES-007, DES-013; 02 §4 rows 简体/截止/line 上限, §5 rows 1, 7, 8
+- Code to change: `server/config.js` (limits key + missingHints), `server/bonsai.js` windowOf, `server/lang.js` (hanCount, ceil(han/2)), `server/main.js` step 1 hints.
+- Tests to change: TC-013 (expected 40; 10; 10 stays; 20; 5×1500 → 1; Han case 21×'好'×40 → 20), TC-015 (limits deepEqual `historyBudget: 2000`), TC-031 fakes (40×200 → 1+10+1 messages); TC-016 should add missingHints cases; TC-008/TC-037 code unchanged, 04 text + TC-037 comment stale.
+- Pitfalls: latency drifted ~20 % slower over 15 min of back-to-back runs (thermal?); en 1000-char run 1 = 10.5 s outlier (1/30, unexplained).
+- Tried, did not work: plain char budget (zh needs ~850, starves en); block-wise window (page sends last 40, backend cannot align blocks without a seam change).
+- Left open: 60 s zh voice line (300 chars) at the new window unmeasured (old window 12.2–13.4 s respond); orchestrator re-copies 03 §9 respond row into contract §2.
+Read beyond the list: ~/.claude/gates/gatelib/docs.py:48-51 (CJK counted 2 per word); docs/backend/04-test-plan.md TC-008/013/031/037.
+Next agent reads: docs/backend/03-detailed-design.md DES-001 step 1, DES-002, DES-007 windowOf comment, DES-009; docs/backend/logs/be-architect-3-window.log
 
 ## fe-ux #4 · step 2 (frontend feedback, increment) · round 1 · increment 1 · 2026-11-14T23:43:51Z
 Task: decide DFB-005 (listening starts when the mic stream opens) and, if accepted, update FLOW-005 / PAGE-001 (increment 1) listening rows.

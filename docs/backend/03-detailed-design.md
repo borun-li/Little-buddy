@@ -1,8 +1,8 @@
 # Detailed design — 离线小伙伴：真实转写、Bonsai 回复与情绪、中英文
 
-- Author: be-architect #1 (Phase 2, same dispatch as `02-architecture.md`)；revised be-architect #2（round 2：上限、截止、截断、简体） · Input: `01-requirements.md`, `02-architecture.md` · 2026-11-14
+- Author: be-architect #1 (Phase 2, same dispatch as `02-architecture.md`)；revised be-architect #2（round 2：上限、截止、截断、简体）；amended be-architect #3（step 4：DES-001 缺文件提示、DES-002/007 前文权重预算、DES-009 多数规则） · Input: `01-requirements.md`, `02-architecture.md` · 2026-11-14
 - 代码 ESM JavaScript（Node ≥ 18，本机 v24.13.0，无 npm 依赖）+ Swift 5.10 包。文档中文，代码与标识符英文。
-- 证据：`docs/backend/logs/be-architect-1-bench.log`、`docs/backend/logs/be-architect-1-stt-check.log`、`docs/backend/logs/be-architect-2-stt60.log`。
+- 证据：`docs/backend/logs/be-architect-1-bench.log`、`docs/backend/logs/be-architect-1-stt-check.log`、`docs/backend/logs/be-architect-2-stt60.log`、`docs/backend/logs/be-architect-3-window.log`。
 
 ## 1. Files
 | Path | Responsibility | New / changed |
@@ -41,7 +41,7 @@ function parseTurn(body: Buffer): { line: string, history: HistoryEntry[] }     
 // routes: GET /api/health | POST /api/respond (application/json, ≤ 262144 B) | POST /api/transcribe (audio/wav, ≤ 2,000,000 B)
 ```
 - **Behaviour:**
-  1. `missingFiles()` 非空 → 打印每个缺失路径和"联网时运行一次 `npm run setup`"，退出 1。
+  1. `missingFiles()` 非空 → 每个缺失路径一行，再打印 `missingHints(missing)` 的每一行，退出 1。
   2. `BONSAI_PORT` 上 `/health` 500 ms 内有应答 → 打印"端口被占用，设 BONSAI_PORT"，退出 1。
   3. 非 `--warm-only`：`listen(PORT,'127.0.0.1')`；`EADDRINUSE` → 打印"设 PORT"，退出 1。
   4. 同时启动两个子进程；都 `ready` → 打印 `就绪 Ready: <url>`；`--warm-only` 则停掉、退出 0。
@@ -59,17 +59,26 @@ export const CONFIG: {
   host: '127.0.0.1', port: number,                       // PORT, default 4317
   bonsai: { size: '2B'|'4B'|'9B', port: number, dir: string },   // BONSAI_MODEL '9B', BONSAI_PORT 4318, <repo>/samples/bonsai-models/gguf
   stt: { bin: string, modelDir: string, tokenizerDir: string },  // <repo>/stt/.build/release/companion-stt, STT_MODEL_DIR, STT_TOKENIZER_DIR
-  limits: { lineChars: 1500, historyEntries: 40, historyTextChars: 1500, historyBudgetChars: 6000, jsonBytes: 262144, wavBytes: 2000000 },
+  limits: { lineChars: 1500, historyEntries: 40, historyTextChars: 1500, historyBudget: 2000, jsonBytes: 262144, wavBytes: 2000000 },
+  // historyBudget: weight units for windowOf (DES-007), sized by cold latency (be-architect-3-window.log), replaces historyBudgetChars 6000
   deadlines: { respondMs: 15000, transcribeMs: 12000, sttBootMs: 600000, bonsaiBootMs: 60000 },   // 12 s + 15 s < 30 s (A11)
   restarts: { max: 5, delayMs: 2000 },
 }
 export function bonsaiFiles(cfg = CONFIG): { bin: string, model: string } // bin/macos-arm64/llama-server, models/Ternary-Bonsai-2-<size>-PQ2_0.gguf
 export function missingFiles(cfg = CONFIG): string[]
+export function missingHints(missing: string[], cfg = CONFIG): string[]
+// one line per kind present, in this order, each zh + en, printed by main.js to stderr:
+//   cfg.stt.bin missing             -> '联网时运行一次 Run once while online: npm run setup'
+//   bonsaiFiles(cfg).bin or .model  -> 'Bonsai 文件不在：放回比赛提供的 samples/bonsai-models/，或把 BONSAI_MODEL 设为已有的大小 Bonsai file missing: restore samples/bonsai-models/ from the hackathon kit, or set BONSAI_MODEL to a size you have'
+//   any other path (WhisperKit model files, tokenizer.json)
+//                                   -> 'WhisperKit 模型不在：把已下载的模型放到上面的路径，或设 STT_MODEL_DIR / STT_TOKENIZER_DIR（setup 不下载模型） WhisperKit model missing: put the downloaded model at the path above, or set STT_MODEL_DIR / STT_TOKENIZER_DIR (setup does not download models)'
+// fires: BONSAI_MODEL=2B without its gguf -> only the Bonsai line; all three kinds -> 3 lines; not: [] -> []
 ```
 - **Behaviour:**
   1. `<repo>` = `server/` 的上一级（`import.meta.url`），不写死个人路径；家目录用 `os.homedir()`。
   2. `missingFiles` 检查：llama-server、gguf、`stt.bin`、`modelDir` 下 `AudioEncoder.mlmodelc`/`TextDecoder.mlmodelc`/`MelSpectrogram.mlmodelc`、`tokenizerDir/models/openai/whisper-large-v3/tokenizer.json`。
   3. 只读环境变量，从不下载。
+  4. `missingHints` 只按路径归类，不查文件系统。
 - **Errors:** 无（缺文件由 DES-001 处理）。
 
 ### DES-003 — `server/errors.js`
@@ -157,8 +166,14 @@ export function createBonsai(cfg = CONFIG): {
 export function toMessages(line: string, history: HistoryEntry[], lang: 'zh'|'en'): { role: 'system'|'user'|'assistant', content: string }[]
 export function shapeReply(text: string, lang: 'zh'|'en'): string   // '' when nothing usable
 export function windowOf(history: HistoryEntry[], cfg = CONFIG): HistoryEntry[]
-// windowOf: last 40, then drop the oldest until Σ text.length ≤ historyBudgetChars (6000; fires: 40 entries of 200 chars; not: the bench 20-turn history, 979 chars)
-//   bound: ≤ 6000 + 1500 + system ≈ 8k tokens worst case (zh ≈ 1 token/char, estimate) < 16384 per slot (-c 32768 / -np 2)
+// windowOf: last 40, then drop the oldest until Σ weight(text) ≤ historyBudget (2000); may return [] (one entry heavier than 2000)
+//   weight(t) = t.length + 1.5 * hanCount(t)   (DES-009): Han counts 2.5, everything else 1, ≈ 4 × tokens
+//   (measured: en 3.9-4.1 chars/token, zh text 1.5 chars/token, be-architect-3-window.log)
+//   fires: 40 × 'x'.repeat(200) -> newest 10; 21 × '好'.repeat(40) (weight 100 each) -> newest 20
+//   not: 10 × 'x'.repeat(200) (= 2000) stays 10; the measured 20-turn English chat (1271-1466 chars) stays whole
+//   why 2000: cold reply+mood at the budget 6.7-7.1 s zh, 6.5-7.0 s en (n=4 each) + transcribe ~1.4 s ≤ 10 s (REQ-008);
+//             6000 chars gave 14.3 s / 504 / 504; prefill ≈ 130 tokens/s is the cost, not generation
+//   bound: system ~140 + history ≤ ~600 + line ≤ 1500 chars (≤ ~1000 tokens) ≪ 16384 per slot (-c 32768 / -np 2)
 // llama-server args: ['-m',model,'-ngl','99','-fa','on','-c','32768','-np','2','--host','127.0.0.1','--port',BONSAI_PORT,'--no-webui']
 // warm: respond('Hello', []) sends the reply AND the mood call, so REPLY_SYSTEM and MOOD_SYSTEM are both prefix-cached;
 //       LANG_RULE is the system message's last line, so a zh turn re-processes only LANG_RULE.zh
@@ -192,11 +207,12 @@ export function windowOf(history: HistoryEntry[], cfg = CONFIG): HistoryEntry[]
 - **Interface:**
 ```js
 export function languageOf(text: string): 'zh' | 'en'
+export function hanCount(text: string): number   // (text.match(/\p{Script=Han}/gu) || []).length; also used by windowOf (DES-007)
 ```
 - **Behaviour:**
-  1. `han` = `\p{Script=Han}` 字数；`words` = `/[A-Za-z]+/g` 词数。
-  2. `han > 0 && han >= words` → `zh`；否则 `words > 0` → `en`；两者皆 0（只有 emoji、数字）→ `zh`。
-  3. 例："I just got the internship!" → en；"我今天很happy" → zh（4:1）；"I love 火锅" → en（3:2）。
+  1. `han` = `hanCount(line)`；中文词数 `zhWords = Math.ceil(han / 2)`（中文词平均约两字）；`words` = `/[A-Za-z]+/g` 个数。
+  2. `han > 0 && zhWords >= words` → `zh`（平局 zh）；否则 `words > 0` → `en`；两者皆 0（只有 emoji、数字）→ `zh`。
+  3. 例（zhWords:words）："我今天很happy" → zh（2:1）；"I love 火锅" → en（1:2）；"嗯 ok" → zh（1:1）；"I feel 难过 today" → en（1:3）。
   4. 只看 `line`；界面语言从不进入后端。
 - **Errors:** 无。
 
@@ -382,7 +398,7 @@ Transport：同源，页面与接口都在 `http://127.0.0.1:4317`（`PORT` 可�
 
 | Name | Type | Nullable | Who computes | Endpoint / field |
 |---|---|---|---|---|
-| `respond(line, history)` in | `line` 字符串，去空白后 1–1500（JS `.length`）；`history` 至多最后 40 条 `{role: user\|companion, text 1–1500}`；后端只用合计 ≤ 6000 字符的最近若干条 | no | frontend | `POST /api/respond`，`Content-Type: application/json`，体 ≤ 262144 B |
+| `respond(line, history)` in | `line` 字符串，去空白后 1–1500（JS `.length`）；`history` 至多最后 40 条 `{role: user\|companion, text 1–1500}`；后端只用最近若干条，合计权重 ≤ 2000（权重 = 字符数 + 1.5 × 汉字数；约 2000 英文字符或 800 汉字） | no | frontend | `POST /api/respond`，`Content-Type: application/json`，体 ≤ 262144 B |
 | `reply` out | 字符串，`line` 的语言（zh/en），≤ 2 句、≤ 1 问，zh ≤ 120 字、en ≤ 40 词 | no | backend（Bonsai 2 9B） | 200 `{reply, mood}` |
 | `mood` out | `pleasant-high`\|`pleasant-low`\|`unpleasant-high`\|`unpleasant-low`\|`neutral` | no（拿不准为 `neutral`） | backend，同一响应（O-3） | 同上 |
 | `transcribe(audio)` in | WAV：PCM 16-bit LE、单声道、16000 Hz，≤ 2,000,000 B（60 s = 1,920,044 B）；只在内存，转写后丢弃（O-2） | no | frontend 录 | `POST /api/transcribe`，`Content-Type: audio/wav`，体 = WAV 字节 |

@@ -84,7 +84,7 @@ Transport：同源，页面与接口都在 `http://127.0.0.1:4317`（`PORT` 可�
 
 | Name | Type | Nullable | Who computes | Endpoint / field |
 |---|---|---|---|---|
-| `respond(line, history)` in | `line` 字符串，去空白后 1–1500（JS `.length`）；`history` 至多最后 40 条 `{role: user\|companion, text 1–1500}`；后端只用合计 ≤ 6000 字符的最近若干条 | no | frontend | `POST /api/respond`，`Content-Type: application/json`，体 ≤ 262144 B |
+| `respond(line, history)` in | `line` 字符串，去空白后 1–1500（JS `.length`）；`history` 至多最后 40 条 `{role: user\|companion, text 1–1500}`；后端只用最近若干条，合计权重 ≤ 2000（权重 = 字符数 + 1.5 × 汉字数；约 2000 英文字符或 800 汉字） | no | frontend | `POST /api/respond`，`Content-Type: application/json`，体 ≤ 262144 B |
 | `reply` out | 字符串，`line` 的语言（zh/en），≤ 2 句、≤ 1 问，zh ≤ 120 字、en ≤ 40 词 | no | backend（Bonsai 2 9B） | 200 `{reply, mood}` |
 | `mood` out | `pleasant-high`\|`pleasant-low`\|`unpleasant-high`\|`unpleasant-low`\|`neutral` | no（拿不准为 `neutral`） | backend，同一响应（O-3） | 同上 |
 | `transcribe(audio)` in | WAV：PCM 16-bit LE、单声道、16000 Hz，≤ 2,000,000 B（60 s = 1,920,044 B）；只在内存，转写后丢弃（O-2） | no | frontend 录 | `POST /api/transcribe`，`Content-Type: audio/wav`，体 = WAV 字节 |
@@ -120,3 +120,4 @@ Transport：同源，页面与接口都在 `http://127.0.0.1:4317`（`PORT` 可�
 | 2026-11-14 | Seam replaced by be-architect #1's final text (same-origin `/api/respond`, `/api/transcribe`, `/api/health` on 4317; WAV 16 kHz mono ≤ 2 MB; six error codes); O-1..O-4 answered; C-001..C-005 linked to DES | orchestrator | frontend: DES-013/014/015; fe-ux owes words/states for the six codes, warming, empty transcript, voice tag copy, zh/en switch |
 | 2026-11-14 | Seam re-copied after be-architect #2: line/history text 1–1500, body ≤ 262144 B, server deadlines STT 12 s / respond 15 s, page aborts at 13 s / 16 s; zh transcripts forced Simplified | orchestrator | frontend DES-013 timing and limits changed |
 | 2026-11-14 | §2 PAGE-001 rows replaced per `01-ux.md` Increment 1 (line 1–1500, reply language/limits, mood REQ-006, voice tag, loading/failure/warming states, six-code error tables, `transcribe(audio)` and nothing-heard); seam table untouched | fe-engineer #5 | none; fields now match the seam; `Backend DES` column unchanged |
+| 2026-11-15 | Seam respond row re-copied after be-architect #3: backend keeps recent history up to weight 2000 (chars + 1.5 × Han); page still sends last 40 | orchestrator | none — page unchanged |
