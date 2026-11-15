@@ -522,7 +522,7 @@ None. Checked and found fitting: clear at 8 px inset, caption row with toggle (2
 - **Priority:** P1
 - **Side:** frontend
 - **Depends on:** Q-023
-- **Status:** queued
+- **Status:** built
 
 ### Q-025 — The reply is read aloud
 - **Page:** PAGE-001
@@ -536,7 +536,7 @@ None. Checked and found fitting: clear at 8 px inset, caption row with toggle (2
 - **Priority:** P1
 - **Side:** both (backend first)
 - **Depends on:** Q-020
-- **Status:** queued
+- **Status:** built
 
 ### Q-026 — Speaker toggle and voice-not-ready
 - **Page:** PAGE-001
@@ -550,7 +550,7 @@ None. Checked and found fitting: clear at 8 px inset, caption row with toggle (2
 - **Priority:** P1
 - **Side:** both (backend first)
 - **Depends on:** Q-025, Q-023
-- **Status:** queued
+- **Status:** built
 
 ### Q-027 — Talking or sending stops the voice
 - **Page:** PAGE-001
@@ -564,7 +564,7 @@ None. Checked and found fitting: clear at 8 px inset, caption row with toggle (2
 - **Priority:** P1
 - **Side:** frontend
 - **Depends on:** Q-025
-- **Status:** queued
+- **Status:** built
 
 ### Q-028 — Breathing offered after a worried reply
 - **Page:** PAGE-001
@@ -578,7 +578,7 @@ None. Checked and found fitting: clear at 8 px inset, caption row with toggle (2
 - **Priority:** P1
 - **Side:** frontend
 - **Depends on:** Q-021
-- **Status:** queued
+- **Status:** built
 
 ### Q-029 — Breathing guide
 - **Page:** PAGE-001
@@ -592,7 +592,7 @@ None. Checked and found fitting: clear at 8 px inset, caption row with toggle (2
 - **Priority:** P1
 - **Side:** frontend
 - **Depends on:** Q-028, Q-024, Q-025
-- **Status:** queued
+- **Status:** built
 
 ### Q-030 — Help card under a crisis reply
 - **Page:** PAGE-001
@@ -670,11 +670,11 @@ None. Checked and found fitting: clear at 8 px inset, caption row with toggle (2
 - **Q-021:** `{name}` keys: `title`, `inputLabel`, `typing`, `companionCaption`, `companionName`, `hints.warming`, `awake`, `unreachable`, `stillDown`, `sendUnavailable`, `sendTimeout`. Memory words are not added. `setName(name)` re-substitutes and the app re-renders. Built (fe-engineer #19): `copy.js` adds the 24 increment-2 keys + `hints.cleared`, `setName`/`getName`; `breathName` and `renameName` are functions of the name; `tests/copy-increment2.test.js` (7 tests, in `package.json` test); app.js does not call setName yet (Q-023).
 - **Q-022:** `log.js` gains `clear()`, which puts the original empty state back (kept already as `emptyOriginal`). `app.js` keeps a generation counter: a reply or transcript from an earlier generation is dropped. A callback list lets later rows (reading, breathing, chip, card) register what clear stops. Pending voice transcript: the transcribing turn is removed. Built (fe-engineer #20): `onClear(fn)` is exported from `app.js`; `clearChat` bumps the generation, empties history, `log.clear()`, `setPending(false)`, mood neutral, runs callbacks, shows `hints.cleared`, focuses the input; a stale respond or transcript returns silently (per-utterance guards, `voice-turn.js` untouched); `tests/clear.test.js` (2 tests, in `package.json` test); live check against :4400 at 1440 and 390 passed, including a clear while a reply was pending.
 - **Q-023:** `name.js` = DES-021 `cleanName` (keep `[\p{L}\p{N} \-'·]`, NFC, 12 code points, default names → absent), `localStorage['companion.name']`; both languages and the default names tested against FX-012 expectations. The caption becomes a row (name button, " · phrase", speaker slot) and loses `aria-hidden` as a whole; the mood phrase stays announced from the companion's own name. Names shown by `textContent` only. Emptied or default-named → default for the interface language. Built (fe-engineer #21): `web/js/name.js` (cleanName = DES-021 rule, loadName/saveName on `companion.name` with a throwing or missing storage tolerated, typingFilter, createRename: name button becomes a field with the text selected and `nameNote` under it, Enter or click away saves, Esc keeps, emptied or default-named → default); the caption is `.companion__caption` = name button · phrase (aria-hidden) · empty speaker slot (Q-025), row not aria-hidden; app.js loads the name before the first render, every `respond(line, history, savedName)` carries it, a save re-renders through applyCopy, clear leaves it; the phone note sits above the row because the 280 px stage clips below it; `tests/name.test.js` (8 tests, FX-012 7/7, page rule equals gateway rule).
-- **Q-024:** `poke.js` `nextPoke(prev, random)` never repeats; `companion.js` gains `showFace(mood)` that swaps the layer without touching `data-mood` or the glow; ignored while breathing; a poke during a poke plays the next one; a reply's mood change during a poke applies when it ends. `role=button`, described by `pokeHelp`; `companion.test.js` is updated if it pins `role=img` (listed, with the reason, in the build).
-- **Q-025:** `speaker.js` `createSpeaker({speak, audio, now})`: `say(speech, lang)` plays part 1 at once, prefetches part 2, plays on end; `stop()` pauses, revokes, aborts in-flight and drops the rest; any failure ends silently. Gate: toggle on and `tts` ready. Unlock: first user gesture plays a silent clip [unverified for Safari].
-- **Q-026:** toggle `aria-pressed` is the user's choice even when not ready; tooltip is the `aria-describedby` and shows at 500 ms hover or focus. `health-watch.js` adds `speakReady` and keeps polling every 2 s until it is true; `onChange` for a tts-only change must not call `healthHint`. Existing watch tests keep passing.
-- **Q-027:** `talk-button.js` gets an `onPress` callback called before the stream opens; Enter-send and clear also call `speaker.stop()`.
-- **Q-028, Q-029:** chip shown only when the newest reply is `unpleasant-high` and not crisis; `breath.js` (fake clock): inhale 4 s, exhale 6 s, ×3, phase word announced once, seconds never announced; Esc, 停下, send, talk, clear and a new reply end it, restoring the turn's face; pokes ignored; starting stops the reading.
+- **Q-024:** `poke.js` `nextPoke(prev, random)` never repeats; `companion.js` gains `showFace(mood)` that swaps the layer without touching `data-mood` or the glow; ignored while breathing; a poke during a poke plays the next one; a reply's mood change during a poke applies when it ends. `role=button`, described by `pokeHelp`; `companion.test.js` is updated if it pins `role=img` (listed, with the reason, in the build). Built (fe-engineer #22): `web/js/poke.js` (POKES tickle/oops/here with borrowed faces, `nextPoke`, `createPoker({showFace,setMotion,isBlocked})` holding 1.5 s then a 240 ms crossfade back, a poke mid-poke plays the next, `reset()` for clear); `companion.js` `showFace(face|null, wordFn)` and `setMotion(id)`, `setMood` waits while a poke shows; the companion is `role=button tabindex=0` described by `#poke-help` (pokeHelp), click, Enter, Space (no repeat) poke; ticks svg for oops, focus ring 3 px Cocoa 2 px outside the disc; reduced motion keeps face, word and still ticks; no existing test pinned `role=img`; `tests/poke.test.js` (6 tests, in `package.json` test); live check against :4400 at 1440 and 390 passed (back in about 1.55 s). The breathing row must pass `isBlocked` to `createPoker` (poker is internal to app.js).
+- **Q-025:** `speaker.js` `createSpeaker({speak, audio, now})`: `say(speech, lang)` plays part 1 at once, prefetches part 2, plays on end; `stop()` pauses, revokes, aborts in-flight and drops the rest; any failure ends silently. Gate: toggle on and `tts` ready. Unlock: first user gesture plays a silent clip [unverified for Safari]. Built (fe-engineer #23): `web/js/speaker.js` `createSpeaker({speak, createAudio, url, makeBlob, isEnabled})` → `{say(speech, lang), stop(), unlock(), active}`; one reusable Audio element and object URLs revoked after each part; part 1 asked at once, part n+1 asked when part n arrives (one ahead); a failed, refused or timed-out part ends that reading silently (no hint, no throw; rest dropped); `stop()` pauses, revokes, aborts the in-flight `speak`. app.js calls `say(speech, lang)` after `log.addReply` and `setMood`; `speaker.stop()` runs at every send, at a press-to-talk (inside the `isPaused` callback) and in `onClear`; the first pointerdown or keydown calls `unlock()` (silent 10 ms WAV built in code). `isEnabled` defaults true: Q-026 passes the toggle and the tts gate. `tests/speaker.test.js` (12 tests). Live check: reply text and speak part 1 in the same tick, part 2 requested when part 1 arrived, parts played in order (headless Chrome, autoplay flag, fetch and play hooks).
+- **Q-026:** toggle `aria-pressed` is the user's choice even when not ready; tooltip is the `aria-describedby` and shows at 500 ms hover or focus. `health-watch.js` adds `speakReady` and keeps polling every 2 s until it is true; `onChange` for a tts-only change must not call `healthHint`. Existing watch tests keep passing. Built (fe-engineer #24): toggle `.speaker-toggle` (button, `data-testid=speaker`, `aria-pressed`, name `copy.speaker`) in the caption slot, tooltip `#speaker-tip` (hover after 500 ms via CSS delay, instant at `:focus-visible`; opens upward on the phone because the stage clips below the row); three Lucide symbols volume-2 / volume-x / volume; on at every open, not remembered; classes is-muted, is-notready, is-speaking (waves fade in turn, still with reduce motion). `health-watch.js`: state shape unchanged; new `onTts(on)` callback, `ttsReady` getter (named `ttsReady`, not `speakReady`), `ttsFailed(code)`; checks go on every 2 s after bonsai+stt are ready until `tts` is `ready` (a body without `tts` counts as ready); tts never sets a hint or touches state. `speaker.js` gains `onActive(bool)`. app.js: `isEnabled = speakerOn && watch.ttsReady`; mute calls `speaker.stop()`; a speak failing with not_ready/unavailable calls `watch.ttsFailed`. Tests: 4 cases in health-watch.test.js, 2 in speaker.test.js, `tests/speaker-toggle.test.js` (3).
+- **Q-027:** `talk-button.js` gets an `onPress` callback called before the stream opens; Enter-send and clear also call `speaker.stop()`. Built (fe-engineer #25): `createTalkButton` takes `onPress`, called first in `press()` (before the permission read and the stream, before `isPaused`, in a try so it never breaks a press); app.js passes `onPress: () => speaker.stop()` and keeps the `speaker.stop()` in `isPaused` (the Q-025 wiring test pins it). Send, Enter, voice send and clear already stopped it (Q-025). A stop aborts the part's request and pauses audio (speaker.js). +3 tests in talk-button.test.js.
+- **Q-028, Q-029:** chip shown only when the newest reply is `unpleasant-high` and not crisis; `breath.js` (fake clock): inhale 4 s, exhale 6 s, ×3, phase word announced once, seconds never announced; Esc, 停下, send, talk, clear and a new reply end it, restoring the turn's face; pokes ignored; starting stops the reading. Built (fe-engineer #26, Q-028 only): `log.js` `showOffer(onStart)` / `removeOffer()` / `offerShown` (chip in its own `li.turn--offer`, 36 px, 12 px under the reply, 16 px indent; one at a time; a new reply, a clear and a language switch handled); `app.js` `shouldOfferBreath(mood, crisis)` after `setMood`, `log.removeOffer()` at every send and in `onClear`, and `onBreathStart(fn)` is the hook for Q-029 (click calls `fn({chip, mood})`; the chip stays the offer until Q-029 swaps it to 停下); `i-wind` Lucide symbol and `.breath-chip` CSS; `tests/breath-offer.test.js` (6 tests, in `package.json` test); live check against :4400 at 1440 and 390 (reply unpleasant-high, chip 12 px under, in view, clear removes it). Built (fe-engineer #27, Q-029): `breath.js` (`createBreath`, `stepAt`; fake-clock tests; one tick a second, 4 in / 6 out ×3, ends `done` at 30 s, `stop` ends at once); `app.js` wiring (start = `poker.reset`, `speaker.stop`, calm face, chip → 停下; ends on chip, Esc, send, talk press, clear, new reply or 30 s; `createPoker` now has `isBlocked: () => breath.active`); `companion.js` `setBreathing` / `announce` (name `breathName`, sr-only status says the phase word once per phase, never the seconds); `log.js` `setOfferStop`; `companion.css` `.is-breathing` swell (1.08, phone 1.04, from the bottom centre, glow disc with it; part loops stopped; none under reduced motion); `i-square` symbol; `tests/breath.test.js` (9). Live (headless Chrome, :4400 page, respond stubbed): 1440 swell 1.08 at 4 s and back to 1 at 10 s, phone 1.04; caption 吸气… 4 → 呼气… 6; pokes ignored; Esc and clear end it; 30 s ends by itself, face and chip back; reduced motion: no swell, caption still counts.
 - **Q-030:** `role=region` named `crisisLabel`, three lines, no links, no focus move on arrival; 收起 moves focus to the input.
 - **Q-031:** every new animation has its reduced-motion twin from `02-ui.md` Motion (increment 2); speaking waves stay shown.
 - **Q-032:** target widths: caption row 297 of 358 px at 390 (fe-ui, to re-measure); 334 px card; English card 4 lines; phone name target ≥ 28 px tall; a long name wraps the phrase to a second line and the art shrinks 20 px.

@@ -128,3 +128,70 @@ test('stop cancels pending checks', async () => {
   await r.advance(10000);
   assert.equal(r.calls.length, 1);
 });
+
+// Q-026: tts is its own part: polling goes on until it is ready, with no hint and no change of state.
+test('Q-026 tts starting after bonsai and stt are ready: keeps polling every 2 s, state and hint untouched', async () => {
+  let tts = 'starting';
+  const ttsEvents = [];
+  const r = rig(() => ({ ready: true, stt: 'ready', bonsai: 'ready', tts }));
+  r.watch.start();
+  await r.advance(0);
+  assert.equal(r.watch.ttsReady, false);
+  assert.deepEqual(r.watch.state, { canSend: true, canVoice: true, waking: false, hint: null });
+  await r.advance(6000);
+  assert.equal(r.calls.length, 4); // open, 2 s, 4 s, 6 s
+  assert.equal(r.changes.length, 0); // no onChange, no hint for tts
+  tts = 'ready';
+  await r.advance(2000);
+  assert.equal(r.watch.ttsReady, true);
+  const n = r.calls.length;
+  await r.advance(10000);
+  assert.equal(r.calls.length, n); // polling stops once tts is ready
+  assert.equal(r.changes.length, 0);
+  assert.equal(ttsEvents.length, 0);
+});
+
+test('Q-026 onTts fires only when tts changes; tts down does not stop polling', async () => {
+  let tts = 'down';
+  const events = [];
+  let t = 0;
+  const q = [];
+  const timers = {
+    setTimeout: (fn, ms) => { q.push({ at: t + ms, fn }); return q.length; },
+    clearTimeout: () => {},
+  };
+  const watch = createHealthWatch({
+    health: async () => ({ ready: true, stt: 'ready', bonsai: 'ready', tts }),
+    onTts: (on) => events.push(on), now: () => t, timers,
+  });
+  const flush = async () => { for (let i = 0; i < 5; i++) await Promise.resolve(); };
+  watch.start(); await flush();
+  assert.deepEqual(events, [false]);
+  const step = async () => { const next = q.shift(); t = next.at; next.fn(); await flush(); };
+  await step(); assert.deepEqual(events, [false]); // same value: no new event
+  tts = 'ready';
+  await step(); assert.deepEqual(events, [false, true]);
+  assert.equal(q.length, 0);
+});
+
+test('Q-026 a health body without a tts field counts as ready (no extra polling)', async () => {
+  const r = rig(R);
+  r.watch.start();
+  await r.advance(0);
+  assert.equal(r.watch.ttsReady, true);
+  assert.equal(r.pending(), 0);
+});
+
+test('Q-026 ttsFailed(not_ready) marks the voice not ready and resumes checks; other codes are ignored', async () => {
+  const r = rig({ ready: true, stt: 'ready', bonsai: 'ready', tts: 'ready' });
+  r.watch.start();
+  await r.advance(0);
+  r.watch.ttsFailed('timeout');
+  assert.equal(r.watch.ttsReady, true);
+  r.watch.ttsFailed('unavailable');
+  assert.equal(r.watch.ttsReady, false);
+  assert.equal(r.watch.state.hint, null);
+  await r.advance(2000);
+  assert.equal(r.calls.length, 2);
+  assert.equal(r.watch.ttsReady, true); // the next check says ready again
+});

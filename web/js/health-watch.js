@@ -10,7 +10,7 @@ export const AWAKE_MS = 4000;
 const READY = { canSend: true, canVoice: true, waking: false, hint: null };
 
 export function createHealthWatch({
-  health, onChange = () => {}, now = () => Date.now(),
+  health, onChange = () => {}, onTts = () => {}, now = () => Date.now(),
   timers = { setTimeout: (fn, ms) => setTimeout(fn, ms), clearTimeout: (id) => clearTimeout(id) },
   pollMs = POLL_MS, stillDownMs = STILL_DOWN_MS, awakeMs = AWAKE_MS,
 } = {}) {
@@ -21,6 +21,10 @@ export function createHealthWatch({
   let notReadyShown = false;
   let running = false;
   let token = 0; // a result of an older check is dropped
+  // Q-026: the voice reply (tts) is its own part. It never touches state or hint (no tts hint, 01-ux.md);
+  // checks go on at pollMs until it is ready. A health body without a tts field counts as ready (old contract).
+  let ttsReady = true;
+  function setTts(on) { if (on !== ttsReady) { ttsReady = on; onTts(on); } }
 
   function set(next) {
     const same = Object.keys(next).every((k) => next[k] === state[k]);
@@ -72,13 +76,21 @@ export function createHealthWatch({
   async function check() {
     const mine = ++token;
     let kind;
+    let tts = false;
     try {
-      kind = classify(await health());
+      const result = await health();
+      kind = classify(result);
+      tts = result?.tts === undefined || result.tts === 'ready';
     } catch {
       kind = 'down'; // the check failed: same as the reply side down
     }
     if (mine !== token) return;
-    if (kind === 'ready') return ready();
+    setTts(tts);
+    if (kind === 'ready') {
+      ready();
+      if (!tts) pollTimer = timers.setTimeout(() => { pollTimer = null; check(); }, pollMs); // voice still warming
+      return;
+    }
     apply(kind);
     pollTimer = timers.setTimeout(() => { pollTimer = null; check(); }, pollMs);
   }
@@ -93,6 +105,7 @@ export function createHealthWatch({
 
   return {
     get state() { return { ...state }; },
+    get ttsReady() { return ttsReady; },
     start: begin,
     // A send or a voice line failed with this code: not_ready / unavailable resume the checks.
     failed(code) {
@@ -104,6 +117,13 @@ export function createHealthWatch({
       if (running) return; // already checking
       running = true;
       clearTimeout2(pollTimer);
+      pollTimer = timers.setTimeout(() => { pollTimer = null; check(); }, pollMs);
+    },
+    // Q-026: a voice line failed with not_ready / unavailable: the voice is not ready; checks resume.
+    ttsFailed(code) {
+      if (code !== 'not_ready' && code !== 'unavailable') return;
+      setTts(false);
+      if (running || pollTimer != null) return;
       pollTimer = timers.setTimeout(() => { pollTimer = null; check(); }, pollMs);
     },
     stop() { running = false; token += 1; clearTimeout2(pollTimer); clearTimeout2(awakeTimer); pollTimer = awakeTimer = null; },

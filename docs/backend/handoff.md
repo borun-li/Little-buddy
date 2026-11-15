@@ -95,14 +95,15 @@ Next agent must know:
 - Left open: the not-observable rows still need a mic, a failing backend, reduce-motion emulation or a network log (user check at Acceptance).
 Next agent reads: docs/frontend/04-verification.md
 
-## fe-engineer #21 · step 3 (build Q-023) · round 1 · increment 2 · 2026-11-15T09:30:00Z
-Task: Q-023 — rename in place.
-Changed: web/js/name.js (new), tests/name.test.js (new, 8 tests), web/index.html (caption row), web/css/page.css (row, name button, field, note), web/js/companion.js (writes name button + phrase), web/js/app.js (loadName/setName at open, savedName on every respond, rename wiring), package.json (test list), docs/codemap.md, docs/frontend/03-queue.md.
-Result: name.test 8/8 (FX-012 7/7); frontend unit files 107/108, the 1 failure is tests/fnd-r1-fix.test.js "FND-001/002 app.js wiring" (expects `onUtterance: (audio) => pending ? false`; Q-022 changed that line, not this row). Headless Chrome on :4400 at 1440 and 390: name saved, shown in button, companion label, title, input label; survives reload and clear; Esc keeps; click away saves; emptied -> default; live respond body carried name "团子" and the reply used it.
+## fe-engineer #27 · step 3 (build Q-029) · round 1 · increment 2 · 2026-11-15T11:00:00Z
+Task: Q-029 — the breathing guide (4 s in, 6 s out, ×3).
+Changed: web/js/breath.js (new), web/js/app.js (guide wiring, isBlocked, stops), web/js/companion.js (setBreathing, announce), web/js/log.js (setOfferStop), web/css/companion.css (.is-breathing swell), web/index.html (i-square symbol), tests/breath.test.js (new, 9), package.json (test list), docs/codemap.md, docs/frontend/03-queue.md (Q-029 built + note).
+Result: frontend unit files (test list minus server-*, 22 files) 153/153 pass. No existing test changed. Headless Chrome against :4400 with respond stubbed (no live Bonsai call): 1440 swell 1.08 at 4 s, 1 at 10 s; 390 swell 1.04; chip 停下 (aria 停下深呼吸); caption 吸气… 4 → 呼气… 6; poke click ignored while breathing; Esc, clear and the 30 s end restore the turn's face and the offer chip; reduced motion no swell, caption counts.
 Next agent must know:
-- Pitfalls: caption row = name button, aria-hidden phrase, empty `.caption__speaker` slot for Q-025. The phone note sits above the row (the 280 px stage clips below it). copy.hints is rebuilt on setName, so always applyCopy after.
-- Left open: fnd-r1-fix test needs a fe-tester update (see Result).
-Next agent reads: docs/frontend/03-queue.md Q-024
+- Wiring is pinned by tests/breath.test.js regexes on app.js (stop('send') sits after log.removeOffer(), stop('reply') right before log.addReply, onPress block form); the older speaker/breath-offer pins are intact.
+- Playwright `click` on the companion waits for a stable box and the swell never settles: use `force=True` when scripting a poke during the guide.
+- Left open: a failed send does not bring the chip back (Q-028 note); rename during the guide is not a stop; live-region phase word only checked in a fake DOM and by reading the node, not with a screen reader.
+Next agent reads: docs/frontend/03-queue.md Q-030
 
 ## be-tester #6 · step 4 (gate fix) · round 2 · increment 2 · 2026-11-15
 Round 2 (be-tester #6, gate fix):

@@ -1,17 +1,16 @@
 {
   "phase": "fe-build",
-  "time": "2026-11-15T08:04:19Z",
+  "time": "2026-11-15T08:52:53Z",
   "project": "/Users/apple/Desktop/Hackathon/Local_AI_Hackathon",
   "run_dir": "docs/frontend",
   "overall": "fail",
-  "consecutive_failures": 1,
-  "failed_runs": 1,
+  "consecutive_failures": 2,
+  "failed_runs": 2,
   "fix_round_cap": 2,
   "escalate": false,
   "fail_by_owner": {
     "fe-engineer": [
-      "ROLE.tests",
-      "FE.observables"
+      "CTX.codemap"
     ]
   },
   "checks": [
@@ -24,12 +23,10 @@
     },
     {
       "id": "ROLE.tests",
-      "status": "fail",
-      "message": "fe-engineer modified or deleted existing tests",
+      "status": "pass",
+      "message": "No existing test changed by fe-engineer",
       "owner": "fe-engineer",
-      "details": [
-        "tests/client.test.js"
-      ]
+      "details": []
     },
     {
       "id": "ROLE.unplanned",
@@ -55,7 +52,7 @@
     {
       "id": "FE3.dependencies",
       "status": "pass",
-      "message": "No dependency manifest changed",
+      "message": "Every new dependency is named in the design",
       "owner": "fe-engineer",
       "details": []
     },
@@ -86,8 +83,8 @@
       "message": "tests green",
       "owner": "fe-engineer",
       "details": [
-        "$ npm test -> exit 0 (718.0s), log: /Users/apple/Desktop/Hackathon/Local_AI_Hackathon/docs/frontend/gates/logs/2026-11-15T075221Z-test.log",
-        "counts: {'skipped': 0, 'failed': 0, 'errors': 0, 'passed': 194, 'xfailed': 0, 'xpassed': 0}",
+        "$ npm test -> exit 0 (604.7s), log: /Users/apple/Desktop/Hackathon/Local_AI_Hackathon/docs/frontend/gates/logs/2026-11-15T084248Z-test.log",
+        "counts: {'errors': 0, 'xpassed': 0, 'skipped': 0, 'failed': 0, 'xfailed': 0, 'passed': 256}",
         "per-test results: report from gates.json junit: test-results/junit.xml"
       ]
     },
@@ -100,27 +97,10 @@
     },
     {
       "id": "FE.observables",
-      "status": "fail",
-      "message": "Approved observables or frames changed (re-lock: the user's yes, or --because a newer decision)",
+      "status": "pass",
+      "message": "34 approved observables intact",
       "owner": "fe-engineer",
-      "details": [
-        "Q-014: changed since approval on 2026-11-14",
-        "Q-020: never approved",
-        "Q-021: never approved",
-        "Q-022: never approved",
-        "Q-023: never approved",
-        "Q-024: never approved",
-        "Q-025: never approved",
-        "Q-026: never approved",
-        "Q-027: never approved",
-        "Q-028: never approved",
-        "Q-029: never approved",
-        "Q-030: never approved",
-        "Q-031: never approved",
-        "Q-032: never approved",
-        "Q-033: never approved",
-        "Q-034: never approved"
-      ]
+      "details": []
     },
     {
       "id": "FE.regression",
@@ -138,10 +118,39 @@
     },
     {
       "id": "CTX.codemap",
-      "status": "pass",
-      "message": "docs/codemap.md paths exist, within its cap",
+      "status": "fail",
+      "message": "docs/codemap.md out of date or too long (route/HANDOFF.md §7)",
       "owner": "fe-engineer",
-      "details": []
+      "details": [
+        "--breath-scale: no such path",
+        ".companion: no such path",
+        ".companion.is-breathing: no such path",
+        ".companion__layers: no such path",
+        ".companion__ticks: no such path",
+        ".speaker-toggle: no such path",
+        "aria-pressed: no such path",
+        "button.breath-chip: no such path",
+        "changed: no such path",
+        "companion.name: no such path",
+        "createTalkButton({onPress}): no such path",
+        "i-square: no such path",
+        "i-wind: no such path",
+        "is-breathing: no such path",
+        "is-poke-<id>: no such path",
+        "isEnabled: no such path",
+        "li.turn--offer: no such path",
+        "nameNote: no such path",
+        "onActive(bool): no such path",
+        "onBreathStart(fn): no such path",
+        "renderSpeaker(): no such path",
+        "savedName: no such path",
+        "span.sr-only[role=status][aria-live=polite]: no such path",
+        "speak: no such path",
+        "speakerOn: no such path",
+        "tts: no such path",
+        "ttsFailed('not_ready'|'unavailable'): no such path",
+        "ttsReady: no such path"
+      ]
     },
     {
       "id": "CTX.handoff",
@@ -153,19 +162,25 @@
   ],
   "data": {
     "writer_changed": [
+      "tests/breath.test.js",
+      "web/js/breath.js",
       "docs/codemap.md",
       "docs/frontend/03-queue.md",
       "docs/frontend/run-log.jsonl",
-      "tests/client.test.js",
-      "web/js/companion-client.js"
+      "package.json",
+      "web/css/companion.css",
+      "web/index.html",
+      "web/js/app.js",
+      "web/js/companion.js",
+      "web/js/log.js"
     ],
     "counts": {
+      "errors": 0,
+      "xpassed": 0,
       "skipped": 0,
       "failed": 0,
-      "errors": 0,
-      "passed": 194,
       "xfailed": 0,
-      "xpassed": 0
+      "passed": 256
     }
   }
 }

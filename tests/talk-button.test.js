@@ -8,7 +8,7 @@ globalThis.window = { matchMedia: () => ({ matches: false }), addEventListener: 
 globalThis.document = { addEventListener: (t, f) => { docL[t] = f; } };
 const { createTalkButton } = await import('../web/js/talk-button.js');
 
-function setup({ permission = 'granted' } = {}) {
+function setup({ permission = 'granted', onPress, isPaused = () => false } = {}) {
   mock.timers.reset();
   mock.timers.enable({ apis: ['setTimeout', 'setInterval', 'Date'] });
   const btnL = {};
@@ -36,7 +36,7 @@ function setup({ permission = 'granted' } = {}) {
     }),
     now: () => Date.now(),
   };
-  createTalkButton({ button, hint, isPaused: () => false, onUtterance: (a) => utterances.push(a), deps });
+  createTalkButton({ button, hint, isPaused, onPress, onUtterance: (a) => utterances.push(a), deps });
   const pointer = { button: 0, preventDefault() {}, clientX: 5, clientY: 5 };
   return {
     label, classes, hints, stopped, calls, utterances,
@@ -166,5 +166,30 @@ test('open fails: the error hint shows and nothing is listening', async () => {
   await t.down(); await t.fail('NotFoundError');
   assert.equal(t.hints.at(-1), 'noMic');
   assert.equal(t.classes.has('is-listening'), false);
+  after();
+});
+
+test('Q-027: onPress runs at the press, before the stream opens', async () => {
+  const seen = [];
+  const t = setup({ onPress: () => seen.push('press') });
+  await t.down();
+  assert.deepEqual(seen, ['press']);
+  assert.equal(t.classes.has('is-listening'), false);
+  after();
+});
+
+test('Q-027: onPress runs before isPaused, and also when the hold is refused', async () => {
+  const order = [];
+  const t = setup({ onPress: () => order.push('press'), isPaused: () => { order.push('paused'); return true; } });
+  await t.down();
+  assert.deepEqual(order, ['press', 'paused']);
+  assert.equal(t.classes.has('is-listening'), false);
+  after();
+});
+
+test('Q-027: a throwing onPress does not break the hold', async () => {
+  const t = setup({ onPress: () => { throw new Error('x'); } });
+  await t.down(); await t.open();
+  assert.equal(t.classes.has('is-listening'), true);
   after();
 });

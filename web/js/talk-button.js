@@ -41,7 +41,7 @@ export function createHint(el) {
   };
 }
 
-export function createTalkButton({ button, hint, isPaused, onUtterance, deps = {} }) {
+export function createTalkButton({ button, hint, isPaused, onUtterance, onPress = () => {}, deps = {} }) {
   const {
     micPermission: getPermission = micPermission, requestStream: openStream = requestStream,
     stopStream: closeStream = stopStream, meter: makeMeter = meter, now = () => performance.now(),
@@ -104,6 +104,8 @@ export function createTalkButton({ button, hint, isPaused, onUtterance, deps = {
   }
 
   async function press(by) {
+    // Q-027: a press stops the voice first, whether or not the hold goes on (before the mic opens)
+    try { onPress(); } catch { /* the voice is never worth a broken press */ }
     if (hold || isPaused()) return;
     const h = { by, released: false, cancelled: false, finishing: false, mic: null, t0: 0, micHint: false, prompted: false, unknownState: false };
     hold = h;

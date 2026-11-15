@@ -19,10 +19,20 @@ const transcribingWords = () => copy.transcribing.replace(/…$/, '');
 
 export function createLog(scroller, list, emptyState) {
   let typing = null;
+  let offer = null; // Q-028: the breathing chip's own list item, under the newest worried reply
+  let offerBtn = null;
+  let offerStop = false; // Q-029: the chip reads 停下 while the guide runs
   const emptyOriginal = emptyState;
 
   function scrollToNewest() {
     scroller.scrollTo({ top: scroller.scrollHeight, behavior: reduceMotion() ? 'auto' : 'smooth' });
+  }
+
+  function removeOffer() {
+    offer?.remove();
+    offer = null;
+    offerBtn = null;
+    offerStop = false;
   }
 
   function add(li) {
@@ -89,6 +99,8 @@ export function createLog(scroller, list, emptyState) {
       list.querySelectorAll('.turn__tag-text').forEach((el) => { el.textContent = copy.voiceTag; });
       list.querySelectorAll('.turn__placeholder').forEach((el) => { el.textContent = transcribingWords(); });
       list.querySelectorAll('.turn--typing .sr-only').forEach((el) => { el.textContent = copy.typing; });
+      list.querySelectorAll('.breath-chip__text').forEach((el) => { el.textContent = offerStop ? copy.breathStop : copy.breathOffer; });
+      if (offerStop) offerBtn?.setAttribute?.('aria-label', copy.breathStopName);
     },
     dropFailed(turn) {
       typing?.remove();
@@ -103,15 +115,54 @@ export function createLog(scroller, list, emptyState) {
     clear() {
       list.replaceChildren();
       typing = null;
+      offer = null;
+      offerBtn = null;
+      offerStop = false;
       if (emptyOriginal) {
         emptyState = emptyOriginal;
         if (!emptyOriginal.isConnected) scroller.prepend(emptyOriginal);
       }
       scroller.scrollTop = 0;
     },
+    // Q-028 / CMP-009 offer: a small outlined button in its own item, 12 px under the newest reply. Only one
+    // exists; a new reply, a send and a clear take it away. onStart is Q-029's hook (the guide starts there).
+    showOffer(onStart) {
+      removeOffer();
+      const li = document.createElement('li');
+      li.className = 'turn turn--offer';
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'breath-chip';
+      btn.dataset.testid = 'breath-offer';
+      btn.innerHTML = '<svg class="icon icon--chip" aria-hidden="true"><use href="#i-wind"/></svg>';
+      const word = document.createElement('span');
+      word.className = 'breath-chip__text';
+      word.textContent = copy.breathOffer;
+      btn.append(word);
+      btn.addEventListener('click', () => onStart?.(btn));
+      li.append(btn);
+      offer = add(li);
+      offerBtn = btn;
+      offerStop = false;
+      return btn;
+    },
+    // Q-029 / CMP-009 stop variant: the same button (so focus stays) swaps icon, words and accessible name.
+    // No chip: nothing to do. Offer again when the guide ends.
+    setOfferStop(on) {
+      if (!offerBtn || offerStop === on) return;
+      offerStop = on;
+      offerBtn.querySelector('use')?.setAttribute('href', on ? '#i-square' : '#i-wind');
+      const word = offerBtn.querySelector('.breath-chip__text');
+      if (word) word.textContent = on ? copy.breathStop : copy.breathOffer;
+      if (on) offerBtn.setAttribute('aria-label', copy.breathStopName);
+      else offerBtn.removeAttribute('aria-label');
+    },
+    removeOffer,
+    get offerShown() { return offer !== null; },
     addReply(text) {
       typing?.remove();
       typing = null;
+      removeOffer();
       list.querySelector('[data-testid="reply"]')?.removeAttribute('data-testid');
       const li = document.createElement('li');
       li.className = 'turn turn--reply';

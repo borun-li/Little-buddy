@@ -1,12 +1,18 @@
 // Entry: turn flow idle -> pending -> idle (FLOW-001, FLOW-002). Data comes only from companion-client.js.
-import { respond, transcribe, health } from './companion-client.js';
+import { respond, transcribe, health, speak } from './companion-client.js';
 import { copy, voiceHintKey, MAX_VOICE_CHARS, setLang, getLang, resolveLang, setName } from './copy.js';
 import { loadName, saveName, createRename } from './name.js';
 import { createLog } from './log.js';
 import { createCompanion } from './companion.js';
+import { createPoker } from './poke.js';
+import { createBreath } from './breath.js';
+import { createSpeaker } from './speaker.js';
 import { createHealthWatch } from './health-watch.js';
 import { createHint, createTalkButton } from './talk-button.js';
 import { handleUtterance } from './voice-turn.js';
+
+// Q-028: the one rule for the chip (exported for the tests).
+export const shouldOfferBreath = (mood, crisis) => mood === 'unpleasant-high' && crisis !== true;
 
 const $ = (sel) => document.querySelector(sel);
 
@@ -25,12 +31,86 @@ const note = $('.field__note');
 
 const log = createLog($('.log'), $('.log__turns'), $('.log__empty'));
 const companion = createCompanion($('[data-testid="companion"]'), $('.companion__caption'));
+const companionEl = $('[data-testid="companion"]');
 const history = []; // page memory only (A5)
 let pending = false;
 // Q-022: bumped by every clear; a reply or transcript that belongs to an earlier generation is dropped.
 let generation = 0;
 const clearCallbacks = []; // later rows (reading, breathing, chip, card) register what a clear must stop
 export function onClear(fn) { clearCallbacks.push(fn); }
+// Q-028 -> Q-029 hook: the offer chip calls this when tapped; Q-029 registers the guide's start here.
+// No guide registered yet: the tap does nothing. The turn's mood and crisis flag ride along.
+let breathStart = null;
+export function onBreathStart(fn) { breathStart = fn; }
+onClear(() => log.removeOffer()); // a clear removes the chip (the log's own clear drops the node too)
+
+// Q-025 / DES-025: the reply's voice. Never waits for text or mood; any failure is silence. Q-026 adds the
+// toggle and the tts gate through isEnabled. A clear, a send and a press to talk stop it (see below).
+// Q-026 / DES-025: the toggle is on at every open (not remembered); a reading needs it on AND tts ready. A
+// speak that fails with not_ready / unavailable tells the watch (checks resume); the failure itself stays silent.
+let speakerOn = true;
+const speakerBtn = $('.speaker-toggle');
+const speakerTip = $('.speaker-tip');
+function renderSpeaker() {
+  const ready = watch.ttsReady;
+  const key = !ready ? 'speakerNotReady' : speakerOn ? 'speakerOn' : 'speakerOff';
+  const icon = !ready ? 'i-volume' : speakerOn ? 'i-volume-2' : 'i-volume-x';
+  speakerBtn.setAttribute('aria-pressed', String(speakerOn)); // keeps the user's choice, also when not ready
+  speakerBtn.setAttribute('aria-label', copy.speaker);
+  speakerBtn.classList.toggle('is-muted', ready && !speakerOn);
+  speakerBtn.classList.toggle('is-notready', !ready);
+  speakerBtn.classList.toggle('is-speaking', ready && speakerOn && speaker.active);
+  speakerBtn.querySelector('use').setAttribute('href', `#${icon}`);
+  speakerTip.textContent = copy[key];
+}
+const speaker = createSpeaker({
+  speak: (text, lang, signal) => speak(text, lang, signal).catch((err) => { watch.ttsFailed(err?.code); throw err; }),
+  isEnabled: () => speakerOn && watch.ttsReady,
+  onActive: () => renderSpeaker(),
+});
+speakerBtn.addEventListener('click', () => {
+  speakerOn = !speakerOn;
+  if (!speakerOn) speaker.stop(); // muting silences a reading at once; unmuting never replays
+  renderSpeaker();
+});
+onClear(() => speaker.stop());
+// The first click or key unlocks the audio element for browsers that want a gesture (one silent clip).
+['pointerdown', 'keydown'].forEach((t) => document.addEventListener(t, () => speaker.unlock(), { capture: true, once: true }));
+
+// Q-024: click or Enter/Space on the companion plays a reaction; a clear ends one at once.
+const poker = createPoker({ showFace: companion.showFace, setMotion: companion.setMotion, isBlocked: () => breath.active });
+onClear(() => poker.reset());
+companionEl.addEventListener('click', () => poker.poke(() => copy.pokes));
+companionEl.addEventListener('keydown', (e) => {
+  if ((e.key !== 'Enter' && e.key !== ' ') || e.repeat || e.isComposing) return;
+  e.preventDefault();
+  poker.poke(() => copy.pokes);
+});
+
+// Q-029 / DES-028 / FLOW-009: the guide. Start stops the reading and any poke, wears the neutral face (the turn's
+// data-mood stays), and the chip reads 停下. Every end (done, chip, Esc, send, talk, clear, new reply) puts the turn's
+// face back and offers the chip again. Reduced motion: companion.css drops the swell; the caption still counts.
+const phaseWord = (phase) => copy[phase === 'in' ? 'breathIn' : 'breathOut']('').replace(/[…\s]+$/, '');
+const breath = createBreath({
+  onStart() {
+    poker.reset();
+    speaker.stop();
+    companion.setBreathing(true);
+    log.setOfferStop(true);
+  },
+  onTick({ phase, n, changed }) {
+    companion.showFace('neutral', () => copy[phase === 'in' ? 'breathIn' : 'breathOut'](n));
+    if (changed) companion.announce(phaseWord(phase));
+  },
+  onEnd() {
+    companion.setBreathing(false);
+    companion.showFace(null, null);
+    log.setOfferStop(false);
+  },
+});
+onBreathStart(() => { if (breath.active) breath.stop('chip'); else breath.start(); });
+onClear(() => breath.stop('clear'));
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !e.isComposing) breath.stop('esc'); });
 
 const rename = createRename({
   row: $('.companion__caption'),
@@ -63,13 +143,16 @@ const watch = createHealthWatch({
     companion.setWaking(st.waking);
     healthHint(st.hint);
   },
+  onTts: () => renderSpeaker(), // tts is its own part: no hint, no caption (Q-026)
 });
 
 const talk = createTalkButton({
   button: $('.talk-button'),
   hint,
+  onPress: () => { speaker.stop(); breath.stop('talk'); }, // Q-027: pressing to talk silences the voice at once, also when the hold is refused
   // A hold while voice is not ready records nothing and repeats the current hint (talk-button only asks here).
   isPaused: () => {
+    speaker.stop(); // second guard (Q-025 wiring test pins it); onPress already stopped it
     if (pending) return true;
     const st = watch.state;
     if (!st.canVoice) { showHint(st.hint ?? 'unreachable'); return true; }
@@ -141,6 +224,9 @@ async function send(raw, { voice = false, turn: standing = null } = {}) {
   const line = raw.trim();
   if (!line || (pending && !standing)) return false;
   clearSendHint();
+  speaker.stop(); // a send stops the voice at once
+  log.removeOffer(); // Q-028: the next send takes the chip away
+  breath.stop('send'); // Q-029: a send ends the guide
   const turn = standing ?? log.addYou(line, { voice });
   const gen = generation;
   setPending(true);
@@ -154,11 +240,15 @@ async function send(raw, { voice = false, turn: standing = null } = {}) {
     return false;
   }
   if (gen !== generation) return false; // late reply after a clear: dropped
-  const { reply, mood } = result;
+  const { reply, mood, lang, speech, crisis } = result;
   history.push({ role: 'user', text: line }, { role: 'companion', text: reply });
+  breath.stop('reply'); // Q-029: a new reply ends the guide first, so its mood applies at once
   log.addReply(reply);
   companion.setMood(mood); // the mood changes with the reply, never at send
+  // Q-028 / DES-028: the offer only after an unpleasant-high reply that is not a crisis turn (A21).
+  if (shouldOfferBreath(mood, crisis)) log.showOffer((chip) => breathStart?.({ chip, mood }));
   setPending(false);
+  speaker.say(speech, lang); // after the text and the mood; a new reply stops the old voice
   return true;
 }
 
@@ -212,6 +302,7 @@ function applyCopy() {
   log.refresh();
   companion.refresh();
   rename.refresh();
+  renderSpeaker();
 }
 
 const langGroup = $('.lang-switch');

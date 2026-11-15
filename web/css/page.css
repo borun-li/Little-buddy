@@ -60,6 +60,17 @@ p { margin: 0; }
 }
 .stage-clear:hover, .stage-clear:active { background: var(--color-turn-you-bg); color: var(--color-text-primary); }
 .stage-clear:focus-visible { outline: 3px solid var(--color-focus-ring); outline-offset: 2px; }
+/* CMP-009 breathing offer chip (Q-028): 36 px, 12 px under its reply (list gap 16 - 4), indented 16 px to the reply text */
+.turn--offer { margin-top: -4px; padding-left: 16px; }
+.breath-chip {
+  display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 14px 0 12px;
+  background: none; cursor: pointer; color: var(--color-text-primary);
+  border: 1px solid var(--color-border-control); border-radius: var(--radius-control);
+  font: 400 16px/26px var(--font-ui);
+}
+.breath-chip .icon--chip { width: 16px; height: 16px; }
+.breath-chip:hover, .breath-chip:active { background: var(--color-turn-you-bg); }
+.breath-chip:focus-visible { outline: 3px solid var(--color-focus-ring); outline-offset: 2px; }
 /* CMP-011 caption row: name button, " · phrase", speaker slot (Q-025); centred under the art */
 .companion__caption {
   position: relative;
@@ -77,7 +88,30 @@ p { margin: 0; }
 .caption__name:hover { text-decoration-style: solid; }
 .caption__name:focus-visible { outline: 3px solid var(--color-focus-ring); outline-offset: 0; } /* phone: the row is 5 px from the stage edge */
 .caption__phrase { white-space: pre-wrap; }
-.caption__speaker:empty { display: none; }
+/* CMP-007 speaker toggle: 36 px, 18 px icon, 12 px after the caption (8 px phone) */
+.caption__speaker { position: relative; display: inline-flex; margin-left: 8px; }
+.speaker-toggle {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 36px; height: 36px; padding: 0; cursor: pointer;
+  border: 1px solid var(--color-border-control); border-radius: var(--radius-control);
+  background: var(--color-turn-you-bg); color: var(--color-text-primary);
+}
+.speaker-toggle .icon { width: 18px; height: 18px; }
+.speaker-toggle:hover { border-color: var(--color-text-primary); }
+.speaker-toggle:focus-visible { outline: 3px solid var(--color-focus-ring); outline-offset: 2px; }
+.speaker-toggle.is-muted, .speaker-toggle.is-notready { background: var(--color-surface-page); color: var(--color-text-muted); }
+.speaker-toggle.is-speaking .wave-a { animation: wave 1.2s infinite; }
+.speaker-toggle.is-speaking .wave-b { animation: wave 1.2s 0.6s infinite; }
+@keyframes wave { 0%, 100% { opacity: 1; } 50% { opacity: 0.2; } }
+.speaker-tip {
+  position: absolute; bottom: calc(100% + 8px); right: 0; z-index: 2; /* phone: the stage clips below the row, so the tip opens upward */
+  width: max-content; max-width: 240px; padding: 4px 8px; text-align: left; white-space: normal;
+  background: var(--color-surface-page); border: 1px solid var(--color-border-control); border-radius: var(--radius-control);
+  font: 400 13px/20px var(--font-ui); letter-spacing: 0; color: var(--color-text-primary);
+  opacity: 0; visibility: hidden; pointer-events: none;
+}
+.speaker-toggle:hover + .speaker-tip { opacity: 1; visibility: visible; transition: opacity 0s 500ms, visibility 0s 500ms; }
+.speaker-toggle:focus-visible + .speaker-tip { opacity: 1; visibility: visible; }
 .name-field {
   min-width: 2ch; max-width: 100%; margin: 0; padding: 4px 8px;
   border: 2px solid var(--color-focus-ring); border-radius: var(--radius-control); outline: none;
@@ -216,6 +250,8 @@ html[lang="en"] .composer { grid-template-columns: minmax(0, 1fr) 154px; }
   .stage-clear { top: 24px; left: 24px; }
   .stage { border-bottom: 0; border-right: 1px solid var(--color-border-default); gap: var(--space-24); }
   .companion__caption { font-size: 21.6px; line-height: 32px; }
+  .caption__speaker { margin-left: 12px; }
+  .speaker-tip { bottom: auto; top: calc(100% + 8px); }
   .caption__note { top: calc(100% + 6px); bottom: auto; max-width: 540px; }
   .log { padding: var(--space-40) var(--space-40) 0; }
   .turn--you { max-width: 440px; }
@@ -239,6 +275,7 @@ html[lang="en"] .composer { grid-template-columns: minmax(0, 1fr) 154px; }
   .turn, .hint { animation: none; }
   .typing__dot { display: none; }
   .typing__static { display: inline; }
+  .speaker-toggle .wave-a, .speaker-toggle .wave-b { animation: none !important; }
 }
 .tab-hidden * { animation-play-state: paused !important; }
 
