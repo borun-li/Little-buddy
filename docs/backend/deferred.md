@@ -10,3 +10,5 @@ Cut line (orchestrator, kickoff 2026-11-14, PLAYBOOK §2.1): the round is what t
 | BD-004 | Streaming reply tokens to the page | not named | later run |
 | BD-005 | Languages beyond zh/en | user named English only, kickoff 2026-11-14 | later run |
 | BD-006 | Frontend D-004/D-005 (stale doc rows from DFB-003) | docs/frontend/deferred.md | next fe-ui / fe-ux dispatch if one runs |
+| BD-007 | Sidechat: an extra chat window to manage context (user's idea, 2026-11-14 21:30 EST) | user chose to defer and consider with P2 local memory | P2 design |
+| BD-008 | P2 local memory (remember the user; summaries of older chats) — design only if time tonight | user, 2026-11-14 21:25 EST | after increment 2 (P1) |
