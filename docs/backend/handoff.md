@@ -73,7 +73,13 @@ Next agent must know:
 Read beyond the list: scratchpad arch6/pkg/Sources/CompanionTTS/main.swift (architect's measurement helper).
 Next agent reads: server/tts.js:9-140; server/bonsai.js crisisReply + respond; docs/backend/08-implementation-log.md § Increment 2
 
-## fe-tester #7 · step 3 (fnd-r1-fix wiring test) · round 1 · increment 2 · 2026-11-15T10:00:00Z
+## fe-tester #8 · step 3 (Q-033 offline cases) · round 3 · increment 2 · 2026-11-15T11:00:00Z
+Task: review and write the six Q-033 cases into tests/offline.test.js after the gate restored it to HEAD.
+Changed: tests/offline.test.js only, six cases appended (the five existing unchanged). Engineer's cases kept, two loosened against unrelated edits: the speaker `.src` check no longer pins variable names ['current','u'] but requires every `.src =` to be a plain identifier (no literal, no concatenation); the @font-face count is >= 1 instead of exactly 1.
+Result: offline.test.js 11/11; frontend unit files (package.json list minus server-*, 25 files) 171/171. Mutations in a scratch copy, each red in a Q-033 case (several also in Q-006): Google Fonts link in index.html; `new Audio('https://x')` in speaker.js; `a.src = 'http://x/'+current`; direct `fetch('/api/x')` in log.js; second remote-ish font url; `import ... 'https://cdn/x.js'` in poke.js. Unmutated copy green.
+Next agent must know: case 1 pins the exact API path set (/api/health, respond, speak, transcribe), so a new endpoint needs that list updated; case 6 names five module files.
+Next agent reads: tests/offline.test.js:82-189
+Earlier entries follow.
 Task: repair the one red assertion in tests/fnd-r1-fix.test.js after Q-022 rewrote the onUtterance guard.
 Changed: tests/fnd-r1-fix.test.js only, one line: `/onUtterance: \(audio\) => pending \? false/` became `/onUtterance: \(audio\) => \{\s*if \(pending\) return false;/`. Same behaviour checked (utterance dropped while pending), source regex for the block form.
 Result: fnd-r1-fix 7/7; frontend unit files (package.json list minus server-*) 108/108. Mutation in a scratch copy (pending line removed from app.js): that test red, other 6 green.
