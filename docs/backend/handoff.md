@@ -70,15 +70,14 @@ Next agent must know:
 - Left open: 60 s zh voice line at the new window unmeasured (be-architect #3); 4B switch unmeasured.
 Read beyond the list: nothing.
 Next agent reads: docs/backend/08-implementation-log.md § Fix rounds; docs/backend/03-detailed-design.md DES-002, DES-007, DES-009
-## fe-tester #4 · step 4 (FE4.evidence fix) · round 3 · increment 1 · 2026-11-15T08:00:00Z
-Task: FE4.evidence: only filenames in backticks in 04-verification.md that exist in evidence/verify-2 or evidence/design.
-Changed: docs/frontend/04-verification.md only (build screenshots cited by full path docs/frontend/evidence/build/...; code, test and package.json names without backticks; the `.aria.yml` and `@phone.png` fragments reworded). Verdicts unchanged.
-Result: a script over the file's backticked names finds none that is missing from verify-2 or design. Rounds 1 and 2 follow.
+## fe-tester #5 · step 4 (FE4.capture recapture) · round 4 · increment 1 · 2026-11-15T09:00:00Z
+Task: re-point docs/frontend/04-verification.md to evidence/verify-3/manifest.md and confirm the 19 verdicts against the verify-3 files.
+Changed: docs/frontend/04-verification.md only (header, round note, Q-010 row). Verdicts: done 7 (Q-001, 002, 003, 005, 008, 015, 017), not observable 12. Q-010 done to not observable: in verify-3 the sad follow-up reply does not show recall of the first line (mood and English reply do hold).
+Result: every backticked filename in the file exists in verify-3 or design (script check); manifest named as evidence/verify-3/manifest.md; no verify-2 left. 0 Figma calls. No tests added or edited.
 Next agent must know:
-- Pitfalls: a bare backticked filename is read as capture evidence; build screenshots need the full path.
-- Left open: tests/verify-r2.test.js and the Q-012/014/019 recapture needs, as in round 2.
+- Pitfalls: the model's reply text changes per capture run, so recall-type observables (Q-010) are flaky evidence; a fixed-reply stub check would settle it.
+- Left open: the not-observable rows still need a mic, a failing backend, reduce-motion emulation or a network log (user check at Acceptance).
 Next agent reads: docs/frontend/04-verification.md
-Round 2: re-judged Q-008 (done), Q-006, Q-009, Q-012, Q-014, Q-019 (not observable); added tests/verify-r2.test.js (3 tests, mutation-checked); npm test 81/81.
 
 ## fe-engineer #16 · step 4 (FE4.row-tests) · round 3 · increment 1 · 2026-11-15T06:30:00Z
 Round 3: package.json test script + tests/verify-r2.test.js (all other entries kept); web/js/talk-button.js:9 comment now says wait until it says Listening. npm test: 84 tests, 84 pass, 0 fail. No other files touched.

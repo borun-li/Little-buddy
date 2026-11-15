@@ -1,0 +1,12 @@
+- main:
+  - group "Interface language":
+    - button "中文"
+    - button "English" [pressed]: EN
+  - img "Little Buddy, at ease"
+  - log "Chat":
+    - listitem: I just made a cup of tea and I feel pretty relaxed.
+    - listitem: That sounds perfect for unwinding! Do you have any special ingredients in your tea?
+  - status
+  - textbox "What you want to tell Little Buddy":
+    - /placeholder: Or type, Enter sends
+  - button "Hold to talk"
