@@ -1,7 +1,0 @@
-[PASS] BASE.clean-tree: Tree clean  (orchestrator)
-[PASS] CMD.test: tests green  (user)
-[PASS] LOG.valid: Run log intact  (orchestrator)
-[PASS] CTX.codemap: docs/codemap.md paths exist, within its cap  (be-architect)
-[PASS] CTX.handoff: handoff.md: 6 current sections  (orchestrator)
-
-[gate] baseline: PASS  report: docs/backend/gates/baseline-latest.json

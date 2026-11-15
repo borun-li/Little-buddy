@@ -1,9 +1,0 @@
-✔ TC-125 [FX-011] REQ-030 the reply uses the name sent (团子, Mochi) and not the default names; with no name it uses a default name; 3 of 3 runs each (11557.698625ms)
-ℹ tests 1
-ℹ suites 0
-ℹ pass 1
-ℹ fail 0
-ℹ cancelled 0
-ℹ skipped 0
-ℹ todo 0
-ℹ duration_ms 11609.332084
