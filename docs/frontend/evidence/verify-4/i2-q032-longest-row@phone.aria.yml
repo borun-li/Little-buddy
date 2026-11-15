@@ -1,0 +1,15 @@
+- main:
+  - button "Clear chat": Clear
+  - group "Interface language":
+    - button "中文"
+    - button "English" [pressed]: EN
+  - button "团子团子团子团子团子团子, listening"
+  - button "Rename, now called 团子团子团子团子团子团子": 团子团子团子团子团子团子
+  - button "Read replies aloud" [pressed]
+  - paragraph: Say anything you like. Hold to talk, or just type.
+  - paragraph: This chat stays on this computer and clears when you reload.
+  - log "Chat"
+  - status
+  - textbox "What you want to tell 团子团子团子团子团子团子":
+    - /placeholder: Or type, Enter sends
+  - button "Hold to talk"
