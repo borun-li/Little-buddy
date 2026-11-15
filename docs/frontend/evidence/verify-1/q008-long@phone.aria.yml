@@ -1,0 +1,18 @@
+- main:
+  - group "Interface language":
+    - button "中文"
+    - button "English" [pressed]: EN
+  - img "Little Buddy, listening"
+  - log "Chat":
+    - listitem: Hi there.
+    - listitem: Hello! How's your day going?
+    - listitem: Today was long.
+    - listitem: I'm sorry it was a long day for you. Did something specific happen to make it so?
+    - listitem: I walked home in the rain.
+    - listitem: That sounds like quite a rainy walk! Did you get wet?
+    - listitem: Now I'm drinking tea.
+    - listitem: Ah, that's a perfect way to warm up after your walk. Is it your favorite tea?
+  - status
+  - textbox "What you want to tell Little Buddy":
+    - /placeholder: Or type, Enter sends
+  - button "Hold to talk"

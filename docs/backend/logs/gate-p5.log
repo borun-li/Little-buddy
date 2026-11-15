@@ -1,0 +1,63 @@
+[PASS] ALL.state: state.json valid  (orchestrator)
+[PASS] ALL.upstream: Upstream documents present  (be-tester)
+[PASS] ROLE.tester-scope: be-tester changed only tests and documents  (be-tester)
+[PASS] CMD.test: tests green  (be-developer)
+[PASS] P5.test-drift: No test removed or skipped  (be-tester)
+[PASS] P5.tc-in-code: 61 automated TCs found in test code  (be-tester)
+[FAIL] P5.tc-results: Automated TCs not passing in this run  (be-tester)
+         TC-001: not-executed
+         TC-002: not-executed
+         TC-003: not-executed
+         TC-004: not-executed
+         TC-005: not-executed
+         TC-006: not-executed
+         TC-007: not-executed
+         TC-008: not-executed
+         TC-037: not-executed
+         TC-038: not-executed
+         TC-009: not-executed
+         TC-010: not-executed
+[FAIL] P5.report-complete: TCs with no pass/fail/blocked verdict in 05-test-report.md  (be-tester)
+         TC-003
+         TC-004
+         TC-005
+         TC-006
+         TC-007
+         TC-008
+         TC-037
+         TC-038
+         TC-009
+         TC-010
+         TC-011
+         TC-012
+[FAIL] P5.report-honest: Report claims passes this run did not observe (Constitution §2.3)  (be-tester)
+         TC-001: reported pass, observed not-executed
+         TC-002: reported pass, observed not-executed
+         TC-040: reported pass, observed not-executed
+         TC-044: reported pass, observed not-executed
+         TC-045: reported pass, observed not-executed
+         TC-049: reported pass, observed not-executed
+         TC-050: reported pass, observed not-executed
+         TC-051: reported pass, observed not-executed
+         TC-052: reported pass, observed not-executed
+         TC-070: reported pass, observed not-executed
+         TC-071: reported pass, observed not-executed
+         TC-072: reported pass, observed not-executed
+[PASS] P5.fixtures: 8 approved fixtures intact  (be-tester)
+[FAIL] P5.fixtures-used: Approved fixtures not exercised by a passing test (tag the test FX-nnn)  (be-tester)
+         FX-001: not-executed
+         FX-002: not-executed
+         FX-003: not-executed
+         FX-004: not-executed
+         FX-005: not-executed
+         FX-006: not-executed
+         FX-007: not-executed
+         FX-008: not-executed
+[PASS] LOG.valid: Run log intact  (orchestrator)
+[PASS] CTX.codemap: docs/codemap.md paths exist, within its cap  (be-tester)
+[FAIL] CTX.handoff: handoff.md must hold one current section per role (route/HANDOFF.md §1)  (orchestrator)
+         be-tester: 2 sections, keep only the latest
+
+[gate] p5: FAIL  report: docs/backend/gates/p5-latest.json
+[gate] owners to fix: {'be-tester': ['P5.tc-results', 'P5.report-complete', 'P5.report-honest', 'P5.fixtures-used'], 'orchestrator': ['CTX.handoff']}
+[gate] fix round 1 of 2 (1 failed runs on 1 distinct trees): send each failure to its owner, then re-run.

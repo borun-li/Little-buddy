@@ -58,16 +58,6 @@ Decided: risk normal (user, kickoff); 9B, setup step, argmax-oss-swift 1.1.1, po
 Open: Plan answers (design + 4 decisions, fixtures FX-001..008 lock, DFB-005, defaults in state.json open_questions).
 Next: on yes → gate.py fixtures-approve --by user; log human --stop Plan; Phase 4 build: baseline, mark be-tester then be-developer, dispatch be-developer (DES-001..012, build order 03 §8; stt first for the ~390 s warm-up) and be-tester (plan) in one message; frontend rows Q-015/016/017/013/019 can follow once backend writer is back (one team's writers at a time).
 
-## be-tester #1 · step 4 (plan + tests) · round 2 · 2026-11-15T00:50:00Z
-Task: update tests and 04 to be-architect #3's amendment (weight budget 2000, missingHints, new DES-009 rule).
-Changed: docs/backend/04-test-plan.md (TC-008, 013, 015, 031, 037 text; new TC-038); tests/server-unit.test.js (TC-008 cases, TC-013 weight expectations, TC-015 `historyBudget: 2000`, TC-037 rewritten, new TC-038 missingHints); tests/server-fakes.test.js (TC-031: 40x200 -> 1+10+1 messages).
-Result: `node --test tests/server-unit.test.js tests/server-fakes.test.js` -> 38 pass, 0 fail (server code had already landed). Live (4400) and boot suites not run this round, as instructed. Expectations were computed from 03 by hand (e.g. 21 x 40 Han = 100 weight each -> 20; 801 Han = 2002.5 -> []), not from server code.
-Next agent must know:
-- missingHints is TC-038 (not folded into TC-016); asserts on keywords (npm run setup / BONSAI_MODEL / STT_MODEL_DIR), order stt, Bonsai, WhisperKit, one line per kind.
-- FX-005 [unverified] note removed from the plan.
-- TC-052 (REQ-008 timing) and TC-049 should be re-run live after the new window; unmeasured: 60 s zh voice line.
-Next agent reads: docs/backend/04-test-plan.md §2
-
 ## be-developer #1 · Phase 4 (build) · round 3 · 2026-11-15T00:47:37Z
 Task: implement be-architect #3's amendment: weighted window historyBudget 2000 (DES-002/007), languageOf ceil(han/2) + hanCount (DES-009), missingHints (DES-001/002); restart instance A; re-measure cold 20-turn zh/en.
 Changed: server/config.js (+15/-1: historyBudget 2000, missingHints), server/bonsai.js (+6/-3: weighted windowOf), server/lang.js (+7/-2: hanCount, ceil(han/2)), server/main.js (+2/-2: prints hints); docs/backend/08-implementation-log.md (Fix rounds 2–3, gaps 1–3 resolved); earlier rounds: server/, stt/, package.json scripts, docs/codemap.md.
@@ -79,11 +69,13 @@ Next agent must know:
 - Left open: 60 s zh voice line at the new window unmeasured (be-architect #3); 4B switch unmeasured.
 Read beyond the list: nothing.
 Next agent reads: docs/backend/08-implementation-log.md § Fix rounds; docs/backend/03-detailed-design.md DES-002, DES-007, DES-009
-## fe-tester #1 · step 3 (fake-layer test repoint) · round 1 · increment 1 · 2026-11-15T01:10:00Z
-- Changed only `tests/fake-companion.test.js`: imports `createFakeCompanion` from `web/js/fake/fake-companion.js`.
-- REQ-003 1 s check now runs on `createFakeCompanion()` default delay (600 ms); the default (real) layer is left to `tests/client.test.js`. Dropped the real-`transcribe()` assertion (it would hit fetch).
-- Seam rule tightened: nothing in `web/` outside `fake/` imports `fake/` (true now). Importer rule (app.js only imports companion-client.js) unchanged.
-- `npm test`: 37 tests, 37 pass, 0 fail.
+## fe-tester #2 · step 4 (verification) · round 1 · increment 1 · 2026-11-15T02:00:00Z
+- Wrote `docs/frontend/04-verification.md`: 7 done (Q-001, 002, 003, 005, 010, 015, 017), 0 not done, 12 not observable (Q-004, 006, 007, 008, 009, 011, 012, 013, 014, 016, 018, 019). Evidence `evidence/verify-1/manifest.md`.
+- Found: every `*.styles.json` in verify-1 is empty (`elements: [{}]`), so no computed style, width or font could be cited; the capture plan's style probes did not return values. Fix the probe before round 2.
+- Recapture wanted: Q-008 with 20 turns; Q-016 with a failed send and sizes 375/768; Q-006 with a request log and computed font; Q-009 with reduce-motion emulation. Q-004, 007, 011, 012, 013, 014, 018, 019 need a fake mic or a stopped/cold backend, otherwise the user's real-mic check at Acceptance.
+- Added `tests/verify-r1.test.js` (5 tests, Q-ids in titles, all pass, mutation-checked on a scratch copy). Not in the `package.json` test script: orchestrator to add it. Words test reads the 01-ux.md Words table as its independent source.
+- No design defects. Minor deviations listed in the file. No `web/`, `server/` or existing test touched.
+
 ## fe-engineer #15 · step 3 (frontend build Q-016) · round 1 · increment 1 · 2026-11-15T04:30:00Z
 Task: Q-016 — English layout fits both sizes (REQ-012, DES-015, DFB-004).
 Changed: web/css/page.css only (`html[lang="en"] .composer` columns 1fr 154px below 960 px; laptop rule also overrides it); 03-queue Q-016 built. index.html, js unchanged (lang attribute already set by app.js).
@@ -93,3 +85,24 @@ Evidence: docs/frontend/evidence/build/Q-016-{390,1440,375,768}-{zh,en}.png (hin
 Not checked: listening state width in a browser (grid column is fixed, so it cannot change); real mic.
 Next agent must know: Chinese layout untouched (same widths as before).
 Next agent reads: web/css/page.css (composer)
+
+## be-tester #2 · step 5 (test run) · round 1 · 2026-11-15T01:35:00Z
+Task: run TC-001..086, write 05-test-report.md, seam check from the backend side.
+Changed: docs/backend/05-test-report.md (new); docs/backend/logs/be-tester-2-live.log, be-tester-2-boot.log (new). No code or fixtures touched.
+Result: 66 pass, 2 fail, 4 blocked. Live `npm run test:backend` (4400) 58/58; `COMPANION_BOOT=1` 64/65. Fail TC-073: server/stt.js:68 logs event `stt_warm`, not in 03 section 6 list. Fail TC-081 (manual): 1/3 replies use the internship context, flaky across runs. Blocked: TC-083 (Wi-Fi), 084/085 (frontend), 086 (needs page + server stop). Seam matches contract; FX-001..008 all pass.
+Next agent must know:
+- Pitfalls: node --test runs the 4 files in parallel, so the boot file overlaps the live file; TC-052 rose to ~6.3 s (alone ~5.0 s). backend-replies.jsonl accumulates across runs; judge by timestamp.
+- Left open: TC-073 fix is either add stt_warm to 03 section 6 (and the test list) or stop emitting it; FX-004 line 05 misses every round (9/10, margin 1).
+Next agent reads: docs/backend/05-test-report.md section 4
+- Carried from be-tester #1 (trimmed by orchestrator): plan 04 has 70 TCs (63 automated); suites tests/server-unit, server-fakes, server-live (COMPANION_URL, refuses 4317), server-boot (COMPANION_BOOT=1); `npm run test:backend` → test-results/junit-backend.xml.
+
+## fe-reviewer #1 · step 4 (review coordinator) · round 1 · increment 1 · 2026-11-15T01:41:35Z
+Task: merge panel candidates A-1..A-3, I-1..I-4, E-1..E-4 and fe-tester #2's verdicts into docs/frontend/05-review.md; disprove or rank.
+Changed: docs/frontend/05-review.md (new) — 9 findings (3 major, 6 minor), 0 dropped; verdict send back. Nothing else.
+Result: every candidate reproduced against 127.0.0.1:4399. Merged I-2+E-1 → FND-001, A-3+E-4 → FND-008. Fix round: FND-001 (health-watch.js:100 failed() fakes a shown not-ready hint → "awake" replaces the failure hint), FND-002 (app.js:100 standing voice turn bypasses pending → overlapping turns, stuck typing dots), both fe-engineer; FND-003 (listening start not announced; mic-opening words are visual) fe-ux first, then fe-engineer. Deferred: FND-004..009 + tester minors Q-001..003 — evidence: scratchpad fe-reviewer-1/probe.out, hang.out
+Next agent must know:
+- Pitfalls: Chrome's input clientWidth already excludes padding; the panel's placeholder box figures (a11y/p3.out, my probe.out boxPx) subtract it twice — corrected numbers are in FND-008.
+- Pitfalls: FND-002 needs a pointer hold with the input focused, then Enter, then release; Space holds move focus to the button and cannot reproduce it.
+- Left open: FND-001 also covers unreachable replacing sendUnavailable after ~400 ms when health reports down; the UX "failure hint stays" rule and the warming-table hints overlap there — fe-ux may need to say which wins.
+Read beyond the list: web/js/companion-client.js:12 (5 s health timeout, for FND-005).
+Next agent reads: docs/frontend/05-review.md §2; web/js/health-watch.js:59-104; web/js/app.js:24-118; web/js/talk-button.js:103-177

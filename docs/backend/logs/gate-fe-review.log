@@ -1,0 +1,24 @@
+[PASS] ALL.state: state.json valid  (orchestrator)
+[FAIL] FE4.tree-unchanged: Files changed while reviewers ran (PLAYBOOK §4.3)  (orchestrator)
+         docs/backend/logs/gate-fe-review.log
+         docs/backend/handoff.md
+         docs/backend/logs/orch-instance-4399.log
+[PASS] ALL.upstream: 05-review.md present  (fe-reviewer)
+[PASS] FE4.panel: Panel: fe-review-accessibility, fe-review-experience, fe-review-integration  (orchestrator)
+[FAIL] FE4.findings: Findings fail the format or point at nothing  (fe-reviewer)
+         FND-001: where 'fe-engineer' is neither path:line nor an existing file
+         FND-002: where 'fe-engineer' is neither path:line nor an existing file
+         FND-003: where 'fe-ux' is neither path:line nor an existing file
+         FND-004: where 'fe-engineer' is neither path:line nor an existing file
+         FND-005: where 'fe-engineer' is neither path:line nor an existing file
+         FND-006: where 'fe-engineer' is neither path:line nor an existing file
+         FND-007: where 'fe-engineer' is neither path:line nor an existing file
+         FND-008: where 'fe-ui' is neither path:line nor an existing file
+         FND-009: where 'fe-ui' is neither path:line nor an existing file
+[PASS] LOG.valid: Run log intact  (orchestrator)
+[PASS] CTX.codemap: docs/codemap.md paths exist, within its cap  (fe-tester)
+[PASS] CTX.handoff: handoff.md: 5 current sections  (orchestrator)
+
+[gate] fe-review: FAIL  report: docs/frontend/gates/fe-review-latest.json
+[gate] owners to fix: {'orchestrator': ['FE4.tree-unchanged'], 'fe-reviewer': ['FE4.findings']}
+[gate] fix round 1 of 2 (1 failed runs on 1 distinct trees): send each failure to its owner, then re-run.
