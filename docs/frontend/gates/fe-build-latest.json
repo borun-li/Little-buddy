@@ -1,15 +1,16 @@
 {
   "phase": "fe-build",
-  "time": "2026-11-15T08:52:53Z",
+  "time": "2026-11-15T09:25:36Z",
   "project": "/Users/apple/Desktop/Hackathon/Local_AI_Hackathon",
   "run_dir": "docs/frontend",
   "overall": "fail",
-  "consecutive_failures": 2,
-  "failed_runs": 2,
+  "consecutive_failures": 3,
+  "failed_runs": 3,
   "fix_round_cap": 2,
-  "escalate": false,
+  "escalate": true,
   "fail_by_owner": {
     "fe-engineer": [
+      "ROLE.tests",
       "CTX.codemap"
     ]
   },
@@ -23,10 +24,12 @@
     },
     {
       "id": "ROLE.tests",
-      "status": "pass",
-      "message": "No existing test changed by fe-engineer",
+      "status": "fail",
+      "message": "fe-engineer modified or deleted existing tests",
       "owner": "fe-engineer",
-      "details": []
+      "details": [
+        "tests/offline.test.js"
+      ]
     },
     {
       "id": "ROLE.unplanned",
@@ -79,13 +82,15 @@
     },
     {
       "id": "CMD.test",
-      "status": "pass",
-      "message": "tests green",
+      "status": "waived",
+      "message": "tests are red",
       "owner": "fe-engineer",
       "details": [
-        "$ npm test -> exit 0 (604.7s), log: /Users/apple/Desktop/Hackathon/Local_AI_Hackathon/docs/frontend/gates/logs/2026-11-15T084248Z-test.log",
-        "counts: {'errors': 0, 'xpassed': 0, 'skipped': 0, 'failed': 0, 'xfailed': 0, 'passed': 256}",
-        "per-test results: report from gates.json junit: test-results/junit.xml"
+        "$ npm test -> exit 1 (532.6s), log: /Users/apple/Desktop/Hackathon/Local_AI_Hackathon/docs/frontend/gates/logs/2026-11-15T091643Z-test.log",
+        "counts: {'failed': 1, 'errors': 0, 'xpassed': 0, 'skipped': 0, 'passed': 273, 'xfailed': 0}",
+        "per-test results: report from gates.json junit: test-results/junit.xml",
+        "failed: test::TC-125 [FX-011] REQ-030 the reply uses the name sent (团子, Mochi) and not the default names; with no name it uses a default name; 3 of 3 runs each",
+        "waived by user on 2026-11-15: Scope: only the user-accepted flaky known issues TC-050 / TC-052 / TC-055 (user 2026-11-15 ~22:30 EST '接受现状，记为已知问题'). Baseline for increment 2 failed only on TC-055. Any other failing test is NOT covered."
       ]
     },
     {
@@ -122,18 +127,7 @@
       "message": "docs/codemap.md out of date or too long (route/HANDOFF.md §7)",
       "owner": "fe-engineer",
       "details": [
-        "--breath-scale: no such path",
         ".companion: no such path",
-        ".companion.is-breathing: no such path",
-        ".companion__layers: no such path",
-        ".companion__ticks: no such path",
-        ".speaker-toggle: no such path",
-        "aria-pressed: no such path",
-        "button.breath-chip: no such path",
-        "changed: no such path",
-        "companion.name: no such path",
-        "createTalkButton({onPress}): no such path",
-        "i-square: no such path",
         "i-wind: no such path",
         "is-breathing: no such path",
         "is-poke-<id>: no such path",
@@ -162,25 +156,17 @@
   ],
   "data": {
     "writer_changed": [
-      "tests/breath.test.js",
-      "web/js/breath.js",
-      "docs/codemap.md",
       "docs/frontend/03-queue.md",
       "docs/frontend/run-log.jsonl",
-      "package.json",
-      "web/css/companion.css",
-      "web/index.html",
-      "web/js/app.js",
-      "web/js/companion.js",
-      "web/js/log.js"
+      "tests/offline.test.js"
     ],
     "counts": {
+      "failed": 1,
       "errors": 0,
       "xpassed": 0,
       "skipped": 0,
-      "failed": 0,
-      "xfailed": 0,
-      "passed": 256
+      "passed": 273,
+      "xfailed": 0
     }
   }
 }

@@ -169,5 +169,9 @@
   .companion *, .companion__layer { animation: none !important; }
   .companion { transition: none; }
   .companion.is-breathing { animation: none !important; } /* no swell: neutral face and the countdown only */
-  .companion.is-poke-oops .companion__ticks { opacity: 1; } /* the ticks stay, still */
+  /* Q-031: poke and breathing movement goes explicitly (face, word and countdown stay) */
+  .companion .companion__layers, .companion.is-breathing { transform: none !important; }
+  .companion.is-poke-tickle .companion__layers, .companion.is-poke-oops .companion__layers,
+  .companion.is-poke-here .companion__layers { animation: none !important; }
+  .companion.is-poke-oops .companion__ticks { opacity: 1; animation: none !important; } /* the ticks stay, still */
 }

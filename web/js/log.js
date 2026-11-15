@@ -22,6 +22,7 @@ export function createLog(scroller, list, emptyState) {
   let offer = null; // Q-028: the breathing chip's own list item, under the newest worried reply
   let offerBtn = null;
   let offerStop = false; // Q-029: the chip reads 停下 while the guide runs
+  let card = null; // Q-030: the help card's own list item, under its crisis reply (one at a time)
   const emptyOriginal = emptyState;
 
   function scrollToNewest() {
@@ -33,6 +34,41 @@ export function createLog(scroller, list, emptyState) {
     offer = null;
     offerBtn = null;
     offerStop = false;
+  }
+
+  function removeCard() {
+    card?.remove();
+    card = null;
+  }
+
+  // 988 and 911 are 600 weight plain text (no links); built from text nodes only.
+  function fillNumbers(el, text) {
+    el.replaceChildren();
+    text.split(/(988|911)/).forEach((part) => {
+      if (!part) return;
+      if (part === '988' || part === '911') {
+        const b = document.createElement('strong');
+        b.textContent = part;
+        el.append(b);
+      } else el.append(part);
+    });
+  }
+
+  function fillCard() {
+    if (!card) return;
+    const r = card.querySelector('.crisis-card');
+    r?.setAttribute('aria-label', copy.crisisLabel);
+    const t = card.querySelector('.crisis-card__title');
+    if (t) t.textContent = copy.crisisTitle;
+    const a = card.querySelector('.crisis-card__988');
+    if (a) fillNumbers(a, copy.crisis988);
+    const b = card.querySelector('.crisis-card__911');
+    if (b) fillNumbers(b, copy.crisis911);
+    const c = card.querySelector('.crisis-card__close');
+    if (c) {
+      c.textContent = copy.crisisClose;
+      c.setAttribute('aria-label', copy.crisisCloseName);
+    }
   }
 
   function add(li) {
@@ -101,6 +137,7 @@ export function createLog(scroller, list, emptyState) {
       list.querySelectorAll('.turn--typing .sr-only').forEach((el) => { el.textContent = copy.typing; });
       list.querySelectorAll('.breath-chip__text').forEach((el) => { el.textContent = offerStop ? copy.breathStop : copy.breathOffer; });
       if (offerStop) offerBtn?.setAttribute?.('aria-label', copy.breathStopName);
+      fillCard();
     },
     dropFailed(turn) {
       typing?.remove();
@@ -118,6 +155,7 @@ export function createLog(scroller, list, emptyState) {
       offer = null;
       offerBtn = null;
       offerStop = false;
+      card = null;
       if (emptyOriginal) {
         emptyState = emptyOriginal;
         if (!emptyOriginal.isConnected) scroller.prepend(emptyOriginal);
@@ -157,6 +195,34 @@ export function createLog(scroller, list, emptyState) {
       if (on) offerBtn.setAttribute('aria-label', copy.breathStopName);
       else offerBtn.removeAttribute('aria-label');
     },
+    // Q-030 / CMP-010: a calm region under its crisis reply; 收起 removes it and calls onClose (the page
+    // moves focus to the input). A new card replaces the old one. Arriving takes no focus.
+    showCrisisCard(onClose) {
+      removeCard();
+      const li = document.createElement('li');
+      li.className = 'turn turn--card';
+      const region = document.createElement('div');
+      region.className = 'crisis-card';
+      region.setAttribute('role', 'region');
+      region.dataset.testid = 'crisis-card';
+      const title = document.createElement('p');
+      title.className = 'crisis-card__title';
+      const l988 = document.createElement('p');
+      l988.className = 'crisis-card__988';
+      const l911 = document.createElement('p');
+      l911.className = 'crisis-card__911';
+      const close = document.createElement('button');
+      close.type = 'button';
+      close.className = 'crisis-card__close';
+      close.addEventListener('click', () => { removeCard(); onClose?.(); });
+      region.append(title, l988, l911, close);
+      li.append(region);
+      card = add(li);
+      fillCard();
+      return close;
+    },
+    removeCard,
+    get cardShown() { return card !== null; },
     removeOffer,
     get offerShown() { return offer !== null; },
     addReply(text) {

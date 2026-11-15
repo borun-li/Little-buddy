@@ -43,6 +43,7 @@ export function onClear(fn) { clearCallbacks.push(fn); }
 let breathStart = null;
 export function onBreathStart(fn) { breathStart = fn; }
 onClear(() => log.removeOffer()); // a clear removes the chip (the log's own clear drops the node too)
+onClear(() => log.removeCard()); // Q-030: and the help card
 
 // Q-025 / DES-025: the reply's voice. Never waits for text or mood; any failure is silence. Q-026 adds the
 // toggle and the tts gate through isEnabled. A clear, a send and a press to talk stop it (see below).
@@ -247,6 +248,7 @@ async function send(raw, { voice = false, turn: standing = null } = {}) {
   companion.setMood(mood); // the mood changes with the reply, never at send
   // Q-028 / DES-028: the offer only after an unpleasant-high reply that is not a crisis turn (A21).
   if (shouldOfferBreath(mood, crisis)) log.showOffer((chip) => breathStart?.({ chip, mood }));
+  if (crisis === true) log.showCrisisCard(() => input.focus()); // Q-030: the page only reads the flag (DES-026)
   setPending(false);
   speaker.say(speech, lang); // after the text and the mood; a new reply stops the old voice
   return true;
