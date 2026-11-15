@@ -114,3 +114,14 @@ Next agent must know:
 - Pitfalls: 4399 serves web/ directly; "Listening" sits in the hint line without .is-shown (visually hidden, role=status) — read hint.key / ARIA, not visibility
 - Left open: FND-005..009 minors deferred (§4); stale comment web/js/talk-button.js:9 ("wait for the seconds")
 Next agent reads: docs/frontend/05-review.md §5
+
+
+## be-reviewer #1 · step 6 (coordinate) · round 1 · 2026-11-15T03:35:25Z
+Task: merge panel candidates into docs/backend/06-review-report.md (filed by orchestrator from the return).
+Changed: docs/backend/06-review-report.md (new).
+Result: 12 FND (1 blocker FND-001, 3 major FND-002..004, 8 minor), 0 dropped; p6 pass.
+Next agent must know:
+- FND-001 code-only (be-developer); FND-002..004 need be-architect (DES-011 noise rule, DES-007 llama-server CORS args + stdio/terminal message) before code; FND-005 (bonsaiBootMs 60 s vs 62.6 s cold 4B load) is on the first-run path.
+- Re-check FND-001 only on a throwaway createServer(route), never on a live instance.
+- noticed: unwrap() strips unpaired quotes (bonsai.js:37); GET //api/health routes to static (main.js:88).
+Next agent reads: docs/backend/06-review-report.md
