@@ -311,3 +311,7 @@
 {"seq": 311, "ts": "2026-11-15T10:28:01Z", "event": "mark", "role": "fe-engineer", "prev": "c754341b703c8edb49397cf1e3b8b68e1e226b44de4144008827700bafc0eddf"}
 {"seq": 312, "ts": "2026-11-15T10:28:01Z", "event": "dispatch", "agent": "fe-engineer", "model": "sonnet", "phase": "4", "note": "Fix frontend FND-010..013, 020", "figma_left": 8, "prev": "f63b3f3b49a85893bfc3ddb42f3dc5e031491bcd2acdf883effb15aa557a2252"}
 {"seq": 313, "ts": "2026-11-15T10:34:09Z", "event": "return", "agent": "fe-engineer", "phase": "4", "status": "ok", "note": "fe-engineer #33, round 1: all five findings fixed. Nothing is committed. All 27 frontend test files pass (185 tests, 0 fail), and 0 Figma calls were used.", "figma_calls": 0, "prev": "55f9ebdb4fafa6c7d52efe2d6dac9812a91345d07a40d40ebd082a4817fa1158"}
+{"seq": 314, "ts": "2026-11-15T10:34:33Z", "event": "gate", "gate": "fe-capture-plan", "overall": "pass", "report": "docs/frontend/gates/fe-capture-plan-latest.json", "prev": "cca80e008e4e6f56dba14322d89436de5745d8cee1c0ba131bce71ed2aa5c69f"}
+{"seq": 315, "ts": "2026-11-15T10:40:44Z", "event": "capture", "round": "5", "captures": 80, "prev": "af41510ef30d5567d26c3cfa2c5d4b1818371f675e63c0f17ffb76277e85a876"}
+{"seq": 316, "ts": "2026-11-15T10:41:13Z", "event": "mark", "role": "fe-reviewer", "prev": "077a37fa865873d9deaeb999dac0baa0388520d11435e921b84ef120ce12e86b"}
+{"seq": 317, "ts": "2026-11-15T10:41:13Z", "event": "mark", "role": "fe-tester", "prev": "4faffc07bc9bdb3e0a61d1f82f18527f0f2d221bfedca66b24313942deb20a18"}

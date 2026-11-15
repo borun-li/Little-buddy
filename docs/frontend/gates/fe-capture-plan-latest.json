@@ -1,6 +1,6 @@
 {
   "phase": "fe-capture-plan",
-  "time": "2026-11-15T09:38:15Z",
+  "time": "2026-11-15T10:34:33Z",
   "project": "/Users/apple/Desktop/Hackathon/Local_AI_Hackathon",
   "run_dir": "docs/frontend",
   "overall": "pass",
@@ -20,7 +20,7 @@
     {
       "id": "FE4.capture-plan",
       "status": "pass",
-      "message": "38 captures cover every row to verify",
+      "message": "40 captures cover every row to verify",
       "owner": "orchestrator",
       "details": []
     },

@@ -1,0 +1,35 @@
+- main:
+  - button "Clear chat": Clear
+  - group "Interface language":
+    - button "中文"
+    - button "English" [pressed]: EN
+  - button "Little Buddy, at ease"
+  - button "Rename, now called Little Buddy": Little Buddy
+  - button "Read replies aloud" [pressed]
+  - log "Chat":
+    - listitem: Hi.
+    - listitem: Hey there! How are you feeling today?
+    - listitem: Long day.
+    - listitem: A long day after saying hi sounds tough, buddy. Did anything specific happen that made it so heavy?
+    - listitem: Tea now.
+    - listitem: Sipping tea is a perfect way to unwind after such a long day. Do you need company while you relax?
+    - listitem: My boss praised me.
+    - listitem: That's great news! It sounds like the tea is making the praise even sweeter.
+    - listitem: I missed dinner.
+    - listitem: It must be tough to miss that moment of connection after being praised, but maybe the next meal will taste even better. Did you manage to grab a quick snack while relaxing with your tea?
+    - listitem: They were good.
+    - listitem: Glad those snacks were good, especially after missing dinner. Did you get to eat any real food since then?
+    - listitem: She sounds well.
+    - listitem: It's great that the food was good! Are you going to share some of that praise with her later?
+    - listitem: Maybe a walk tomorrow.
+    - listitem: That sounds like a lovely plan for tomorrow, especially since she sounds well enough to join you!
+    - listitem: I like comedies.
+    - listitem: That would be perfect! Imagine walking and laughing together at that comedy later.
+    - listitem: Thanks.
+    - listitem: You're welcome! A walk tomorrow with a comedy movie sounds like a fun way to celebrate her praise and relax after your long day.
+    - listitem: Good night.
+    - listitem: Little Buddy is replying
+  - status
+  - textbox "What you want to tell Little Buddy":
+    - /placeholder: Or type, Enter sends
+  - button "Hold to talk" [disabled]

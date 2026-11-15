@@ -147,26 +147,26 @@ FND-014, FND-017, FND-018 change the crisis list the user approved at Plan (Q7) 
 - **Evidence:** live instanceA.log:3707-3726 (abort 09:47:56.135; next speak `timeout` 09:48:06.155; helper finished the aborted part at id=398 ms=16987 audio_ms=6240; the timed-out part generated anyway id=399; the next waited, queued_ms 0) under concurrent STT + Bonsai (RTF ≈ 2.7 vs 0.8 assumed). One-at-a-time fake probe `<scratch>/rv3/s1/`: 20 in-order aborts → 21 generations; legit request waited 6143 ms. Fakes stay green because tests/support/fake-tts.cjs answers lines independently; dev-increment2.test.js:140-160 aborts queued before in-flight. Root cause: deviation #10 (08-implementation-log.md:117), breaking DES-017 step 4.
 - **Severity:** major (demo flow: send while a reply is read aloud).
 - **Suggested direction:** keep inFlight busy until the helper answers that id (settle the caller early, write nothing new); if no answer within speakMs + margin, kill the helper so the supervisor restarts it (warm-up ~1.05 s load + ~2.2 s warm); consider a queue cap; fix DES-017 numbers; be-tester: one-at-a-time fake, update TC-137 and the abort test.
-- **Status:** open
+- **Status:** fixed in round 1 (re-checked by be-reviewer #4, round 2)
 
 ### FND-014 — Crisis exceptions swallow real crisis lines
 - **Scenario:** `isCrisis` deletes every exception string before matching (crisis.js:16, :38); "想死你" is a prefix of "想死你们都不懂我" / "想死你别管我", so 想死 disappears → crisis:false, no 988 (REQ-024), no card (REQ-025); the reply mood may bring a breathing offer instead.
 - **Evidence:** `<scratch>/rv3/probe1.out`: false for "我想死你们都不懂我", "我想死你别管我", "真的好想死你们根本不在乎", "我想死您别劝我了", "我想死我了真的撑不下去"; true for "我想死，你别管我". Live: respond "我想死你们都不懂我" → crisis:false, mood unpleasant-high. TC-093 covers only "想死你了！".
 - **Suggested direction (user):** remove an exception only in its fond-greeting form (想死你了 / 想死你们了 / 想死您了 / 想死我了), or drop the 想死你/想死您 exceptions and accept the false alarm (A22); add these lines to TC-093 / FX-010 boundaries.
-- **Status:** open
+- **Status:** fixed in round 1 (re-checked by be-reviewer #4, round 2)
 
 ### FND-015 — A hung tts helper is never detected
 - **Scenario:** helper alive but not answering → every speak times out (tts.js:133-137), next line written to the same helper; supervisor changes state only on close → health `tts: ready`, no restart; chat unaffected.
 - **Why minor:** no hang observed live; decide with FND-013 (holding the slot without an overdue kill would wedge read-aloud for good).
 - **Suggested direction:** overdue answer (speakMs + margin) → kill helper → restart path; in-order HANG fake.
-- **Status:** open
+- **Status:** fixed in round 1 (re-checked by be-reviewer #4, round 2)
 
 ### FND-016 — TTSKit chunking multiplies the per-request cost
 - **Scenario:** `GenerationOptions(maxNewTokens: 120)` keeps `chunkingStrategy nil → .sentence` and `concurrentWorkerCount 0`; text over ~42 tokens is chunked and all chunks run at once, 120 steps each.
 - **Evidence:** TTSKit.swift:810, :853, :890; Models.swift:233-240; TextChunker.swift:28.
 - **Why minor:** page parts stay under the chunk size; only a non-page local client (or DNS rebinding, BD-014) reaches it.
 - **Suggested direction:** `chunkingStrategy: .none` or `concurrentWorkerCount: 1`, and/or lower speakChars to the largest part size.
-- **Status:** open
+- **Status:** fixed in round 1 (re-checked by be-reviewer #4, round 2)
 
 ### FND-017 — Crisis phrasing gaps
 - Lines above → crisis:false; normalizeForCrisis folds no dashes (crisis.js:24-32). Code matches the approved list; coverage is the user's call. **Status:** open
@@ -175,10 +175,10 @@ FND-014, FND-017, FND-018 change the crisis list the user approved at Plan (Q7) 
 - 他思想死板, 这个理想死了, 我想死磕这个bug → crisis:true (substring, crisis.js:39). A22 accepts false alarms; exceptions risk FND-014-type misses. **Status:** open
 
 ### FND-019 — "988" anywhere in the first sentence suppresses the hotline sentence
-- `crisisReply` returns `first` alone if it contains "988" (bonsai.js:84); name "988" survives cleanName. Card still shows. Direction: skip only when the CRISIS_LINE wording / call-text verb is present, or always append. **Status:** open
+- `crisisReply` returns `first` alone if it contains "988" (bonsai.js:84); name "988" survives cleanName. Card still shows. Direction: skip only when the CRISIS_LINE wording / call-text verb is present, or always append. **Status:** fixed in round 1 (re-checked by be-reviewer #4, round 2)
 
 ### FND-020 — A lone surrogate wedges the tts slot for 10 s
-- `{"text":"a\ud800b"}` passes parseSpeak (main.js:37); Swift decoder rejects; helper answers id:-1 (main.swift:77-78); node ignores (tts.js:60). Page parts never contain one. Direction: reject `!text.isWellFormed()` in parseSpeak and/or treat id:-1 as the in-flight answer. **Status:** open
+- `{"text":"a\ud800b"}` passes parseSpeak (main.js:37); Swift decoder rejects; helper answers id:-1 (main.swift:77-78); node ignores (tts.js:60). Page parts never contain one. Direction: reject `!text.isWellFormed()` in parseSpeak and/or treat id:-1 as the in-flight answer. **Status:** fixed in round 1 (re-checked by be-reviewer #4, round 2)
 
 ### FND-021 — zh hard split cuts embedded English words
 - tts.js:161-171 slices by code point. "恭喜你拿到Google的offer了！" → ["恭喜你拿到Googl","e的offer了！"]. Direction: a Latin/digit run is one unit. **Status:** open
@@ -203,3 +203,10 @@ None. Merges: R-1 + S-1 (same mechanism) and R-3 (symptom) → FND-013.
 
 | Round | FND | Fixed? | Evidence |
 |---|---|---|---|
+| 2 | FND-013 | yes | tts.js:29-34, :72-92 slot freed only by the helper's answer (or id -1); settle() writes nothing; queue cap :151. Serial-fake probe: 20 in-flight aborts → 4 written, 5 generations, legit answered in 73 ms (pre-fix: 21 generations, 4922 ms). TC-139/140/142 fail on pre-fix, pass now. Page asks one part ahead, cap never reached in normal use. |
+| 2 | FND-014 | yes | crisis.js:15-20, :41 GREETING_RE at clause end. True: 我想死你别管我, 我想死你们都不懂我, 真的好想死你们根本不在乎, 我想死您别劝我了, 我想死我了真的撑不下去; false: 想死你了！, 想死您了, 想死我了！！. FX-009/010 unchanged (TC-090, TC-146). Live: 我想死你别管我 → crisis true + CRISIS_LINE. Orchestrator decision under A22; user confirms at Acceptance. |
+| 2 | FND-015 | yes | tts.js:42-46 overdue SIGKILL → restart → failAll unavailable. Probe (1500 ms): HANG → unavailable at 1507 ms, new pid ready 1727 ms (pre-fix: timeout, no restart). TC-141. Each kill uses a restart (BD-011). |
+| 2 | FND-016 | yes (weak test) | main.swift:16 `.none as TextChunkingStrategy` (bare .none would be nil → .sentence). Live 189-char en speak → exactly 9.60 s audio, one pass. TC-147 regex would also pass a bare `.none` (C-1, deferred). |
+| 2 | FND-019 | yes | bonsai.js:86, prompts.js:56 CRISIS_MARK. "I am 988 and I am right here with you." gets CRISIS_LINE; "call or text 988" kept alone. Live: name 988 → CRISIS_LINE. TC-145. |
+| 2 | FND-020 | yes | main.js:72 isWellFormed → 400; tts.js:74, :79 id -1 → failed. Live lone surrogate → 400. TC-143/144. |
+| 2 | TC-125 | partly | prompts.js:40 NAME_RULE bans 小伙伴/Little Buddy; flake rate unmeasured (needs repeated full TC-125 runs at the p5 re-run). |

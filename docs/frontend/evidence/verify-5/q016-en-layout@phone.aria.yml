@@ -1,0 +1,17 @@
+- main:
+  - button "Clear chat": Clear
+  - group "Interface language":
+    - button "中文"
+    - button "English" [pressed]: EN
+  - button "Little Buddy, worried"
+  - button "Rename, now called Little Buddy": Little Buddy
+  - button "Read replies aloud" [pressed]
+  - log "Chat":
+    - listitem: I have to give a presentation tomorrow and I'm a bit anxious.
+    - listitem: That sounds tough! You've got this, and I'll be right here cheering you on.
+    - listitem:
+      - button "Breathe together?"
+  - status
+  - textbox "What you want to tell Little Buddy":
+    - /placeholder: Or type, Enter sends
+  - button "Hold to talk"

@@ -1467,6 +1467,179 @@
      "font-family"
     ]
    }
+  },
+  {
+   "id": "i2-fnd010-long-crisis",
+   "row": "Q-030",
+   "state": "success · crisis (after 5 turns; FND-010 re-check)",
+   "url": "/",
+   "steps": [
+    {
+     "action": "waitFor",
+     "selector": "[data-testid=companion]"
+    },
+    {
+     "action": "wait",
+     "ms": 800
+    },
+    {
+     "action": "click",
+     "selector": "[data-lang=en]"
+    },
+    {
+     "action": "wait",
+     "ms": 300
+    },
+    {
+     "action": "fill",
+     "selector": "[data-testid=fake-input]",
+     "value": "I just got the internship!"
+    },
+    {
+     "action": "press",
+     "selector": "[data-testid=fake-input]",
+     "key": "Enter"
+    },
+    {
+     "action": "waitFor",
+     "selector": "[data-testid=reply]"
+    },
+    {
+     "action": "wait",
+     "ms": 2500
+    },
+    {
+     "action": "fill",
+     "selector": "[data-testid=fake-input]",
+     "value": "It was a long day at work."
+    },
+    {
+     "action": "press",
+     "selector": "[data-testid=fake-input]",
+     "key": "Enter"
+    },
+    {
+     "action": "waitFor",
+     "selector": "[data-testid=reply]"
+    },
+    {
+     "action": "wait",
+     "ms": 2500
+    },
+    {
+     "action": "fill",
+     "selector": "[data-testid=fake-input]",
+     "value": "My friend called me tonight."
+    },
+    {
+     "action": "press",
+     "selector": "[data-testid=fake-input]",
+     "key": "Enter"
+    },
+    {
+     "action": "waitFor",
+     "selector": "[data-testid=reply]"
+    },
+    {
+     "action": "wait",
+     "ms": 2500
+    },
+    {
+     "action": "fill",
+     "selector": "[data-testid=fake-input]",
+     "value": "I cooked dinner for myself."
+    },
+    {
+     "action": "press",
+     "selector": "[data-testid=fake-input]",
+     "key": "Enter"
+    },
+    {
+     "action": "waitFor",
+     "selector": "[data-testid=reply]"
+    },
+    {
+     "action": "wait",
+     "ms": 2500
+    },
+    {
+     "action": "fill",
+     "selector": "[data-testid=fake-input]",
+     "value": "The weather was cold today."
+    },
+    {
+     "action": "press",
+     "selector": "[data-testid=fake-input]",
+     "key": "Enter"
+    },
+    {
+     "action": "waitFor",
+     "selector": "[data-testid=reply]"
+    },
+    {
+     "action": "wait",
+     "ms": 2500
+    },
+    {
+     "action": "fill",
+     "selector": "[data-testid=fake-input]",
+     "value": "I want to die."
+    },
+    {
+     "action": "press",
+     "selector": "[data-testid=fake-input]",
+     "key": "Enter"
+    },
+    {
+     "action": "waitFor",
+     "selector": ".crisis-card"
+    },
+    {
+     "action": "wait",
+     "ms": 2500
+    }
+   ]
+  },
+  {
+   "id": "i2-fnd011-rename-zh",
+   "row": "Q-023",
+   "state": "renaming (zh name; FND-011 re-check)",
+   "url": "/",
+   "steps": [
+    {
+     "action": "waitFor",
+     "selector": "[data-testid=companion]"
+    },
+    {
+     "action": "wait",
+     "ms": 800
+    },
+    {
+     "action": "click",
+     "selector": "[data-lang=zh]"
+    },
+    {
+     "action": "wait",
+     "ms": 300
+    },
+    {
+     "action": "click",
+     "selector": ".caption__name"
+    },
+    {
+     "action": "wait",
+     "ms": 300
+    },
+    {
+     "action": "fill",
+     "selector": ".name-field",
+     "value": "团子团子团子"
+    },
+    {
+     "action": "wait",
+     "ms": 400
+    }
+   ]
   }
  ]
 }
