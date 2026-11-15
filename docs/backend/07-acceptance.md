@@ -59,7 +59,7 @@ Quality model plan (opus for analyst, architect, developer, reviewers; sonnet fo
 ## 10. Human sign-off
 - Prototype: reused `docs/frontend`, confirmed 2026-11-14.
 - Plan: approved by the user 2026-11-14 (fixtures FX-001..008 locked).
-- Acceptance: **pending** — the user's own check (Wi‑Fi off, real mic, `npm start`).
+- Acceptance: **approved by the user 2026-11-14 ~23:45 EST** — Wi‑Fi off, `npm start`, 8-step check passed ("关掉Wi-Fi后可以成功运行，且效果比较好。我很满意。").
 
 ## 11. To make it live
 1. Stop the old preview on port 4317 (PID 23757, started in an earlier session): Ctrl+C in its terminal, or `kill 23757`.
