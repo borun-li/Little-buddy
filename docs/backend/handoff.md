@@ -73,7 +73,13 @@ Next agent must know:
 Read beyond the list: scratchpad arch6/pkg/Sources/CompanionTTS/main.swift (architect's measurement helper).
 Next agent reads: server/tts.js:9-140; server/bonsai.js crisisReply + respond; docs/backend/08-implementation-log.md § Increment 2
 
-## fe-tester #5 · step 4 (FE4.capture recapture) · round 4 · increment 1 · 2026-11-15T09:00:00Z
+## fe-tester #6 · step 3 (client tests for Q-020) · round 1 · increment 2 · 2026-11-15T08:10:00Z
+Task: write tests/client.test.js for Q-020 (2 updated Q-010 assertions + 7 Q-020 tests) after the gate restored HEAD.
+Changed: tests/client.test.js only. Engineer's test diff reviewed: both Q-010 changes are required by the contract (respond now returns lang/crisis/speech; health returns tts) and stay deepEqual, not weakened. Strengthened: respond body now deepEqual {line, history, name} (was name only); speak checks Content-Type application/json.
+Result: with HEAD client the file fails to load (no SPEAK_TIMEOUT_MS export), so all 14 fail until the engineer's client is restored. With the engineer's client copied to a scratch dir: 14/14 pass; mutation 11000 to 12000 turns the speak timeout test red.
+Next agent must know: orchestrator restores web/js/companion-client.js then runs the gate; no existing fe-tester #6 section existed, this one is new.
+Next agent reads: tests/client.test.js (Q-020 block at the end)
+Earlier entry (fe-tester #5, increment 1) follows.
 Task: re-point docs/frontend/04-verification.md to evidence/verify-3/manifest.md and confirm the 19 verdicts against the verify-3 files.
 Changed: docs/frontend/04-verification.md only (header, round note, Q-010 row). Verdicts: done 7 (Q-001, 002, 003, 005, 008, 015, 017), not observable 12. Q-010 done to not observable: in verify-3 the sad follow-up reply does not show recall of the first line (mood and English reply do hold).
 Result: every backticked filename in the file exists in verify-3 or design (script check); manifest named as evidence/verify-3/manifest.md; no verify-2 left. 0 Figma calls. No tests added or edited.
@@ -82,19 +88,14 @@ Next agent must know:
 - Left open: the not-observable rows still need a mic, a failing backend, reduce-motion emulation or a network log (user check at Acceptance).
 Next agent reads: docs/frontend/04-verification.md
 
-## fe-engineer #17 · step 2 (feasibility + queue) · round 2 · increment 2 · 2026-11-15T06:10:00Z
-Task: append `## Increment 2 — 2026-11-15` to docs/frontend/03-queue.md (rows Q-020.. from the design), extend contract §2 PAGE-001 per 01-ux; no product code.
-Changed: docs/frontend/03-queue.md (+~250/-0) — § Increment 2: changed-earlier-rows table, scaffold, feasibility notes, Q-020..Q-034 (15 rows; Q-034 = FRAME-025 skipped, design only), notes, dependencies; contracts/FRONTEND_BACKEND_CONTRACT.md — §2 PAGE-001: name/lang/crisis/speech fields, speaking/offer/crisis/cleared/tts states, new `speak` action, change-log row.
-Feedback: no DFB: phone caption row, clear inset, 228 px art fit as fe-ui measured; assumptions A-I2-1 (clear while pending drops the late reply silently; card stays under its reply) need no design change.
-Result: round 2: Q-012/014/015/018/019/020 trimmed (status/Fix parentheticals dropped, history is in git), all rows ≤ 80 by gatelib docs.words; Q-034 added for FRAME-025 (skipped); 0 Figma calls.
+## fe-engineer #18 · step 3 (build Q-020) · round 1 · increment 2 · 2026-11-15T07:52:06Z
+Task: Q-020 — client carries name, speech, crisis, tts (DES-024).
+Changed: web/js/companion-client.js — respond(line, history, name) (name left out when null/absent) returns {reply, mood, lang, crisis, speech}; new speak(text, lang, signal) → WAV Blob, own 11 s stop → timeout, caller abort stays AbortError; health() adds tts; SPEAK_TIMEOUT_MS exported. tests/client.test.js — 7 Q-010 tests adjusted for the new shapes, 7 Q-020 tests added. docs/codemap.md, docs/frontend/03-queue.md (Q-020 built + note).
+Result: client.test.js 14/14; frontend unit files (fake-companion, copy, health-watch, mood, talk-button, voice-hints, voice-turn, wav, offline, companion, fnd-r1-fix, verify-r1, verify-r2, dev-increment2) 88/88; no live backend suites run. Live check on :4400: health tts ready, respond (zh) returned lang/crisis/speech, speak 57644 B audio/wav, abort → AbortError.
 Next agent must know:
-- Pitfalls: health-watch must keep polling until tts is ready, but onChange then fires on a tts-only change; app.js healthHint(null) would clear `awake` early, so Q-026 uses a separate callback.
-- Pitfalls: the 11 {name} keys stay default-name text in the zh/en tables (verify-r1.test.js reads them); substitute into the live copy object at setLang/setName.
-- Pitfalls: companion becomes a button; caption loses aria-hidden; keep data-testid fake-input, reply, companion; pokes and breathing swap the face layer only, never data-mood or the glow.
-- Pitfalls: app.js, companion.js, copy.js are shared by most rows: build one row at a time in the Dependencies order.
-- Left open: Safari first-play autoplay [unverified]; phone caption row re-measure (Q-032).
-Read beyond the list: web/index.html, web/js/copy.js, web/js/log.js, web/js/health-watch.js, tests/verify-r1.test.js — structure and tests the rows touch.
-Next agent reads: docs/frontend/03-queue.md § Increment 2 (rows and notes), contract §2 PAGE-001
+- Pitfalls: a caller abort rejects with the fetch AbortError (DOMException; .code is 20, not in CODES) — callers test `e.name === 'AbortError'` before reading .code. `lang` is passed as given (undefined if the backend omits it); callers must not guess it.
+- Pitfalls: app.js still calls respond(line, history); Q-022/Q-023 add the name argument; exports added: speak, SPEAK_TIMEOUT_MS.
+Next agent reads: docs/frontend/03-queue.md § Increment 2 (Q-021.. rows), DES-025 for speak use
 
 ## be-tester #6 · step 4 (gate fix) · round 2 · increment 2 · 2026-11-15
 Round 2 (be-tester #6, gate fix):

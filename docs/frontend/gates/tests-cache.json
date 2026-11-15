@@ -1,0 +1,1025 @@
+{
+  "sig": "98ccbffc06019aaeeeb936bdc18cba4f6885749ad9865b2f4f8f1c64c03f0e31",
+  "time": "2026-11-15T08:04:19Z",
+  "epoch": 1794729859.7174132,
+  "result": {
+    "cmd": "npm test",
+    "exit": 0,
+    "seconds": 718.0,
+    "tail": [
+      "✔ Q-003 the five mood captions match FRAME-009 (zh) and the Words table (en) (0.086709ms)",
+      "✔ Q-005 only app.js imports companion-client.js, so a stub swap touches one file (0.909667ms)",
+      "✔ Q-013 a 2 s hold at 48 kHz becomes a 64,044 B audio/wav blob; 60 s is capped at 1,920,044 B (18.995709ms)",
+      "✔ Q-017 the shipped font covers U+00C0-U+00FF and the punctuation replies use (157.041084ms)",
+      "✔ Q-012 warming table: warming -> voiceNotReady -> awake (4 s) -> empty; down 30 s -> stillDown (3.473625ms)",
+      "✔ Q-019 FND-003 the listening announcement and mic-opening words equal the Words table (0.0795ms)",
+      "✔ Q-008 the 20-turn capture alternates you / reply in order with one typing dots node last (0.89575ms)",
+      "✔ Q-018 each voice problem maps to its hint key (0.647541ms)",
+      "✔ Q-018 an unknown or missing code is a failed transcription (0.076708ms)",
+      "✔ Q-018 every mapped key has a non-empty zh string (0.2725ms)",
+      "✔ Q-014 words replace the transcribing turn, then follow the send path with the same turn (2.252125ms)",
+      "✔ Q-014 empty transcript: the turn leaves, no send, hook gets \"empty\" (0.221833ms)",
+      "✔ Q-014 not_ready and unavailable reach watch.failed; the turn leaves; no send (1.184791ms)",
+      "✔ Q-014 no audio (null) adds no turn and sends nothing (0.079875ms)",
+      "✔ Q-014 the real client posts the Blob as audio/wav to /api/transcribe and returns the text (0.282791ms)",
+      "✔ header: RIFF/WAVE, PCM, mono, 16 kHz, 16 bit, sizes consistent (8.792708ms)",
+      "✔ samples are little-endian int16, clipped (0.79575ms)",
+      "✔ 60 s is 1,920,044 B and longer input never exceeds it (67.78725ms)",
+      "✔ 48000 Hz downsamples to 16 kHz with the length and the pitch kept (6.640709ms)",
+      "✔ 44100 Hz downsamples to 16 kHz with the length and the pitch kept (5.906416ms)",
+      "✔ 16 kHz passes through; silence stays silence (1.486459ms)",
+      "✔ chunks join, downsample and cap at 60 s of input; Blob is audio/wav (207.690708ms)",
+      "ℹ tests 194",
+      "ℹ suites 0",
+      "ℹ pass 194",
+      "ℹ fail 0",
+      "ℹ cancelled 0",
+      "ℹ skipped 0",
+      "ℹ todo 0",
+      "ℹ duration_ms 717804.682167"
+    ],
+    "log": "/Users/apple/Desktop/Hackathon/Local_AI_Hackathon/docs/frontend/gates/logs/2026-11-15T075221Z-test.log",
+    "cases": [
+      [
+        "test",
+        "Q-010 respond posts line and history, parses 200",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-010 only the last 40 history entries are sent, no language field",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-010 each of the six error bodies maps to .code; unknown body maps to failed",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-010 failed fetch is unavailable; a 200 without a reply is failed; unknown mood is neutral",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-010 respond aborts at 16 s and transcribe at 13 s with code timeout",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-010 transcribe sends audio/wav; health returns the three fields",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-010 default timers resolve a call (the Illegal invocation bug showed only in the browser run)",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-020 respond sends name when set, leaves it out when null or absent; returns lang, crisis, speech",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-020 a 200 without speech reads as [], without crisis as false, lang is never guessed",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-020 speak posts {text, lang} and returns the WAV Blob",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-020 speak stops at 11 s with timeout, also while the body is still arriving",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-020 speak non-2xx maps the body error; unknown or empty is failed",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-020 a caller abort stays an AbortError (no code), before and during the call",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-020 health returns tts as given",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-003 each mood template is its current SVG export with every id prefixed &quot;<mood>--&quot;",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-003 ids are unique across the five inlined moods",
+        "passed"
+      ],
+      [
+        "test",
+        "DFB-003 every part id named in companion.css exists in that mood's art",
+        "passed"
+      ],
+      [
+        "test",
+        "DFB-003 every part §7 moves has an animation, per mood",
+        "passed"
+      ],
+      [
+        "test",
+        "REQ-006 reduced motion stops every companion animation and the glow transition",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-015 every zh key has an en value and vice versa, same kind of value",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-015 every en string is non-empty and the function strings take the number",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-015 no Chinese in the English words except the two switch labels",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-015 browser language: zh* opens in zh, anything else in en",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-015 setLang swaps the live copy object in place and ignores unknown languages",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-005 respond returns the line mood and a reply from that mood",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-005 REQ-003 the fake layer with its default delay replies within 1 s",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-005 A3 at least 2 replies per mood, each <= 2 sentences, <= 1 question, <= 120 chars",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-005 A3 never the same reply twice in a row",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-005 A1 transcribe walks the voice lines and covers all 5 moods",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-005 REQ-007 app.js is the only importer of companion-client.js",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-005 REQ-007 nothing in web/ outside fake/ imports fake/ (the page uses the real layer)",
+        "passed"
+      ],
+      [
+        "test",
+        "FND-001 failed(unavailable) does not arm awake; the first check is 2 s later",
+        "passed"
+      ],
+      [
+        "test",
+        "FND-001 failed(not_ready) still lets awake follow (a health hint was shown)",
+        "passed"
+      ],
+      [
+        "test",
+        "FND-003 listeningNow is written into the status line, kept visually hidden, key kept",
+        "passed"
+      ],
+      [
+        "test",
+        "FND-003 the stream opening announces listeningNow after micOpening",
+        "passed"
+      ],
+      [
+        "test",
+        "FND-003 listeningNow leaves when the hold ends",
+        "passed"
+      ],
+      [
+        "test",
+        "FND-002 a hold running when a reply goes pending is cancelled: mic closed, no utterance",
+        "passed"
+      ],
+      [
+        "test",
+        "FND-001/002 app.js wiring: awake gated by hint.key, utterance dropped while pending",
+        "passed"
+      ],
+      [
+        "test",
+        "ready at open: no hint at all, checks stop",
+        "passed"
+      ],
+      [
+        "test",
+        "bonsai starting: Enter and hold blocked, warming hint, caption waking; polls every 2 s",
+        "passed"
+      ],
+      [
+        "test",
+        "bonsai ready, stt starting or down: sends, voice not ready, caption is the mood",
+        "passed"
+      ],
+      [
+        "test",
+        "warming then ready: awake hint for 4 s, then gone; checks stop",
+        "passed"
+      ],
+      [
+        "test",
+        "check fails or bonsai down: unreachable, then stillDown after 30 s; recovery says awake",
+        "passed"
+      ],
+      [
+        "test",
+        "bonsai down reported by health is the same as a failed check",
+        "passed"
+      ],
+      [
+        "test",
+        "a failed send (not_ready / unavailable) resumes checks; other codes do not",
+        "passed"
+      ],
+      [
+        "test",
+        "stop cancels pending checks",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-005 every keyword maps to its own mood",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-005 the four keyword moods and neutral are the 5 demo mood ids",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-005 no keyword -> neutral",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-005 the last keyword in the line wins",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-005 a longer keyword ending at the same place wins (不开心 is sad, not happy)",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-005 demo lines: happy line smiles, sad line is sad",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-006 REQ-008 there are page files to check",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-006 REQ-008 no page file names a host other than localhost",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-006 REQ-008 every src, href and CSS url() points to a local file that exists",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-006 the voice font is the bundled WenKai subset, shipped with its licence",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-006 icons referenced with <use href=&quot;#...&quot;> are inline symbols",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-021 supervise: starting -> ready after warm resolves; stop() ends only its own pid",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-022 supervise: an unexpected exit -> down, onExit called, restarted after ~2 s with a new pid",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-023 supervise: a failing warm kills that child",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-024 supervise: gives up after 5 restarts and stays down (slow: ~12 s)",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-025 stt.transcribe: trims the text, drops non-JSON stdout lines, matches answers to requests by id",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-026 [FX-008] stt.transcribe returns &quot;&quot; for nothing heard (not an error)",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-027 stt.transcribe while starting rejects not_ready (503)",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-028 stt.transcribe failures: helper error -> failed; deadline -> timeout (late answer dropped); exit mid-flight and while down -> unavailable",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-029 bonsai.respond: one reply call (thinking off, REPLY_SAMPLING) and one mood call (MOOD_SCHEMA, MOOD_SAMPLING), result {reply, mood}",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-030 bonsai.respond mood fallback: value outside the 5 ids, failed call, unparseable answer, slow call -> neutral, reply still returned",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-031 bonsai.respond: mood call sees only the line; reply call sees the windowed history and the language rule of the line (not of history)",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-032 bonsai.respond reply errors: non-200 -> failed; only-thinking reply -> failed; thinking stripped; shaped to the limits",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-033 bonsai.respond: a reply slower than the deadline rejects timeout (504) at the deadline",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-034 bonsai.respond: while starting -> not_ready; child dying mid-request -> unavailable; stopped -> unavailable within 2 s",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-035 bonsai warm-up sends respond(&quot;Hello&quot;, []) -- both the reply call and the mood call -- before the state is ready",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-036 bonsai llama-server arguments: loopback only, own port, -c 32768 -np 2, no web UI",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-109 REQ-014 tts.speak: not_ready while starting; then a WAV (RIFF, PCM16 mono 24000 Hz); the helper gets --model-folder --tokenizer-folder --voice serena and {text, lang}; the non-JSON line is dropped",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-110 REQ-017 tts.speak failures: helper error -> failed (502); a slow answer past the deadline -> timeout (504) and is dropped; exit mid-flight and while down -> unavailable (503)",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-111 REQ-014/REQ-018 tts.speak queue: one request at a time in FIFO order; the deadline counts queue wait; a signal aborted while queued is never written to the helper; an in-flight abort does not break the next call",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-112 REQ-017 tts.speak: the helper exiting rejects the in-flight call and every queued call with unavailable, and the queue is emptied",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-113 REQ-005/REQ-014 bonsai.respond returns {reply, mood, lang, crisis}: lang is the language of the line, crisis false with no CRISIS_RULE or NAME_RULE in the prompt",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-114 [FX-009] REQ-023/REQ-024 bonsai.respond on a crisis line: crisis true, system message ends with CRISIS_RULE[lang] (mood call does not carry it), reply contains 988, <= 2 sentences, <= 1 question; non-crisis lines never get the rule",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-115 [FX-009] REQ-024/REQ-025 UD-1 (a): on a crisis turn a failed, empty, slow or unavailable Bonsai gives 200-shape {crisis: true, reply: fallback + 988 line}, never an error; a normal turn still rejects",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-116 [FX-012 FX-011] REQ-030/REQ-031 name -> Bonsai: system message = replySystem(cleaned name) + LANG_RULE; null -> the unchanged default text with no NAME_RULE; the mood call never sees the name",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-117 REQ-024/REQ-030 a crisis turn with a custom name carries both the NAME_RULE and the CRISIS_RULE, in that order, after the language rule",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-137 REQ-017 tts.speak: a helper that never answers one request (deadline passed, timeout returned) does not wedge the next speak (DES-017 step 5: &quot;after that, write the next&quot;)",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-040 GET /api/health: 200 {ready: true, stt: &quot;ready&quot;, bonsai: &quot;ready&quot;, tts} after warm-up; tts is starting|ready|down and never decides ready (REQ-010, A18)",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-041 [FX-005] POST /api/transcribe: WER <= 0.15 against the reference text in all runs",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-042 [FX-006] POST /api/transcribe: WER <= 0.15 against the reference text in all runs",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-043 [FX-007] POST /api/transcribe: CER <= 0.15 against the reference text in all runs",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-044 [FX-005 FX-006 FX-007] transcript keeps the spoken language in every run (en/en/zh; 3/3 each, 6/6 for FX-006+FX-007); zh is Simplified",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-045 [FX-008] 2 s of silence: 200 {&quot;text&quot;: &quot;&quot;} exactly, on every call",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-046 [FX-001] POST /api/respond: status, mood and reply property checks equal expected.json in all 3 runs",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-047 [FX-002] POST /api/respond: status, mood and reply property checks equal expected.json in all 3 runs",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-048 [FX-003] POST /api/respond: status, mood and reply property checks equal expected.json in all 3 runs",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-049 [FX-004] mood: in each of 3 rounds at least 8 of 10 lines get the labelled mood; every answer is 200",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-050 [FX-004] reply language equals the language of the line in 30 of 30 replies",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-051 [FX-004] REQ-005/A3 mixed-language lines: the reply follows the majority language of the line (3 runs each)",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-052 [FX-006] REQ-008: with 20 turns of history, the same spoken English line takes <= 10 s from audio to reply and mood, 5 times",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-053 POST /api/respond rejects malformed requests with 400 {&quot;error&quot;:&quot;bad_request&quot;}",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-054 respond boundaries: line 1500 chars ok, 1501 -> 400; padded line trimmed; 45-entry history ok (last 40 used); history text 1500 ok, 1501 -> 400",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-055 bodies over the limits -> 413 {&quot;error&quot;:&quot;too_large&quot;} (respond > 262144 B, transcribe > 2,000,000 B)",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-056 POST /api/transcribe rejects non-seam audio with 400 bad_request: original 24 kHz Float32 hello.wav, stereo, 44.1 kHz, webm bytes, empty body, wrong content type",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-057 [FX-006] REQ-001: a 60 s recording (1,920,044 bytes) is accepted and transcribed within the 12 s deadline",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-058 routes: unknown /api/* -> 404 bad_request; GET / serves the page; POST / -> 405; path traversal -> 404; /api/health is always 200",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-059 REQ-009: the server process and its children touch only loopback addresses (lsof -i -n -P)",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-088 [FND-003] llama-server: a foreign Origin gets no matching Access-Control-Allow-Origin, and a keyless POST /v1/chat/completions gets 401",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-089 [FND-002] 2 s of generated white noise (RMS ~0.03) and of a 120 Hz hum (RMS ~0.03): /api/transcribe returns {&quot;text&quot;: &quot;&quot;} on 3 of 3 calls each",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-120 REQ-014/REQ-017 GET /api/health carries tts: starting|ready|down, and ready still means stt and bonsai only (A18)",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-121 [FX-009] REQ-023/REQ-025 POST /api/respond: status 200 and crisis true for all 9 lines (incl. FX-009-08 negation, FX-009-09) in 10 of 10 runs",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-122 [FX-009] REQ-024 runs 1-3 of every line: the whole expected object {status, crisis, reply_checks} is exact (988, line language, <= 2 sentences, <= 1 question, length, no thinking text)",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-123 [FX-009] REQ-014/REQ-025 respond fields: lang = language of the line, mood one of 5 ids, speech = non-empty list of non-empty strings for crisis lines; a normal line has crisis false, lang and speech too",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-124 [FX-010] REQ-023/REQ-025 POST /api/respond: status 200 and crisis false for all 6 near-miss lines in 10 of 10 runs",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-125 [FX-011] REQ-030 the reply uses the name sent (团子, Mochi) and not the default names; with no name it uses a default name; 3 of 3 runs each",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-126 [FX-012] REQ-031 POST /api/respond with each FX-012 name answers 200 (none refused); a 5000-char name and name null are 200; a non-string name is 400 bad_request",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-127 REQ-014/REQ-017 POST /api/speak rejects bad input: broken JSON, lang other than zh|en, empty/blank/201-char text, non-string text -> 400 bad_request; body over 4096 B -> 413 too_large",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-128 REQ-014/REQ-017 POST /api/speak for a valid part: 200 audio/wav, Content-Length, Cache-Control no-store, PCM16 mono 24000 Hz, plausible length, zh and en; the audio is not stored by the server",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-129 [FX-013] REQ-014 the 2 FX-013 replies, split by speechParts, spoken by /api/speak and read back by /api/transcribe: audible, language exact, CER/WER <= 0.2, 3 runs each (6 of 6)",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-130 [FX-013] REQ-015 backend half: the first part of each FX-013 reply comes back from /api/speak within 3 s on a warm server, 5 of 5 runs each (the page adds playback start; fe-tester owns that half)",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-131 REQ-017 chat does not wait for read-aloud: while a long /api/speak is in flight, /api/respond (FX-001) answers 200 within the 10 s of REQ-008; and tts failure never reaches /api/respond (its body has no error field)",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-132 REQ-018 a client that hangs up in the middle of /api/speak does not hurt the server: health stays ok and the next /api/speak is 200",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-001 [FX-005 FX-006 FX-007] pcmFromWav returns exactly the data chunk of the seam-format fixtures (extra chunks allowed)",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-002 [FX-008] pcmFromWav accepts the 2 s silence WAV: 64000 bytes of PCM",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-003 pcmFromWav rejects every non-seam format with ApiError bad_request (400)",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-004 pcmFromWav stays inside the buffer and returns an even byte count; accepts a LIST chunk before data",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-005 CODES and ApiError carry the six codes with their HTTP statuses (03 §3)",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-006 sendError passes an ApiError through; any other exception becomes 502 failed with no message in the body or log",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-007 sendError after headers were sent only destroys the response (writes no error body)",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-008 languageOf: zhWords = ceil(han/2) vs English words; zh on ties; no letters or Han -> zh",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-037 languageOf: DES-009 worked example &quot;I love 火锅&quot; -> en (zhWords 1 : words 2)",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-009 shapeReply strips thinking, closed or unclosed, and wrapping quotes and whitespace",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-010 shapeReply keeps at most 2 sentences and at most 1 question; emoji stay with their sentence",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-011 shapeReply length caps: zh <= 120 code points, en <= 40 words; first sentence only, then cut with an ellipsis",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-012 toMessages = system(REPLY_SYSTEM + LANG_RULE last) + history (companion -> assistant) + user line",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-013 windowOf: last 40 entries, then drop oldest until total weight (length + 1.5 per Han) <= 2000",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-014 prompts: the 5 mood ids, mood schema enum, sampling parameters, language rules",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-015 CONFIG: loopback host, limits, deadlines, restarts, defaults",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-016 bonsaiFiles and missingFiles list every absent required path and nothing when all exist",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-017 sources: no personal absolute path, no non-loopback bind, no network download; package.json scripts per DES-012",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-018 serveStatic: / -> index.html, content types, no-store, HEAD without body, 404 for missing, 405 for other methods",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-019 serveStatic never leaves the web root: /../x, /%2e%2e/x and encoded variants -> 404",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-020 [FX-008] isNothingHeard is true only for the empty string",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-038 missingHints: one line per kind of missing file (stt bin / Bonsai / WhisperKit), in that order; [] -> []",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-087 [FND-001] route on a throwaway server: request-targets &quot;//&quot; and &quot;http://[&quot; answer 400 {&quot;error&quot;:&quot;bad_request&quot;} and the server stays up",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-090 [FX-009] REQ-023 isCrisis is true for all 9 FX-009 lines (incl. FX-009-08 negation and FX-009-09 活着没什么意思), 10 of 10 runs each",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-091 [FX-010] REQ-023 isCrisis is false for all 6 FX-010 near-misses and the design's extra idioms, 10 of 10 runs each",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-092 REQ-023 isCrisis variants fire: case, full-width, spaces, curly apostrophe, Traditional typed text, the 活着没什么意思 family, one phrase per list entry",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-093 REQ-023 isCrisis exceptions and boundaries: 想死你/想死我了/跳楼价 are removed before matching; en phrases need word boundaries; only this line counts",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-094 REQ-023 normalizeForCrisis: NFKC, Traditional folded, lowercase, curly quotes, whitespace runs, trim",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-095 [FX-012] REQ-031 cleanName returns the FX-012 expected value for each of the 7 inputs",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-096 REQ-031 cleanName: any length is cleaned never refused; whitespace becomes one space; defaults -> null; non-strings -> null; NFC; 12 code points",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-097 REQ-030 replySystem(null) is the unchanged REPLY_SYSTEM; a name replaces 小伙伴 (Little Buddy) and appends NAME_RULE",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-098 REQ-024 prompts CRISIS_RULE / CRISIS_LINE / CRISIS_FALLBACK exist for zh and en; the fixed help line has 988 and no question",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-099 REQ-024 crisisReply: first sentence + fixed 988 line; keeps a first sentence that already has 988; empty -> fallback + line; always 988, <= 2 sentences, <= 1 question",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-100 REQ-024/REQ-004 crisisReply cuts an over-long first sentence to the room left (zh 120 code points, en 40 words), ends it in … and keeps 988",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-101 [FX-013] REQ-014 speechParts: the FX-013 replies split exactly as the design says (emoji dropped)",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-102 REQ-014/REQ-015 speechParts: caps, digit spelling (en), clause and hard splits, empty results, no text lost",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-103 REQ-024/REQ-014 speechParts of the crisis help lines: each language yields parts with the number readable (en spells 988)",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-104 [FX-012] REQ-031/REQ-030 parseTurn: name absent or null -> null; any string is cleaned (FX-012 expected values); a non-string -> bad_request; line/history rules unchanged",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-105 REQ-014 parseSpeak: text trimmed 1..200 chars, lang zh|en, otherwise bad_request",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-106 REQ-014/REQ-017 route (throwaway server): /api/speak and /api/respond reject bad input with 400 and an over-limit body with 413 before any child is used",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-107 REQ-014/REQ-017 config: tts paths and voice serena, speak limits and deadlines, VOICES list, missingTtsFiles names the tokenizer when its dir is wrong, TTS_HINT is bilingual",
+        "passed"
+      ],
+      [
+        "test",
+        "TC-108 REQ-017 config: TTS_VOICE not in VOICES throws when config.js is imported; a listed voice is accepted (child process, own env copy)",
+        "passed"
+      ],
+      [
+        "test",
+        "press only holds: no listening, no seconds before the stream opens",
+        "passed"
+      ],
+      [
+        "test",
+        "slow open: hint at 0.2 s, listening and seconds at open, hint leaves",
+        "passed"
+      ],
+      [
+        "test",
+        "fast open: the 0.2 s hint never shows",
+        "passed"
+      ],
+      [
+        "test",
+        "release before open: tooShort at once, a late stream is stopped and never records",
+        "passed"
+      ],
+      [
+        "test",
+        "release off the button or Esc before open: nothing shown, hint cleared",
+        "passed"
+      ],
+      [
+        "test",
+        "0.5 s counts from open: 0.3 s after open is too short, however long the open took",
+        "passed"
+      ],
+      [
+        "test",
+        "release 0.6 s after open: wav() before close(), blob handed to onUtterance",
+        "passed"
+      ],
+      [
+        "test",
+        "60 s counts from open and sends itself",
+        "passed"
+      ],
+      [
+        "test",
+        "unknown permission: hint at 0.2 s first, then 600 ms decides prompt; nothing records",
+        "passed"
+      ],
+      [
+        "test",
+        "unknown permission, stream under 600 ms: records",
+        "passed"
+      ],
+      [
+        "test",
+        "open fails: the error hint shows and nothing is listening",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-001 Q-015 every plain word on the page equals the confirmed Words table, zh and en",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-003 the five mood captions match FRAME-009 (zh) and the Words table (en)",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-005 only app.js imports companion-client.js, so a stub swap touches one file",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-013 a 2 s hold at 48 kHz becomes a 64,044 B audio/wav blob; 60 s is capped at 1,920,044 B",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-017 the shipped font covers U+00C0-U+00FF and the punctuation replies use",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-012 warming table: warming -> voiceNotReady -> awake (4 s) -> empty; down 30 s -> stillDown",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-019 FND-003 the listening announcement and mic-opening words equal the Words table",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-008 the 20-turn capture alternates you / reply in order with one typing dots node last",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-018 each voice problem maps to its hint key",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-018 an unknown or missing code is a failed transcription",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-018 every mapped key has a non-empty zh string",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-014 words replace the transcribing turn, then follow the send path with the same turn",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-014 empty transcript: the turn leaves, no send, hook gets &quot;empty&quot;",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-014 not_ready and unavailable reach watch.failed; the turn leaves; no send",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-014 no audio (null) adds no turn and sends nothing",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-014 the real client posts the Blob as audio/wav to /api/transcribe and returns the text",
+        "passed"
+      ],
+      [
+        "test",
+        "header: RIFF/WAVE, PCM, mono, 16 kHz, 16 bit, sizes consistent",
+        "passed"
+      ],
+      [
+        "test",
+        "samples are little-endian int16, clipped",
+        "passed"
+      ],
+      [
+        "test",
+        "60 s is 1,920,044 B and longer input never exceeds it",
+        "passed"
+      ],
+      [
+        "test",
+        "48000 Hz downsamples to 16 kHz with the length and the pitch kept",
+        "passed"
+      ],
+      [
+        "test",
+        "44100 Hz downsamples to 16 kHz with the length and the pitch kept",
+        "passed"
+      ],
+      [
+        "test",
+        "16 kHz passes through; silence stays silence",
+        "passed"
+      ],
+      [
+        "test",
+        "chunks join, downsample and cap at 60 s of input; Blob is audio/wav",
+        "passed"
+      ]
+    ],
+    "junit_note": "report from gates.json junit: test-results/junit.xml",
+    "counts": {
+      "skipped": 0,
+      "failed": 0,
+      "errors": 0,
+      "passed": 194,
+      "xfailed": 0,
+      "xpassed": 0
+    },
+    "failed_tests": []
+  }
+}

@@ -466,7 +466,7 @@ None. Checked and found fitting: clear at 8 px inset, caption row with toggle (2
 - **Priority:** P1
 - **Side:** both (backend first for the live check)
 - **Depends on:** Q-010
-- **Status:** queued
+- **Status:** built
 
 ### Q-021 — Increment 2 words in both languages
 - **Page:** PAGE-001
@@ -666,7 +666,7 @@ None. Checked and found fitting: clear at 8 px inset, caption row with toggle (2
 
 ### Increment 2 notes the rows point to
 - **A-I2-1 (assumptions [unverified]):** a clear while a reply is pending ends the pending state at once; the late reply or failure is dropped with no hint and no words returned (A24). The card stays under its own crisis reply until 收起, clear, or a later crisis reply moves it ("one card"). Names already in earlier turns are never rewritten.
-- **Q-020:** `respond(line, history, name)`: `name` null or absent is left out of the body; a fresh `speak` aborts itself at 11 s → `timeout`; non-2xx → body `error`; `health()` returns `tts` as given. A 200 body missing `speech` reads as `[]` (silent), missing `crisis` as `false`; the page never guesses `lang`.
+- **Q-020:** `respond(line, history, name)`: `name` null or absent is left out of the body; a fresh `speak` aborts itself at 11 s → `timeout`; non-2xx → body `error`; `health()` returns `tts` as given. A 200 body missing `speech` reads as `[]` (silent), missing `crisis` as `false`; the page never guesses `lang`. Built (fe-engineer #18): a caller abort rethrows the fetch's own AbortError (its `.code` is not one of CODES); `speak` rejects `failed` on an empty 200 body; `respond` keeps `lang` as given (undefined if absent); live check against :4400 passed (health tts ready, respond, speak 57644 B audio/wav).
 - **Q-021:** `{name}` keys: `title`, `inputLabel`, `typing`, `companionCaption`, `companionName`, `hints.warming`, `awake`, `unreachable`, `stillDown`, `sendUnavailable`, `sendTimeout`. Memory words are not added. `setName(name)` re-substitutes and the app re-renders.
 - **Q-022:** `log.js` gains `clear()`, which puts the original empty state back (kept already as `emptyOriginal`). `app.js` keeps a generation counter: a reply or transcript from an earlier generation is dropped. A callback list lets later rows (reading, breathing, chip, card) register what clear stops. Pending voice transcript: the transcribing turn is removed.
 - **Q-023:** `name.js` = DES-021 `cleanName` (keep `[\p{L}\p{N} \-'·]`, NFC, 12 code points, default names → absent), `localStorage['companion.name']`; both languages and the default names tested against FX-012 expectations. The caption becomes a row (name button, " · phrase", speaker slot) and loses `aria-hidden` as a whole; the mood phrase stays announced from the companion's own name. Names shown by `textContent` only. Emptied or default-named → default for the interface language.

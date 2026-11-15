@@ -1,14 +1,19 @@
 {
   "phase": "fe-build",
-  "time": "2026-11-15T02:09:27Z",
+  "time": "2026-11-15T08:04:19Z",
   "project": "/Users/apple/Desktop/Hackathon/Local_AI_Hackathon",
   "run_dir": "docs/frontend",
-  "overall": "pass",
-  "consecutive_failures": 0,
-  "failed_runs": 0,
+  "overall": "fail",
+  "consecutive_failures": 1,
+  "failed_runs": 1,
   "fix_round_cap": 2,
   "escalate": false,
-  "fail_by_owner": {},
+  "fail_by_owner": {
+    "fe-engineer": [
+      "ROLE.tests",
+      "FE.observables"
+    ]
+  },
   "checks": [
     {
       "id": "ALL.state",
@@ -19,10 +24,12 @@
     },
     {
       "id": "ROLE.tests",
-      "status": "pass",
-      "message": "No existing test changed by fe-engineer",
+      "status": "fail",
+      "message": "fe-engineer modified or deleted existing tests",
       "owner": "fe-engineer",
-      "details": []
+      "details": [
+        "tests/client.test.js"
+      ]
     },
     {
       "id": "ROLE.unplanned",
@@ -48,7 +55,7 @@
     {
       "id": "FE3.dependencies",
       "status": "pass",
-      "message": "Every new dependency is named in the design",
+      "message": "No dependency manifest changed",
       "owner": "fe-engineer",
       "details": []
     },
@@ -79,9 +86,8 @@
       "message": "tests green",
       "owner": "fe-engineer",
       "details": [
-        "reused the run of 2026-11-15T02:08:58Z: same tree and command (test_reuse_minutes)",
-        "$ npm test -> exit 0 (0.9s), log: /Users/apple/Desktop/Hackathon/Local_AI_Hackathon/docs/frontend/gates/logs/2026-11-15T020857Z-test.log",
-        "counts: {'failed': 0, 'xfailed': 0, 'skipped': 0, 'passed': 84, 'errors': 0, 'xpassed': 0}",
+        "$ npm test -> exit 0 (718.0s), log: /Users/apple/Desktop/Hackathon/Local_AI_Hackathon/docs/frontend/gates/logs/2026-11-15T075221Z-test.log",
+        "counts: {'skipped': 0, 'failed': 0, 'errors': 0, 'passed': 194, 'xfailed': 0, 'xpassed': 0}",
         "per-test results: report from gates.json junit: test-results/junit.xml"
       ]
     },
@@ -94,10 +100,27 @@
     },
     {
       "id": "FE.observables",
-      "status": "pass",
-      "message": "19 approved observables intact",
+      "status": "fail",
+      "message": "Approved observables or frames changed (re-lock: the user's yes, or --because a newer decision)",
       "owner": "fe-engineer",
-      "details": []
+      "details": [
+        "Q-014: changed since approval on 2026-11-14",
+        "Q-020: never approved",
+        "Q-021: never approved",
+        "Q-022: never approved",
+        "Q-023: never approved",
+        "Q-024: never approved",
+        "Q-025: never approved",
+        "Q-026: never approved",
+        "Q-027: never approved",
+        "Q-028: never approved",
+        "Q-029: never approved",
+        "Q-030: never approved",
+        "Q-031: never approved",
+        "Q-032: never approved",
+        "Q-033: never approved",
+        "Q-034: never approved"
+      ]
     },
     {
       "id": "FE.regression",
@@ -130,16 +153,18 @@
   ],
   "data": {
     "writer_changed": [
+      "docs/codemap.md",
+      "docs/frontend/03-queue.md",
       "docs/frontend/run-log.jsonl",
-      "package.json",
-      "web/js/talk-button.js"
+      "tests/client.test.js",
+      "web/js/companion-client.js"
     ],
     "counts": {
-      "failed": 0,
-      "xfailed": 0,
       "skipped": 0,
-      "passed": 84,
+      "failed": 0,
       "errors": 0,
+      "passed": 194,
+      "xfailed": 0,
       "xpassed": 0
     }
   }
