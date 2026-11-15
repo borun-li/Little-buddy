@@ -291,3 +291,18 @@
 {"seq": 291, "ts": "2026-11-15T09:37:58Z", "event": "gate", "gate": "fe-build", "overall": "pass", "report": "docs/frontend/gates/fe-build-latest.json", "prev": "44fd8613cad63532a10c4c08b0ae0118e8db7d27eddc71f41e99a9437a0c3205"}
 {"seq": 292, "ts": "2026-11-15T09:38:15Z", "event": "gate", "gate": "fe-capture-plan", "overall": "pass", "report": "docs/frontend/gates/fe-capture-plan-latest.json", "prev": "f920f8844d77401831f79979e1784aec740e76528b05d73931e8a80b041af948"}
 {"seq": 293, "ts": "2026-11-15T09:43:52Z", "event": "capture", "round": "4", "captures": 76, "prev": "13a8912ac00a857285b9c1f4871ab6335fcbe10255873aafe1828d817d52015a"}
+{"seq": 294, "ts": "2026-11-15T09:44:05Z", "event": "mark", "role": "fe-tester", "prev": "69f058549b4b814e4baa84e483b2a609871f3ceccc1b3e645a9223ba43936eb2"}
+{"seq": 295, "ts": "2026-11-15T10:00:26Z", "event": "mark", "role": "fe-reviewer", "prev": "570dee45268021af1439e601ca1ff3f2ec59e0cbdc9e946bc4fe94da70a4b3da"}
+{"seq": 296, "ts": "2026-11-15T10:00:26Z", "event": "mark", "role": "fe-reviewer", "prev": "357790d462bee72a43dbc7a7342a95d068d1b2bbc108b32e51c120abefebb144"}
+{"seq": 297, "ts": "2026-11-15T10:00:26Z", "event": "mark", "role": "fe-reviewer", "prev": "f17928e48443d4817c7c8eaa546a8ec3182a416149186483e8e91d2e32f28ea4"}
+{"seq": 298, "ts": "2026-11-15T10:00:26Z", "event": "mark", "role": "fe-tester", "prev": "f2e155571c5496ffc74488a67e59fafb086ae7b2b570a43ef22c5be52820fca8"}
+{"seq": 299, "ts": "2026-11-15T10:00:26Z", "event": "dispatch", "agent": "fe-review-integration", "model": "opus", "phase": "4", "note": "Review increment 2 data/runtime", "prev": "66ef3eb71aab28d08938058eb4585fed0404534e6e72e2864402ba5e294a393a"}
+{"seq": 300, "ts": "2026-11-15T10:00:26Z", "event": "dispatch", "agent": "fe-review-experience", "model": "opus", "phase": "4", "note": "Review increment 2 page experience", "prev": "ee8521a55795a8ee995c3094e45461fd09134a7ab09cd9e7728e47c5726a4d2a"}
+{"seq": 301, "ts": "2026-11-15T10:00:26Z", "event": "dispatch", "agent": "fe-review-accessibility", "model": "opus", "phase": "4", "note": "Review increment 2 accessibility", "prev": "e13c6d5ee29b7682a580bf462ca78c7070a6857efd1d1fc99dbe3bd61dc53088"}
+{"seq": 302, "ts": "2026-11-15T10:00:26Z", "event": "dispatch", "agent": "fe-tester", "model": "sonnet", "phase": "4", "note": "Verify increment 2 rows", "prev": "647a8ea516ac216551dfda10be648484306338640f85b8a7068b25c903e60215"}
+{"seq": 303, "ts": "2026-11-15T10:05:30Z", "event": "return", "agent": "fe-tester", "phase": "4", "status": "ok", "note": "fe-tester #9, step 4 round 1, increment 2: done 7, not done 1, not observable 6.", "prev": "5aa5ff6cb0a1f5b85115bc23dc23b718fda1733aeaf644e92b2aeea111022901"}
+{"seq": 304, "ts": "2026-11-15T10:07:19Z", "event": "return", "agent": "fe-review-experience", "phase": "4", "status": "ok", "note": "|", "prev": "e8ad01a1cfc4a93f1b5e35c124d46c27e0b4ccf99e59c5c5b023b64dbbc3036c"}
+{"seq": 305, "ts": "2026-11-15T10:09:16Z", "event": "return", "agent": "fe-review-integration", "phase": "4", "status": "ok", "note": "|", "prev": "730920d9b473db330bdaa92e46fcab4f0eb61586502f0fe5ad02b8af85d8b7b2"}
+{"seq": 306, "ts": "2026-11-15T10:09:59Z", "event": "return", "agent": "fe-review-accessibility", "phase": "4", "status": "ok", "note": "|", "prev": "756aaea5dcb769f2e01c21d61b64b1ed4c41e649df75cdbf386db0b57b652a33"}
+{"seq": 307, "ts": "2026-11-15T10:10:09Z", "event": "mark", "role": "fe-reviewer", "prev": "185f04f253733e4277e47ec1300a145065fe01fbde207904204a03287d5383ab"}
+{"seq": 308, "ts": "2026-11-15T10:10:24Z", "event": "dispatch", "agent": "fe-reviewer", "model": "opus", "phase": "4", "note": "Merge increment 2 frontend review", "prev": "5a84d69b1fb1b6195472a18352af36f54a98d689618f1abb1e0938f9d06d2f4c"}

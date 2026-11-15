@@ -145,7 +145,7 @@ Transport 不变：同源 `http://127.0.0.1:4317`，无 CORS。前端 DES：DES-
 | `lang` out | `zh`\|`en`，回复的语言（= `line` 的语言，REQ-005 保证二者相同；朗读用它） | no | backend（`languageOf(line)`） | 同上 |
 | `crisis` out | boolean：本句命中固定危机词句表（DES-019） | no | backend；页面不自判 | 同上；危机轮即使 Bonsai 出错也是 200（UD-1 推荐 (a)，Plan 定；选 (b) 删此句） |
 | `speech` out | 字符串数组，按顺序朗读的段；可为 `[]` | no | backend（DES-018） | 同上 |
-| `speak(text, lang)` in | `text` 去空白 1–200 字符；`lang` `zh`\|`en`（用 respond 给的 `lang`） | no | frontend（`speech` 的一段） | `POST /api/speak`，`application/json`，体 ≤ 4096 B |
+| `speak(text, lang)` in | `text` 去空白 1–200 字符，合法 UTF-16（无孤立代理）；`lang` `zh`\|`en`（用 respond 给的 `lang`） | no | frontend（`speech` 的一段） | `POST /api/speak`，`application/json`，体 ≤ 4096 B |
 | `speak` out | WAV：PCM 16-bit LE、单声道、24000 Hz | 失败 = 不出声 | backend（TTSKit Qwen3-TTS） | 200 `audio/wav`；10 s 截止，页面 11 s 自停 |
 | `health()` out | `{ready, stt, bonsai, tts}`；`ready` 仍只看 stt 与 bonsai | no | backend | `GET /api/health` |
 | failure / slow | `.code` 同 6 个码；`speak` 的任何失败页面都静音、不提示 | — | backend | `{"error": code}` |

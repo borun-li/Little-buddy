@@ -108,3 +108,98 @@ Re-check by be-reviewer #2, 2026-11-15T04:18Z, FND-001..005 only. Code under che
 | 2 | FND-003 | fixed | server/bonsai.js:79 (per-run `randomBytes(24)` key), :87 (Bearer), :153-157 (`--cors-origins none --no-cors-credentials --no-slots`, `LLAMA_API_KEY` in env) follow DES-007. Live 4401 (`<scratch>/rc2/fnd003.out`): OPTIONS and GET /health with `Origin: http://evil.example` → `Access-Control-Allow-Origin: none`, `Access-Control-Allow-Credentials: false`. Keyless text/plain POST `/v1/chat/completions` → 401; wrong Bearer → 401; keyless `/props` → 401; keyless `/slots` → 401. The key is absent from the argv of pid 61514 (count 0). Gateway `/api/respond` → 200 with a reply. TC-088 passes (`be-tester-5-npm-test.log:199`). |
 | 2 | FND-004 | fixed | server/supervisor.js:11-21 (`causeOf`), :37-46 (`exited` line or `gave up` line + `child_gave_up`), :59-67 (stderr tail of 20 lines); bonsai.js:155 pipes stderr. All follow DES-004 steps 6-7 and §6. Throwaway `createBonsai` on a port I held, restarts {max 1, delay 500 ms} (`<scratch>/rc2/fnd004-porttaken.err`): `bonsai 已退出 exited: E srv start: couldn't bind HTTP server socket, … — 0.5 秒后重启 … (1/1)`, then `bonsai 已停止 gave up after 1 restarts: … — 修好上面的原因后重新运行 npm start  Fix the cause above…`. Stdout has `child_gave_up` once and no cause text (`fnd004-porttaken.out`). Bad model file: `bonsai 已退出 exited: E llama_model_load: error loading model: … failed to load model from …` (`fnd004-badmodel.err`). |
 | 2 | FND-005 | fixed | server/config.js:37 `bonsaiBootMs: 300000`, used by `warm()` at server/bonsai.js:130/133. No other 60 s bound in `server/` (`grep -rn "60000" server/` returns nothing). TC-015 asserts 300000 (tests/server-unit.test.js:226) and passes (`be-tester-5-npm-test.log:218`). That 300 s covers a 9B cold load remains `unmeasured` (DES-002 calls 300 s an estimate × 2). |
+
+
+## Increment 2 — Review round 1
+
+- Compiled by: be-reviewer #3 (coordinator), filed by the orchestrator
+- Panelists run: be-review-behavior #2, be-review-reliability #2, be-review-security #2 (new resident child companion-tts, new route `/api/speak`, a safety rule, a new untrusted input `name` — all three lenses apply).
+- Round: 1   Date: 2026-11-15
+- Input: `git diff c63180a b53f031 -- server stt` (unchanged since). Candidates: scratchpad `panel/behavior.md` (B-1..B-6), `panel/reliability.md` (R-1..R-5), `panel/security.md` (S-1..S-5), filed in `docs/backend/logs/review-inc2-candidates.md`.
+- Evidence root (`<scratch>`): `/private/tmp/claude-501/-Users-apple-Desktop-Hackathon-Local-AI-Hackathon/c499be74-fde0-49e2-a17d-d254a152203e/scratchpad/`; coordinator runs in `<scratch>/rv3/`; live log `<scratch>/instanceA.log`.
+- Coordinator runs: `node --test tests/dev-increment2.test.js tests/server-fakes.test.js` 37/37 (green while FND-013 exists); 3 live calls to 4400 (shared instance, did not isolate FND-013).
+
+### 1. Verdict
+**Send back to development.** Two majors, no blocker.
+- **FND-013:** the node client frees the read-aloud slot when an in-flight request is aborted or times out, while the one-at-a-time helper is still generating; later parts wait behind audio nobody hears and time out in a cascade. Live: a 504 (silence) 10.0 s after one abort under chat load.
+- **FND-014:** crisis exceptions (想死你 / 想死您 / 想死我了) are deleted before matching, so "我想死你别管我" → no crisis, no 988, no card (A22: a miss is worse than a false alarm).
+FND-014, FND-017, FND-018 change the crisis list the user approved at Plan (Q7) → user decisions. 16 candidates, 0 dropped; R-1+S-1+R-3 → FND-013; R-5 → BD-011, S-4 → BD-014; S-2 (FND-016) and R-2 (FND-015) lowered to minor with reasons.
+
+### 2. Findings
+
+| ID | Severity | Panelist | Where | REQ | Owner | Claim |
+|---|---|---|---|---|---|---|
+| FND-013 | major | reliability (R-1, R-3), security (S-1) | server/tts.js:25 | REQ-015..018; DES-017 st. 4–5, DES-025 st. 4 | be-architect → be-developer, be-tester | In-flight abort/timeout frees the slot and writes the next line to a still-busy helper; later parts wait behind unheard audio; under load a 504 |
+| FND-014 | major | behavior (B-1) | server/crisis.js:38 | REQ-023..025; A22; DES-019 st. 2 | user decision → be-architect → be-developer | 想死你/想死您/想死我了 cut out before matching: "我想死你别管我" → crisis:false |
+| FND-015 | minor | reliability (R-2) | server/tts.js:133 | REQ-017; DES-017 st. 6 | be-architect (with FND-013) | A live helper that stopped answering is never detected; health says tts ready; no restart |
+| FND-016 | minor | security (S-2) | stt/Sources/CompanionTTS/main.swift:15 | DES-016, DES-017, DES-022 | be-architect | maxNewTokens 120 is per TTSKit chunk; default sentence chunking runs chunks in parallel; a 200-char direct request costs several generations |
+| FND-017 | minor | behavior (B-2) | server/crisis.js:5 | REQ-023; A22 | user decision | Phrasing gaps: "I wanted to die", "I've been wanting to die", "I want to end it", "kms", self–harm (U+2013/U+2011), 活着真没意思, 活着好没意思, 活著沒甚麼意思, 我想伤害自已 |
+| FND-018 | minor | behavior (B-3) | server/crisis.js:39 | REQ-023; A22 | user decision | False alarms: 他思想死板, 这个理想死了, 我想死磕这个bug → crisis:true |
+| FND-019 | minor | security (S-5) | server/bonsai.js:84 | REQ-024; DES-020 | be-architect | Any first sentence containing "988" skips CRISIS_LINE (name "988" → "I am 988 and I am right here with you.") |
+| FND-020 | minor | security (S-3) | stt/Sources/CompanionTTS/main.swift:78 | REQ-017; DES-016 st. 3, DES-022 | be-developer | Lone surrogate passes parseSpeak, Swift decoder rejects, helper answers id:-1, node drops it, slot waits 10 s |
+| FND-021 | minor | behavior (B-4) | server/tts.js:165 | REQ-014; DES-018 | be-architect | zh hard split cuts English words ("…Googl" / "e的offer了！") |
+| FND-022 | minor | behavior (B-5) | server/tts.js:181 | REQ-014; DES-018, DES-022 | be-architect | en parts capped by words only; a 300-char token → 301-char part → /api/speak 400 → silent |
+| FND-023 | minor | behavior (B-6) | server/name.js:5 | REQ-031; A26; DES-021, DES-027 | be-architect (back + front) | Combining marks and ’ deleted: "राम" → "रम", "O’Brien" → "OBrien" |
+| FND-024 | minor | reliability (R-4) | server/main.js:223 | REQ-010; DES-022 st. 3 | be-architect | `--warm-only` exits 1 if tts is briefly down during a 2 s restart (read-aloud optional, A18) |
+
+### FND-013 — The read-aloud slot is freed while the helper is still busy
+- **Scenario:** part A in flight → aborted (page stops on send, mute, press-to-talk) or hits speakMs → `settle()` clears inFlight and `pump()` writes the next line (tts.js:25-36) → helper is strictly one at a time and cannot cancel (main.swift:95-99), finishes A first → next part's 10 s deadline runs behind A → timeouts cascade (silent read-aloud); each in-flight abort pushes one more line into stdin; `queued_ms` shows 0 (tts.js:66).
+- **Evidence:** live instanceA.log:3707-3726 (abort 09:47:56.135; next speak `timeout` 09:48:06.155; helper finished the aborted part at id=398 ms=16987 audio_ms=6240; the timed-out part generated anyway id=399; the next waited, queued_ms 0) under concurrent STT + Bonsai (RTF ≈ 2.7 vs 0.8 assumed). One-at-a-time fake probe `<scratch>/rv3/s1/`: 20 in-order aborts → 21 generations; legit request waited 6143 ms. Fakes stay green because tests/support/fake-tts.cjs answers lines independently; dev-increment2.test.js:140-160 aborts queued before in-flight. Root cause: deviation #10 (08-implementation-log.md:117), breaking DES-017 step 4.
+- **Severity:** major (demo flow: send while a reply is read aloud).
+- **Suggested direction:** keep inFlight busy until the helper answers that id (settle the caller early, write nothing new); if no answer within speakMs + margin, kill the helper so the supervisor restarts it (warm-up ~1.05 s load + ~2.2 s warm); consider a queue cap; fix DES-017 numbers; be-tester: one-at-a-time fake, update TC-137 and the abort test.
+- **Status:** open
+
+### FND-014 — Crisis exceptions swallow real crisis lines
+- **Scenario:** `isCrisis` deletes every exception string before matching (crisis.js:16, :38); "想死你" is a prefix of "想死你们都不懂我" / "想死你别管我", so 想死 disappears → crisis:false, no 988 (REQ-024), no card (REQ-025); the reply mood may bring a breathing offer instead.
+- **Evidence:** `<scratch>/rv3/probe1.out`: false for "我想死你们都不懂我", "我想死你别管我", "真的好想死你们根本不在乎", "我想死您别劝我了", "我想死我了真的撑不下去"; true for "我想死，你别管我". Live: respond "我想死你们都不懂我" → crisis:false, mood unpleasant-high. TC-093 covers only "想死你了！".
+- **Suggested direction (user):** remove an exception only in its fond-greeting form (想死你了 / 想死你们了 / 想死您了 / 想死我了), or drop the 想死你/想死您 exceptions and accept the false alarm (A22); add these lines to TC-093 / FX-010 boundaries.
+- **Status:** open
+
+### FND-015 — A hung tts helper is never detected
+- **Scenario:** helper alive but not answering → every speak times out (tts.js:133-137), next line written to the same helper; supervisor changes state only on close → health `tts: ready`, no restart; chat unaffected.
+- **Why minor:** no hang observed live; decide with FND-013 (holding the slot without an overdue kill would wedge read-aloud for good).
+- **Suggested direction:** overdue answer (speakMs + margin) → kill helper → restart path; in-order HANG fake.
+- **Status:** open
+
+### FND-016 — TTSKit chunking multiplies the per-request cost
+- **Scenario:** `GenerationOptions(maxNewTokens: 120)` keeps `chunkingStrategy nil → .sentence` and `concurrentWorkerCount 0`; text over ~42 tokens is chunked and all chunks run at once, 120 steps each.
+- **Evidence:** TTSKit.swift:810, :853, :890; Models.swift:233-240; TextChunker.swift:28.
+- **Why minor:** page parts stay under the chunk size; only a non-page local client (or DNS rebinding, BD-014) reaches it.
+- **Suggested direction:** `chunkingStrategy: .none` or `concurrentWorkerCount: 1`, and/or lower speakChars to the largest part size.
+- **Status:** open
+
+### FND-017 — Crisis phrasing gaps
+- Lines above → crisis:false; normalizeForCrisis folds no dashes (crisis.js:24-32). Code matches the approved list; coverage is the user's call. **Status:** open
+
+### FND-018 — Crisis false alarms on 想死 inside other words
+- 他思想死板, 这个理想死了, 我想死磕这个bug → crisis:true (substring, crisis.js:39). A22 accepts false alarms; exceptions risk FND-014-type misses. **Status:** open
+
+### FND-019 — "988" anywhere in the first sentence suppresses the hotline sentence
+- `crisisReply` returns `first` alone if it contains "988" (bonsai.js:84); name "988" survives cleanName. Card still shows. Direction: skip only when the CRISIS_LINE wording / call-text verb is present, or always append. **Status:** open
+
+### FND-020 — A lone surrogate wedges the tts slot for 10 s
+- `{"text":"a\ud800b"}` passes parseSpeak (main.js:37); Swift decoder rejects; helper answers id:-1 (main.swift:77-78); node ignores (tts.js:60). Page parts never contain one. Direction: reject `!text.isWellFormed()` in parseSpeak and/or treat id:-1 as the in-flight answer. **Status:** open
+
+### FND-021 — zh hard split cuts embedded English words
+- tts.js:161-171 slices by code point. "恭喜你拿到Google的offer了！" → ["恭喜你拿到Googl","e的offer了！"]. Direction: a Latin/digit run is one unit. **Status:** open
+
+### FND-022 — An over-long en token makes a part /api/speak refuses
+- `speechParts('x'.repeat(300)+'.','en')` → [301] → 400. Unlikely from Bonsai. Direction: hard-split parts over speakChars. **Status:** open
+
+### FND-023 — Name cleaning deletes combining marks and the curly apostrophe
+- ALLOWED lacks \p{M}; U+2019 not mapped. Back and front change together (FX-012). **Status:** open
+
+### FND-024 — Setup fails on a transient tts restart
+- supervisor sets down for the 2 s restart delay; warm-only poll exits 1 (main.js:223-226). Direction: fail only on child_gave_up, or warn for tts. Must be listed at the stop if still open. **Status:** open
+
+### 3. Dropped by the coordinator
+None. Merges: R-1 + S-1 (same mechanism) and R-3 (symptom) → FND-013.
+
+### 4. Deferred
+- R-5 → existing BD-011 (restart cap never resets; now also tts).
+- S-4 → existing BD-014 (no Host check; now also /api/speak).
+
+### 5. Re-checks
+
+| Round | FND | Fixed? | Evidence |
+|---|---|---|---|

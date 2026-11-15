@@ -12,17 +12,17 @@ Next agent must know:
 Read beyond the list: docs/backend/logs/be-architect-8-crisis.log §C — measured rule result for the new row.
 Next agent reads: tests/fixtures/candidates/FX-009/meta.json; 03 § Increment 2 DES-019 (Interface block)
 
-## be-architect #8 · step 2 (user decisions at Plan) · round 3 · increment 2 · 2026-11-15T06:08:48Z
-Task: apply the user's Plan decisions to 03 § Increment 2 (DES-019 活着没什么意思 family; voice serena; UD-1 (a); crisis list approved).
-Changed: 03-detailed-design.md (+20/-13) — DES-016 (+speaker = serena line), DES-017 (+voice = cfg.tts.voice 'serena' line), DES-019 (list marked approved; +6 zh phrases 活着 + 没有/没什么/没啥/没 + 意思/意义; TRAD_FOLD +麼,麽 -> 么; fires/not rows; step 6 "15 个繁体字"), DES-020 (words: Plan approved; UD-1 = (a) recorded, (b) kept as one "rejected" line; step 3 ref). docs/backend/logs/be-architect-8-crisis.log (new).
-Result: scratch rule x10: FX-009 8/8 true, FX-010 6/6 false, FRAME-019 line true, 13 variants true, 8 near misses false (37/37, exit 0) — evidence: docs/backend/logs/be-architect-8-crisis.log. gatelib docs.designs: DES-016 92, DES-017 97, DES-019 104, DES-020 86 words; no prose unit > 50. Gates p2/p3 not run by me.
+## be-architect #9 · step 6 (review fixes) · round 1 · increment 2 · 2026-11-15T10:16:00Z
+Task: design review round 1 fixes FND-013, 014, 015, 016, 019, 020 and TC-125 in 03 § Increment 2 (no code).
+Changed: 03-detailed-design.md (+44/-19): DES-016 (chunkingStrategy .none; RTF up to 2.7), DES-017 (slot held until helper answers; overdue kill 30 s; id -1 = slot answer; queue cap 4), DES-019 (GREETING_EXCEPTIONS end-of-clause only), DES-020 (CRISIS_MARK), DES-021 (NAME_RULE bans the words), DES-022 (isWellFormed), DES-023 (speakQueue 4, ttsOverdueMs 30000), § 3/§ 4/§ 9 rows. docs/backend/logs/be-architect-9-fixes.log (new).
+Result: FND-014 scratch rule x10: 36/36 as expected (FX-009 9/9 true, FX-010 6/6 false); plain substring removal fails '我想死我了真的撑不下去' (same log). gate p2 PASS (output in scratchpad arch9/p2.txt). DES words: 016 92, 017 111, 019 107.
 Next agent must know:
-- Pitfalls: 想消失 / 想就这样消失 deliberately NOT added ('尴尬得想消失' idiom); the FRAME-019 line fires on 活着没什么意思. If the user wants them, it is one list edit.
-- Pitfalls: TRAD_FOLD now 15 chars; 什么 in Traditional is 什麼 (or variant 什麽) - without the fold '活著沒什麼意思' would miss.
-- Left open (outside my brief, "only DES-016/017/019/020"): DES-023 line `voice: envVoice()` comment and § 5 `TTS_VOICE` row still say "pending the user's choice at Plan, Q6"; § 9 `crisis` row still says "UD-1 推荐 (a)，Plan 定；选 (b) 删此句" — wording only, behaviour already matches; orchestrator decides whether to dispatch the edit (then re-copy the seam).
-- Left open: FX-009 has no row for the new phrases; analyst may add the FRAME-019 line as a crisis-true row.
-Read beyond the list: docs/frontend/evidence/design/FRAME-019.png — the example line's exact text.
-Next agent reads: 03 § Increment 2 DES-019 (Interface block), DES-020 (UD-1 lines); docs/backend/logs/be-architect-8-crisis.log
+- Deviations #10 and #11 (08:117-118) are replaced by DES-017; settle() must no longer pump; only an answer (id or -1) or the child's exit frees the slot.
+- Overdue kill uses proc.child.kill('SIGKILL'); no new log event (child_exit records it; TC-073 allow-list stays 23).
+- Each overdue kill spends one of 5 restarts that never reset (BD-011).
+- Seam § 9 speak row changed ("合法 UTF-16") -> orchestrator re-copies the contract.
+- Tester: TC-137 and the abort test change; needs a one-at-a-time fake (reads the next line only after answering); TC-125 wording unmeasured.
+Next agent reads: 03 § Increment 2 DES-017, DES-019, DES-023; docs/backend/logs/be-architect-9-fixes.log
 
 ## fe-ux #6 · step 1 (frontend UX) · round 1 · increment 2 · 2026-11-15T05:35:13Z
 Task: append `## Increment 2 — 2026-11-15` to docs/frontend/01-ux.md: flows, state rows and zh/en words for P1 (voice reply, breathing, 988 card, clear, poke, rename) and memory (design only).
@@ -73,63 +73,46 @@ Next agent must know:
 Read beyond the list: scratchpad arch6/pkg/Sources/CompanionTTS/main.swift (architect's measurement helper).
 Next agent reads: server/tts.js:9-140; server/bonsai.js crisisReply + respond; docs/backend/08-implementation-log.md § Increment 2
 
-## fe-tester #8 · step 3 (Q-033 offline cases) · round 3 · increment 2 · 2026-11-15T11:00:00Z
-Task: review and write the six Q-033 cases into tests/offline.test.js after the gate restored it to HEAD.
-Changed: tests/offline.test.js only, six cases appended (the five existing unchanged). Engineer's cases kept, two loosened against unrelated edits: the speaker `.src` check no longer pins variable names ['current','u'] but requires every `.src =` to be a plain identifier (no literal, no concatenation); the @font-face count is >= 1 instead of exactly 1.
-Result: offline.test.js 11/11; frontend unit files (package.json list minus server-*, 25 files) 171/171. Mutations in a scratch copy, each red in a Q-033 case (several also in Q-006): Google Fonts link in index.html; `new Audio('https://x')` in speaker.js; `a.src = 'http://x/'+current`; direct `fetch('/api/x')` in log.js; second remote-ish font url; `import ... 'https://cdn/x.js'` in poke.js. Unmutated copy green.
-Next agent must know: case 1 pins the exact API path set (/api/health, respond, speak, transcribe), so a new endpoint needs that list updated; case 6 names five module files.
-Next agent reads: tests/offline.test.js:82-189
-Earlier entries follow.
-Task: repair the one red assertion in tests/fnd-r1-fix.test.js after Q-022 rewrote the onUtterance guard.
-Changed: tests/fnd-r1-fix.test.js only, one line: `/onUtterance: \(audio\) => pending \? false/` became `/onUtterance: \(audio\) => \{\s*if \(pending\) return false;/`. Same behaviour checked (utterance dropped while pending), source regex for the block form.
-Result: fnd-r1-fix 7/7; frontend unit files (package.json list minus server-*) 108/108. Mutation in a scratch copy (pending line removed from app.js): that test red, other 6 green.
-Next agent must know: the check is a source regex, so a further rewrite of that line needs the regex updated again.
-Next agent reads: tests/fnd-r1-fix.test.js:99-104
-Earlier entries follow.
-Earlier entry (fe-tester #6, Q-020 client tests, 2026-11-15T08:10:00Z):
-Task: write tests/client.test.js for Q-020 (2 updated Q-010 assertions + 7 Q-020 tests) after the gate restored HEAD.
-Changed: tests/client.test.js only. Engineer's test diff reviewed: both Q-010 changes are required by the contract (respond now returns lang/crisis/speech; health returns tts) and stay deepEqual, not weakened. Strengthened: respond body now deepEqual {line, history, name} (was name only); speak checks Content-Type application/json.
-Result: with HEAD client the file fails to load (no SPEAK_TIMEOUT_MS export), so all 14 fail until the engineer's client is restored. With the engineer's client copied to a scratch dir: 14/14 pass; mutation 11000 to 12000 turns the speak timeout test red.
-Next agent must know: orchestrator restores web/js/companion-client.js then runs the gate; no existing fe-tester #6 section existed, this one is new.
-Next agent reads: tests/client.test.js (Q-020 block at the end)
-Earlier entry (fe-tester #5, increment 1) follows.
-Task: re-point docs/frontend/04-verification.md to evidence/verify-3/manifest.md and confirm the 19 verdicts against the verify-3 files.
-Changed: docs/frontend/04-verification.md only (header, round note, Q-010 row). Verdicts: done 7 (Q-001, 002, 003, 005, 008, 015, 017), not observable 12. Q-010 done to not observable: in verify-3 the sad follow-up reply does not show recall of the first line (mood and English reply do hold).
-Result: every backticked filename in the file exists in verify-3 or design (script check); manifest named as evidence/verify-3/manifest.md; no verify-2 left. 0 Figma calls. No tests added or edited.
-Next agent must know:
-- Pitfalls: the model's reply text changes per capture run, so recall-type observables (Q-010) are flaky evidence; a fixed-reply stub check would settle it.
-- Left open: the not-observable rows still need a mic, a failing backend, reduce-motion emulation or a network log (user check at Acceptance).
-Next agent reads: docs/frontend/04-verification.md
+## fe-tester #9 · step 4 (verify increment 2) · round 1 · increment 2 · 2026-11-15T10:20:00Z
+Task: one verdict per row Q-020..Q-033 from evidence/verify-4 (76 captures), plus TC-084, TC-085, TC-086, TC-136 page halves.
+Changed: docs/frontend/04-verification.md (Increment 2 section appended), tests/verify-i2.test.js (new, 7 tests, not in the package.json script).
+Result: done 7 (Q-020, 021, 022, 023, 028, 029, 030), not done 1 (Q-024), not observable 6 (Q-025, 026, 027, 031, 032, 033). 15 increment-2 unit files by name: 118/118 green. verify-i2.test.js: 6 green, 1 red on purpose (Q-024). Mutations on a scratch copy of the captures turned the Q-022, Q-026, Q-029, Q-030 tests red; an unrelated edit stayed green.
+Q-024 defect: nextPoke draws freely among the two reactions that are not the last, so six pokes show only two reactions in 6.3 % of runs (200,000 simulated; theory 6.25 %). tests/poke.test.js "six pokes" is flaky because the code is wrong, not the test; fix the code (shuffled bag of three, new bag never starts with the last played) and that test then always passes. Do not weaken the test.
+TC verdicts: TC-084 still manual (zh-UI plus English line and silence need a mic; client sends no language: client.test.js green); TC-085 partly verified (no Han outside the log in every English dump) and the switch-with-existing-reply step still manual; TC-086 still manual (needs a stopped test server); TC-136 partly verified: toggle muted, breathing, card, clear, rename seen; read-aloud timing, stop-on-talk, reduced motion manual; poke fails on the six-poke rule.
+Next agent must know: verify-i2.test.js reads captures (VERIFY_DIR overrides) and is red until Q-024 is fixed; add it to the package.json test list after the fix. Live :4400 used for 3 calls (health, one speak, one respond), nothing stopped.
+Next agent reads: docs/frontend/04-verification.md § Increment 2; web/js/poke.js:12-17; tests/verify-i2.test.js
+(Earlier fe-tester entries: git history of this file.)
 
 ## fe-engineer #32 · step 3 (codemap backticks) · round 3 · increment 2 · 2026-11-15T11:20:00Z
 - Changed: docs/codemap.md only. Removed backticks from 24 non-path tokens (words kept); no text added.
 - Verify: python re.findall over backticks, os.path.exists on part before ':' -> only `swift build -c release --package-path stt` left (allowed shell command); non-path count 0.
 - Figma calls: 0.
 
-## be-tester #6 · step 4 (gate fix) · round 2 · increment 2 · 2026-11-15
-Round 2 (be-tester #6, gate fix):
-Task: fix p4 P4.plan-coverage and CTX.codemap.
-Changed: docs/backend/04-test-plan.md line 572 (TC-136 Verifies lists REQ-019..022, 025..029 one by one; the gate does not parse ranges); docs/codemap.md line 56 (ready without backticks).
-Result: docs.testcases now gives TC-136 the REQs 015, 016, 018, 019-022, 025-029. Gate not re-run (17 min suite).
-Next agent must know: the plan parser reads only single REQ-nnn ids, so never write REQ-019..022 in a Verifies line.
-Round 1 entry (be-tester #5) follows.
-Task: plan and write the increment-2 backend tests (REQ-014..031, FX-009..013) to the design's interfaces, in parallel with the build.
-Changed: docs/backend/04-test-plan.md (§ Increment 2, TC-090..TC-137); tests/server-unit.test.js (TC-090..108; TC-015 gains speak limits/deadlines), tests/server-fakes.test.js (TC-109..117, 137; TC-029 gains lang, crisis), tests/server-live.test.js (TC-040 gains tts; TC-120..132), tests/server-boot.test.js (TC-073 allow-list 23 events), new tests/support/fake-tts.cjs. No server, stt, web, package.json or fixtures touched.
-Result: written 46 TCs (automated 42 across unit 19, fakes 10, live 13; manual 4: TC-133..136). Run against the partly built code: unit+fakes 67 pass, 1 fail (TC-137: tts.js waits for a hung helper's answer, so one HANG blocks later speaks until the process dies; tts.js:134). Live TC-120..132 not run to completion: instance A on 4400 still runs the old build (health has no tts, /api/speak 404).
-Next agent must know:
-- Live TTS tests FAIL (not skip) if health tts is not ready after 300 s: the server at COMPANION_URL needs the compiled companion-tts and models. FX-009 + FX-010 live need about 150 respond calls (5 to 8 min).
-- TC-111 requires only "an aborted speak gives no audio and settles"; DES-017 does not say reject vs resolve. TC-094 skips U+00B4 (NFKC makes it unreachable in normalizeForCrisis).
-- Frontend-only REQs (016, 019..022, 026..029, page halves of 015, 018, 025) are TC-136, fe-tester.
-Next agent reads: docs/backend/04-test-plan.md § Increment 2 (I2.2, I2.5)
+## be-tester #8 · step 5 (p5 report verdicts) · round 2 · increment 2 · 2026-11-15T10:11:49Z
+Task: give TC-125, 133, 134, 136 a verdict in 05-test-report.md (gate P5.report-complete).
+Changed: docs/backend/05-test-report.md (4 table rows only). No test, fixture or production file touched. Suite not re-run.
+Verdicts (gate parser docs.report_results now reads all four):
+- TC-125 fail (flaky, 1 of 7; owner be-developer, NAME_RULE wording, fix coming).
+- TC-133 blocked (needs a second Bonsai with TTS_TOKENIZER_DIR=/nonexistent; be-developer #5 log § L shows the path live).
+- TC-134 blocked (needs a human ear; TC-129 read-back passes as proxy; user listens at Acceptance).
+- TC-136 fail (fe-tester #9: Q-024 six-poke rule fails, owner fe-engineer; read-aloud timing, stop-on-talk, reduced motion manual, unverified).
+Next agent must know: prose lines in 05 (section 7.5 "Not run" list, REQ coverage table, the flaky paragraph) still say "not run" or "pass, flaky"; the gate reads only the table cells. After the TC-125 and Q-024 fixes, re-run and change these rows.
+Next agent reads: docs/backend/05-test-report.md section 7.
 
-## fe-reviewer #2 · step 4 (frontend review) · round 2 · increment 1 · 2026-11-15T02:04:20Z
-Task: re-check FND-001..004 (fix commit 1ae2fab) against 4399 and the code; record in 05-review.md §5 (filed by orchestrator from the return)
-Changed: docs/frontend/05-review.md — FND-001..004 Status "fixed in round 2"; §5 re-check table
-Result: 4/4 fixed, 0 open; unit tests 26/0 — evidence: session scratchpad fe-reviewer-2/recheck.out, unit.out
+## fe-reviewer #3 · step 4 (review, increment 2) · round 1 · increment 2 · 2026-11-15T10:15:22Z
+Task: coordinate the increment-2 panel (E-1..4, A-1..6, I-1..3) plus fe-tester #9's not-done row Q-024.
+Changed: docs/frontend/05-review.md, appended "Increment 2 — round 1" (FND-010..022). Nothing else.
+Result: 13 findings (0 blocker, 4 major, 9 minor), 0 dropped, E-1 and A-2 merged. Verdict: send back. Evidence is in the session scratchpad fe-reviewer-3/ (crisis.out, zoom.out, rename.out, misc.out, poke.out, verify-i2.out). All /api/* were stubbed, so 0 live calls. :4400 serves web/ byte-identical to the tree (cmp).
 Next agent must know:
-- Pitfalls: 4399 serves web/ directly; "Listening" sits in the hint line without .is-shown (visually hidden, role=status) — read hint.key / ARIA, not visibility
-- Left open: FND-005..009 minors deferred (§4); stale comment web/js/talk-button.js:9 ("wait for the seconds")
-Next agent reads: docs/frontend/05-review.md §5
+- Fix round (majors):
+  - FND-010 (fe-engineer): crisis card scrolled before it is filled (log.js:220-221). This one shows in the demo.
+  - FND-011 (fe-engineer): rename field width in ch (name.js:60).
+  - FND-012 (fe-engineer): Q-024, use a shuffled bag of three (poke.js:14). Turns tests/verify-i2.test.js green.
+  - FND-013 (fe-ui rule first, then fe-engineer): fixed 280 px stage row at 200 % zoom (page.css:26).
+- Frontend FND-010..022 are not backend FND-010..013. Backend FND-013 (TTS keeps generating after an abort) is not filed in the frontend doc.
+- Deferred: FND-014..022, plus fe-tester #9's 3 minor deviations (05-review.md Increment 2 §4).
+- Pitfall: crisis-card probes need about 6 earlier turns. A crisis turn on an empty log fits and hides the bug.
+Next agent reads: docs/frontend/05-review.md § Increment 2 — round 1
 
 
 ## be-reviewer #2 · step 6 re-check · round 2 · 2026-11-15T04:18:53Z

@@ -519,6 +519,7 @@ Transport：同源，页面与接口都在 `http://127.0.0.1:4317`（`PORT` 可�
 ## Increment 2 — 2026-11-15
 
 - Author: be-architect #6 · step 2, round 1 · Input: `01-requirements.md` § Increment 2, `02-architecture.md` § Increment 2 · Status: draft
+- Revised: be-architect #9 · step 6 round 1 · review fixes FND-013..016, FND-019, FND-020 and TC-125 (DES-016, 017, 019..023); log `docs/backend/logs/be-architect-9-fixes.log`.
 - 证据：`docs/backend/logs/be-architect-6-tts.log`；试听样本 `docs/backend/evidence/tts-voices/`（serena、aiden 各 zh/en）。
 - 扩展而非取代：DES-001 → DES-022，DES-002 → DES-023，DES-007/008/010 → DES-020、DES-021，DES-011 → DES-016，DES-013 → DES-024。§9 由本节 §9 取代。
 - REQ-032..035 只设计、不建：DES-029、DES-030。
@@ -556,8 +557,11 @@ func wav16(_ s: [Float], sampleRate: Int) -> Data   // 44-byte RIFF/WAVE header,
 // config: TTSKitConfig(modelFolder: URL(fileURLWithPath:), tokenizerFolder: URL(fileURLWithPath:), verbose: false, logLevel: .error, download: false, load: true)
 //   modelFolder set -> no download (TTSKit.swift:375-386); tokenizer read locally only if <tokenizerFolder>/tokenizer.json exists,
 //   else fetched from the Hub (TTSKit.swift:555-567) -> DES-023 checks that file before spawning
-// options: GenerationOptions(maxNewTokens: 120)  // frames of 80 ms (12.5/s: every measured audio_ms is a multiple of 80) -> ≤ 9.6 s audio
-// measured (log §C-§F): first launch of a new binary load 18.6 s, then load ~1.05 s + warm ~2.2 s; RTF ≈ 0.8
+// options: GenerationOptions(maxNewTokens: 120, chunkingStrategy: .none)  // frames of 80 ms (12.5/s) -> ≤ 9.6 s audio per request
+//   FND-016 (review round 1): .none = one pass (TTSKit.swift:810-812; TextChunker.swift:8-12), so maxNewTokens bounds the whole
+//   request; default nil -> .sentence ran chunks in parallel, 120 steps each (TTSKit.swift:856, :890). Longer text is cut at 9.6 s audio
+// measured (log §C-§F): first launch of a new binary load 18.6 s, then load ~1.05 s + warm ~2.2 s; RTF ≈ 0.8 idle,
+//   up to 2.7 under STT + Bonsai load (review round 1 evidence: id=398 ms=16987 for audio_ms=6240)
 ```
 - **Behaviour:**
   1. 按上面的 config 加载；从不联网（测量全程在禁网沙箱里跑通）。
@@ -577,19 +581,27 @@ export function createTts(cfg = CONFIG): {
   start(): void, stop(): void, readonly state: ChildState, readonly pid: number | null,
   speak(text: string, lang: 'zh'|'en', signal: AbortSignal): Promise<Buffer>,  // WAV bytes, PCM16 mono 24000 Hz
 }
-// one request written to the helper at a time; others wait in a FIFO array (memory only)
+// the helper is strictly one at a time and cannot cancel (main.swift:95-99); others wait in a FIFO array (memory only)
+// slot = the item whose line was written; busy from the write until the helper answers that id (or id -1)
+// FND-013 (review round 1): abort or speakMs while in flight -> caller settled at once (AbortError / `timeout`); the slot stays
+//   busy and nothing new is written; the late answer frees the slot and is dropped. Replaces 08 deviation #10
+// FND-015 (review round 1): no answer within cfg.deadlines.ttsOverdueMs (30000) of the write -> proc.child.kill('SIGKILL');
+//   supervisor logs child_exit and restarts; onExit -> slot and queue `unavailable`. 30 s ≥ 9.6 s audio × RTF 2.7 ≈ 26 s:
+//   a shorter bound would kill real work under load and spend the restart budget (max 5, BD-011)
+// FND-020 (review round 1): reply id -1 = answer to the slot (only one line is ever outstanding) -> `failed`. Replaces deviation #11
+// queue cap cfg.limits.speakQueue (4): a push beyond it -> the oldest queued item settles `unavailable` (stale part)
 // signal aborted while queued -> removed, never written      fires: page aborts its prefetched part after a send (DES-025)
-// signal aborted while in flight -> answer dropped on arrival not: a part already written is still generated (≤ ~2.5 s)
-// deadline cfg.deadlines.speakMs (10000) from the call: queue wait + generation (≤ 9.6 s audio × RTF 0.8 ≈ 7.7 s)
+// deadline cfg.deadlines.speakMs (10000) from the call: queue wait + generation ≈ audio × RTF 0.8 idle .. 2.7 under load;
+//   a long part under load may time out (that part is silent; chat unaffected)
 // voice = cfg.tts.voice = 'serena' (the user's choice at Plan, 2026-11-15, Q6)
 ```
 - **Behaviour:**
   1. `supervise({name:'tts', cmd: tts.bin, args: ['--model-folder', modelDir, '--tokenizer-folder', tokenizerDir, '--voice', voice], stdio: ['pipe','pipe','inherit'], warm, onExit})`；`warm` 等 ready 行，≤ `ttsBootMs`。
   2. stdout 行解析同 DES-006 第 2 步；ready 行记 `tts_warm`。
   3. `starting` → `not_ready`；`down` → `unavailable`。
-  4. 入队；助手空闲时写 `{"id","text","lang"}\n`。
-  5. 同 id 回答：`error` → `failed`；`wav` → `Buffer`；超时 → `timeout`，迟到丢弃。之后写下一个。
-  6. 子进程退出 → 在途与排队都 `unavailable`，队列清空。
+  4. 入队（超上限先结掉最旧的）；槽空时写 `{"id","text","lang"}\n`，起 overdue 计时。
+  5. 槽的 id 或 -1 回答：清计时、空槽、写下一个；调用方未结 → `error`/-1 → `failed`，`wav` → `Buffer`；已结 → 丢弃。
+  6. 子进程退出 → 清计时、空槽，在途与排队都 `unavailable`，队列清空。
   7. 记 `tts_done`（§6），不记文字。
 - **Errors:** `not_ready`、`unavailable`、`timeout`、`failed`
 
@@ -637,7 +649,11 @@ export const CRISIS_PHRASES = {
        'harm myself','harming myself','self-harm','self harm','cut myself','cutting myself',"don't want to live",'dont want to live',
        'do not want to live','no reason to live',"don't want to be alive",'dont want to be alive'],
 };
-export const CRISIS_EXCEPTIONS = ['想死你', '想死您', '想死我了', '跳楼价', '跳楼大甩卖'];   // zh only, removed before matching
+export const CRISIS_EXCEPTIONS = ['跳楼价', '跳楼大甩卖'];   // zh only, removed anywhere before matching
+// FND-014 (review round 1, orchestrator decision under A22; the user confirms at Acceptance): fond greetings are removed only
+//   when nothing but end of text or punctuation follows (no \p{L}\p{N}); '想死你别管我' keeps 想死 -> true
+export const GREETING_EXCEPTIONS = ['想死你了', '想死你们了', '想死您了', '想死我了'];
+const GREETING_RE = new RegExp(`(?:${GREETING_EXCEPTIONS.join('|')})(?![\\p{L}\\p{N}])`, 'gu');
 export const TRAD_FOLD = { 殺:'杀', 盡:'尽', 輕:'轻', 尋:'寻', 著:'着', 沒:'没', 義:'义', 結:'结', 傷:'伤', 殘:'残', 樓:'楼', 價:'价', 賣:'卖', 麼:'么', 麽:'么' };
 //   every Traditional form of a char in CRISIS_PHRASES.zh / CRISIS_EXCEPTIONS (typed text; A4 covers transcripts only)
 export function normalizeForCrisis(text: string): string  // NFKC, TRAD_FOLD per char, toLowerCase, [’‘`´] -> "'", /\s+/g -> ' ', trim
@@ -647,14 +663,16 @@ export function isCrisis(line: string): boolean
 //        typed Traditional '我想自殺。', '我想傷害自己。', '活著沒意思', '活著沒什麼意思'
 //        FRAME-019 '有时候觉得活着没什么意思，想就这样消失。', '活着没啥意思', '活着没意义', '活 着 没 什 么 意 思'
 // not:   '跳樓價' (folded to the exception 跳楼价)
-// not:   all 6 FX-010 lines, '想死你了！', '跳楼价大甩卖', 'I have the skill myself'
+// not:   all 6 FX-010 lines, '想死你了！', '想死你们了！', '你可想死我了。', '跳楼价大甩卖', 'I have the skill myself'
+// fires (FND-014): '我想死你们都不懂我', '我想死你别管我', '我想死您别劝我了', '我想死我了真的撑不下去', '想死你了，可我真的想死'
+//        (FND-014 rows ×10: docs/backend/logs/be-architect-9-fixes.log, 36/36; plain substring removal fails '我想死我了真的撑不下去')
 // not:   '这几天什么都不想做。', '这游戏没什么意思。', '尴尬得想消失。', '生活没什么意思的时候就出去走走'
 //        (all rows above: docs/backend/logs/be-architect-8-crisis.log, 37/37 as expected ×10)
 // known false alarm (accepted, A22): 'Suicide Squad was fun'                                  (log §J)
 ```
 - **Behaviour:**
   1. `t = normalizeForCrisis(line)`。
-  2. zh：`t` 去掉全部空白，再删去每个例外词；含任一 zh 词 → `true`。
+  2. zh：`t` 去掉全部空白，删去 `GREETING_RE` 的匹配，再删去每个 `CRISIS_EXCEPTIONS` 词；含任一 zh 词 → `true`。
   3. en：`EN_RE.test(t)` → `true`。否则 `false`。
   4. 只看本句 `line`（打字或转写），不看前文；纯函数；不记日志（A9、非目标）。
   5. 含否定（"我没有想自杀"）也判危机（A22、Q9）。
@@ -678,7 +696,10 @@ export const CRISIS_LINE = {
 export const CRISIS_FALLBACK = { zh: '谢谢你愿意告诉我这些，我很在乎你。', en: 'Thank you for telling me this, and I really care about you.' };
 export function crisisReply(shaped: string, lang: 'zh'|'en'): string
 // first = first SENTENCE match of shaped (trimmed), or CRISIS_FALLBACK[lang] when shaped === ''
-// first includes '988' -> first ; else first + (zh '' | en ' ') + CRISIS_LINE[lang]
+export const CRISIS_MARK = { zh: '打给988', en: 'callortext988' };   // CRISIS_LINE wording, whitespace removed, lowercase
+// FND-019 (review round 1): first (whitespace removed, lowercased) includes CRISIS_MARK[lang] -> first ;
+//   else first + (zh '' | en ' ') + CRISIS_LINE[lang]. A bare '988' (e.g. the name "988") no longer skips CRISIS_LINE
+//   fires: 'I am 988 and I am right here with you.' -> + CRISIS_LINE ; not: '…你可以打给 988。' -> first alone
 // over the DES-008 caps (zh 120 code points / en 40 words): cut `first` to the room left, ending in '…'
 // always: contains '988', ≤ 2 sentences, ≤ 1 question (CRISIS_LINE has none)
 // USER DECISION UD-1 = (a), the user at Plan, 2026-11-15: step 3 departs from REQ-011 (tell the user, keep the line, resend)
@@ -712,7 +733,8 @@ export function cleanName(raw: unknown): string | null    // null = default name
 //   result equal to a default name -> null: A26's default name follows the UI language; storing the literal would pin
 //   one language and contradict NAME_RULE ("never call yourself 小伙伴")
 // prompts.js
-export const NAME_RULE = (n) => `Your name is "${n}". When you mention yourself or are asked your name, say "${n}"; never call yourself 小伙伴 or Little Buddy.`;
+export const NAME_RULE = (n) => `Your name is "${n}". When you mention yourself or are asked your name, say "${n}". Never write the words 小伙伴 or Little Buddy, not even to describe yourself; say 朋友 or friend instead.`;
+//   TC-125 (review round 1): the old rule allowed '我叫团子，是个…暖心小伙伴' (05 § 7.3); the words are now banned outright. Unmeasured
 export function replySystem(name: string | null): string
 //   null -> REPLY_SYSTEM (unchanged, measured text)
 //   else -> REPLY_SYSTEM.replace('小伙伴 (Little Buddy)', `"${name}"`) + '\n' + NAME_RULE(name)
@@ -734,6 +756,7 @@ export function replySystem(name: string | null): string
 export function parseTurn(body, limits = CONFIG.limits): { line, history, name: string | null }   // + name (DES-021 step 1)
 export function parseSpeak(body, limits = CONFIG.limits): { text: string, lang: 'zh'|'en' }
 //   JSON object; text string trimmed 1..limits.speakChars (200, JS .length); lang 'zh'|'en'; else ApiError('bad_request')
+//   FND-020 (review round 1): !text.isWellFormed() (lone surrogate; Node ≥ 20, here v24) -> ApiError('bad_request')
 // POST /api/respond -> 200 { ...await bonsai.respond(line, history, name), speech: speechParts(reply, lang) }
 // POST /api/speak   (application/json, body ≤ limits.speakJsonBytes 4096) -> 200 audio/wav, Content-Length, Cache-Control: no-store
 // GET  /api/health  -> 200 { ready: isReady(stt) && isReady(bonsai), stt, bonsai, tts }        // ready unchanged (A18)
@@ -760,8 +783,9 @@ CONFIG.tts = {
 };
 export const VOICES = ['ryan','aiden','ono-anna','sohee','eric','dylan','serena','vivian','uncle-fu'];  // Qwen3Models.swift:90-94
 // envVoice: not in VOICES -> throw at import, same as envSize (BONSAI_MODEL)
-CONFIG.limits   += { speakChars: 200, speakJsonBytes: 4096 }
-CONFIG.deadlines += { speakMs: 10000, ttsBootMs: 300000 }   // ttsBootMs: failure detector; first launch measured 18.6 s + 2.2 s warm
+CONFIG.limits   += { speakChars: 200, speakJsonBytes: 4096, speakQueue: 4 }            // speakQueue: FND-013 (review round 1)
+CONFIG.deadlines += { speakMs: 10000, ttsBootMs: 300000, ttsOverdueMs: 30000 }   // ttsBootMs: first launch measured 18.6 s + 2.2 s warm
+//   ttsOverdueMs: FND-015 (review round 1), from the write to the helper's answer (DES-017)
 export function missingTtsFiles(cfg = CONFIG): string[]
 //   cfg.tts.bin; join(modelDir, 'qwen3_tts', c, '12hz-0.6b-customvoice') for c in
 //   text_projector, code_embedder, multi_code_embedder, code_decoder, multi_code_decoder, speech_decoder; join(tokenizerDir, 'tokenizer.json')
@@ -886,10 +910,10 @@ view (REQ-033, REQ-034): read-only "my records" view while memory is on; reads c
 | Error | Raised when | Retry | Handled in | Message |
 |---|---|---|---|---|
 | `not_ready` | `/api/speak` 时 tts `starting` | 页面不重试（静音） | DES-017、DES-022 | 503 `{"error":"not_ready"}` |
-| `unavailable` | tts `down`、未启动（缺文件）、请求中退出 | 同上 | 同上 | 503 `{"error":"unavailable"}` |
+| `unavailable` | tts `down`、未启动（缺文件）、请求中退出（含 30 s 无回答被杀）、排队超 4 被挤出 | 同上 | 同上 | 503 `{"error":"unavailable"}` |
 | `timeout` | 朗读 10 s（含排队）；页面 11 s | 同上 | DES-017；DES-024 | 504 `{"error":"timeout"}` |
 | `failed` | 助手 `error` 行（`bad_request`、`ttskit`） | 同上 | DES-017 | 502 `{"error":"failed"}` |
-| `bad_request` | speak 体不合格；respond 的 `name` 不是字符串也不是 `null` | 否 | DES-022 | 400 `{"error":"bad_request"}` |
+| `bad_request` | speak 体不合格（含孤立代理）；respond 的 `name` 不是字符串也不是 `null` | 否 | DES-022 | 400 `{"error":"bad_request"}` |
 | `too_large` | speak 体 > 4096 B | 否 | DES-022 | 413 `{"error":"too_large"}` |
 | 危机轮 Bonsai 出错 | 未就绪、超时、失败、空 | — | DES-020 | 不报错：固定句 + 988 句，`crisis: true` |
 
@@ -900,7 +924,8 @@ view (REQ-033, REQ-034): read-only "my records" view while memory is on; reads c
 | tts 未启动 | `down`（终止） | `missingTtsFiles()` 非空 | no |
 | 朗读队列项 | `queued` → `in flight` → `done`/`failed` | 助手空闲 / 回答 | no |
 | 朗读队列项 | `queued` → `cancelled` | 页面 abort（不写给助手） | no |
-| 朗读队列项 | `in flight` → `dropped` | 页面 abort 或 10 s 截止（迟到回答丢弃） | no |
+| 朗读队列项 | `in flight` → `dropped` | 页面 abort 或 10 s 截止；槽仍占到助手回答（丢弃），30 s 无回答 → 杀助手 | no |
+| 朗读队列项 | `queued` → `failed` | 排队超 4，最旧的 `unavailable` | no |
 | 名字 | 缺省 ↔ 自定义 | 页面确认改名 | 浏览器 localStorage |
 
 ### 5. Config & secrets (increment 2)
@@ -951,7 +976,7 @@ Transport 不变：同源 `http://127.0.0.1:4317`，无 CORS。前端 DES：DES-
 | `lang` out | `zh`\|`en`，回复的语言（= `line` 的语言，REQ-005 保证二者相同；朗读用它） | no | backend（`languageOf(line)`） | 同上 |
 | `crisis` out | boolean：本句命中固定危机词句表（DES-019） | no | backend；页面不自判 | 同上；危机轮即使 Bonsai 出错也是 200（UD-1 推荐 (a)，Plan 定；选 (b) 删此句） |
 | `speech` out | 字符串数组，按顺序朗读的段；可为 `[]` | no | backend（DES-018） | 同上 |
-| `speak(text, lang)` in | `text` 去空白 1–200 字符；`lang` `zh`\|`en`（用 respond 给的 `lang`） | no | frontend（`speech` 的一段） | `POST /api/speak`，`application/json`，体 ≤ 4096 B |
+| `speak(text, lang)` in | `text` 去空白 1–200 字符，合法 UTF-16（无孤立代理）；`lang` `zh`\|`en`（用 respond 给的 `lang`） | no | frontend（`speech` 的一段） | `POST /api/speak`，`application/json`，体 ≤ 4096 B |
 | `speak` out | WAV：PCM 16-bit LE、单声道、24000 Hz | 失败 = 不出声 | backend（TTSKit Qwen3-TTS） | 200 `audio/wav`；10 s 截止，页面 11 s 自停 |
 | `health()` out | `{ready, stt, bonsai, tts}`；`ready` 仍只看 stt 与 bonsai | no | backend | `GET /api/health` |
 | failure / slow | `.code` 同 6 个码；`speak` 的任何失败页面都静音、不提示 | — | backend | `{"error": code}` |
