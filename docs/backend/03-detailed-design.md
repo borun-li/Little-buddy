@@ -547,6 +547,7 @@ Transport：同源，页面与接口都在 `http://127.0.0.1:4317`（`PORT` 可�
 // Package.swift: + .executableTarget(name: "companion-tts", dependencies: [.product(name: "TTSKit", package: "argmax-oss-swift")], path: "Sources/CompanionTTS")
 //   same package and pin (argmax-oss-swift 1.1.1; TTSKit product: .build/checkouts/argmax-oss-swift/Package.swift:25); no new resolve
 // usage: companion-tts --model-folder <dir holding qwen3_tts/> --tokenizer-folder <dir holding tokenizer.json> --voice <speaker>
+//   speaker = serena (the user's choice at Plan, 2026-11-15, Q6; passed by DES-017 from cfg.tts.voice)
 struct Request: Decodable { let id: Int; let text: String; let lang: String }   // lang "zh" | "en"
 struct Reply: Encodable { let id: Int; let wav: String?; let ms: Int; let audio_ms: Int?; let error: String? }
 struct ReadyEvent: Encodable { let event = "ready"; let load_ms: Int; let warm_ms: Int }
@@ -580,6 +581,7 @@ export function createTts(cfg = CONFIG): {
 // signal aborted while queued -> removed, never written      fires: page aborts its prefetched part after a send (DES-025)
 // signal aborted while in flight -> answer dropped on arrival not: a part already written is still generated (≤ ~2.5 s)
 // deadline cfg.deadlines.speakMs (10000) from the call: queue wait + generation (≤ 9.6 s audio × RTF 0.8 ≈ 7.7 s)
+// voice = cfg.tts.voice = 'serena' (the user's choice at Plan, 2026-11-15, Q6)
 ```
 - **Behaviour:**
   1. `supervise({name:'tts', cmd: tts.bin, args: ['--model-folder', modelDir, '--tokenizer-folder', tokenizerDir, '--voice', voice], stdio: ['pipe','pipe','inherit'], warm, onExit})`；`warm` 等 ready 行，≤ `ttsBootMs`。
@@ -623,25 +625,31 @@ export function speechParts(reply: string, lang: 'zh'|'en'): string[]   // [] = 
 - **Side:** backend
 - **Interface:**
 ```js
-// DRAFT list for the user's approval at Plan (Q7); FX-009/010 expected values follow it
+// List approved by the user at Plan (2026-11-15, Q7), plus the user's addition: the 活着没什么意思 family
+//   (FRAME-019 line '有时候觉得活着没什么意思，想就这样消失。' must fire). Added: 活着 + 没/没有/没什么/没啥 + 意思/意义.
+//   Not added: 想消失, 想就这样消失 - '尴尬得想消失' is an everyday idiom; the FRAME-019 line fires without them.
 export const CRISIS_PHRASES = {
-  zh: ['自杀','自尽','轻生','寻死','想死','想去死','不想活','活不下去','活着没意思','活着没有意义','不如死了','死了算了','一了百了',
-       '结束生命','结束自己','了结自己','伤害自己','自残','自伤','割腕','跳楼','上吊'],
+  zh: ['自杀','自尽','轻生','寻死','想死','想去死','不想活','活不下去',
+       '活着没意思','活着没有意思','活着没什么意思','活着没啥意思','活着没意义','活着没有意义','活着没什么意义','活着没啥意义',
+       '不如死了','死了算了','一了百了','结束生命','结束自己','了结自己','伤害自己','自残','自伤','割腕','跳楼','上吊'],
   en: ['suicide','suicidal','kill myself','killing myself','end my life','ending my life','end it all','take my own life','taking my own life',
        'want to die','wanna die','want to be dead','wish i was dead','wish i were dead','better off dead','hurt myself','hurting myself',
        'harm myself','harming myself','self-harm','self harm','cut myself','cutting myself',"don't want to live",'dont want to live',
        'do not want to live','no reason to live',"don't want to be alive",'dont want to be alive'],
 };
 export const CRISIS_EXCEPTIONS = ['想死你', '想死您', '想死我了', '跳楼价', '跳楼大甩卖'];   // zh only, removed before matching
-export const TRAD_FOLD = { 殺:'杀', 盡:'尽', 輕:'轻', 尋:'寻', 著:'着', 沒:'没', 義:'义', 結:'结', 傷:'伤', 殘:'残', 樓:'楼', 價:'价', 賣:'卖' };
+export const TRAD_FOLD = { 殺:'杀', 盡:'尽', 輕:'轻', 尋:'寻', 著:'着', 沒:'没', 義:'义', 結:'结', 傷:'伤', 殘:'残', 樓:'楼', 價:'价', 賣:'卖', 麼:'么', 麽:'么' };
 //   every Traditional form of a char in CRISIS_PHRASES.zh / CRISIS_EXCEPTIONS (typed text; A4 covers transcripts only)
 export function normalizeForCrisis(text: string): string  // NFKC, TRAD_FOLD per char, toLowerCase, [’‘`´] -> "'", /\s+/g -> ' ', trim
 export function isCrisis(line: string): boolean
 // EN_RE = new RegExp(`(?<![a-z])(?:${escaped en phrases joined by |})(?![a-z])`)
 // fires: all 8 FX-009 lines ×10 each, also 'I don’t want to live anymore', '我 想 死', 'Ｉ　ＷＡＮＴ　ＴＯ　ＤＩＥ', 'I  want   to die',
-//        typed Traditional '我想自殺。', '我想傷害自己。', '活著沒意思'
+//        typed Traditional '我想自殺。', '我想傷害自己。', '活著沒意思', '活著沒什麼意思'
+//        FRAME-019 '有时候觉得活着没什么意思，想就这样消失。', '活着没啥意思', '活着没意义', '活 着 没 什 么 意 思'
 // not:   '跳樓價' (folded to the exception 跳楼价)
 // not:   all 6 FX-010 lines, '想死你了！', '跳楼价大甩卖', 'I have the skill myself'
+// not:   '这几天什么都不想做。', '这游戏没什么意思。', '尴尬得想消失。', '生活没什么意思的时候就出去走走'
+//        (all rows above: docs/backend/logs/be-architect-8-crisis.log, 37/37 as expected ×10)
 // known false alarm (accepted, A22): 'Suicide Squad was fun'                                  (log §J)
 ```
 - **Behaviour:**
@@ -650,7 +658,7 @@ export function isCrisis(line: string): boolean
   3. en：`EN_RE.test(t)` → `true`。否则 `false`。
   4. 只看本句 `line`（打字或转写），不看前文；纯函数；不记日志（A9、非目标）。
   5. 含否定（"我没有想自杀"）也判危机（A22、Q9）。
-  6. 繁体：A4 只管转写与回复的字形；打字可能是繁体，漏判比误判更糟（A22），所以比对前把表里用到的 13 个繁体字折成简体（`TRAD_FOLD`）。表外的繁体字不折，无影响。新加 zh 词时同步补它的繁体字。
+  6. 繁体：A4 只管转写与回复的字形；打字可能是繁体，漏判比误判更糟（A22），所以比对前把表里用到的 15 个繁体字折成简体（`TRAD_FOLD`）。表外的繁体字不折，无影响。新加 zh 词时同步补它的繁体字。
 - **Errors:** 无。
 
 ### DES-020 — 危机回复（`server/bonsai.js` + `server/prompts.js`）
@@ -658,7 +666,7 @@ export function isCrisis(line: string): boolean
 - **Side:** backend
 - **Interface:**
 ```js
-// DRAFT words for the user's approval at Plan (they appear in replies)
+// Words shown to the user at Plan; Plan approved by the user 2026-11-15 (they appear in replies)
 export const CRISIS_RULE = {
   zh: '用户可能有伤害自己的念头。只用一句温柔的话回应，表示你听到了、你在乎他；不要提问，不要诊断，不要给建议。',
   en: 'The user may be thinking about hurting themselves. Answer with one gentle sentence that shows you heard them and care; no question, no diagnosis, no advice.',
@@ -673,16 +681,15 @@ export function crisisReply(shaped: string, lang: 'zh'|'en'): string
 // first includes '988' -> first ; else first + (zh '' | en ' ') + CRISIS_LINE[lang]
 // over the DES-008 caps (zh 120 code points / en 40 words): cut `first` to the room left, ending in '…'
 // always: contains '988', ≤ 2 sentences, ≤ 1 question (CRISIS_LINE has none)
-// USER DECISION at Plan (UD-1): step 3 departs from REQ-011 (tell the user, keep the line, resend) and REQ-004 (generated live)
-//   (a) RECOMMENDED: step 3 as written - 200, fixed gentle sentence + CRISIS_LINE, crisis: true, no error shown.
-//       Why: on a crisis turn the help line matters most and now; Bonsai may need tens of seconds to recover; the user approves the words at Plan.
-//   (b) follow REQ-011: the usual 503/504/502, page shows its error hint; that turn has no 988 sentence and no card.
-//       Choosing (b) deletes step 3 and the last row of § 3 Errors (increment 2).
+// USER DECISION UD-1 = (a), the user at Plan, 2026-11-15: step 3 departs from REQ-011 (tell the user, keep the line, resend)
+//   and REQ-004 (generated live) - 200, fixed gentle sentence + CRISIS_LINE, crisis: true, no error shown.
+//   Why: on a crisis turn the help line matters most and now; Bonsai may need tens of seconds to recover.
+//   Rejected (b): the usual 503/504/502 with the page's error hint, no 988 sentence and no card on that turn.
 ```
 - **Behaviour:**
   1. `crisis = isCrisis(line)`；非危机轮与 DES-007 完全相同。
   2. 危机轮：系统消息末尾再加一行 `CRISIS_RULE[lang]`；回复照常 `shapeReply`，再 `crisisReply`。
-  3. 危机轮遇 Bonsai `starting`/`down`、回复调用超时/失败/整形为空 → 不报错，`reply = crisisReply('', lang)`；`mood` 取情绪调用结果，未调用或失败为 `neutral`（UD-1，见上）。
+  3. 危机轮遇 Bonsai `starting`/`down`、回复调用超时/失败/整形为空 → 不报错，`reply = crisisReply('', lang)`；`mood` 取情绪调用结果，未调用或失败为 `neutral`（UD-1 = (a)，用户 Plan 定）。
   4. 返回 `{reply, mood, lang, crisis}`；`respond_done` 照常，不加危机字段。
 - **Errors:** 危机轮无错误码；其余同 DES-007。
 

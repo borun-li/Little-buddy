@@ -13,18 +13,17 @@ Next agent must know:
 Read beyond the list: docs/backend/logs/be-architect-6-tts.log §E, §F, §I, §J — measured timings and draft rule results; ~/.claude/gates/gatelib/docs.py _fixtures — parser behaviour.
 Next agent reads: tests/fixtures/candidates/FX-009..013/meta.json; 03 § Increment 2 DES-019..021
 
-## be-architect #7 · step 2 (design, analyst contradictions) · round 2 · increment 2 · 2026-11-15T05:25:08Z
-Task: resolve be-analyst #4's six design contradictions in 03 § Increment 2 with the smallest edits.
-Changed: 03-detailed-design.md — DES-018 (+lang source line), DES-019 (+TRAD_FOLD 13 chars, step 6), DES-020 (+UD-1 block in Interface, step 3 ref), DES-021 (step 1: any string length cleaned, non-string 400; A26 details as code comments), DES-030 (+summarize triggers, +read-only view, steps renumbered), §3 bad_request row, §9 rows `name`, `lang`, `crisis` and the DES-030 intro line. 02-architecture.md line 161 (`name` any length). Nothing else.
-Result: gatelib docs.designs/prose_units on 03 § Increment 2: all DES ≤ 120 words (max DES-008 119, DES-030 115), no prose unit > 50. Gates p2/p3 not run by me.
+## be-architect #8 · step 2 (user decisions at Plan) · round 3 · increment 2 · 2026-11-15T06:08:48Z
+Task: apply the user's Plan decisions to 03 § Increment 2 (DES-019 活着没什么意思 family; voice serena; UD-1 (a); crisis list approved).
+Changed: 03-detailed-design.md (+20/-13) — DES-016 (+speaker = serena line), DES-017 (+voice = cfg.tts.voice 'serena' line), DES-019 (list marked approved; +6 zh phrases 活着 + 没有/没什么/没啥/没 + 意思/意义; TRAD_FOLD +麼,麽 -> 么; fires/not rows; step 6 "15 个繁体字"), DES-020 (words: Plan approved; UD-1 = (a) recorded, (b) kept as one "rejected" line; step 3 ref). docs/backend/logs/be-architect-8-crisis.log (new).
+Result: scratch rule x10: FX-009 8/8 true, FX-010 6/6 false, FRAME-019 line true, 13 variants true, 8 near misses false (37/37, exit 0) — evidence: docs/backend/logs/be-architect-8-crisis.log. gatelib docs.designs: DES-016 92, DES-017 97, DES-019 104, DES-020 86 words; no prose unit > 50. Gates p2/p3 not run by me.
 Next agent must know:
-- Pitfalls: §9 seam text changed (rows respond-in `name`, `lang`, `crisis`; intro DES-030 clause) - contract file must be re-copied by the orchestrator.
-- Pitfalls: DES-019 now folds Traditional before matching; FX-009 has no Traditional row - analyst may add '我想自殺。' (expected crisis) and '跳樓價' (not).
-- Pitfalls: a > 200-char name now gets 200 and is cleaned, not 400 (DES-021); FX-012 meta 'status 200' still holds; no row tests a long name ('x'.repeat(5000) -> 'xxxxxxxxxxxx' in the code comment).
-- Left open (user at Plan): UD-1 crisis-turn fallback (a) fixed sentence + 988, no error [recommended] vs (b) REQ-011 error, no 988/card.
-- Left open: memory viewing/summary cadence are design-only (DES-030 Interface block); looks are fe-ux/fe-ui's.
-Read beyond the list: nothing
-Next agent reads: 03 § Increment 2 DES-019..021, DES-030, § 9 Seam (increment 2)
+- Pitfalls: 想消失 / 想就这样消失 deliberately NOT added ('尴尬得想消失' idiom); the FRAME-019 line fires on 活着没什么意思. If the user wants them, it is one list edit.
+- Pitfalls: TRAD_FOLD now 15 chars; 什么 in Traditional is 什麼 (or variant 什麽) - without the fold '活著沒什麼意思' would miss.
+- Left open (outside my brief, "only DES-016/017/019/020"): DES-023 line `voice: envVoice()` comment and § 5 `TTS_VOICE` row still say "pending the user's choice at Plan, Q6"; § 9 `crisis` row still says "UD-1 推荐 (a)，Plan 定；选 (b) 删此句" — wording only, behaviour already matches; orchestrator decides whether to dispatch the edit (then re-copy the seam).
+- Left open: FX-009 has no row for the new phrases; analyst may add the FRAME-019 line as a crisis-true row.
+Read beyond the list: docs/frontend/evidence/design/FRAME-019.png — the example line's exact text.
+Next agent reads: 03 § Increment 2 DES-019 (Interface block), DES-020 (UD-1 lines); docs/backend/logs/be-architect-8-crisis.log
 
 ## fe-ux #6 · step 1 (frontend UX) · round 1 · increment 2 · 2026-11-15T05:35:13Z
 Task: append `## Increment 2 — 2026-11-15` to docs/frontend/01-ux.md: flows, state rows and zh/en words for P1 (voice reply, breathing, 988 card, clear, poke, rename) and memory (design only).
