@@ -6,7 +6,7 @@ import { micPermission, requestStream, stopStream, meter, hintKeyFor } from './m
 
 const MIN_MS = 500;
 const MAX_MS = 60_000;
-const MIC_OPENING_MS = 200; // slow open: tell the user to wait for the seconds (DFB-005)
+const MIC_OPENING_MS = 200; // slow open: tell the user to wait until it says Listening (DFB-005)
 const UNKNOWN_PROMPT_MS = 600; // browser cannot report permission: a slower answer means a prompt is open
 const PROMPT_OPEN = Symbol('prompt open');
 const HINT_ICON = { prompt: 'i-mic', refused: 'i-mic-off', noMic: 'i-mic-off', busy: 'i-mic-off', tooShort: 'i-info', micOpening: 'i-mic', listeningNow: null };
