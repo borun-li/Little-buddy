@@ -208,7 +208,7 @@ test('TC-031 bonsai.respond: mood call sees only the line; reply call sees the w
     const big = Array.from({ length: 40 }, (_, i) => ({ role: i % 2 ? 'companion' : 'user', text: 'x'.repeat(200) }));
     await b.respond('hi', big);
     rep = bodies(log).slice(n2).find((x) => !x.response_format);
-    assert.equal(rep.messages.length, 1 + 30 + 1, 'history cut to the 6000-char budget (30 of 40 entries)');
+    assert.equal(rep.messages.length, 1 + 10 + 1, 'history cut to the weight budget 2000 (10 of 40 entries of 200 chars)');
   } finally { b.stop(); }
 });
 

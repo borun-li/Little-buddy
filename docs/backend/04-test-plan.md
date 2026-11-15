@@ -71,11 +71,15 @@ Level: unit / integration (modules + doubles, or the HTTP seam) / e2e (boots the
 ### TC-008 — `languageOf`
 - **Verifies:** REQ-005 (A3)  **Level:** unit  **Mode:** automated
 - **Steps:** 10 lines: pure en, pure zh, "我今天很happy" (zh), "I really love eating 火锅 with friends" (en), emoji only, digits only, empty, tie "嗯 ok" (zh), "I feel 难过 today" (en).
-- **Expected result:** per DES-009 (Han count ≥ word count → zh; else words → en; neither → zh).  **Observed how:** `equal`.
+- **Expected result:** per DES-009 (amended): `zhWords = ceil(han/2)`; zhWords ≥ English words → zh (tie zh); else words → en; neither → zh. Extra cases: "a 火锅" (1:1 zh), "好 hello world" (1:2 en), "火锅 ok" (1:1 zh).  **Observed how:** `equal`.
 
-### TC-037 — `languageOf`: the design's own example "I love 火锅" → en
+### TC-037 — `languageOf`: DES-009 worked examples
 - **Verifies:** REQ-005 (A3)  **Level:** unit  **Mode:** automated
-- **Steps:** `languageOf('I love 火锅')`.  **Expected result:** `en`, as DES-009 step 3 states ("3:2").  **Observed how:** `equal`. Design contradiction: the line has 2 words and 2 Han characters, so DES-009 step 2 (`han >= words` → zh) gives `zh`. The test follows the worked example; if the rule is meant, the example (and this TC) change. Raised, not resolved.
+- **Steps:** `languageOf` of "I love 火锅", "嗯 ok", "我今天很happy".  **Expected result:** `en` (zhWords 1 : words 2), `zh` (1:1 tie), `zh` (2:1), as DES-009 step 3 after be-architect #3's amendment (the earlier example contradicted the rule; resolved).  **Observed how:** `equal`.
+
+### TC-038 — `missingHints`
+- **Verifies:** REQ-010, REQ-011  **Level:** unit  **Mode:** automated
+- **Steps:** with `BONSAI_MODEL`-style size 2B: `[]`; only the gguf (and, separately, only llama-server); only `stt.bin`; two WhisperKit paths; all three kinds.  **Expected result:** `[]`; one Bonsai line (mentions BONSAI_MODEL, not `npm run setup`); one stt line (`npm run setup`); one WhisperKit line (STT_MODEL_DIR); three lines in the order stt, Bonsai, WhisperKit, each with Chinese and English text.  **Observed how:** line counts and `match`.
 
 ### TC-009 — `shapeReply`: thinking, quotes, blanks
 - **Verifies:** REQ-004  **Level:** unit  **Mode:** automated
@@ -96,7 +100,7 @@ Level: unit / integration (modules + doubles, or the HTTP seam) / e2e (boots the
 
 ### TC-013 — `windowOf`
 - **Verifies:** REQ-007, REQ-008  **Level:** unit  **Mode:** automated
-- **Steps:** 45 short entries; 40×200 chars; 30×200 (= 6000); 20 turns ≈ 979 chars; 5×1500; empty.  **Expected result:** 40; 30; 30; 20; 4; `[]`, always the newest entries.  **Observed how:** `deepEqual`.
+- **Steps:** weight = length + 1.5 × Han chars, budget 2000 (DES-007). 45 short entries; 40×200; 10×200 (= 2000); 11×200; 40×35 (≈ 1400, a 20-turn English chat); 20×49; 21×'好'×40 (weight 100 each); 5×1500; one 2001-char entry; one 801-Han entry (2002.5); 800 Han (= 2000); empty.  **Expected result:** 40; newest 10; 10; 10; 40; 20; 20 (newest); 1; `[]`; `[]`; 1; `[]`.  **Observed how:** `deepEqual`.
 
 ### TC-014 — Prompt constants
 - **Verifies:** REQ-006, REQ-004  **Level:** unit  **Mode:** automated
@@ -104,11 +108,11 @@ Level: unit / integration (modules + doubles, or the HTTP seam) / e2e (boots the
 
 ### TC-015 — Config values
 - **Verifies:** REQ-009, REQ-010  **Level:** unit  **Mode:** automated
-- **Steps:** read `CONFIG`.  **Expected result:** host `127.0.0.1`; limits, deadlines, restarts exactly as DES-002; 15 s + 12 s < 30 s; default ports 4317/4318 and size 9B when the env vars are unset (read only).  **Observed how:** `deepEqual`.
+- **Steps:** read `CONFIG`.  **Expected result:** host `127.0.0.1`; limits (incl. `historyBudget: 2000`), deadlines, restarts exactly as DES-002; 15 s + 12 s < 30 s; default ports 4317/4318 and size 9B when the env vars are unset (read only).  **Observed how:** `deepEqual`.
 
 ### TC-016 — `bonsaiFiles` / `missingFiles`
 - **Verifies:** REQ-010, REQ-011  **Level:** unit  **Mode:** automated
-- **Steps:** a config pointing into an empty temp dir; then the full tree created; then one `.mlmodelc` removed.  **Expected result:** ≥ 7 missing paths naming llama-server, gguf, stt bin, the three mlmodelc and tokenizer.json; `[]` when complete; exactly 1 after removal.  **Observed how:** list contents.
+- **Steps:** a config pointing into an empty temp dir; then the full tree created; then one `.mlmodelc` removed. The `missingHints` cases are TC-038.  **Expected result:** ≥ 7 missing paths naming llama-server, gguf, stt bin, the three mlmodelc and tokenizer.json; `[]` when complete; exactly 1 after removal.  **Observed how:** list contents.
 
 ### TC-017 — Sources and scripts match DES-001/002/012
 - **Verifies:** REQ-009, REQ-010  **Level:** unit  **Mode:** automated
@@ -169,7 +173,7 @@ Level: unit / integration (modules + doubles, or the HTTP seam) / e2e (boots the
 
 ### TC-031 — What each call sees
 - **Verifies:** REQ-005, REQ-007  **Level:** integration  **Mode:** automated
-- **Steps:** English line with Chinese history; Chinese/English mixed line; 40×200-char history.  **Expected result:** mood call carries only the line; reply call has the history (companion → assistant) and the language rule of the *line*; history cut to 30 entries by the 6000-char budget.  **Observed how:** logged bodies.
+- **Steps:** English line with Chinese history; Chinese/English mixed line; 40×200-char history.  **Expected result:** mood call carries only the line; reply call has the history (companion → assistant) and the language rule of the *line*; history cut to 10 entries (1 + 10 + 1 messages) by the weight budget 2000.  **Observed how:** logged bodies.
 
 ### TC-032 — Reply errors and shaping
 - **Verifies:** REQ-004, REQ-011  **Level:** integration  **Mode:** automated
@@ -198,7 +202,7 @@ Level: unit / integration (modules + doubles, or the HTTP seam) / e2e (boots the
 
 ### TC-041 / TC-042 / TC-043 — Transcription accuracy (FX-005 / FX-006 / FX-007)
 - **Verifies:** REQ-001 (FX-005 en, FX-006 en, FX-007 zh)  **Level:** integration  **Mode:** automated
-- **Preconditions:** warm. **Steps:** POST `input.wav` (`audio/wav`) 3 times per fixture (meta `runs`).  **Expected result:** 200 `{text}`; WER (en) / CER (zh) vs `text_reference` ≤ 0.15 in every run (lowercase, punctuation removed).  **Observed how:** computed error rate in the assertion message. Note: FX-005's reference is `[unverified]` (taken from whisperkit-cli output); a failure there needs the user's confirmation of the spoken words before blaming the code.
+- **Preconditions:** warm. **Steps:** POST `input.wav` (`audio/wav`) 3 times per fixture (meta `runs`).  **Expected result:** 200 `{text}`; WER (en) / CER (zh) vs `text_reference` ≤ 0.15 in every run (lowercase, punctuation removed).  **Observed how:** computed error rate in the assertion message. Note: FX-005's reference is confirmed by the user at Plan 2026-11-14; 
 
 ### TC-044 — Transcript language
 - **Verifies:** REQ-002 (FX-005, FX-006, FX-007)  **Level:** integration  **Mode:** automated
@@ -315,7 +319,7 @@ Level: unit / integration (modules + doubles, or the HTTP seam) / e2e (boots the
 - **Steps:** stop the test's own server (not the preview), send a line; restart it; send again.  **Expected result:** hint within 2 s, text still in the box, resend succeeds.  **Observed how:** page. The backend half (503 ≤ 2 s, recovery) is TC-034, TC-074, TC-075.
 
 ## 4. Negative, boundary and failure cases
-Bad input: TC-003, TC-004, TC-053, TC-054, TC-055, TC-056. Boundaries: 1500/1501 chars, 40-entry and 6000-char history window, 120 chars / 40 words, 2,000,000-byte and 262,144-byte bodies, 60 s audio (TC-004, TC-011, TC-013, TC-054, TC-055, TC-057). Dependency down, slow or dying: TC-022..024, TC-027, TC-028, TC-033, TC-034, TC-074, TC-075. Wrong or missing output: TC-009, TC-030, TC-032 (thinking only, junk mood). Silence: TC-002, TC-020, TC-026, TC-045. Traversal: TC-019, TC-058. Privacy: TC-006, TC-073. Duplicate/concurrent: out-of-order concurrent transcriptions in TC-025.
+Bad input: TC-003, TC-004, TC-053, TC-054, TC-055, TC-056. Boundaries: 1500/1501 chars, 40-entry and weight-2000 history window, 120 chars / 40 words, 2,000,000-byte and 262,144-byte bodies, 60 s audio (TC-004, TC-011, TC-013, TC-054, TC-055, TC-057). Dependency down, slow or dying: TC-022..024, TC-027, TC-028, TC-033, TC-034, TC-074, TC-075. Wrong or missing output: TC-009, TC-030, TC-032 (thinking only, junk mood). Silence: TC-002, TC-020, TC-026, TC-045. Traversal: TC-019, TC-058. Privacy: TC-006, TC-073. Duplicate/concurrent: out-of-order concurrent transcriptions in TC-025.
 
 ## 5. Coverage matrix
 | REQ | Test cases | Level |
@@ -329,8 +333,8 @@ Bad input: TC-003, TC-004, TC-053, TC-054, TC-055, TC-056. Boundaries: 1500/1501
 | REQ-007 | TC-012, 013, 031, 047, 048, 054, 081, 082 | unit, integration, manual |
 | REQ-008 | TC-013, 033, 052, 071 | unit, integration, e2e |
 | REQ-009 | TC-015, 017, 019, 036, 058, 059, 072, 073, 083 | unit, integration, e2e, manual |
-| REQ-010 | TC-015–018, 021, 035, 040, 058, 070, 071, 076 | unit, integration, e2e |
-| REQ-011 | TC-005–007, 016, 021–024, 027, 028, 030, 032–034, 053, 055, 074, 075, 086 | unit, integration, e2e, manual |
+| REQ-010 | TC-015–018, 038, 021, 035, 040, 058, 070, 071, 076 | unit, integration, e2e |
+| REQ-011 | TC-005–007, 016, 038, 021–024, 027, 028, 030, 032–034, 053, 055, 074, 075, 086 | unit, integration, e2e, manual |
 | REQ-012 | TC-085 | manual (frontend) |
 
 Fixtures: FX-001 TC-046; FX-002 TC-047; FX-003 TC-048; FX-004 TC-049, 050, 051; FX-005 TC-001, 041, 044; FX-006 TC-001, 042, 044, 052, 057, 071; FX-007 TC-001, 043, 044; FX-008 TC-002, 020, 026, 045.
@@ -344,4 +348,4 @@ Requirements with no automated test case: REQ-012 (manual TC-085 only). REQ-013 
 | REQ-005 (UI half), REQ-003 (page half) | The interface language and the page's "no new turn" behaviour never reach `/api/*` | The same browser test with the real seam; until then TC-084 |
 | REQ-009 (Wi-Fi off) | The harness cannot switch Wi-Fi; loopback-only is checked via `lsof` (TC-059, TC-072) | A person runs TC-083 |
 | REQ-004 / REQ-007 meaning checks | "responds to the news / mentions the exam" needs judgement | A rubric or a second model-free keyword check agreed with the user; until then TC-080..082 |
-| REQ-001 with a real human voice | FX-006/007 are `say`-synthesised (A15); FX-005's reference text is `[unverified]` | User supplies recordings and confirms FX-005's words |
+| REQ-001 with a real human voice | FX-006/007 are `say`-synthesised (A15); FX-005's words were confirmed by the user at Plan (2026-11-14) | User supplies real recordings |

@@ -107,17 +107,19 @@ test('TC-007 sendError after headers were sent only destroys the response (write
 });
 
 // ---------- lang.js (DES-009)
-test('TC-008 languageOf follows the majority script of the line (zh on ties; no letters or Han -> zh)', async () => {
+test('TC-008 languageOf: zhWords = ceil(han/2) vs English words; zh on ties; no letters or Han -> zh', async () => {
   const { languageOf } = await imp('server/lang.js');
   const cases = [['I just got the internship!', 'en'], ['今天考试过了，好开心！', 'zh'], ['我今天很happy', 'zh'], ['I really love eating 火锅 with friends', 'en'], ['Hello', 'en'],
-    ['😀🎉', 'zh'], ['12345', 'zh'], ['', 'zh'], ['嗯 ok', 'zh'], ['I feel 难过 today', 'en']];
+    ['😀🎉', 'zh'], ['12345', 'zh'], ['', 'zh'], ['嗯 ok', 'zh'], ['I feel 难过 today', 'en'], ['a 火锅', 'zh'], ['好 hello world', 'en'], ['火锅 ok', 'zh'], ['我想吃 hot pot 今天', 'zh']];
   for (const [t, l] of cases) assert.equal(languageOf(t), l, JSON.stringify(t));
 });
 
-test('TC-037 languageOf: the DES-009 worked example "I love 火锅" -> en (design example; its stated rule gives zh at 2 Han : 2 words)', async () => {
+test('TC-037 languageOf: DES-009 worked example "I love 火锅" -> en (zhWords 1 : words 2)', async () => {
   const { languageOf } = await imp('server/lang.js');
-  // 03 DES-009 step 3 says "I love 火锅" -> en (3:2), step 2 says han >= words -> zh; the line has 2 words (I, love) and 2 Han. Contradiction reported to the orchestrator.
+  // 03 DES-009 (amended): zhWords = ceil(han / 2) = 1, words = 2 -> en; "嗯 ok" is 1:1 -> zh (tie); "我今天很happy" 2:1 -> zh.
   assert.equal(languageOf('I love 火锅'), 'en');
+  assert.equal(languageOf('嗯 ok'), 'zh');
+  assert.equal(languageOf('我今天很happy'), 'zh');
 });
 
 // ---------- bonsai.js shapeReply / toMessages / windowOf (DES-008, DES-007)
@@ -175,16 +177,23 @@ test('TC-012 toMessages = system(REPLY_SYSTEM + LANG_RULE last) + history (compa
   assert.equal(toMessages('嗯', [], 'zh').length, 2);
 });
 
-test('TC-013 windowOf: last 40 entries, then drop oldest until total text <= 6000 chars', async () => {
+test('TC-013 windowOf: last 40 entries, then drop oldest until total weight (length + 1.5 per Han) <= 2000', async () => {
   const { windowOf } = await imp('server/bonsai.js');
-  const e = (n, len) => Array.from({ length: n }, (_, i) => ({ role: i % 2 ? 'companion' : 'user', text: String(i % 10).repeat(len) }));
+  const e = (n, len, ch = null) => Array.from({ length: n }, (_, i) => ({ role: i % 2 ? 'companion' : 'user', text: ch ? ch.repeat(len) : String(i % 10).repeat(len) }));
   assert.equal(windowOf(e(45, 10)).length, 40);
   assert.deepEqual(windowOf(e(45, 10)), e(45, 10).slice(5));
-  const w = windowOf(e(40, 200)); // 8000 chars -> 30 entries
-  assert.equal(w.length, 30); assert.deepEqual(w, e(40, 200).slice(10));
-  assert.equal(windowOf(e(30, 200)).length, 30, 'exactly 6000 stays');
-  assert.equal(windowOf(e(20, 49)).length, 20, 'a 20-turn history of ~979 chars is not cut');
-  assert.equal(windowOf(e(5, 1500)).length, 4);
+  const w = windowOf(e(40, 200)); // 8000 -> newest 10 (2000)
+  assert.equal(w.length, 10); assert.deepEqual(w, e(40, 200).slice(30));
+  assert.equal(windowOf(e(10, 200)).length, 10, 'exactly 2000 stays');
+  assert.equal(windowOf(e(11, 200)).length, 10);
+  assert.equal(windowOf(e(40, 35)).length, 40, 'a 20-turn English chat of ~1400 chars stays whole');
+  assert.equal(windowOf(e(20, 49)).length, 20);
+  const han = windowOf(e(21, 40, '好')); // each weight 40 + 60 = 100; 21 x 100 = 2100 -> 20
+  assert.equal(han.length, 20); assert.deepEqual(han, e(21, 40, '好').slice(1));
+  assert.equal(windowOf(e(5, 1500)).length, 1);
+  assert.deepEqual(windowOf(e(1, 2001)), [], 'one entry heavier than the budget -> []');
+  assert.deepEqual(windowOf(e(1, 801, '好')), [], 'Han weight 2.5 each: 801 chars = 2002.5');
+  assert.equal(windowOf(e(1, 800, '好')).length, 1, '800 Han = 2000');
   assert.deepEqual(windowOf([]), []);
 });
 
@@ -205,7 +214,7 @@ test('TC-014 prompts: the 5 mood ids, mood schema enum, sampling parameters, lan
 test('TC-015 CONFIG: loopback host, limits, deadlines, restarts, defaults', async () => {
   const { CONFIG } = await imp('server/config.js');
   assert.equal(CONFIG.host, '127.0.0.1');
-  assert.deepEqual({ ...CONFIG.limits }, { lineChars: 1500, historyEntries: 40, historyTextChars: 1500, historyBudgetChars: 6000, jsonBytes: 262144, wavBytes: 2000000 });
+  assert.deepEqual({ ...CONFIG.limits }, { lineChars: 1500, historyEntries: 40, historyTextChars: 1500, historyBudget: 2000, jsonBytes: 262144, wavBytes: 2000000 });
   assert.deepEqual({ ...CONFIG.deadlines }, { respondMs: 15000, transcribeMs: 12000, sttBootMs: 600000, bonsaiBootMs: 60000 });
   assert.ok(CONFIG.deadlines.respondMs + CONFIG.deadlines.transcribeMs < 30000, 'voice turn < 30 s (A11)');
   assert.deepEqual({ ...CONFIG.restarts }, { max: 5, delayMs: 2000 });
@@ -302,4 +311,24 @@ test('TC-020 [FX-008] isNothingHeard is true only for the empty string', async (
   assert.equal(isNothingHeard(''), true);
   assert.equal(isNothingHeard(' '), false);
   assert.equal(isNothingHeard('a'), false);
+});
+
+test('TC-038 missingHints: one line per kind of missing file (stt bin / Bonsai / WhisperKit), in that order; [] -> []', async () => {
+  const { missingHints, bonsaiFiles, CONFIG } = await imp('server/config.js');
+  const cfg = structuredClone(CONFIG);
+  cfg.bonsai = { ...cfg.bonsai, size: '2B' };
+  const f = bonsaiFiles(cfg);
+  const stt = cfg.stt.bin, whisper = join(cfg.stt.modelDir, 'AudioEncoder.mlmodelc');
+  assert.deepEqual(missingHints([], cfg), []);
+  const b = missingHints([f.model], cfg);
+  assert.equal(b.length, 1); assert.match(b[0], /BONSAI_MODEL/); assert.ok(!/npm run setup|STT_MODEL_DIR/.test(b[0]));
+  assert.equal(missingHints([f.bin], cfg).length, 1, 'llama-server counts as the Bonsai kind');
+  const s = missingHints([stt], cfg);
+  assert.equal(s.length, 1); assert.match(s[0], /npm run setup/);
+  const w = missingHints([whisper, join(cfg.stt.tokenizerDir, 'models/openai/whisper-large-v3/tokenizer.json')], cfg);
+  assert.equal(w.length, 1, 'two WhisperKit paths -> one line'); assert.match(w[0], /STT_MODEL_DIR/);
+  const all = missingHints([whisper, f.model, stt], cfg);
+  assert.equal(all.length, 3);
+  assert.match(all[0], /npm run setup/); assert.match(all[1], /BONSAI_MODEL/); assert.match(all[2], /STT_MODEL_DIR/);
+  for (const l of all) { assert.match(l, /[\u4e00-\u9fff]/, 'zh part'); assert.match(l, /[A-Za-z]{4,}/, 'en part'); }
 });
