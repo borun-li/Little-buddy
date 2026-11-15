@@ -217,8 +217,13 @@ export function createLog(scroller, list, emptyState) {
       close.addEventListener('click', () => { removeCard(); onClose?.(); });
       region.append(title, l988, l911, close);
       li.append(region);
-      card = add(li);
+      // FND-010: fill the words first, then scroll, so the whole card (988 and 911 lines too) is in view on arrival.
+      emptyState?.remove();
+      emptyState = null;
+      list.append(li);
+      card = li;
       fillCard();
+      scrollToNewest();
       return close;
     },
     removeCard,

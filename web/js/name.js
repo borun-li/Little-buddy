@@ -39,6 +39,24 @@ export function typingFilter(raw) {
   return [...kept].slice(0, MAX_NAME).join('');
 }
 
+// Field box = text + 8 px padding and 2 px border each side + 4 px for the caret; never below 2 ch worth.
+export function fieldWidthPx(textW) { return Math.ceil(textW) + 16 + 4 + 4; }
+
+// Rendered width of `text` in el's font and letter spacing, or null when there is no layout to ask.
+function textWidth(el, text) {
+  try {
+    if (typeof document === 'undefined' || !el.isConnected) return null;
+    const cs = getComputedStyle(el);
+    const m = document.createElement('span');
+    m.textContent = text || ' ';
+    m.style.cssText = `position:absolute;visibility:hidden;white-space:pre;left:0;top:0;font:${cs.font};letter-spacing:${cs.letterSpacing}`;
+    document.body.append(m);
+    const w = m.getBoundingClientRect().width;
+    m.remove();
+    return w > 0 ? Math.max(w, 16) : null;
+  } catch { return null; }
+}
+
 // row: the caption row; button: the name button inside it. onSave(cleaned | null) is called when a
 // rename is confirmed (Enter or click away). Esc keeps the old name. Names are shown by textContent only.
 export function createRename({ row, button, onSave }) {
@@ -57,15 +75,21 @@ export function createRename({ row, button, onSave }) {
     field.setAttribute('aria-label', copy.nameLabel);
     note.textContent = copy.nameNote;
   }
-  function size() { field.style.width = `${Math.max(2, [...field.value].length + 1)}ch`; }
+  // FND-011: width from the rendered text (Chinese glyphs are ~2 ch wide), in the field's own font; the CSS
+  // max-width: 100% caps it to the row. Falls back to the character count where there is no layout.
+  function size() {
+    const w = textWidth(field, field.value || '');
+    if (w === null) { field.style.width = `${Math.max(2, [...field.value].length + 1)}ch`; return; }
+    field.style.width = `${fieldWidthPx(w)}px`;
+  }
 
   function open() {
     if (editing) return;
     editing = true;
     labels();
     field.value = getName();
+    button.replaceWith(field); // in the page first, so the text can be measured in the field's own font
     size();
-    button.replaceWith(field);
     row.append(note);
     field.focus();
     field.select();

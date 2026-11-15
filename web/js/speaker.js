@@ -67,6 +67,10 @@ export function createSpeaker({
   }
 
   async function reading(r, parts, lang) {
+    try { await readParts(r, parts, lang); } finally { r.ctrl.abort(); } // FND-020: an early end cancels the part asked ahead
+  }
+
+  async function readParts(r, parts, lang) {
     const ask = (i) => speak(parts[i], lang, r.ctrl.signal).then((b) => ({ b }), () => ({ b: null }));
     let next = ask(0);
     for (let i = 0; i < parts.length; i++) {

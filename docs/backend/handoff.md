@@ -81,10 +81,14 @@ Next agent must know: verify-i2.test.js reads captures (VERIFY_DIR overrides) an
 Next agent reads: docs/frontend/04-verification.md § Increment 2; web/js/poke.js:12-17; tests/verify-i2.test.js
 (Earlier fe-tester entries: git history of this file.)
 
-## fe-engineer #32 · step 3 (codemap backticks) · round 3 · increment 2 · 2026-11-15T11:20:00Z
-- Changed: docs/codemap.md only. Removed backticks from 24 non-path tokens (words kept); no text added.
-- Verify: python re.findall over backticks, os.path.exists on part before ':' -> only `swift build -c release --package-path stt` left (allowed shell command); non-path count 0.
-- Figma calls: 0.
+## fe-engineer #33 · step 4 (review fixes) · round 1 · increment 2 · 2026-11-15T10:33:45Z
+- FND-010: `web/js/log.js` showCrisisCard fills the card words, then scrolls (was scroll then fill). 6 turns: card 911 bottom 703 vs log bottom 736 at 1440x900 (also reduced motion), 731 vs 764 at 390x844.
+- FND-011: `web/js/name.js` size() measures the text in the field's font (hidden span, fieldWidthPx); ch only as fallback. 小伙伴 / 团子团子: client = scroll width (72 / 94 at 1440, 48 / 63 at 390), zh and en.
+- FND-012: `web/js/poke.js` createBag (shuffled bag of three, new bag never opens with the last); nextPoke and createPoker use it. verify-i2 and poke tests pass; 200k pokes: every 3 and every 6 cover all three, no repeat.
+- FND-013: `web/css/page.css` @media (max-width: 959px) and (max-height: 520px): stage clamp(120px, 32vh, 280px), art = stage - 52. Log at 640x400 was 168 with a 280 stage (about 40 with the composer under old rule) -> 192; 640x360 -> 160; card whole in view at both. 390x844, 375x667, 1440x900 unchanged (stage 280 / log 484, 307 / 736). Note for fe-ui: art is 75 / 67 px at those heights (floor 120 px stage chosen so the 128 px card fits at 360).
+- FND-020: `web/js/speaker.js` reading() aborts its controller when it ends early.
+- Tests: new `tests/fnd-i2-r1-fix.test.js` (7); `tests/verify-i2.test.js` added to the package.json test script before `tests/crisis-card.test.js`. 27 frontend files: 185 pass, 0 fail. No existing test edited.
+- `docs/codemap.md` updated. Figma calls: 0.
 
 ## be-tester #9 · step 6 (tests for review fixes) · round 1 · increment 2 · 2026-11-15T10:35:00Z
 Task: tests for review round 1 design changes FND-013/014/015/016/019/020 (03 § Increment 2); plan rows TC-138..147.

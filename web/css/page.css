@@ -152,6 +152,12 @@ p { margin: 0; }
   .page .companion { width: auto; height: 228px; flex: 0 1 228px; min-height: 0; }
   .companion__caption { flex: none; }
 }
+/* FND-013: short viewport (200% zoom on a laptop is 640 x 360-400 CSS px): the stage shrinks with the height so the
+   log keeps room for the turns and the help card; 52 = 6 + 4 + 36 + 6 of padding, gap and caption row. */
+@media (max-width: 959px) and (max-height: 520px) {
+  .page { grid-template-rows: clamp(120px, 32vh, 280px) minmax(0, 1fr); }
+  .page .companion { height: calc(clamp(120px, 32vh, 280px) - 52px); flex-basis: calc(clamp(120px, 32vh, 280px) - 52px); }
+}
 
 /* ---------- log ---------- */
 .log {
