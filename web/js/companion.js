@@ -1,17 +1,24 @@
 // CMP-001: shows one mood at a time. setMood is called when a reply appears, never at send.
-import { copy } from './copy.js';
+import { copy, getName } from './copy.js';
 
 const FADE_MS = 240;
 const reduceMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+// caption: the caption row (Q-023): name button, " · phrase", speaker slot (Q-025). The row is not hidden;
+// the mood word is announced through the companion's own name, so the phrase stays aria-hidden.
 export function createCompanion(root, caption) {
+  const nameButton = caption.querySelector('.caption__name');
+  const phraseEl = caption.querySelector('.caption__phrase');
   const layers = root.querySelector('.companion__layers');
   let current = null;
   let waking = false;
 
   function setCaption() {
     const phrase = waking ? copy.moods.waking.caption : copy.moods[current].caption;
-    caption.textContent = copy.companionCaption(phrase);
+    const name = getName();
+    nameButton.textContent = name;
+    nameButton.setAttribute('aria-label', copy.renameName(name));
+    phraseEl.textContent = ` · ${phrase}`;
   }
 
   function render(mood, animate) {

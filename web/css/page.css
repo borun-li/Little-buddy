@@ -51,10 +51,45 @@ p { margin: 0; }
   background: var(--color-turn-you-bg); color: var(--color-text-primary); font-weight: 600; cursor: default;
 }
 .lang-switch button:focus-visible { outline: 3px solid var(--color-focus-ring); outline-offset: 2px; }
+/* CMP-007 clear: 36 px, mirrors the switch at the stage's top-left (24 px laptop, 8 px phone) */
+.stage-clear {
+  position: absolute; top: 8px; left: 8px; z-index: 1;
+  height: 36px; padding: 0 12px; background: none; cursor: pointer;
+  border: 1px solid var(--color-border-control); border-radius: var(--radius-control);
+  font: 400 13px/20px var(--font-ui); color: var(--color-text-muted);
+}
+.stage-clear:hover, .stage-clear:active { background: var(--color-turn-you-bg); color: var(--color-text-primary); }
+.stage-clear:focus-visible { outline: 3px solid var(--color-focus-ring); outline-offset: 2px; }
+/* CMP-011 caption row: name button, " · phrase", speaker slot (Q-025); centred under the art */
 .companion__caption {
-  font: 400 13px/20px var(--font-voice);
+  position: relative;
+  display: flex; align-items: center; justify-content: center; flex-wrap: wrap;
+  max-width: 100%;
+  font: 400 14px/20px var(--font-voice);
   color: var(--color-text-muted);
   letter-spacing: 0.04em;
+}
+.caption__name {
+  margin: 0; padding: 4px 0; border: 0; background: none; cursor: pointer; border-radius: 4px;
+  font: inherit; letter-spacing: inherit; color: inherit;
+  text-decoration: underline dotted; text-underline-offset: 4px;
+}
+.caption__name:hover { text-decoration-style: solid; }
+.caption__name:focus-visible { outline: 3px solid var(--color-focus-ring); outline-offset: 0; } /* phone: the row is 5 px from the stage edge */
+.caption__phrase { white-space: pre-wrap; }
+.caption__speaker:empty { display: none; }
+.name-field {
+  min-width: 2ch; max-width: 100%; margin: 0; padding: 4px 8px;
+  border: 2px solid var(--color-focus-ring); border-radius: var(--radius-control); outline: none;
+  background: var(--color-surface-page); color: var(--color-text-primary);
+  font: inherit; letter-spacing: inherit;
+}
+.name-field::selection { background: var(--color-turn-you-bg); color: var(--color-text-primary); }
+.caption__note {
+  /* phone: the 280 px stage clips below the row, so the note sits 6 px above it, in the gap under the art */
+  position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%);
+  width: max-content; max-width: min(358px, 90vw); text-align: center;
+  font: 400 13px/20px var(--font-ui); letter-spacing: 0; color: var(--color-text-muted);
 }
 .talk { display: flex; flex-direction: column; min-height: 0; min-width: 0; }
 
@@ -178,8 +213,10 @@ html[lang="en"] .composer { grid-template-columns: minmax(0, 1fr) 154px; }
 @media (min-width: 960px) {
   .page { grid-template-columns: minmax(0, 1fr) 640px; grid-template-rows: minmax(0, 1fr); }
   .lang-switch { top: 24px; right: 24px; }
+  .stage-clear { top: 24px; left: 24px; }
   .stage { border-bottom: 0; border-right: 1px solid var(--color-border-default); gap: var(--space-24); }
-  .companion__caption { font-size: 20px; line-height: 32px; }
+  .companion__caption { font-size: 21.6px; line-height: 32px; }
+  .caption__note { top: calc(100% + 6px); bottom: auto; max-width: 540px; }
   .log { padding: var(--space-40) var(--space-40) 0; }
   .turn--you { max-width: 440px; }
   .turn--reply, .turn--typing { font-size: 20px; line-height: 32px; }

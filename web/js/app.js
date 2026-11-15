@@ -1,6 +1,7 @@
 // Entry: turn flow idle -> pending -> idle (FLOW-001, FLOW-002). Data comes only from companion-client.js.
 import { respond, transcribe, health } from './companion-client.js';
-import { copy, voiceHintKey, MAX_VOICE_CHARS, setLang, getLang, resolveLang } from './copy.js';
+import { copy, voiceHintKey, MAX_VOICE_CHARS, setLang, getLang, resolveLang, setName } from './copy.js';
+import { loadName, saveName, createRename } from './name.js';
 import { createLog } from './log.js';
 import { createCompanion } from './companion.js';
 import { createHealthWatch } from './health-watch.js';
@@ -12,6 +13,12 @@ const $ = (sel) => document.querySelector(sel);
 // A12: the browser decides the language at open; it is not remembered and never sent to the backend.
 setLang(resolveLang(navigator.languages?.[0] ?? navigator.language));
 
+// Q-023 / DES-027: the saved, cleaned name (null = the default of the interface language). It rides every
+// respond request, never history, transcribe or speak. A reload and a clear leave it alone.
+const storage = (() => { try { return window.localStorage; } catch { return null; } })();
+let savedName = loadName(storage);
+setName(savedName);
+
 const input = $('[data-testid="fake-input"]');
 const field = $('.field');
 const note = $('.field__note');
@@ -20,6 +27,21 @@ const log = createLog($('.log'), $('.log__turns'), $('.log__empty'));
 const companion = createCompanion($('[data-testid="companion"]'), $('.companion__caption'));
 const history = []; // page memory only (A5)
 let pending = false;
+// Q-022: bumped by every clear; a reply or transcript that belongs to an earlier generation is dropped.
+let generation = 0;
+const clearCallbacks = []; // later rows (reading, breathing, chip, card) register what a clear must stop
+export function onClear(fn) { clearCallbacks.push(fn); }
+
+const rename = createRename({
+  row: $('.companion__caption'),
+  button: $('.caption__name'),
+  onSave(cleaned) {
+    savedName = cleaned;
+    saveName(storage, cleaned);
+    setName(cleaned);
+    applyCopy(); // every name updates; turns already in the log are not rewritten
+  },
+});
 
 const hint = createHint($('.hint'));
 
@@ -55,14 +77,25 @@ const talk = createTalkButton({
   },
   // Q-014: the held WAV goes to transcribe, then the words follow the send path (voice-turn.js).
   // FND-002: a hold that ends while a reply is pending is dropped (no turn, no request); setPaused cancels it earlier.
-  onUtterance: (audio) => pending ? false : handleUtterance(audio, {
-    transcribe,
-    log,
-    setPending,
-    watch,
-    sendWords: (words, turn) => send(words.slice(0, MAX_VOICE_CHARS), { voice: true, turn }),
-    onVoiceProblem,
-  }),
+  onUtterance: (audio) => {
+    if (pending) return false;
+    // Q-022: a clear while this utterance is in flight drops its transcript: nothing touches the log,
+    // the pending state or the hint afterwards.
+    const gen = generation;
+    const stale = () => gen !== generation;
+    return handleUtterance(audio, {
+      transcribe,
+      log: {
+        addTranscribing: () => log.addTranscribing(),
+        setWords: (t, w) => { if (!stale()) log.setWords(t, w); },
+        dropFailed: (t) => { if (!stale()) log.dropFailed(t); },
+      },
+      setPending: (on) => { if (!stale()) setPending(on); },
+      watch,
+      sendWords: (words, turn) => (stale() ? false : send(words.slice(0, MAX_VOICE_CHARS), { voice: true, turn })),
+      onVoiceProblem: (kind) => { if (!stale()) onVoiceProblem(kind); },
+    });
+  },
 });
 
 // Q-018: kind is 'no_audio', 'empty' (nothing heard) or an error code from transcribe. The transcribing
@@ -109,15 +142,18 @@ async function send(raw, { voice = false, turn: standing = null } = {}) {
   if (!line || (pending && !standing)) return false;
   clearSendHint();
   const turn = standing ?? log.addYou(line, { voice });
+  const gen = generation;
   setPending(true);
   log.showTyping();
   let result;
   try {
-    result = await respond(line, history.slice());
+    result = await respond(line, history.slice(), savedName);
   } catch (err) {
+    if (gen !== generation) return false; // cleared meanwhile: no words returned, no hint (A24)
     onSendFailed(err, line, turn);
     return false;
   }
+  if (gen !== generation) return false; // late reply after a clear: dropped
   const { reply, mood } = result;
   history.push({ role: 'user', text: line }, { role: 'companion', text: reply });
   log.addReply(reply);
@@ -125,6 +161,19 @@ async function send(raw, { voice = false, turn: standing = null } = {}) {
   setPending(false);
   return true;
 }
+
+// Q-022 / FLOW-011: one click, no confirm. The input text and the name stay.
+function clearChat() {
+  generation += 1;
+  history.length = 0;
+  log.clear();
+  setPending(false);
+  companion.setMood('neutral');
+  clearCallbacks.forEach((fn) => fn());
+  showHint('cleared');
+  input.focus();
+}
+$('.stage-clear').addEventListener('click', clearChat);
 
 input.addEventListener('keydown', (e) => {
   if (e.key !== 'Enter' || e.isComposing || e.keyCode === 229) return; // 229: IME still composing
@@ -153,6 +202,7 @@ function applyCopy() {
   note.textContent = copy.pausedNote;
   $('.log__turns').setAttribute('aria-label', copy.logLabel);
   langGroup.setAttribute('aria-label', copy.langLabel);
+  $('.stage-clear').setAttribute('aria-label', copy.clearName);
   langButtons.forEach((b) => {
     b.setAttribute('aria-label', copy[b.dataset.lang === 'zh' ? 'langZh' : 'langEn']);
     b.setAttribute('aria-pressed', String(b.dataset.lang === getLang()));
@@ -161,6 +211,7 @@ function applyCopy() {
   talk.refresh();
   log.refresh();
   companion.refresh();
+  rename.refresh();
 }
 
 const langGroup = $('.lang-switch');

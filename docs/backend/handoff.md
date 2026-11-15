@@ -88,14 +88,14 @@ Next agent must know:
 - Left open: the not-observable rows still need a mic, a failing backend, reduce-motion emulation or a network log (user check at Acceptance).
 Next agent reads: docs/frontend/04-verification.md
 
-## fe-engineer #18 · step 3 (build Q-020) · round 1 · increment 2 · 2026-11-15T07:52:06Z
-Task: Q-020 — client carries name, speech, crisis, tts (DES-024).
-Changed: web/js/companion-client.js — respond(line, history, name) (name left out when null/absent) returns {reply, mood, lang, crisis, speech}; new speak(text, lang, signal) → WAV Blob, own 11 s stop → timeout, caller abort stays AbortError; health() adds tts; SPEAK_TIMEOUT_MS exported. tests/client.test.js — 7 Q-010 tests adjusted for the new shapes, 7 Q-020 tests added. docs/codemap.md, docs/frontend/03-queue.md (Q-020 built + note).
-Result: client.test.js 14/14; frontend unit files (fake-companion, copy, health-watch, mood, talk-button, voice-hints, voice-turn, wav, offline, companion, fnd-r1-fix, verify-r1, verify-r2, dev-increment2) 88/88; no live backend suites run. Live check on :4400: health tts ready, respond (zh) returned lang/crisis/speech, speak 57644 B audio/wav, abort → AbortError.
+## fe-engineer #21 · step 3 (build Q-023) · round 1 · increment 2 · 2026-11-15T09:30:00Z
+Task: Q-023 — rename in place.
+Changed: web/js/name.js (new), tests/name.test.js (new, 8 tests), web/index.html (caption row), web/css/page.css (row, name button, field, note), web/js/companion.js (writes name button + phrase), web/js/app.js (loadName/setName at open, savedName on every respond, rename wiring), package.json (test list), docs/codemap.md, docs/frontend/03-queue.md.
+Result: name.test 8/8 (FX-012 7/7); frontend unit files 107/108, the 1 failure is tests/fnd-r1-fix.test.js "FND-001/002 app.js wiring" (expects `onUtterance: (audio) => pending ? false`; Q-022 changed that line, not this row). Headless Chrome on :4400 at 1440 and 390: name saved, shown in button, companion label, title, input label; survives reload and clear; Esc keeps; click away saves; emptied -> default; live respond body carried name "团子" and the reply used it.
 Next agent must know:
-- Pitfalls: a caller abort rejects with the fetch AbortError (DOMException; .code is 20, not in CODES) — callers test `e.name === 'AbortError'` before reading .code. `lang` is passed as given (undefined if the backend omits it); callers must not guess it.
-- Pitfalls: app.js still calls respond(line, history); Q-022/Q-023 add the name argument; exports added: speak, SPEAK_TIMEOUT_MS.
-Next agent reads: docs/frontend/03-queue.md § Increment 2 (Q-021.. rows), DES-025 for speak use
+- Pitfalls: caption row = name button, aria-hidden phrase, empty `.caption__speaker` slot for Q-025. The phone note sits above the row (the 280 px stage clips below it). copy.hints is rebuilt on setName, so always applyCopy after.
+- Left open: fnd-r1-fix test needs a fe-tester update (see Result).
+Next agent reads: docs/frontend/03-queue.md Q-024
 
 ## be-tester #6 · step 4 (gate fix) · round 2 · increment 2 · 2026-11-15
 Round 2 (be-tester #6, gate fix):

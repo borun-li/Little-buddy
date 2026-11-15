@@ -480,7 +480,7 @@ None. Checked and found fitting: clear at 8 px inset, caption row with toggle (2
 - **Priority:** P1
 - **Side:** frontend
 - **Depends on:** Q-015
-- **Status:** queued
+- **Status:** built
 
 ### Q-022 — Clear in one click
 - **Page:** PAGE-001
@@ -494,7 +494,7 @@ None. Checked and found fitting: clear at 8 px inset, caption row with toggle (2
 - **Priority:** P1
 - **Side:** frontend
 - **Depends on:** Q-021
-- **Status:** queued
+- **Status:** built
 
 ### Q-023 — Rename in place
 - **Page:** PAGE-001
@@ -508,7 +508,7 @@ None. Checked and found fitting: clear at 8 px inset, caption row with toggle (2
 - **Priority:** P1
 - **Side:** both (backend first for Bonsai using it)
 - **Depends on:** Q-020, Q-021
-- **Status:** queued
+- **Status:** built
 
 ### Q-024 — Poke the companion
 - **Page:** PAGE-001
@@ -667,9 +667,9 @@ None. Checked and found fitting: clear at 8 px inset, caption row with toggle (2
 ### Increment 2 notes the rows point to
 - **A-I2-1 (assumptions [unverified]):** a clear while a reply is pending ends the pending state at once; the late reply or failure is dropped with no hint and no words returned (A24). The card stays under its own crisis reply until 收起, clear, or a later crisis reply moves it ("one card"). Names already in earlier turns are never rewritten.
 - **Q-020:** `respond(line, history, name)`: `name` null or absent is left out of the body; a fresh `speak` aborts itself at 11 s → `timeout`; non-2xx → body `error`; `health()` returns `tts` as given. A 200 body missing `speech` reads as `[]` (silent), missing `crisis` as `false`; the page never guesses `lang`. Built (fe-engineer #18): a caller abort rethrows the fetch's own AbortError (its `.code` is not one of CODES); `speak` rejects `failed` on an empty 200 body; `respond` keeps `lang` as given (undefined if absent); live check against :4400 passed (health tts ready, respond, speak 57644 B audio/wav).
-- **Q-021:** `{name}` keys: `title`, `inputLabel`, `typing`, `companionCaption`, `companionName`, `hints.warming`, `awake`, `unreachable`, `stillDown`, `sendUnavailable`, `sendTimeout`. Memory words are not added. `setName(name)` re-substitutes and the app re-renders.
-- **Q-022:** `log.js` gains `clear()`, which puts the original empty state back (kept already as `emptyOriginal`). `app.js` keeps a generation counter: a reply or transcript from an earlier generation is dropped. A callback list lets later rows (reading, breathing, chip, card) register what clear stops. Pending voice transcript: the transcribing turn is removed.
-- **Q-023:** `name.js` = DES-021 `cleanName` (keep `[\p{L}\p{N} \-'·]`, NFC, 12 code points, default names → absent), `localStorage['companion.name']`; both languages and the default names tested against FX-012 expectations. The caption becomes a row (name button, " · phrase", speaker slot) and loses `aria-hidden` as a whole; the mood phrase stays announced from the companion's own name. Names shown by `textContent` only. Emptied or default-named → default for the interface language.
+- **Q-021:** `{name}` keys: `title`, `inputLabel`, `typing`, `companionCaption`, `companionName`, `hints.warming`, `awake`, `unreachable`, `stillDown`, `sendUnavailable`, `sendTimeout`. Memory words are not added. `setName(name)` re-substitutes and the app re-renders. Built (fe-engineer #19): `copy.js` adds the 24 increment-2 keys + `hints.cleared`, `setName`/`getName`; `breathName` and `renameName` are functions of the name; `tests/copy-increment2.test.js` (7 tests, in `package.json` test); app.js does not call setName yet (Q-023).
+- **Q-022:** `log.js` gains `clear()`, which puts the original empty state back (kept already as `emptyOriginal`). `app.js` keeps a generation counter: a reply or transcript from an earlier generation is dropped. A callback list lets later rows (reading, breathing, chip, card) register what clear stops. Pending voice transcript: the transcribing turn is removed. Built (fe-engineer #20): `onClear(fn)` is exported from `app.js`; `clearChat` bumps the generation, empties history, `log.clear()`, `setPending(false)`, mood neutral, runs callbacks, shows `hints.cleared`, focuses the input; a stale respond or transcript returns silently (per-utterance guards, `voice-turn.js` untouched); `tests/clear.test.js` (2 tests, in `package.json` test); live check against :4400 at 1440 and 390 passed, including a clear while a reply was pending.
+- **Q-023:** `name.js` = DES-021 `cleanName` (keep `[\p{L}\p{N} \-'·]`, NFC, 12 code points, default names → absent), `localStorage['companion.name']`; both languages and the default names tested against FX-012 expectations. The caption becomes a row (name button, " · phrase", speaker slot) and loses `aria-hidden` as a whole; the mood phrase stays announced from the companion's own name. Names shown by `textContent` only. Emptied or default-named → default for the interface language. Built (fe-engineer #21): `web/js/name.js` (cleanName = DES-021 rule, loadName/saveName on `companion.name` with a throwing or missing storage tolerated, typingFilter, createRename: name button becomes a field with the text selected and `nameNote` under it, Enter or click away saves, Esc keeps, emptied or default-named → default); the caption is `.companion__caption` = name button · phrase (aria-hidden) · empty speaker slot (Q-025), row not aria-hidden; app.js loads the name before the first render, every `respond(line, history, savedName)` carries it, a save re-renders through applyCopy, clear leaves it; the phone note sits above the row because the 280 px stage clips below it; `tests/name.test.js` (8 tests, FX-012 7/7, page rule equals gateway rule).
 - **Q-024:** `poke.js` `nextPoke(prev, random)` never repeats; `companion.js` gains `showFace(mood)` that swaps the layer without touching `data-mood` or the glow; ignored while breathing; a poke during a poke plays the next one; a reply's mood change during a poke applies when it ends. `role=button`, described by `pokeHelp`; `companion.test.js` is updated if it pins `role=img` (listed, with the reason, in the build).
 - **Q-025:** `speaker.js` `createSpeaker({speak, audio, now})`: `say(speech, lang)` plays part 1 at once, prefetches part 2, plays on end; `stop()` pauses, revokes, aborts in-flight and drops the rest; any failure ends silently. Gate: toggle on and `tts` ready. Unlock: first user gesture plays a silent clip [unverified for Safari].
 - **Q-026:** toggle `aria-pressed` is the user's choice even when not ready; tooltip is the `aria-describedby` and shows at 500 ms hover or focus. `health-watch.js` adds `speakReady` and keeps polling every 2 s until it is true; `onChange` for a tts-only change must not call `healthHint`. Existing watch tests keep passing.

@@ -377,6 +377,7 @@
 
 <main class="page">
   <section class="stage">
+    <button type="button" class="stage-clear" data-testid="clear" data-copy="clear">清空</button>
     <div class="lang-switch" role="group" aria-label="界面语言">
       <button type="button" data-lang="zh" lang="zh-Hans" aria-label="中文" aria-pressed="true">中文</button>
       <button type="button" data-lang="en" lang="en" aria-label="English" aria-pressed="false">EN</button>
@@ -384,7 +385,7 @@
     <div class="companion" data-testid="companion" data-mood="neutral" role="img">
       <div class="companion__layers"></div>
     </div>
-    <p class="companion__caption" aria-hidden="true"></p>
+    <div class="companion__caption"><button type="button" class="caption__name"></button><span class="caption__phrase" aria-hidden="true"></span><span class="caption__speaker"></span></div>
   </section>
 
   <section class="talk">

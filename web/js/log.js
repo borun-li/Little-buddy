@@ -99,6 +99,16 @@ export function createLog(scroller, list, emptyState) {
         scroller.prepend(emptyOriginal);
       }
     },
+    // Q-022: every turn and the typing dots leave at once; the original empty state comes back.
+    clear() {
+      list.replaceChildren();
+      typing = null;
+      if (emptyOriginal) {
+        emptyState = emptyOriginal;
+        if (!emptyOriginal.isConnected) scroller.prepend(emptyOriginal);
+      }
+      scroller.scrollTop = 0;
+    },
     addReply(text) {
       typing?.remove();
       typing = null;
