@@ -1,6 +1,6 @@
 {
   "phase": "fe-ui",
-  "time": "2026-11-14T23:36:36Z",
+  "time": "2026-11-15T05:58:26Z",
   "project": "/Users/apple/Desktop/Hackathon/Local_AI_Hackathon",
   "run_dir": "docs/frontend",
   "overall": "pass",
@@ -55,21 +55,21 @@
     {
       "id": "FE2.components",
       "status": "pass",
-      "message": "6 components, each with a focus state",
+      "message": "12 components, each with a focus state",
       "owner": "fe-ui",
       "details": []
     },
     {
       "id": "FE2.frames",
       "status": "pass",
-      "message": "16 frames; every UX page has one",
+      "message": "25 frames; every UX page has one",
       "owner": "fe-ui",
       "details": []
     },
     {
       "id": "FE.figma",
       "status": "pass",
-      "message": "96 of 88 Figma calls used (raised by the user)",
+      "message": "111 of 88 Figma calls used (raised by the user)",
       "owner": "fe-ui",
       "details": []
     },
@@ -91,7 +91,7 @@
       "id": "CTX.codemap",
       "status": "pass",
       "message": "docs/codemap.md paths exist, within its cap",
-      "owner": "fe-engineer",
+      "owner": "fe-tester",
       "details": []
     },
     {
@@ -119,7 +119,16 @@
       "FRAME-013",
       "FRAME-014",
       "FRAME-015",
-      "FRAME-016"
+      "FRAME-016",
+      "FRAME-017",
+      "FRAME-018",
+      "FRAME-019",
+      "FRAME-020",
+      "FRAME-021",
+      "FRAME-022",
+      "FRAME-023",
+      "FRAME-024",
+      "FRAME-025"
     ]
   }
 }

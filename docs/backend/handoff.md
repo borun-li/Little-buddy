@@ -40,18 +40,19 @@ Next agent must know:
 Read beyond the list: tests/verify-r1.test.js:15-38 — how the Words table is parsed.
 Next agent reads: docs/frontend/01-ux.md § Increment 2 (Navigation, PAGE-001 (increment 2), Words (increment 2), Wireframe additions)
 
-## fe-ui #5 · step 2 (frontend UI, increment) · round 2 · increment 1 · 2026-11-14T23:36:23Z
-Task: fix FE2.components (CMP-006 focus state readable) and FE2.prose (5 units over 50 words in 02-ui.md § Increment 1); round 1: switch, English frames, DFB-004, D-004.
-Changed: docs/frontend/02-ui.md — round 2: CMP-006 `**States:**` line now inline "default, hover, focus (…FRAME-016 "EN focused"), active = selected"; CMP-006 Behaviour, you-transcribing, Caption, Phone English (DFB-004) and the Frames (increment 1) lead paragraph split into bullets, meaning unchanged. Round 1: § Increment 1, D-004 in place, DFB-004 decided, FRAME-012..016 exports; Figma FRAME-012 28:576, 013 28:627, 014 28:654, 015 28:669, sheet 016 27:565 (CMP-006 set 27:568).
-Feedback: DFB-004 accepted (round 1; English phone button hugs label 154 px, input 196 px); needs user: no.
-Result: gatelib parsers run by me on 02-ui.md: prose units > 50 words = [], components without focus in States = [] — evidence: docs/frontend/gates/fe-ui-latest.json (round 1 fail, gate not re-run by me). Figma calls: 12 in round 1, 0 in round 2.
+## fe-ui #6 · step 2 (frontend UI, increment) · round 1 · increment 2 · 2026-11-15T05:57:36Z
+Task: draw increment 2 frames (speaker toggle, clear, breathing, 988 card, pokes, rename, memory design-only), export FRAME-017..025, append § Increment 2 to docs/frontend/02-ui.md.
+Changed: docs/frontend/02-ui.md (+177/-2) — § Increment 2: plan, self-check, revisions, CMP-007..012, CMP-001/002/005 (increment 2), Frames, a11y, motion; CMP-001 phone 240 px and role=img retired in place. Figma section 48:832: FRAME-017 49:842, 018 49:1009, 019 49:1163, 020 50:1091, 021 50:1241, 022 50:1378, sheets 023 48:833, 024 51:1310, 025 52:1507. evidence/design/FRAME-017..025.png (1x).
+Feedback: no DFB: phone caption row + muted toggle measures 297 px of 358 (FRAME-022); clear fits at 8 px inset.
+Result: gatelib prose units > 50 = []; every new CMP States line names focus; 9/9 crops edge-checked against the render. Gate fe-ui not run by me. Figma calls: 15 (2 failed and rolled back) + 1 denied by the auto-mode classifier before reaching Figma.
 Next agent must know:
-- Pitfalls: gatelib docs.field reads only the text on the `**States:**` line itself; sub-bullets do not count.
-- Pitfalls: Figma CMP-002 main still shows the retired tag "语音 · 示例文字" (FRAME-003, FRAME-010); spec and FRAME-012 win.
-- Tried, did not work: phone switch at 12 px inset sat over the pleasant-high sparkle; 8 px used.
-- Left open: FRAME-001..011 do not show the switch (not redrawn, budget); English laptop listening and laptop warming not drawn (words/caption swap only); longest English caption width is an estimate.
-Read beyond the list: ~/.claude/gates/gatelib/docs.py:54-70, 115-119 — prose and field parsers.
-Next agent reads: docs/frontend/02-ui.md § Increment 1 (CMP-006, CMP-003 increment 1, Frames (increment 1)); docs/frontend/06-feedback.md DFB-004
+- Pitfalls: pokes and breathing reuse the 5 mood SVGs (face swap); data-mood and the glow stay the turn's. Only new art: the pop-ticks SVG inline in CMP-001 (increment 2).
+- Pitfalls: phone art is 228 px now (stage 6+228+4+36+6); breathing swell is 1.04 on phone, 1.08 on laptop.
+- Pitfalls: exports are cut from one section render (get_screenshot adds a 40 px margin; scale 1).
+- Left open: not drawn — phone renaming (note costs 20 px of art), caption wrap overflow, English laptop increment-2 states, memory phone sheet, toggle hover.
+- Left open: decided here for Plan — 收起 moves focus to the input; 删掉 is a filled Cocoa button (design only).
+Read beyond the list: ~/.claude/gates/gatelib/docs.py:54-119 — prose and field parsers.
+Next agent reads: docs/frontend/02-ui.md § Increment 2 (CMP-001 increment 2 poke table, Motion (increment 2), Frames (increment 2))
 
 ## orchestrator · Phase 6 · panel returned, session may end · 2026-11-15T03:26:34Z
 State: backend p1,p2,p4,p5 pass (p5 user waiver TC-050/052/055); frontend fe-ux/ui/queue/plan/build/review/verify pass (review waiver scoped to round 2). Branch companion-full-dev, PR #2 draft. Instance A on 4400 = node 91736 (be-developer #2; PID in session scratchpad server.pid); user preview 4317 = PID 23757 (user's, never stop). My 4399 instance stopped.
