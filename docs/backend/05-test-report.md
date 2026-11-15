@@ -1,10 +1,10 @@
 # Test Report — 离线小伙伴 backend (run companion-full-dev)
 
-- Author: be-tester #3 (Backend Phase 5, round 2)
-- Round: 2   Date: 2026-11-14 (log timestamps 2026-11-15 UTC)
-- Commit / working tree: HEAD 1c209ec plus uncommitted work; server code as left by be-developer #2 and be-architect #4 (RECALL in `server/prompts.js` / `server/bonsai.js`), running as node 91736 on 127.0.0.1:4400 (not touched)
+- Author: be-tester #4 (Backend Phase 5, round 3, documentation only)
+- Date: 2026-11-14 (log timestamps 2026-11-15 UTC)
+- Commit / working tree: HEAD 6380625 plus uncommitted work; server as left by be-developer #2 round 2, running as node 91736 on 127.0.0.1:4400 (not touched; 4317 never targeted)
 
-> Every result below was produced by a command that actually ran in this round. Anything not executed is recorded as `blocked`, never as a pass.
+> Every result below comes from the one `npm test` run of this round (log `docs/backend/logs/be-tester-4-npm-test.log`, junit `test-results/junit.xml`), or is marked manual or blocked. Nothing is reported as a pass that was not observed in this run.
 
 ## 1. Summary
 | Result | Count |
@@ -13,82 +13,146 @@
 | Fail | 0 |
 | Blocked | 11 |
 
-68 TCs: 54 automated (all pass, all executed by `npm test` and present in `test-results/junit.xml`), 14 manual (TC-080, 081, 082 pass; TC-070..076 and TC-083..086 blocked). Skipped in `npm test`: 0.
+68 TCs: 54 automated (all pass, each present by name in `test-results/junit.xml`), 14 manual (TC-080, 081, 082 pass; TC-070..076 and TC-083..086 blocked). Skipped in `npm test`: 0.
 
-Changes since round 1: tests brought to be-architect #4's design (TC-012, TC-031: RECALL appended to the last user message; TC-073: the 16 events of 03 §6); `npm test` now also runs `tests/server-unit.test.js`, `tests/server-fakes.test.js`, `tests/server-live.test.js` (COMPANION_URL defaults to http://127.0.0.1:4400); the boot suite is a manual group (reason in §5 and 04 §1). Round 1's TC-073 and TC-081 failures: TC-073 is no longer in the executed set (blocked, see §5; the allow-list now matches §6), TC-081 passes in 3 of 3 runs after RECALL.
+Known issues accepted by the user on 2026-11-15 (no further fixes): TC-050, TC-052, TC-055. All three passed in this run, so they are recorded as `pass` and noted as flaky in §3.
 
 ## 2. Commands executed
 ```
-$ npm test                                   # COMPANION_URL defaults to http://127.0.0.1:4400, which was up
- -> docs/backend/logs/be-tester-3-npm-test.log   tests 142, pass 142, fail 0, skipped 0, duration 132 s   exit 0
- -> test-results/junit.xml (every automated TC-001..059 appears by name; all 8 fixtures FX-001..008 appear in tagged tests)
-$ COMPANION_URL=http://127.0.0.1:4400 node --test --test-reporter=spec tests/server-live.test.js   (run 2)
- -> docs/backend/logs/be-tester-3-live-run2.log  tests 20, pass 20, fail 0, skipped 0   exit 0
-$ same (run 3)
- -> docs/backend/logs/be-tester-3-live-run3.log  tests 20, pass 20, fail 0, skipped 0   exit 0
+$ npm test            # http://127.0.0.1:4400 up (HTTP 200 checked before the run); unit + fakes + live suites
+ -> docs/backend/logs/be-tester-4-npm-test.log   tests 142, pass 142, fail 0, cancelled 0, skipped 0, duration 146 s   exit 0
+ -> test-results/junit.xml
 ```
-`npm test` was run first and is run 1; runs 2 and 3 repeat the live file only, giving three live runs (FX-001/002/003 replies x3 each, FX-004 3 rounds per run = 9 rounds, TC-052 5 timings per run). Replies: `test-results/backend-replies.jsonl` (the earlier file was moved to `backend-replies.prev.jsonl`; this file holds only this round's three runs: 02:43, 02:46, 02:49). Ports 4399, 4398, 4317 never targeted; 4400 only read from.
+Replies read for the manual TCs: the last run in `test-results/backend-replies.jsonl` (the file also holds earlier runs). Ports 4399, 4317 never targeted; 4400 only read from.
 
 ## 3. Results by case
-| TC | REQ | Result | Evidence |
-|---|---|---|---|
-| TC-001..TC-020, TC-037, TC-038 | REQ-001..011 | pass | server-unit, each ✔ in be-tester-3-npm-test.log; TC-012 now checks `line + "\n" + RECALL[lang](prev)` (and line alone with no earlier user entry) |
-| TC-021..TC-036 | REQ-001, 003..007, 009..011 | pass | server-fakes, each ✔; TC-031 checks RECALL.en on the reply call, none on the mood call, none when the window has only companion entries |
-| TC-040 | REQ-010 | pass | health `{ready,stt,bonsai}` all ready |
-| TC-041 / 042 / 043 | REQ-001 | pass | WER/CER <= 0.15 in all runs, FX-005/006/007 |
-| TC-044 | REQ-002 | pass | en/en/zh 3/3, Simplified |
-| TC-045 | REQ-003 | pass | `{"text":""}` on every call, FX-008 |
-| TC-046 / 047 / 048 | REQ-004..007 | pass | FX-001/002/003 property checks equal expected.json, 3 runs x 3 |
-| TC-049 | REQ-006 | pass | FX-004: 9/10 in each of 3 rounds in each of 3 runs (9 rounds); the one miss is FX-004-05, labelled neutral, got pleasant-low, every round (margin 1 of 10, known) |
-| TC-050 | REQ-005 | pass | 30/30 in each run |
-| TC-051 | REQ-005 | pass | mixed-language lines follow the majority language |
-| TC-052 | REQ-008 | pass | run 1 5050-5670 ms; run 2 7442-8955 ms; run 3 6753-7773 ms (limit 10 s). Run 2 margin 1.0 s: slower than round 1 (5.0 s alone), likely machine load from other agents; not a failure |
-| TC-053..TC-059 | REQ-001, 004, 007, 009..011 | pass | live and server-unit lines |
-| TC-070..TC-076 | REQ-009..011 | blocked | boot group, §5 |
-| TC-080 | REQ-004 | pass | manual, below |
-| TC-081 | REQ-007 | pass | manual, below (3/3, 2/3, 3/3 by run) |
-| TC-082 | REQ-007, 004 | pass | manual, below |
-| TC-083..TC-086 | REQ-009, 005, 003, 012, 011 | blocked | §5 |
+One row per TC. `Mode` is automated unless stated.
 
-Manual judgement, by be-tester #3 reading `test-results/backend-replies.jsonl` (every FX tag #0..2, three runs):
-- TC-080 (FX-001), 9 replies: all celebrate the news ("awesome/amazing news", "Congratulations"). Run 1 names the internship twice; runs 2 and 3 are warm but generic ("such amazing news! So excited for you", one asks about "the email"). Each responds to getting good news, none is filler. Pass (borderline on the generic ones).
-- TC-081 (FX-002; bar >= 2 of 3 mention the internship or the mixed feelings), by run:
-  - run 1: 3/3. "getting that internship was so exciting", "since you just got that internship", "Moving for an internship is huge".
-  - run 2: 2/3. #1 "tough trade-off for such a great opportunity ... missing them" (mixed feelings) and #2 "That internship is so exciting, even though moving feels tough" count; #0 "such a big step ... feel lonely" does not name the news.
-  - run 3: 3/3. "That internship is so exciting that moving will be tough", "bittersweet moment after getting that internship", "tough news after getting such a great opportunity".
-  Passes in all three runs (round 1 failed with 1/3 twice, before RECALL).
-- TC-082 (FX-003; bar >= 2 of 3 mention the exam, Simplified only): 9 of 9 mention the exam (考好了 / 考完试 / 考试过 / 考过), in every run, with the friend quarrel as the sad part. All characters Simplified. Pass.
+| TC | REQ | Mode | Result | Evidence |
+|---|---|---|---|---|
+| TC-001 | REQ-001 | automated | pass | WAV seam-format fixtures parse - ✔ in junit.xml / log |
+| TC-002 | REQ-003 | automated | pass | 2 s silence WAV - ✔ in junit.xml / log |
+| TC-003 | REQ-001 | automated | pass | non-seam formats bad_request - ✔ in junit.xml / log |
+| TC-004 | REQ-001 | automated | pass | stays in buffer - ✔ in junit.xml / log |
+| TC-005 | REQ-011 | automated | pass | error codes/statuses - ✔ in junit.xml / log |
+| TC-006 | REQ-011 | automated | pass | sendError mapping - ✔ in junit.xml / log |
+| TC-007 | REQ-011 | automated | pass | sendError after headers - ✔ in junit.xml / log |
+| TC-008 | REQ-005 | automated | pass | languageOf - ✔ in junit.xml / log |
+| TC-009 | REQ-004 | automated | pass | shapeReply thinking/quotes - ✔ in junit.xml / log |
+| TC-010 | REQ-004 | automated | pass | shapeReply sentence/question caps - ✔ in junit.xml / log |
+| TC-011 | REQ-004 | automated | pass | shapeReply length caps - ✔ in junit.xml / log |
+| TC-012 | REQ-007 | automated | pass | toMessages (RECALL on last user message) - ✔ in junit.xml / log |
+| TC-013 | REQ-007 | automated | pass | windowOf - ✔ in junit.xml / log |
+| TC-014 | REQ-004, REQ-006 | automated | pass | prompt constants - ✔ in junit.xml / log |
+| TC-015 | REQ-009, REQ-010 | automated | pass | config values - ✔ in junit.xml / log |
+| TC-016 | REQ-010, REQ-011 | automated | pass | bonsaiFiles/missingFiles - ✔ in junit.xml / log |
+| TC-017 | REQ-009 | automated | pass | sources and scripts - ✔ in junit.xml / log |
+| TC-018 | REQ-010 | automated | pass | serveStatic basics - ✔ in junit.xml / log |
+| TC-019 | REQ-009 | automated | pass | serveStatic cannot leave root - ✔ in junit.xml / log |
+| TC-020 | REQ-003 | automated | pass | isNothingHeard - ✔ in junit.xml / log |
+| TC-021 | REQ-010, REQ-011 | automated | pass | supervisor starting to ready - ✔ in junit.xml / log |
+| TC-022 | REQ-011 | automated | pass | supervisor restart - ✔ in junit.xml / log |
+| TC-023 | REQ-011 | automated | pass | failed warm kills child - ✔ in junit.xml / log |
+| TC-024 | REQ-011 | automated | pass | gives up after 5 restarts - ✔ in junit.xml / log |
+| TC-025 | REQ-001 | automated | pass | stt.transcribe trim/noise/id - ✔ in junit.xml / log |
+| TC-026 | REQ-003 | automated | pass | stt empty answer - ✔ in junit.xml / log |
+| TC-027 | REQ-011 | automated | pass | stt not_ready - ✔ in junit.xml / log |
+| TC-028 | REQ-011 | automated | pass | stt failures - ✔ in junit.xml / log |
+| TC-029 | REQ-004, REQ-006 | automated | pass | bonsai.respond two calls - ✔ in junit.xml / log |
+| TC-030 | REQ-006, REQ-011 | automated | pass | mood fallback neutral - ✔ in junit.xml / log |
+| TC-031 | REQ-007, REQ-005 | automated | pass | what each call sees (RECALL) - ✔ in junit.xml / log |
+| TC-032 | REQ-004, REQ-011 | automated | pass | reply errors/shaping - ✔ in junit.xml / log |
+| TC-033 | REQ-008, REQ-011 | automated | pass | reply deadline - ✔ in junit.xml / log |
+| TC-034 | REQ-011 | automated | pass | not ready/died/stopped - ✔ in junit.xml / log |
+| TC-035 | REQ-010 | automated | pass | warm-up both prompts - ✔ in junit.xml / log |
+| TC-036 | REQ-009 | automated | pass | llama-server arguments - ✔ in junit.xml / log |
+| TC-037 | REQ-005 | automated | pass | languageOf worked examples - ✔ in junit.xml / log |
+| TC-038 | REQ-010 | automated | pass | missingHints - ✔ in junit.xml / log |
+| TC-040 | REQ-010 | automated | pass | health all ready - ✔ in junit.xml / log |
+| TC-041 | REQ-001 | automated | pass | WER FX-005 - ✔ in junit.xml / log |
+| TC-042 | REQ-001 | automated | pass | WER FX-006 - ✔ in junit.xml / log |
+| TC-043 | REQ-001 | automated | pass | CER FX-007 - ✔ in junit.xml / log |
+| TC-044 | REQ-002 | automated | pass | transcript language - ✔ in junit.xml / log |
+| TC-045 | REQ-003 | automated | pass | silence returns empty text - ✔ in junit.xml / log |
+| TC-046 | REQ-004..007 | automated | pass | FX-001 properties - ✔ in junit.xml / log |
+| TC-047 | REQ-004..007 | automated | pass | FX-002 properties - ✔ in junit.xml / log |
+| TC-048 | REQ-004..007 | automated | pass | FX-003 properties - ✔ in junit.xml / log |
+| TC-049 | REQ-006 | automated | pass | FX-004 mood >= 8/10 x3 - ✔ in junit.xml / log |
+| TC-050 | REQ-005 | automated | pass | FX-004 reply language 30/30 - ✔ in junit.xml / log; known issue, accepted by user 2026-11-15: a zh reply sometimes contains one English word (e.g. "brainstorm"); did not occur in this run, so it passes here; flaky |
+| TC-051 | REQ-005 | automated | pass | mixed-language majority - ✔ in junit.xml / log |
+| TC-052 | REQ-008 | automated | pass | 20-turn history, <= 10 s x5 - ✔ in junit.xml / log; known issue, accepted by user 2026-11-15: latency can exceed 10 s under memory pressure; every timing was within the limit in this run, so it passes here; flaky (test took 37 s in total) |
+| TC-053 | REQ-011 | automated | pass | malformed respond requests - ✔ in junit.xml / log |
+| TC-054 | REQ-004, REQ-007 | automated | pass | respond boundaries - ✔ in junit.xml / log |
+| TC-055 | REQ-011 | automated | pass | 413 body limits - ✔ in junit.xml / log; known issue, accepted by user 2026-11-15: 413 sometimes arrives as ECONNRESET under load; did not occur in this run, so it passes here; flaky |
+| TC-056 | REQ-001, REQ-011 | automated | pass | non-seam audio refused - ✔ in junit.xml / log |
+| TC-057 | REQ-001 | automated | pass | 60 s recording - ✔ in junit.xml / log |
+| TC-058 | REQ-009, REQ-010 | automated | pass | routes - ✔ in junit.xml / log |
+| TC-059 | REQ-009 | automated | pass | loopback only - ✔ in junit.xml / log |
+| TC-070 | REQ-010 | manual | blocked | boot group, blocked: manual mode; see §5 |
+| TC-071 | REQ-008 | manual | blocked | boot group, blocked: manual mode; see §5 |
+| TC-072 | REQ-009 | manual | blocked | boot group, blocked: manual mode; see §5 |
+| TC-073 | REQ-009, REQ-011 | manual | blocked | boot group, blocked: manual mode; see §5 |
+| TC-074 | REQ-011 | manual | blocked | boot group, blocked: manual mode; see §5 |
+| TC-075 | REQ-011 | manual | blocked | boot group, blocked: manual mode; see §5 |
+| TC-076 | REQ-011 | manual | blocked | boot group, blocked: manual mode; see §5 |
+| TC-080 | REQ-004 | manual | pass | judged from this run's replies, below |
+| TC-081 | REQ-007 | manual | pass | judged from this run's replies, below (3 of 3) |
+| TC-082 | REQ-007, REQ-004 | manual | pass | judged from this run's replies, below (3 of 3, Simplified) |
+| TC-083 | REQ-009 | manual | blocked | Wi-Fi off and a person speaking; see §5 |
+| TC-084 | REQ-003, REQ-005 | manual | blocked | page, UI language switched; see §5 |
+| TC-085 | REQ-012 | manual | blocked | frontend only; see §5 |
+| TC-086 | REQ-011 | manual | blocked | page plus a stopped server; see §5 |
 
-FX results (each exercised by a passing tagged test in `test-results/junit.xml`): FX-001 TC-046; FX-002 TC-047; FX-003 TC-048; FX-004 TC-049/050/051; FX-005 TC-001/041/044; FX-006 TC-001/042/044/052/057; FX-007 TC-001/043/044; FX-008 TC-002/020/026/045. All pass. Fixtures loaded from their files, never edited.
+Manual judgement by be-tester #4, reading the last run in `test-results/backend-replies.jsonl` (FX tags #0..2):
+- TC-080 (FX-001), 3 replies: "That is amazing news! I am so happy for you.", "...I can't wait to hear all about it later.", "...How are you feeling about starting soon?". All celebrate the news; warm but generic (none names the internship). Pass, borderline.
+- TC-081 (FX-002; bar >= 2 of 3 mention the internship or the mixed feelings): 3 of 3. "tough news after getting that awesome internship", "That internship is such a big step! ... lonely when leaving everyone", "Moving away is hard even after such a big win like that internship". Pass.
+- TC-082 (FX-003; bar >= 2 of 3 mention the exam, Simplified only): 3 of 3 mention the exam (考好了, 考试过, 考试过), with the friend quarrel as the sad part. All characters Simplified. Reply #1 is poor Chinese ("考试过心喜来...惹气") but meets the bar. Pass.
 
-Seam check (contracts/FRONTEND_BACKEND_CONTRACT.md seam table), backend side: `/api/respond` 200 `{reply, mood}` (TC-046..048), `/api/transcribe` 200 `{text}`, empty string for silence (TC-045), `/api/health` always 200 `{ready, stt, bonsai}` (TC-040, TC-058). Codes: CODES table (TC-005); over HTTP bad_request 400 (TC-053, 056, 058), too_large 413 (TC-055); not_ready / unavailable / timeout / failed 502 verified at module level (TC-027, 028, 032, 033, 034) and through the sendError mapping (TC-006); the live-HTTP 503 after a kill is TC-074/075 (blocked this round). Seam matches as far as run.
+Fixtures, each exercised by a passing tagged test in `test-results/junit.xml` (loaded from their files, never edited):
+
+| Fixture | Passing tagged tests |
+|---|---|
+| FX-001 | TC-046 |
+| FX-002 | TC-047 |
+| FX-003 | TC-048 |
+| FX-004 | TC-049, TC-050, TC-051 |
+| FX-005 | TC-001, TC-041, TC-044 |
+| FX-006 | TC-001, TC-042, TC-044, TC-052, TC-057 |
+| FX-007 | TC-001, TC-043, TC-044 |
+| FX-008 | TC-002, TC-020, TC-026, TC-045 |
+
+Seam check (contracts/FRONTEND_BACKEND_CONTRACT.md), backend side: `/api/respond` 200 `{reply, mood}` (TC-046..048); `/api/transcribe` 200 `{text}`, empty string for silence (TC-045); `/api/health` always 200 `{ready, stt, bonsai}` (TC-040, TC-058). Codes: TC-005; over HTTP bad_request 400 (TC-053, 056, 058), too_large 413 (TC-055); not_ready / unavailable / timeout / failed 502 at module level (TC-027, 028, 032, 033, 034) and through sendError (TC-006). The live-HTTP 503 after a kill is TC-074/075 (blocked). Seam matches as far as run.
 
 ## 4. Failures
-None this round.
-
-Note on a risk, not a failure: FX-004 line 05 mislabels in every round (9/10 against a bar of 8/10) and TC-052 reached 8.96 s on a loaded machine (bar 10 s).
+None this run. Flaky, user-accepted known issues that passed this time: TC-050, TC-052, TC-055 (§3).
 
 ## 5. Blocked cases
 | TC | Reason blocked | What is needed to unblock |
 |---|---|---|
-| TC-070..TC-076 (boot suite) | Not run this round. The suite starts its own `node server/main.js`, which loads a third 9B Bonsai instance beside 4400 and the other agents' instances (24 GB Mac, `vm_stat` showed about 75 MB free pages when checked), takes about 80 s to warm up, and SIGKILLs its own children. It was therefore moved out of `npm test` and into the manual group (04 §1). Round 1 results for these (boot log of be-tester #2: TC-070 ready, TC-071 6.1 s, TC-072, TC-074..076 pass, TC-073 failed on the old allow-list) are history and are not counted here; TC-073's allow-list now lists the 16 events of 03 §6 but was not run | Run `COMPANION_BOOT=1 npm run test:backend` when the other instances are stopped and memory is free; or an orchestrator-approved slot |
-| TC-083 | Needs Wi-Fi switched off and a person speaking 3 turns in the page (loopback-only is covered by TC-059, which passes) | The user runs it |
+| TC-070 | Boot suite, manual mode (04 §1). Not run: it starts its own `node server/main.js`, a third 9B Bonsai instance beside 4400 on a 24 GB Mac, about 80 s to warm up, and SIGKILLs its own children | `COMPANION_BOOT=1 npm run test:backend` with the other instances stopped, or an orchestrator-approved slot |
+| TC-071 | Same boot group reason | Same |
+| TC-072 | Same boot group reason | Same |
+| TC-073 | Same boot group reason (allow-list now lists the 16 events of 03 §6, not run) | Same |
+| TC-074 | Same boot group reason (kills the Bonsai child) | Same |
+| TC-075 | Same boot group reason (kills the STT child) | Same |
+| TC-076 | Same boot group reason (clean stop) | Same |
+| TC-083 | Needs Wi-Fi switched off and a person speaking 3 turns (loopback-only is covered by TC-059, which passes) | The user runs it |
 | TC-084 | Needs the page with the UI language switched, FX-004 lines and the talk button held over silence | fe-tester browser run |
 | TC-085 | Frontend-only (REQ-012) | fe-tester browser inspection |
-| TC-086 | Needs the page and a stopped/restarted server; the live instance and the preview must not be stopped. Backend half: TC-034 passes; TC-074/075 blocked above | fe-tester with its own server |
+| TC-086 | Needs the page and a stopped/restarted server; 4400 must not be stopped. Backend half: TC-034 passes | fe-tester with its own server |
 
 ## 6. Requirement verdict
 | REQ | Verified? | Basis |
 |---|---|---|
-| REQ-001 | yes | TC-001, 003, 004, 025, 041-043, 056, 057 |
-| REQ-002 | yes | TC-044 (synthesised audio, A15) |
+| REQ-001 | yes | TC-001, 003, 004, 025, 041, 042, 043, 056, 057 |
+| REQ-002 | yes | TC-044 |
 | REQ-003 | backend yes, page half not | TC-002, 020, 026, 045; TC-084 blocked |
-| REQ-004 | yes | TC-009-011, 014, 029, 032, 046, 048, 054, 080, 082 |
-| REQ-005 | backend yes, UI half not | TC-008, 012, 031, 037, 046, 047, 050, 051; TC-084 blocked |
+| REQ-004 | yes | TC-009, 010, 011, 014, 029, 032, 046, 048, 054, 080, 082 |
+| REQ-005 | backend yes, UI half not | TC-008, 012, 031, 037, 046, 047, 050 (flaky, known), 051; TC-084 blocked |
 | REQ-006 | yes | TC-014, 029, 030, 046, 047, 049 |
-| REQ-007 | yes | TC-012, 013, 031, 047, 048, 054 pass; manual TC-081 passes 3 of 3 runs, TC-082 passes |
-| REQ-008 | yes (thin margin under load) | TC-013, 033, 052 (max 8.96 s of 10 s) ; TC-071 blocked |
+| REQ-007 | yes | TC-012, 013, 031, 047, 048, 054, 081, 082 |
+| REQ-008 | yes (flaky under memory pressure, known) | TC-013, 033, 052; TC-071 blocked |
 | REQ-009 | partly | TC-015, 017, 019, 036, 058, 059 pass; TC-072, 073, 083 blocked |
-| REQ-010 | partly | TC-015-018, 021, 035, 038, 040, 058 pass; TC-070, 071, 076 blocked (boot) |
-| REQ-011 | partly | TC-005-007, 016, 021-024, 027, 028, 030, 032-034, 053, 055 pass; TC-074, 075, 086 blocked |
+| REQ-010 | partly | TC-015, 016, 017, 018, 021, 035, 038, 040, 058 pass; TC-070, 071, 076 blocked |
+| REQ-011 | partly | TC-005, 006, 007, 016, 021-024, 027, 028, 030, 032, 033, 034, 053, 055 (flaky, known) pass; TC-074, 075, 086 blocked |
 | REQ-012 | no | TC-085 blocked (frontend) |

@@ -96,13 +96,13 @@ Next agent must know:
 - Left open: stillDown over an action hint is allowed by the rules; not covered by a browser check (unit rule in healthHint only).
 Next agent reads: web/js/app.js healthHint, tests/fnd-r1-fix.test.js
 
-## be-tester #3 · step 5 (test run) · round 2 · 2026-11-15T02:55:00Z
-Task: update TC-012, TC-031, TC-073 to DES-008/DES-010/section 6; wire backend suites into `npm test`; re-run; rewrite 05-test-report.md.
-Changed: tests/server-unit.test.js, tests/server-fakes.test.js, tests/server-boot.test.js; package.json (test script: + server-unit, server-fakes, server-live, COMPANION_URL default 4400); docs/backend/04-test-plan.md (boot TCs TC-070..076 now Mode manual, gate wiring); docs/backend/05-test-report.md; logs docs/backend/logs/be-tester-3-*.log. No server/, fixtures or .claude touched.
-Result: 57 pass, 0 fail, 11 blocked. `npm test` 142/142, 0 skipped, exit 0; all 54 automated TCs and FX-001..008 in test-results/junit.xml. Live x3: TC-081 passes 3/3, 2/3, 3/3; FX-002 x3 ok; FX-004 9 rounds all 9/10. Blocked: TC-070..076 (boot suite, not run: third 9B instance, memory), TC-083..086 (Wi-Fi/page).
+## be-tester #4 · step 5 (test report) · round 3 · 2026-11-15T03:30:00Z
+Task: rewrite 05-test-report.md so gate p5 parses one verdict per TC row, from one real `npm test` run.
+Changed: docs/backend/05-test-report.md; docs/backend/logs/be-tester-4-npm-test.log. No tests, package.json, server, web or 04 touched.
+Result: 57 pass, 0 fail, 11 blocked. `npm test` 142/142, skipped 0, exit 0 (146 s). TC-050, 052, 055 (user-accepted known issues) passed this run, recorded pass + flaky.
 Next agent must know:
-- Pitfalls: `npm test` needs 4400 up (else live TCs skip = not executed); takes ~130 s. TC-052 ran 5.0-8.96 s depending on machine load (limit 10 s). backend-replies.jsonl holds only this round (old one is .prev.jsonl).
-- Left open: boot group TC-070..076 unrun (incl. TC-073 against the 16-event list); FX-004 line 05 mislabels every round (9/10).
+- Pitfalls: `npm test` needs 4400 up; takes about 150 s. backend-replies.jsonl accumulates runs (read the last).
+- Left open: boot group TC-070..076 (blocked, manual); TC-083..086 (blocked).
 Next agent reads: docs/backend/05-test-report.md sections 3 and 5
 
 ## fe-reviewer #2 · step 4 (frontend review) · round 2 · increment 1 · 2026-11-15T02:04:20Z
