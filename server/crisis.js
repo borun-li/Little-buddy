@@ -14,10 +14,14 @@ export const CRISIS_PHRASES = {
 
 // zh only, removed anywhere before matching: everyday phrases that contain a listed phrase.
 export const CRISIS_EXCEPTIONS = ['跳楼价', '跳楼大甩卖'];
-// Fond greetings, removed only at the end of a clause (nothing but end of text or punctuation follows): '想死你了！' stays
+// Fond greetings, removed only at the end of a clause (nothing but end of text, punctuation, emoji or ~ follows): '想死你了！' stays
 // harmless, while '我想死你别管我' and '我想死我了真的撑不下去' keep 想死 (FND-014, review round 1; A22: a miss is worse than a false alarm).
+// FND-025 (Acceptance): the rule is GREETING_RE, 想死 + 你/您/你们 + optional 了/啦/喽/咯/嘞, or 想死 + 我 + 了/啦, then optional
+// 啊呀哦喔噢呢嘛哈吖~; GREETING_EXCEPTIONS lists its base forms. Bare 想死我 and 想死你啊别管我 stay crisis.
 export const GREETING_EXCEPTIONS = ['想死你了', '想死你们了', '想死您了', '想死我了'];
-const GREETING_RE = new RegExp(`(?:${GREETING_EXCEPTIONS.join('|')})(?![\\p{L}\\p{N}])`, 'gu');
+const GREETING_RE = /想死(?:(?:你们|你|您)(?:了|啦|喽|咯|嘞)?|我(?:了|啦))[啊呀哦喔噢呢嘛哈吖~]*(?![\p{L}\p{N}])/gu;
+// 妳/們 (voice input may give them) folded for the greeting step only; TRAD_FOLD stays the crisis-phrase list (FND-025, 08).
+const GREETING_FOLD = { 妳: '你', 們: '们' };
 
 // Every Traditional form of a character used in CRISIS_PHRASES.zh / CRISIS_EXCEPTIONS (typed text may be Traditional).
 export const TRAD_FOLD = { 殺: '杀', 盡: '尽', 輕: '轻', 尋: '寻', 著: '着', 沒: '没', 義: '义', 結: '结', 傷: '伤', 殘: '残', 樓: '楼', 價: '价', 賣: '卖', 麼: '么', 麽: '么' };
@@ -38,7 +42,7 @@ export function normalizeForCrisis(text) {
 // Only this line, typed or transcribed; a negated statement counts too (A22, Q9).
 export function isCrisis(line) {
   const t = normalizeForCrisis(line);
-  let zh = t.replace(/\s/g, '').replace(GREETING_RE, '');
+  let zh = t.replace(/\s/g, '').replace(/[妳們]/g, (c) => GREETING_FOLD[c]).replace(GREETING_RE, '');
   for (const e of CRISIS_EXCEPTIONS) zh = zh.split(e).join('');
   if (CRISIS_PHRASES.zh.some((p) => zh.includes(p))) return true;
   return EN_RE.test(t);

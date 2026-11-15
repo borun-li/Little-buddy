@@ -59,16 +59,16 @@ Open: backend review round 1 — candidates docs/backend/logs/review-r1-candidat
 Next: run any gate (so the hook re-marks be-reviewer), dispatch fresh be-reviewer #1 to merge → 06-review-report.md, gate p6; fixes for blocker/majors (be-developer; R-2/R-3 may need be-architect); minors → deferred.md; re-run p4/p5; then demo after (start own instance on 4399, gate.py demo after), 07-acceptance.md, p7, Acceptance stop with the user (Wi-Fi off, real mic); then increment 2 at Phase 1 (be-analyst).
 Trap: docs/backend/logs/be-developer-2-server.log is instance A's live log in a tracked file — it trips P6 tree-unchanged; restart instance A with its log outside the project before the coordinator runs.
 
-## be-developer #7 · step 6 (codemap token) · round 2 · increment 2 · 2026-11-15T10:52:36Z
-Task: gate CTX.codemap: backticks only around real repo paths.
-Changed: docs/codemap.md:81 (stt/ entry): `.none as TextChunkingStrategy` lost its backticks; the words are unchanged. Nothing else touched.
-Result: a check script went through all 120 backticked tokens in docs/codemap.md; every path part (before ':') exists, apart from the allowed command `swift build -c release --package-path stt`. missing=0.
-Next agent must know (carried from be-developer #6, step 6, round 1):
-- The FND-013/014/015/016/019/020 and TC-125 fixes are in facf812; 08 § Fix round 1 has deviations 16–17.
-- Instance A is node 31464 on 4400/4401 (PID in scratchpad server.pid, log in scratchpad instanceA.log). The old 37595 tree is stopped.
-- In main.swift keep `.none as TextChunkingStrategy`. A bare .none is nil and gives sentence chunking.
-- Still open: npm test live suites not run; npm run setup does not fetch the TTS model (the brief contradicts this, see 08); REQ-015 page timing; REQ-024 tone; Wi-Fi-off run with tts.
-Next agent reads: server/tts.js:9-160; docs/backend/08-implementation-log.md § Fix round 1
+## be-developer #8 · step 7 (acceptance fix FND-025) · round 1 · increment 2 · 2026-11-15T13:59:20Z
+Task: fond-greeting variants of 想死你了 no longer trigger the crisis flag, real crisis lines still do; new tests green; not committed.
+Changed: server/crisis.js (+7/-3) — GREETING_RE is now the pattern rule (想死 + 你/您/你们 + optional 了啦喽咯嘞, or 想死我了/啦, then optional 啊呀哦喔噢呢嘛哈吖~, end of clause only); 妳/們 folded for the greeting step. tests/crisis-greeting.test.js (new, 2 tests). package.json (+1/-1) — new file in `test` before server-unit.
+Result: node --test crisis-greeting + dev-increment2 + server-unit: 60/60 pass — evidence: docs/backend/08-implementation-log.md § Acceptance fix FND-025
+Next agent must know:
+- Pitfalls: TC-094 (tests/server-unit.test.js:436) pins TRAD_FOLD at 15 keys, so 妳/們 live in GREETING_FOLD, not TRAD_FOLD (deviation in 08). TC-093 needs GREETING_EXCEPTIONS to still include 想死你了.
+- Tried, did not work: adding 妳/們 to TRAD_FOLD as briefed — TC-094 failed 17 !== 15.
+- Left open: full npm test (live suites) not run; the page check of "想死你了啊" etc. with the user's server not done (the user's 4317 server needs a restart to load the change).
+Read beyond the list: nothing
+Next agent reads: server/crisis.js:16-49; tests/crisis-greeting.test.js
 
 ## fe-tester #11 · step 4 (verification doc format) · round 3 · increment 2 · 2026-11-15T11:40:00Z
 Task: fix gate fe-verify FE4.capture and FE4.verdicts by document format only; no new judging.

@@ -173,3 +173,11 @@ Checks: `node --check` on each `server/*.js` passes. `npm test` against the rest
   - Lone surrogate `{"text":"a\ud800b"}` → 400 `bad_request`.
   - zh speak aborted at 0.5 s (AbortError at 501 ms), then "你好。" → 200 `audio/wav`, 46124 B, at 3666 ms. Gateway log: `tts_done queued_ms 2364`, so it waited for the first part's answer and got no 504.
   - name 团子, "你叫什么名字？" ×5 → 5/5 200, 0/5 contain 小伙伴, 5/5 say 团子.
+
+### Acceptance fix FND-025 (step 7, round 1, be-developer #8) · 2026-11-15T13:59:20Z — trigger: the user said "想死你了" on the page and the 988 card appeared
+- Cause: `GREETING_RE` matched only the four literal forms in `GREETING_EXCEPTIONS`, so near variants ('想死你了啊', '想死你了呀', '想死你啦', '想死妳了', '想死你們了', bare '我想死你') kept 想死 and fired.
+- Change: `server/crisis.js:22` `GREETING_RE` = `/想死(?:(?:你们|你|您)(?:了|啦|喽|咯|嘞)?|我(?:了|啦))[啊呀哦喔噢呢嘛哈吖~]*(?![\p{L}\p{N}])/gu` (the brief's spec), still applied to the folded, whitespace-stripped text and still end-of-clause only (A22). `GREETING_EXCEPTIONS` kept, as the rule's base forms (TC-093 checks it). `server/crisis.js:45`: 妳→你, 們→们 folded before the greeting step.
+- Tests: new `tests/crisis-greeting.test.js` (2 tests, "FND-025 REQ-023"), added to `package.json` `test` just before `tests/server-unit.test.js`. No existing test changed.
+- Deviation: the brief said to add 妳/們 to `TRAD_FOLD`. `tests/server-unit.test.js:436` (TC-094, an existing test I may not edit) asserts `Object.keys(TRAD_FOLD).length === 15`; with the two keys it failed (17 !== 15). So the fold is a separate `GREETING_FOLD` used only in the greeting step (`server/crisis.js:24,45`). Crisis behaviour is the same: no listed phrase contains 你 or 们. Overturn: if TC-094's owner updates the count to 17, move the two keys into `TRAD_FOLD` and drop `GREETING_FOLD`.
+- Checks: `node --check server/crisis.js` pass. `node --test tests/crisis-greeting.test.js tests/dev-increment2.test.js tests/server-unit.test.js`: 60 tests, 60 pass, 0 fail, 0 skipped (output in the session scratchpad `fnd025.out`). Full `npm test` not run (live suites need instance A); no server started or stopped.
+- Known accepted false alarm (A22): a greeting followed directly by Latin letters or digits ('想死你了haha') still fires.
