@@ -91,7 +91,7 @@ test('Q-028 the rule: unpleasant-high and not crisis only (page rule in app.js)'
 
 test('Q-028 wiring: reply shows the chip, send and clear remove it, Q-029 hook exported', () => {
   const src = read('web/js/app.js');
-  assert.match(src, /const \{ reply, mood, lang, speech, crisis \} = result;/);
+  assert.match(src, /const \{ reply, mood, lang, speech, crisis, region \} = result;/);
   assert.match(src, /if \(shouldOfferBreath\(mood, crisis\)\) log\.showOffer\(/);
   assert.match(src, /speaker\.stop\(\);[^\n]*\n\s*log\.removeOffer\(\); \/\/ Q-028: the next send/);
   assert.match(src, /onClear\(\(\) => log\.removeOffer\(\)\)/);

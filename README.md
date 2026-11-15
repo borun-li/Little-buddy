@@ -31,7 +31,10 @@ logged, reviewed or used for training. Little Buddy takes a different approach:
 - **The face follows your mood:** five moods (pleasant/unpleasant × high/low energy, plus neutral) drive the companion's expression and colour.
 - **English and Chinese:** the reply follows the language you speak; the interface switches between EN and 中文.
 - **Breathe together:** when you sound anxious, it offers a short guided breath (in 4 s, out 6 s, three rounds).
-- **Gentle safety net:** if a message suggests self-harm or suicide, the reply gently names the US 988 Suicide & Crisis Lifeline and a calm card shows 988 (call or text) and 911.
+- **Gentle safety net:** if a message suggests self-harm or suicide, the reply gently names a crisis helpline and a calm card shows who to call.
+  The numbers follow **where you are**, not the language you chat in. The region is read from your Mac's region setting (then its time zone), on device, never from the network:
+  mainland China → 12356 (national mental health helpline), 110 / 120 for immediate danger; US → 988 (call or text), 911; anywhere else → findahelpline.com and your local emergency number.
+  Set `COMPANION_REGION=CN`, `US` or `OTHER` to override it; `npm start` prints the region it uses.
   Detection is semantic first (Bonsai judges the meaning, at temperature 0), with unambiguous phrases as a floor and the full phrase list as a fallback if the model is unavailable.
 - **Yours:** give it a name, poke it, and clear the whole conversation in one tap. Nothing is stored on a server.
 
@@ -66,3 +69,6 @@ If read-aloud files are missing, chat still works without voice.
 npm test          # frontend and backend suites (the live suites expect a running instance)
 ```
 More than 300 automated tests cover the moods, language, crisis rule, read-aloud queue and page behaviour.
+
+## License
+Little Buddy is licensed under the [Apache License 2.0](LICENSE). Third-party components and the models it downloads keep their own licences; see [NOTICE](NOTICE).

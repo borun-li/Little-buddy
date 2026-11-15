@@ -241,14 +241,14 @@ async function send(raw, { voice = false, turn: standing = null } = {}) {
     return false;
   }
   if (gen !== generation) return false; // late reply after a clear: dropped
-  const { reply, mood, lang, speech, crisis } = result;
+  const { reply, mood, lang, speech, crisis, region } = result;
   history.push({ role: 'user', text: line }, { role: 'companion', text: reply });
   breath.stop('reply'); // Q-029: a new reply ends the guide first, so its mood applies at once
   log.addReply(reply);
   companion.setMood(mood); // the mood changes with the reply, never at send
   // Q-028 / DES-028: the offer only after an unpleasant-high reply that is not a crisis turn (A21).
   if (shouldOfferBreath(mood, crisis)) log.showOffer((chip) => breathStart?.({ chip, mood }));
-  if (crisis === true) log.showCrisisCard(() => input.focus()); // Q-030: the page only reads the flag (DES-026)
+  if (crisis === true) log.showCrisisCard(() => input.focus(), region); // Q-030: the page only reads the flag (DES-026); R0: numbers by region
   setPending(false);
   speaker.say(speech, lang); // after the text and the mood; a new reply stops the old voice
   return true;

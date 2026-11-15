@@ -1,6 +1,6 @@
 // The one replaceable data layer (REQ-007), real since Q-010. Seam: contracts/FRONTEND_BACKEND_CONTRACT.md
 // "Seam for run companion-full-dev", docs/backend/03-detailed-design.md DES-013.
-//   respond(line, history, name) -> Promise<{ reply, mood, lang, crisis, speech }>   POST /api/respond, aborted at 16 s (Q-020; name null/absent is left out)
+//   respond(line, history, name) -> Promise<{ reply, mood, lang, crisis, region, speech }>   POST /api/respond, aborted at 16 s (Q-020; name null/absent is left out)
 //   speak(text, lang, signal) -> Promise<Blob audio/wav>   POST /api/speak, aborted at 11 s -> timeout; a caller's abort stays the AbortError
 
 //   transcribe(audio)      -> Promise<{ text }>          POST /api/transcribe, aborted at 13 s (Q-014 sends audio)
@@ -72,6 +72,7 @@ export function createClient({ fetch: fetchImpl, timers = { setTimeout: (fn, ms)
         mood: MOODS.includes(body.mood) ? body.mood : 'neutral',
         lang: body.lang, // as given; the page never guesses it
         crisis: body.crisis === true,
+        region: body.region === 'CN' || body.region === 'US' ? body.region : null, // R0: help-line region; else the international lines
         speech: Array.isArray(body.speech) ? body.speech.filter((t) => typeof t === 'string') : [],
       };
     },

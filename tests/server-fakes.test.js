@@ -143,7 +143,7 @@ async function makeBonsai(env = {}, over = {}, size = '2B') {
   cfg.bonsai = { ...cfg.bonsai, size, port, dir: join(dir, 'gguf') };
   cfg.deadlines = { ...cfg.deadlines, ...over };
   shellWrapper(join(dir, 'gguf'), 'bin/macos-arm64/llama-server', `${SUPPORT}/fake-llama.cjs`);
-  const b = await withEnv({ FAKE_LLAMA_LOG: logFile, ...env }, () => { const x = createBonsai(cfg); x.start(); return x; });
+  const b = await withEnv({ FAKE_LLAMA_LOG: logFile, ...env }, () => { const x = createBonsai(cfg, 'US'); x.start(); return x; });
   const log = () => (existsSync(logFile) ? readFileSync(logFile, 'utf8').split('\n').filter(Boolean).map((l) => JSON.parse(l)) : []);
   const ready = () => waitFor(() => b.state === 'ready', 20000, 'bonsai ready');
   return { b, log, port, ready, size };
@@ -433,7 +433,7 @@ test('TC-115 [FX-009] REQ-024/REQ-025 UD-1 (a): on a crisis turn a failed, empty
   const slow = await makeBonsai({}, { respondMs: 1200 });
   try {
     await slow.ready();
-    const want = (lang) => crisisReply('', lang);
+    const want = (lang) => crisisReply('', lang, 'US');
     for (const trig of ['REPLY500', 'REPLYEMPTY']) {
       const r = await slow.b.respond(`I want to kill myself ${trig}`, []);
       assert.equal(r.crisis, true, trig); assert.equal(r.reply, want('en'), trig); assert.equal(r.lang, 'en'); assert.ok(MOODS.includes(r.mood));
@@ -451,19 +451,19 @@ test('TC-115 [FX-009] REQ-024/REQ-025 UD-1 (a): on a crisis turn a failed, empty
   try {
     assert.equal(early.b.state, 'starting');
     const r = await early.b.respond('I want to hurt myself', []);
-    assert.equal(r.crisis, true); assert.equal(r.reply, crisisReply('', 'en')); assert.equal(r.mood, 'neutral', 'no mood call was possible');
+    assert.equal(r.crisis, true); assert.equal(r.reply, crisisReply('', 'en', 'US')); assert.equal(r.mood, 'neutral', 'no mood call was possible');
     await assert.rejects(early.b.respond('Just a normal line', []), (e) => e.code === 'not_ready', 'normal turns while starting stay not_ready');
     await early.ready();
     early.b.stop();
     await waitFor(() => early.b.state === 'down', 5000, 'down');
     const d = await early.b.respond('我想自杀', []);
-    assert.equal(d.crisis, true); assert.equal(d.reply, crisisReply('', 'zh'));
+    assert.equal(d.crisis, true); assert.equal(d.reply, crisisReply('', 'zh', 'US'));
   } finally { early.b.stop(); }
   const die = await makeBonsai();
   try {
     await die.ready();
     const r = await die.b.respond('I keep wanting to hurt myself REPLYDIE', []);
-    assert.equal(r.crisis, true); assert.equal(r.reply, crisisReply('', 'en'), 'the child died mid-request');
+    assert.equal(r.crisis, true); assert.equal(r.reply, crisisReply('', 'en', 'US'), 'the child died mid-request');
   } finally { die.b.stop(); }
 });
 

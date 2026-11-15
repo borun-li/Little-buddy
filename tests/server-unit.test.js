@@ -490,15 +490,15 @@ const sentencesOf = (t) => t.split(/(?<=[。！？!?.…])(?![。！？!?.…])/
 test('TC-099 REQ-024 crisisReply: first sentence + fixed 988 line; keeps a first sentence that already has 988; empty -> fallback + line; always 988, <= 2 sentences, <= 1 question', async () => {
   const { crisisReply } = await imp('server/bonsai.js');
   const P = await imp('server/prompts.js');
-  assert.equal(crisisReply('我听到你了。我在这里。你还好吗？', 'zh'), '我听到你了。' + P.CRISIS_LINE.zh);
-  assert.equal(crisisReply('I hear you. I am here.', 'en'), 'I hear you. ' + P.CRISIS_LINE.en);
+  assert.equal(crisisReply('我听到你了。我在这里。你还好吗？', 'zh', 'US'), '我听到你了。' + P.CRISIS_LINE.zh);
+  assert.equal(crisisReply('I hear you. I am here.', 'en', 'US'), 'I hear you. ' + P.CRISIS_LINE.en);
   // FND-019 (review round 1): only the CRISIS_LINE wording (CRISIS_MARK) counts as "already has the line"; a bare 988 does not (TC-145)
-  assert.equal(crisisReply('我在，也请你打给 988 找人聊聊。再说一句。', 'zh'), '我在，也请你打给 988 找人聊聊。');
-  assert.equal(crisisReply('You can call or text 988 anytime. More text.', 'en'), 'You can call or text 988 anytime.');
-  assert.equal(crisisReply('', 'zh'), P.CRISIS_FALLBACK.zh + P.CRISIS_LINE.zh);
-  assert.equal(crisisReply('', 'en'), P.CRISIS_FALLBACK.en + ' ' + P.CRISIS_LINE.en);
+  assert.equal(crisisReply('我在，也请你打给 988 找人聊聊。再说一句。', 'zh', 'US'), '我在，也请你打给 988 找人聊聊。');
+  assert.equal(crisisReply('You can call or text 988 anytime. More text.', 'en', 'US'), 'You can call or text 988 anytime.');
+  assert.equal(crisisReply('', 'zh', 'US'), P.CRISIS_FALLBACK.zh + P.CRISIS_LINE.zh);
+  assert.equal(crisisReply('', 'en', 'US'), P.CRISIS_FALLBACK.en + ' ' + P.CRISIS_LINE.en);
   for (const [shaped, lang] of [['How are you feeling?', 'en'], ['你还好吗？', 'zh'], ['', 'en'], ['', 'zh']]) {
-    const r = crisisReply(shaped, lang);
+    const r = crisisReply(shaped, lang, 'US');
     assert.ok(r.includes('988'), r); assert.ok(sentencesOf(r).length <= 2, r);
     assert.ok(sentencesOf(r).filter((s) => /[?？]/.test(s)).length <= 1, r);
   }
@@ -508,22 +508,22 @@ test('TC-145 REQ-024/REQ-025 FND-019 crisisReply: a first sentence with a bare 9
   const { crisisReply } = await imp('server/bonsai.js');
   const P = await imp('server/prompts.js');
   assert.ok(P.CRISIS_MARK, 'CRISIS_MARK is exported (DES-020)');
-  assert.equal(crisisReply('I am 988 and I am right here with you.', 'en'), 'I am 988 and I am right here with you. ' + P.CRISIS_LINE.en);
-  assert.equal(crisisReply('我叫988，我在这里陪你。', 'zh'), '我叫988，我在这里陪你。' + P.CRISIS_LINE.zh);
-  assert.equal(crisisReply('Please call 988 now. More text.', 'en'), 'Please call 988 now. ' + P.CRISIS_LINE.en, 'a bare "call 988" is not the line wording');
+  assert.equal(crisisReply('I am 988 and I am right here with you.', 'en', 'US'), 'I am 988 and I am right here with you. ' + P.CRISIS_LINE.en);
+  assert.equal(crisisReply('我叫988，我在这里陪你。', 'zh', 'US'), '我叫988，我在这里陪你。' + P.CRISIS_LINE.zh);
+  assert.equal(crisisReply('Please call 988 now. More text.', 'en', 'US'), 'Please call 988 now. ' + P.CRISIS_LINE.en, 'a bare "call 988" is not the line wording');
   const mark = (r, lang) => r.replace(/\s/g, '').toLowerCase().split(P.CRISIS_MARK[lang]).length - 1;
   for (const [shaped, lang] of [['你可以打给 988，那边有人听你说。再说一句。', 'zh'], ['Call or text 988 anytime, I am here. More.', 'en'], [P.CRISIS_LINE.zh, 'zh'], [P.CRISIS_LINE.en, 'en']]) {
-    const r = crisisReply(shaped, lang);
+    const r = crisisReply(shaped, lang, 'US');
     assert.equal(mark(r, lang), 1, `exactly one line wording: ${r}`);
   }
-  assert.equal(crisisReply('你可以打给 988，那边有人听你说。再说一句。', 'zh'), '你可以打给 988，那边有人听你说。');
+  assert.equal(crisisReply('你可以打给 988，那边有人听你说。再说一句。', 'zh', 'US'), '你可以打给 988，那边有人听你说。');
 });
 
 test('TC-100 REQ-024/REQ-004 crisisReply cuts an over-long first sentence to the room left (zh 120 code points, en 40 words), ends it in … and keeps 988', async () => {
   const { crisisReply } = await imp('server/bonsai.js');
-  const zh = crisisReply('我'.repeat(300) + '。', 'zh');
+  const zh = crisisReply('我'.repeat(300) + '。', 'zh', 'US');
   assert.ok([...zh].length <= 120, `zh length ${[...zh].length}`); assert.ok(zh.includes('988') && zh.includes('…'));
-  const en = crisisReply(Array.from({ length: 80 }, (_, i) => `w${i}`).join(' ') + '.', 'en');
+  const en = crisisReply(Array.from({ length: 80 }, (_, i) => `w${i}`).join(' ') + '.', 'en', 'US');
   assert.ok(en.split(/\s+/).filter((w) => /[A-Za-z]/.test(w)).length <= 40, en); assert.ok(en.includes('988') && en.includes('…'));
   assert.ok(sentencesOf(zh).length <= 2 && sentencesOf(en).length <= 2);
 });
@@ -562,7 +562,7 @@ test('TC-103 REQ-024/REQ-014 speechParts of the crisis help lines: each language
   const en = speechParts(P.CRISIS_FALLBACK.en + ' ' + P.CRISIS_LINE.en, 'en');
   assert.ok(en.length >= 3 && en.join(' ').includes('nine eight eight'));
   const zh = speechParts(P.CRISIS_FALLBACK.zh + P.CRISIS_LINE.zh, 'zh');
-  assert.ok(zh.length >= 3 && zh.join('').includes('988'));
+  assert.ok(zh.length >= 3 && zh.join('').includes('九八八') && !/[0-9]/.test(zh.join('')), 'zh reads 988 in Chinese numerals (R0)');
 });
 
 // ---------- main.js parseTurn / parseSpeak (DES-022) and the HTTP edge of /api/speak
