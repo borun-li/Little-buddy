@@ -1,44 +1,44 @@
 {
-  "sig": "e7d7069d76b90623af06d7f58c1c69342c4b7ae806b5707f266e8a58dba57cf9",
-  "time": "2026-11-15T00:59:28Z",
-  "epoch": 1794704368.398487,
+  "sig": "aa7962fbda87c16bc6e7e5a002cfd1ddfc9d9456dd41f51d700a7ac0a6e813a1",
+  "time": "2026-11-15T01:02:49Z",
+  "epoch": 1794704569.160128,
   "result": {
     "cmd": "npm test",
     "exit": 0,
-    "seconds": 0.8,
+    "seconds": 0.9,
     "tail": [
-      "✔ Q-006 REQ-008 no page file names a host other than localhost (2.678ms)",
-      "✔ Q-006 REQ-008 every src, href and CSS url() points to a local file that exists (4.501416ms)",
-      "✔ Q-006 the voice font is the bundled WenKai subset, shipped with its licence (0.599333ms)",
-      "✔ Q-006 icons referenced with <use href=\"#...\"> are inline symbols (1.858458ms)",
-      "✔ press only holds: no listening, no seconds before the stream opens (3.135042ms)",
-      "✔ slow open: hint at 0.2 s, listening and seconds at open, hint leaves (1.001625ms)",
-      "✔ fast open: the 0.2 s hint never shows (0.241208ms)",
-      "✔ release before open: tooShort at once, a late stream is stopped and never records (0.208ms)",
-      "✔ release off the button or Esc before open: nothing shown, hint cleared (0.17725ms)",
-      "✔ 0.5 s counts from open: 0.3 s after open is too short, however long the open took (0.142208ms)",
-      "✔ release 0.6 s after open: wav() before close(), blob handed to onUtterance (0.143583ms)",
-      "✔ 60 s counts from open and sends itself (0.996709ms)",
-      "✔ unknown permission: hint at 0.2 s first, then 600 ms decides prompt; nothing records (0.2435ms)",
-      "✔ unknown permission, stream under 600 ms: records (0.144667ms)",
-      "✔ open fails: the error hint shows and nothing is listening (0.103958ms)",
-      "✔ header: RIFF/WAVE, PCM, mono, 16 kHz, 16 bit, sizes consistent (9.420709ms)",
-      "✔ samples are little-endian int16, clipped (0.343084ms)",
-      "✔ 60 s is 1,920,044 B and longer input never exceeds it (51.867291ms)",
-      "✔ 48000 Hz downsamples to 16 kHz with the length and the pitch kept (6.581459ms)",
-      "✔ 44100 Hz downsamples to 16 kHz with the length and the pitch kept (5.521584ms)",
-      "✔ 16 kHz passes through; silence stays silence (1.341666ms)",
-      "✔ chunks join, downsample and cap at 60 s of input; Blob is audio/wav (166.89425ms)",
-      "ℹ tests 56",
+      "✔ slow open: hint at 0.2 s, listening and seconds at open, hint leaves (0.367708ms)",
+      "✔ fast open: the 0.2 s hint never shows (0.115625ms)",
+      "✔ release before open: tooShort at once, a late stream is stopped and never records (0.156833ms)",
+      "✔ release off the button or Esc before open: nothing shown, hint cleared (0.161208ms)",
+      "✔ 0.5 s counts from open: 0.3 s after open is too short, however long the open took (0.184791ms)",
+      "✔ release 0.6 s after open: wav() before close(), blob handed to onUtterance (0.17525ms)",
+      "✔ 60 s counts from open and sends itself (0.920459ms)",
+      "✔ unknown permission: hint at 0.2 s first, then 600 ms decides prompt; nothing records (0.237291ms)",
+      "✔ unknown permission, stream under 600 ms: records (0.146667ms)",
+      "✔ open fails: the error hint shows and nothing is listening (0.108166ms)",
+      "✔ Q-014 words replace the transcribing turn, then follow the send path with the same turn (0.6805ms)",
+      "✔ Q-014 empty transcript: the turn leaves, no send, hook gets \"empty\" (0.108958ms)",
+      "✔ Q-014 not_ready and unavailable reach watch.failed; the turn leaves; no send (0.726459ms)",
+      "✔ Q-014 no audio (null) adds no turn and sends nothing (0.087416ms)",
+      "✔ Q-014 the real client posts the Blob as audio/wav to /api/transcribe and returns the text (0.309ms)",
+      "✔ header: RIFF/WAVE, PCM, mono, 16 kHz, 16 bit, sizes consistent (5.353292ms)",
+      "✔ samples are little-endian int16, clipped (0.346458ms)",
+      "✔ 60 s is 1,920,044 B and longer input never exceeds it (51.396ms)",
+      "✔ 48000 Hz downsamples to 16 kHz with the length and the pitch kept (6.366542ms)",
+      "✔ 44100 Hz downsamples to 16 kHz with the length and the pitch kept (5.605958ms)",
+      "✔ 16 kHz passes through; silence stays silence (1.326125ms)",
+      "✔ chunks join, downsample and cap at 60 s of input; Blob is audio/wav (170.040083ms)",
+      "ℹ tests 61",
       "ℹ suites 0",
-      "ℹ pass 56",
+      "ℹ pass 61",
       "ℹ fail 0",
       "ℹ cancelled 0",
       "ℹ skipped 0",
       "ℹ todo 0",
-      "ℹ duration_ms 689.699417"
+      "ℹ duration_ms 714.652041"
     ],
-    "log": "/Users/apple/Desktop/Hackathon/Local_AI_Hackathon/docs/frontend/gates/logs/2026-11-15T005927Z-test.log",
+    "log": "/Users/apple/Desktop/Hackathon/Local_AI_Hackathon/docs/frontend/gates/logs/2026-11-15T010248Z-test.log",
     "cases": [
       [
         "test",
@@ -287,6 +287,31 @@
       ],
       [
         "test",
+        "Q-014 words replace the transcribing turn, then follow the send path with the same turn",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-014 empty transcript: the turn leaves, no send, hook gets &quot;empty&quot;",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-014 not_ready and unavailable reach watch.failed; the turn leaves; no send",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-014 no audio (null) adds no turn and sends nothing",
+        "passed"
+      ],
+      [
+        "test",
+        "Q-014 the real client posts the Blob as audio/wav to /api/transcribe and returns the text",
+        "passed"
+      ],
+      [
+        "test",
         "header: RIFF/WAVE, PCM, mono, 16 kHz, 16 bit, sizes consistent",
         "passed"
       ],
@@ -324,11 +349,11 @@
     "junit_note": "report from gates.json junit: test-results/junit.xml",
     "counts": {
       "skipped": 0,
-      "failed": 0,
       "errors": 0,
-      "xfailed": 0,
-      "passed": 56,
-      "xpassed": 0
+      "xpassed": 0,
+      "failed": 0,
+      "passed": 61,
+      "xfailed": 0
     },
     "failed_tests": []
   }

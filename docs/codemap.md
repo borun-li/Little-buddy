@@ -11,6 +11,11 @@ Traps: `web/index.html` holds the 5 companion SVGs inline as <template id="mood-
 Does: turn flow idle → pending → idle; Enter (not while an IME composes) sends; Enter while pending is ignored and keeps the text; pauses the talk button ≤ 1 s. Q-011: a failed respond drops the turn (log.dropFailed), returns the line to the input in front of text typed meanwhile (focused, caret at end) and shows the send-column hint for err.code in the shared .hint line; the hint clears at the next send.  Entry: module top level  Used by: `web/index.html`
 Invariants: the only importer of `web/js/companion-client.js`; page memory only (A5).  Tests: `tests/fake-companion.test.js` (import seam)
 
+## `web/js/voice-turn.js`
+Does: Q-014 handleUtterance(audio, deps): null audio → hook only; else pause send/hold, transcribing turn, transcribe(audio), words replace the turn in place and follow app.js send() (same turn, then typing, respond, mood). Failure drops the turn, calls watch.failed(code); empty text drops the turn, no respond.  Used by: `web/js/app.js`
+Invariants: no DOM, everything injected.  Tests: `tests/voice-turn.test.js`
+Traps: Q-018 fills the onVoiceProblem(kind) hook in `web/js/app.js` ('no_audio' | 'empty' | error code); today a no-op. A failed respond for a voice line returns the words to the input (Q-011 path).
+
 ## `web/js/health-watch.js`
 Does: Q-012 warming state machine. createHealthWatch({health, onChange, now, timers}) → {state, start, failed(code), stop}; state {canSend, canVoice, waking, hint}. Checks at open and every 2 s until bonsai and stt are ready; a failed check = bonsai down; 30 s down → hint stillDown; awake for 4 s only if a not-ready hint was shown; failed('not_ready'|'unavailable') resumes checks. onChange fires only when the state changes (no re-announce per poll).  Used by: `web/js/app.js`
 Invariants: pure, clock and health() injected.  Tests: `tests/health-watch.test.js`

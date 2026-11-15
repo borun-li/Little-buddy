@@ -185,3 +185,8 @@ p { margin: 0; }
   .typing__static { display: inline; }
 }
 .tab-hidden * { animation-play-state: paused !important; }
+
+/* Q-014: you-transcribing turn (CMP-002): muted body, dots after the words */
+.turn--transcribing .turn__text { color: var(--color-text-muted); }
+.typing--inline { display: inline-flex; height: auto; vertical-align: middle; margin-left: 6px; }
+.typing--inline .typing__dot { background: var(--color-text-muted); }

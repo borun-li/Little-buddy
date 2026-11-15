@@ -5,6 +5,7 @@ import { createLog } from './log.js';
 import { createCompanion } from './companion.js';
 import { createHealthWatch } from './health-watch.js';
 import { createHint, createTalkButton } from './talk-button.js';
+import { handleUtterance } from './voice-turn.js';
 
 const $ = (sel) => document.querySelector(sel);
 
@@ -44,14 +45,20 @@ const talk = createTalkButton({
     if (!st.canVoice) { showHint(st.hint ?? 'unreachable'); return true; }
     return false;
   },
-  // Q-014 passes the held WAV and handles failures; until then the real transcribe has no audio to send.
-  onUtterance: async (audio) => {
-    try {
-      const { text } = await transcribe(audio);
-      send(text, { voice: true });
-    } catch (err) { watch.failed(err.code); /* Q-014 / Q-018 word these */ }
-  },
+  // Q-014: the held WAV goes to transcribe, then the words follow the send path (voice-turn.js).
+  onUtterance: (audio) => handleUtterance(audio, {
+    transcribe,
+    log,
+    setPending,
+    watch,
+    sendWords: (words, turn) => send(words, { voice: true, turn }),
+    onVoiceProblem, // Q-018 fills this in
+  }),
 });
+
+// Q-018 hook: kind is 'no_audio', 'empty' (nothing heard) or an error code from transcribe. Q-014 shows
+// nothing: the transcribing turn has already left. Q-018 words the hints (hints.nothingHeard, voice*).
+function onVoiceProblem(kind) { void kind; }
 
 function setPending(on) {
   pending = on;
@@ -98,11 +105,12 @@ watch.start();
   watch.failed(err.code); // not_ready / unavailable: the checks resume
 }
 
-async function send(raw, { voice = false } = {}) {
+// turn: a voice turn that already stands in the log (it showed "transcribing"); pending is already on.
+async function send(raw, { voice = false, turn: standing = null } = {}) {
   const line = raw.trim();
-  if (!line || pending) return false;
+  if (!line || (pending && !standing)) return false;
   clearSendHint();
-  const turn = log.addYou(line, { voice });
+  const turn = standing ?? log.addYou(line, { voice });
   setPending(true);
   log.showTyping();
   let result;

@@ -333,13 +333,13 @@ Stack unchanged: static files, vanilla ES modules, `node:test`. No new package.
 - **States:** loading · transcribing, success
 - **REQ:** REQ-001, REQ-002, REQ-008
 - **DES:** DES-013, DES-014
-- **Files:** `app.js`, `log.js`, `companion-client.js`
+- **Files:** `app.js`, `log.js`, `companion-client.js`, `voice-turn.js`, `copy.js`, `page.css`
 - **Observable:** After release your turn shows tagged 语音 with "正在转成文字…", then the words replace it, then reply and mood follow
 - **Acceptance:** Placeholder ≤ 0.3 s, words ≤ 13 s, reply ≤ 10 s; send paused meanwhile; 1440, 390
 - **Priority:** P1
 - **Side:** both (backend first)
 - **Depends on:** Q-013, Q-011, Q-012
-- **Status:** queued
+- **Status:** built (fe-engineer #12)
 
 ### Q-018 — Silence and voice failures are told
 - **Page:** PAGE-001

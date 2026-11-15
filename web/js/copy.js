@@ -14,7 +14,8 @@ export const COPY = {
     listeningShort: (s) => `${s} 秒`,
     listeningHelp: '松开发送 · 移开或 Esc 取消',
     listeningName: (s) => `在听，${s} 秒，松开发送`,
-    voiceTag: '语音 · 示例文字',
+    voiceTag: '语音',
+    transcribing: '正在转成文字…', // the trailing … is drawn as moving dots in log.js
     typing: '小伙伴正在回复',
     logLabel: '聊天记录',
     hints: {
