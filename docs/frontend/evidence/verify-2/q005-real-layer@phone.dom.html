@@ -1,0 +1,466 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Little Buddy</title>
+<link rel="icon" href="data:,">
+<link rel="preload" href="fonts/lxgw-wenkai-subset.woff2" as="font" type="font/woff2" crossorigin="">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/page.css">
+<link rel="stylesheet" href="css/companion.css">
+<script type="module" src="js/app.js"></script>
+</head>
+<body>
+<!--
+  Icons: Lucide 1.73.0 (mic, mic-off, info, lock), inlined as symbols.
+  ISC License. Copyright (c) 2026 Lucide Icons and Contributors.
+  Permission to use, copy, modify, and/or distribute this software for any purpose with or without
+  fee is hereby granted, provided that the above copyright notice and this permission notice appear
+  in all copies. THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD
+  TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
+  THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+  WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
+  OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+  info and lock are derived from Feather: The MIT License (MIT), Copyright (c) 2013-present Cole Bemis.
+  Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+  associated documentation files (the "Software"), to deal in the Software without restriction,
+  including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
+  and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so,
+  subject to the following conditions: The above copyright notice and this permission notice shall be
+  included in all copies or substantial portions of the Software. THE SOFTWARE IS PROVIDED "AS IS",
+  WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
+  OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+  CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+  OTHER DEALINGS IN THE SOFTWARE.
+-->
+<svg class="sprite" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <symbol id="i-mic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 19v3"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><rect x="9" y="2" width="6" height="13" rx="3"></rect>
+  </symbol>
+  <symbol id="i-mic-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 19v3"></path><path d="M15 9.34V5a3 3 0 0 0-5.68-1.33"></path><path d="M16.95 16.95A7 7 0 0 1 5 12v-2"></path><path d="M18.89 13.23A7 7 0 0 0 19 12v-2"></path><path d="m2 2 20 20"></path><path d="M9 9v3a3 3 0 0 0 5.12 2.12"></path>
+  </symbol>
+  <symbol id="i-info" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path>
+  </symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+  </symbol>
+</svg>
+
+<!-- Companion art, one template per mood: docs/frontend/evidence/design/companion/<mood>.svg,
+     ids prefixed "<mood>--" so two moods can share the DOM during the crossfade. -->
+<template id="mood-neutral">
+<svg class="companion__art" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400" fill="none">
+<g id="neutral--companion-neutral">
+<g id="neutral--stage">
+<path id="neutral--glow" d="M380 200C380 299.4 299.4 380 200 380C100.6 380 20 299.4 20 200C20 100.6 100.6 20 200 20C299.4 20 380 100.6 380 200Z" fill="#E6DACA"></path>
+<path id="neutral--ground" opacity="0.1" d="M310 340C310 345 260.8 349 200 349C139.2 349 90 345 90 340C90 335 139.2 331 200 331C260.8 331 310 335 310 340Z" fill="black"></path>
+<g id="neutral--character">
+<g id="neutral--tail">
+<path id="neutral--tail-line" d="M290 262C322 258 334 230 318 214" stroke="#2F2724" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="neutral--tail-fur" d="M290 262C322 258 334 230 318 214" stroke="#F2B25C" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"></path>
+</g>
+<g id="neutral--ears">
+<g id="neutral--ear-left">
+<path id="neutral--ear-left-fur" d="M134.4 154C128 114 136 90 152 85.2C166.4 90 182.4 114 185.6 136.4L134.4 154Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="neutral--ear-left-inner" d="M145.6 136.4C144 117.2 148.8 104.4 154.4 101.2C161.6 107.6 168 118.8 169.6 130L145.6 136.4Z" fill="#A9442A" fill-opacity="0.35"></path>
+</g>
+<g id="neutral--ear-right">
+<path id="neutral--ear-right-fur" d="M265.6 154C272 114 264 90 248 85.2C233.6 90 217.6 114 214.4 136.4L265.6 154Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="neutral--ear-right-inner" d="M254.4 136.4C256 117.2 251.2 104.4 245.6 101.2C238.4 107.6 232 118.8 230.4 130L254.4 136.4Z" fill="#A9442A" fill-opacity="0.35"></path>
+</g>
+</g>
+<g id="neutral--body">
+<path id="neutral--body-fur" d="M104 234C104 161.1 152 123.6 200 123.6C248 123.6 296 161.1 296 234C296 285.8 256 306 200 306C144 306 104 285.8 104 234Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="neutral--belly" d="M256 267.6C256 285.3 230.9 299.6 200 299.6C169.1 299.6 144 285.3 144 267.6C144 249.9 169.1 235.6 200 235.6C230.9 235.6 256 249.9 256 267.6Z" fill="#F7F1E8"></path>
+</g>
+<g id="neutral--face">
+<g id="neutral--brows">
+<path id="neutral--brow-left" d="M156 182C162.7 178 169.3 177.3 176 180" stroke="#2F2724" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="neutral--brow-right" d="M224 180C230.7 177.3 237.3 178 244 182" stroke="#2F2724" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"></path>
+</g>
+<g id="neutral--eyes">
+<g id="neutral--eye-left">
+<path id="neutral--eye-left-pupil" d="M178.4 205.2C178.4 210.9 173.7 215.6 168 215.6C162.3 215.6 157.6 210.9 157.6 205.2C157.6 199.5 162.3 194.8 168 194.8C173.7 194.8 178.4 199.5 178.4 205.2Z" fill="#2F2724"></path>
+<path id="neutral--eye-left-shine" d="M174.4 201.2C174.4 203 173 204.5 171.2 204.5C169.4 204.5 168 203 168 201.2C168 199.5 169.4 198 171.2 198C173 198 174.4 199.5 174.4 201.2Z" fill="#F7F1E8"></path>
+</g>
+<g id="neutral--eye-right">
+<path id="neutral--eye-right-pupil" d="M242.4 205.2C242.4 210.9 237.7 215.6 232 215.6C226.3 215.6 221.6 210.9 221.6 205.2C221.6 199.5 226.3 194.8 232 194.8C237.7 194.8 242.4 199.5 242.4 205.2Z" fill="#2F2724"></path>
+<path id="neutral--eye-right-shine" d="M238.4 201.2C238.4 203 237 204.5 235.2 204.5C233.4 204.5 232 203 232 201.2C232 199.5 233.4 198 235.2 198C237 198 238.4 199.5 238.4 201.2Z" fill="#F7F1E8"></path>
+</g>
+</g>
+<g id="neutral--mouth">
+<path id="neutral--mouth-line" d="M188.8 227.6C192.5 231.9 196.3 232.1 200 228.4C203.7 232.1 207.5 231.9 211.2 227.6" stroke="#2F2724" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"></path>
+</g>
+<g id="neutral--blush">
+<path id="neutral--blush-left" d="M156 229.2C156 233.6 149.9 237.2 142.4 237.2C134.9 237.2 128.8 233.6 128.8 229.2C128.8 224.8 134.9 221.2 142.4 221.2C149.9 221.2 156 224.8 156 229.2Z" fill="#A9442A" fill-opacity="0.2"></path>
+<path id="neutral--blush-right" d="M271.2 229.2C271.2 233.6 265.1 237.2 257.6 237.2C250.1 237.2 244 233.6 244 229.2C244 224.8 250.1 221.2 257.6 221.2C265.1 221.2 271.2 224.8 271.2 229.2Z" fill="#A9442A" fill-opacity="0.2"></path>
+</g>
+</g>
+<g id="neutral--paws">
+<path id="neutral--paw-left" d="M187.2 302.8C187.2 309 178.6 314 168 314C157.4 314 148.8 309 148.8 302.8C148.8 296.6 157.4 291.6 168 291.6C178.6 291.6 187.2 296.6 187.2 302.8Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="neutral--paw-right" d="M251.2 302.8C251.2 309 242.6 314 232 314C221.4 314 212.8 309 212.8 302.8C212.8 296.6 221.4 291.6 232 291.6C242.6 291.6 251.2 296.6 251.2 302.8Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+</g>
+</g>
+</g>
+</g>
+</svg>
+</template>
+<template id="mood-pleasant-high">
+<svg class="companion__art" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400" fill="none">
+<g id="pleasant-high--companion-pleasant-high">
+<g id="pleasant-high--stage">
+<path id="pleasant-high--glow" d="M380 200C380 299.4 299.4 380 200 380C100.6 380 20 299.4 20 200C20 100.6 100.6 20 200 20C299.4 20 380 100.6 380 200Z" fill="#F2B25C" fill-opacity="0.64"></path>
+<path id="pleasant-high--ground" opacity="0.06" d="M272 340C272 345 239.8 349 200 349C160.2 349 128 345 128 340C128 335 160.2 331 200 331C239.8 331 272 335 272 340Z" fill="black"></path>
+<g id="pleasant-high--character">
+<g id="pleasant-high--tail">
+<path id="pleasant-high--tail-line" d="M288 220C330 210 338 156 318 136" stroke="#2F2724" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="pleasant-high--tail-fur" d="M288 220C330 210 338 156 318 136" stroke="#F2B25C" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"></path>
+</g>
+<g id="pleasant-high--arms">
+<g id="pleasant-high--arm-left">
+<path id="pleasant-high--arm-left-line" d="M122 192C106 166 98 140 96 110" stroke="#2F2724" stroke-width="30" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="pleasant-high--arm-left-fur" d="M122 192C106 166 98 140 96 110" stroke="#F2B25C" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="pleasant-high--paw-left" d="M112 102C112 110.8 104.8 118 96 118C87.2 118 80 110.8 80 102C80 93.2 87.2 86 96 86C104.8 86 112 93.2 112 102Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+</g>
+<g id="pleasant-high--arm-right">
+<path id="pleasant-high--arm-right-line" d="M278 192C294 166 302 140 304 110" stroke="#2F2724" stroke-width="30" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="pleasant-high--arm-right-fur" d="M278 192C294 166 302 140 304 110" stroke="#F2B25C" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="pleasant-high--paw-right" d="M320 102C320 110.8 312.8 118 304 118C295.2 118 288 110.8 288 102C288 93.2 295.2 86 304 86C312.8 86 320 93.2 320 102Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+</g>
+</g>
+<g id="pleasant-high--ears">
+<g id="pleasant-high--ear-left">
+<path id="pleasant-high--ear-left-fur" d="M132.6 126.7C114.8 85 117 56.7 133.1 47.2C150.1 48.5 173.9 70.1999 183.5 93.6999L132.6 126.7Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="pleasant-high--ear-left-inner" d="M140 104.6C133.1 84.0999 134.8 68.8999 140 63.8999C149.6 68.8999 159.6 79.3999 164.4 91.0999L140 104.6Z" fill="#A9442A" fill-opacity="0.35"></path>
+</g>
+<g id="pleasant-high--ear-right">
+<path id="pleasant-high--ear-right-fur" d="M267.4 126.7C285.2 85 283 56.7 266.9 47.2C249.9 48.5 226.1 70.1999 216.5 93.6999L267.4 126.7Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="pleasant-high--ear-right-inner" d="M260 104.6C266.9 84.0999 265.2 68.8999 260 63.8999C250.4 68.8999 240.4 79.3999 235.6 91.0999L260 104.6Z" fill="#A9442A" fill-opacity="0.35"></path>
+</g>
+</g>
+<g id="pleasant-high--body">
+<path id="pleasant-high--body-fur" d="M106 204C106 126.1 153 86 200 86C247 86 294 126.1 294 204C294 255.8 254.8 276 200 276C145.2 276 106 255.8 106 204Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="pleasant-high--belly" d="M256 238C256 255.7 230.9 270 200 270C169.1 270 144 255.7 144 238C144 220.3 169.1 206 200 206C230.9 206 256 220.3 256 238Z" fill="#F7F1E8"></path>
+</g>
+<g id="pleasant-high--face">
+<g id="pleasant-high--brows">
+<path id="pleasant-high--brow-left" d="M152 142C160.7 135.3 169.3 134 178 138" stroke="#2F2724" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="pleasant-high--brow-right" d="M222 138C230.7 134 239.3 135.3 248 142" stroke="#2F2724" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"></path>
+</g>
+<g id="pleasant-high--eyes">
+<path id="pleasant-high--eye-left" d="M152 176C161.3 160 170.7 160 180 176" stroke="#2F2724" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="pleasant-high--eye-right" d="M220 176C229.3 160 238.7 160 248 176" stroke="#2F2724" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"></path>
+</g>
+<g id="pleasant-high--mouth">
+<path id="pleasant-high--mouth-open" d="M176 190H224C224 214 214 228 200 228C186 228 176 214 176 190Z" fill="#2F2724" stroke="#2F2724" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="pleasant-high--tongue" d="M187 221C190 212 210 212 213 221C206 227 194 227 187 221Z" fill="#A9442A"></path>
+</g>
+<g id="pleasant-high--blush">
+<path id="pleasant-high--blush-left" d="M155 228C155 233.5 147.4 238 138 238C128.6 238 121 233.5 121 228C121 222.5 128.6 218 138 218C147.4 218 155 222.5 155 228Z" fill="#A9442A" fill-opacity="0.6"></path>
+<path id="pleasant-high--blush-right" d="M279 228C279 233.5 271.4 238 262 238C252.6 238 245 233.5 245 228C245 222.5 252.6 218 262 218C271.4 218 279 222.5 279 228Z" fill="#A9442A" fill-opacity="0.6"></path>
+</g>
+</g>
+<g id="pleasant-high--paws">
+<path id="pleasant-high--foot-left" d="M182.2 268.7C184 274.5 178.3 281.6 169.4 284.5C160.5 287.4 151.7 285 149.8 279.3C148 273.5 153.7 266.4 162.6 263.5C171.5 260.6 180.3 263 182.2 268.7Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="pleasant-high--foot-right" d="M250.2 279.3C248.3 285 239.5 287.4 230.6 284.5C221.7 281.6 216 274.5 217.8 268.7C219.7 263 228.5 260.6 237.4 263.5C246.3 266.4 252 273.5 250.2 279.3Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+</g>
+<g id="pleasant-high--sparkles">
+<path id="pleasant-high--sparkle-1" d="M58 77C60.2 84.8 65.2 89.8 73 92C65.2 94.2 60.2 99.2 58 107C55.8 99.2 50.8 94.2 43 92C50.8 89.8 55.8 84.8 58 77Z" fill="#2F2724"></path>
+<path id="pleasant-high--sparkle-2" d="M340 52C342.6 61.4 348.6 67.4 358 70C348.6 72.6 342.6 78.6 340 88C337.4 78.6 331.4 72.6 322 70C331.4 67.4 337.4 61.4 340 52Z" fill="#2F2724"></path>
+<path id="pleasant-high--sparkle-3" d="M82 201C83.3 205.7 86.3 208.7 91 210C86.3 211.3 83.3 214.3 82 219C80.7 214.3 77.7 211.3 73 210C77.7 208.7 80.7 205.7 82 201Z" fill="#2F2724"></path>
+<path id="pleasant-high--sparkle-4" d="M352 176C353.5 181.2 356.8 184.5 362 186C356.8 187.5 353.5 190.8 352 196C350.5 190.8 347.2 187.5 342 186C347.2 184.5 350.5 181.2 352 176Z" fill="#2F2724"></path>
+<path id="pleasant-high--sparkle-5" d="M200 33C201.6 38.7 205.3 42.4 211 44C205.3 45.6 201.6 49.3 200 55C198.4 49.3 194.7 45.6 189 44C194.7 42.4 198.4 38.7 200 33Z" fill="#2F2724"></path>
+</g>
+</g>
+</g>
+</g>
+</svg>
+</template>
+<template id="mood-pleasant-low">
+<svg class="companion__art" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400" fill="none">
+<g id="pleasant-low--companion-pleasant-low">
+<g id="pleasant-low--stage">
+<path id="pleasant-low--glow" d="M380 200C380 299.4 299.4 380 200 380C100.6 380 20 299.4 20 200C20 100.6 100.6 20 200 20C299.4 20 380 100.6 380 200Z" fill="#F2B25C" fill-opacity="0.3"></path>
+<path id="pleasant-low--ground" opacity="0.1" d="M312 340C312 345 261.9 349 200 349C138.1 349 88 345 88 340C88 335 138.1 331 200 331C261.9 331 312 335 312 340Z" fill="black"></path>
+<g id="pleasant-low--character">
+<g id="pleasant-low--tail">
+<path id="pleasant-low--tail-line" d="M270 300C316 312 344 300 348 278" stroke="#2F2724" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="pleasant-low--tail-fur" d="M270 300C316 312 344 300 348 278" stroke="#F2B25C" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"></path>
+</g>
+<g id="pleasant-low--ears">
+<g id="pleasant-low--ear-left">
+<path id="pleasant-low--ear-left-fur" d="M161.1 160.7C144.6 123.7 146.1 98.5 160.3 89.7C175.5 90.6 197.2 109.7 206 130.5L161.1 160.7Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="pleasant-low--ear-left-inner" d="M167.4 140.8C160.9 122.7 162.2 109.1 166.8 104.5C175.4 108.9 184.5 118 188.9 128.4L167.4 140.8Z" fill="#A9442A" fill-opacity="0.35"></path>
+</g>
+<g id="pleasant-low--ear-right">
+<path id="pleasant-low--ear-right-fur" d="M283.1 180C310.2 150 316.6 125.5 305.8 112.7C291.1 108.9 264.6 120.3 249.7 137.4L283.1 180Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="pleasant-low--ear-right-inner" d="M283.3 159.2C295.1 143.9 298 130.6 295.1 124.9C285.5 126.3 274.1 132.2 266.6 140.7L283.3 159.2Z" fill="#A9442A" fill-opacity="0.35"></path>
+</g>
+</g>
+<g id="pleasant-low--body">
+<path id="pleasant-low--body-fur" d="M113.1 219.3C124.1 150.2 179.1 122.4 228.5 130.2C277.9 138.1 321.6 181.5 310.7 250.6C306.5 302.4 260.5 315.5 200.6 306C140.7 296.6 101.1 269.9 113.1 219.3Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="pleasant-low--belly" d="M265.8 277.9C263.1 295.4 234.3 305.3 201.6 300.1C168.8 294.9 144.5 276.6 147.3 259.1C150.1 241.7 178.8 231.7 211.6 236.9C244.3 242.1 268.6 260.4 265.8 277.9Z" fill="#F7F1E8"></path>
+</g>
+<g id="pleasant-low--face">
+<g id="pleasant-low--brows">
+<path id="pleasant-low--brow-left" d="M174.3 178.4C183.3 177.1 191.8 178.4 200 182.4" stroke="#2F2724" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="pleasant-low--brow-right" d="M239.5 188.7C248.4 187.4 257 188.8 265.1 192.7" stroke="#2F2724" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"></path>
+</g>
+<g id="pleasant-low--eyes">
+<path id="pleasant-low--eye-left" d="M170.2 198C177.9 208.6 187.1 210.1 197.8 202.3" stroke="#2F2724" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="pleasant-low--eye-right" d="M235.3 208.3C243.1 219 252.3 220.4 263 212.7" stroke="#2F2724" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"></path>
+</g>
+<g id="pleasant-low--mouth">
+<path id="pleasant-low--mouth-line" d="M196.7 228.5C205.6 240.7 216.1 242.4 228.3 233.5" stroke="#2F2724" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"></path>
+</g>
+<g id="pleasant-low--blush">
+<path id="pleasant-low--blush-left" d="M169.1 224.1C168.2 229.3 160.5 232.4 151.8 231C143 229.6 136.6 224.3 137.5 219.1C138.3 213.9 146 210.8 154.7 212.2C163.5 213.6 169.9 218.9 169.1 224.1Z" fill="#A9442A" fill-opacity="0.5"></path>
+<path id="pleasant-low--blush-right" d="M287.6 242.9C286.8 248.1 279 251.1 270.3 249.8C261.6 248.4 255.2 243.1 256 237.9C256.8 232.7 264.5 229.6 273.3 231C282 232.4 288.4 237.7 287.6 242.9Z" fill="#A9442A" fill-opacity="0.5"></path>
+</g>
+</g>
+<g id="pleasant-low--paws">
+<path id="pleasant-low--paw-left" d="M211.5 263.2C210.3 270.3 201.5 274.8 191.6 273.2C181.8 271.7 174.8 264.7 175.9 257.6C177 250.5 185.9 246 195.7 247.6C205.5 249.1 212.6 256.1 211.5 263.2Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="pleasant-low--paw-right" d="M240.5 271.9C239.3 279 230.5 283.4 220.7 281.9C210.8 280.3 203.8 273.3 204.9 266.2C206 259.1 214.9 254.6 224.7 256.2C234.5 257.8 241.6 264.8 240.5 271.9Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="pleasant-low--foot-left" d="M183 306C183 311.8 174.5 316.5 164 316.5C153.5 316.5 145 311.8 145 306C145 300.2 153.5 295.5 164 295.5C174.5 295.5 183 300.2 183 306Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="pleasant-low--foot-right" d="M255 306C255 311.8 246.5 316.5 236 316.5C225.5 316.5 217 311.8 217 306C217 300.2 225.5 295.5 236 295.5C246.5 295.5 255 300.2 255 306Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+</g>
+<g id="pleasant-low--heart">
+<path id="pleasant-low--heart-shape" d="M318 126.4C298.8 113.6 300.4 97.5999 310 97.5999C314.8 97.5999 318 102.4 318 105.6C318 102.4 321.2 97.5999 326 97.5999C335.6 97.5999 337.2 113.6 318 126.4Z" fill="#A9442A" fill-opacity="0.75"></path>
+</g>
+</g>
+</g>
+</g>
+</svg>
+</template>
+<template id="mood-unpleasant-high">
+<svg class="companion__art" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400" fill="none">
+<g id="unpleasant-high--companion-unpleasant-high">
+<g id="unpleasant-high--stage">
+<path id="unpleasant-high--glow" d="M380 200C380 299.4 299.4 380 200 380C100.6 380 20 299.4 20 200C20 100.6 100.6 20 200 20C299.4 20 380 100.6 380 200Z" fill="#587489" fill-opacity="0.46"></path>
+<path id="unpleasant-high--ground" opacity="0.12" d="M316 340C316 345 264.1 349 200 349C135.9 349 84 345 84 340C84 335 135.9 331 200 331C264.1 331 316 335 316 340Z" fill="black"></path>
+<g id="unpleasant-high--character">
+<g id="unpleasant-high--tail">
+<path id="unpleasant-high--tail-line" d="M286 290C302 296 310 306 306 318" stroke="#2F2724" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="unpleasant-high--tail-fur" d="M286 290C302 296 310 306 306 318" stroke="#F2B25C" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"></path>
+</g>
+<g id="unpleasant-high--ears">
+<g id="unpleasant-high--ear-left">
+<path id="unpleasant-high--ear-left-fur" d="M138.6 170.2C139.2 131.7 150.6 110.6 166.4 108.7C179.1 115.6 190.1 140.7 189.4 162.2L138.6 170.2Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="unpleasant-high--ear-left-inner" d="M151.9 155.6C153.6 137.4 160.2 126.2 166 124.1C171.7 131.3 175.8 142.8 175.5 153.6L151.9 155.6Z" fill="#A9442A" fill-opacity="0.35"></path>
+</g>
+<g id="unpleasant-high--ear-right">
+<path id="unpleasant-high--ear-right-fur" d="M261.4 170.2C260.8 131.7 249.4 110.6 233.6 108.7C220.9 115.6 209.9 140.7 210.6 162.2L261.4 170.2Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="unpleasant-high--ear-right-inner" d="M248.1 155.6C246.4 137.4 239.8 126.2 234 124.1C228.3 131.3 224.2 142.8 224.5 153.6L248.1 155.6Z" fill="#A9442A" fill-opacity="0.35"></path>
+</g>
+</g>
+<g id="unpleasant-high--body">
+<path id="unpleasant-high--body-fur" d="M96 244C96 179.3 148 146 200 146C252 146 304 179.3 304 244C300 288.6 258.3 306 200 306C141.7 306 100 288.6 96 244Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="unpleasant-high--belly" d="M256 276C256 291.5 230.9 304 200 304C169.1 304 144 291.5 144 276C144 260.5 169.1 248 200 248C230.9 248 256 260.5 256 276Z" fill="#F7F1E8"></path>
+</g>
+<g id="unpleasant-high--face">
+<g id="unpleasant-high--brows">
+<path id="unpleasant-high--brow-left" d="M148 192C158.7 188 169.3 181.3 180 172" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="unpleasant-high--brow-right" d="M220 172C230.7 181.3 241.3 188 252 192" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+</g>
+<g id="unpleasant-high--eyes">
+<g id="unpleasant-high--eye-left">
+<path id="unpleasant-high--eye-left-white" d="M188 214C188 224.5 179.9 233 170 233C160.1 233 152 224.5 152 214C152 203.5 160.1 195 170 195C179.9 195 188 203.5 188 214Z" fill="#F7F1E8" stroke="#2F2724" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="unpleasant-high--eye-left-pupil" d="M178.5 212C178.5 215.6 175.6 218.5 172 218.5C168.4 218.5 165.5 215.6 165.5 212C165.5 208.4 168.4 205.5 172 205.5C175.6 205.5 178.5 208.4 178.5 212Z" fill="#2F2724"></path>
+</g>
+<g id="unpleasant-high--eye-right">
+<path id="unpleasant-high--eye-right-white" d="M248 214C248 224.5 239.9 233 230 233C220.1 233 212 224.5 212 214C212 203.5 220.1 195 230 195C239.9 195 248 203.5 248 214Z" fill="#F7F1E8" stroke="#2F2724" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="unpleasant-high--eye-right-pupil" d="M234.5 212C234.5 215.6 231.6 218.5 228 218.5C224.4 218.5 221.5 215.6 221.5 212C221.5 208.4 224.4 205.5 228 205.5C231.6 205.5 234.5 208.4 234.5 212Z" fill="#2F2724"></path>
+</g>
+</g>
+<g id="unpleasant-high--mouth">
+<path id="unpleasant-high--mouth-line" d="M182 244C184.7 240 187.7 240 191 244C194 248 197 248 200 244C203 240 206 240 209 244C212.3 248 215.3 248 218 244" stroke="#2F2724" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"></path>
+</g>
+</g>
+<g id="unpleasant-high--paws">
+<path id="unpleasant-high--paw-left" d="M206 270C206 279.4 197 287 186 287C175 287 166 279.4 166 270C166 260.6 175 253 186 253C197 253 206 260.6 206 270Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="unpleasant-high--paw-right" d="M234 270C234 279.4 225 287 214 287C203 287 194 279.4 194 270C194 260.6 203 253 214 253C225 253 234 260.6 234 270Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="unpleasant-high--foot-left" d="M188 306C188 311.5 179.9 316 170 316C160.1 316 152 311.5 152 306C152 300.5 160.1 296 170 296C179.9 296 188 300.5 188 306Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="unpleasant-high--foot-right" d="M248 306C248 311.5 239.9 316 230 316C220.1 316 212 311.5 212 306C212 300.5 220.1 296 230 296C239.9 296 248 300.5 248 306Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+</g>
+<g id="unpleasant-high--sweat">
+<g id="unpleasant-high--sweat-1">
+<path id="unpleasant-high--sweat-1-fill" d="M286 138.9C291.5 148.8 297 154.3 297 162C297 168.1 292.1 173 286 173C279.9 173 275 168.1 275 162C275 154.3 280.5 148.8 286 138.9Z" fill="#587489" stroke="#2F2724" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="unpleasant-high--sweat-1-shine" d="M284.6 160.3C284.6 162.2 283.5 163.7 282.1 163.7C280.8 163.7 279.7 162.2 279.7 160.3C279.7 158.5 280.8 157 282.1 157C283.5 157 284.6 158.5 284.6 160.3Z" fill="#F7F1E8"></path>
+</g>
+<g id="unpleasant-high--sweat-2">
+<path id="unpleasant-high--sweat-2-fill" d="M120 170.2C123.8 177 127.5 180.8 127.5 186C127.5 190.1 124.1 193.5 120 193.5C115.9 193.5 112.5 190.1 112.5 186C112.5 180.8 116.2 177 120 170.2Z" fill="#587489" stroke="#2F2724" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="unpleasant-high--sweat-2-shine" d="M119 184.9C119 186.1 118.3 187.1 117.4 187.1C116.5 187.1 115.7 186.1 115.7 184.9C115.7 183.6 116.5 182.6 117.4 182.6C118.3 182.6 119 183.6 119 184.9Z" fill="#F7F1E8"></path>
+</g>
+</g>
+<g id="unpleasant-high--tremble">
+<path id="unpleasant-high--tremble-left-1" d="M80 222C74.7 234 74.7 246 80 258" stroke="#2F2724" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="unpleasant-high--tremble-left-2" d="M64 214C57.3 231.3 57.3 248.7 64 266" stroke="#2F2724" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="unpleasant-high--tremble-right-1" d="M320 222C325.3 234 325.3 246 320 258" stroke="#2F2724" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="unpleasant-high--tremble-right-2" d="M336 214C342.7 231.3 342.7 248.7 336 266" stroke="#2F2724" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"></path>
+</g>
+</g>
+</g>
+</g>
+</svg>
+</template>
+<template id="mood-unpleasant-low">
+<svg class="companion__art" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400" fill="none">
+<g id="unpleasant-low--companion-unpleasant-low">
+<g id="unpleasant-low--stage">
+<path id="unpleasant-low--glow" d="M380 200C380 299.4 299.4 380 200 380C100.6 380 20 299.4 20 200C20 100.6 100.6 20 200 20C299.4 20 380 100.6 380 200Z" fill="#587489" fill-opacity="0.3"></path>
+<path id="unpleasant-low--ground" opacity="0.12" d="M324 340C324 345 268.5 349 200 349C131.5 349 76 345 76 340C76 335 131.5 331 200 331C268.5 331 324 335 324 340Z" fill="black"></path>
+<g id="unpleasant-low--character">
+<g id="unpleasant-low--tail">
+<path id="unpleasant-low--tail-line" d="M282 304C310 316 338 318 356 312" stroke="#2F2724" stroke-width="23" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="unpleasant-low--tail-fur" d="M282 304C310 316 338 318 356 312" stroke="#F2B25C" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"></path>
+</g>
+<g id="unpleasant-low--body">
+<path id="unpleasant-low--body-fur" d="M102 258C102 192 151 158 200 158C249 158 298 192 298 258C312 295.4 265.3 310 200 310C134.7 310 88 295.4 102 258Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="unpleasant-low--belly" d="M260 284C260 297.3 233.1 308 200 308C166.9 308 140 297.3 140 284C140 270.7 166.9 260 200 260C233.1 260 260 270.7 260 284Z" fill="#F7F1E8"></path>
+</g>
+<g id="unpleasant-low--ears">
+<g id="unpleasant-low--ear-left">
+<path id="unpleasant-low--ear-left-fur" d="M148 210.5C118.9 232.5 96.4 236.3 85.9 225.6C83.6 212.2 95.9 189.3 112.3 177.3L148 210.5Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="unpleasant-low--ear-left-inner" d="M129.3 209.1C114.7 218.5 102.5 220.1 97.6 217C99.6 208.5 105.8 198.7 114 192.7L129.3 209.1Z" fill="#A9442A" fill-opacity="0.35"></path>
+</g>
+<g id="unpleasant-low--ear-right">
+<path id="unpleasant-low--ear-right-fur" d="M252 210.5C281.1 232.5 303.6 236.3 314.1 225.6C316.4 212.2 304.1 189.3 287.7 177.3L252 210.5Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="unpleasant-low--ear-right-inner" d="M270.7 209.1C285.3 218.5 297.5 220.1 302.4 217C300.4 208.5 294.2 198.7 286 192.7L270.7 209.1Z" fill="#A9442A" fill-opacity="0.35"></path>
+</g>
+</g>
+<g id="unpleasant-low--face">
+<g id="unpleasant-low--brows">
+<path id="unpleasant-low--brow-left" d="M150 206C159.3 204.7 168.7 201.3 178 196" stroke="#2F2724" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="unpleasant-low--brow-right" d="M222 196C231.3 201.3 240.7 204.7 250 206" stroke="#2F2724" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"></path>
+</g>
+<g id="unpleasant-low--eyes">
+<g id="unpleasant-low--eye-left">
+<path id="unpleasant-low--eye-left-pupil" d="M185 230C185 238.8 178.3 246 170 246C161.7 246 155 238.8 155 230C155 221.2 161.7 214 170 214C178.3 214 185 221.2 185 230Z" fill="#2F2724"></path>
+<path id="unpleasant-low--eye-left-shine" d="M179.5 224C179.5 227 177 229.5 174 229.5C171 229.5 168.5 227 168.5 224C168.5 221 171 218.5 174 218.5C177 218.5 179.5 221 179.5 224Z" fill="#F7F1E8"></path>
+<path id="unpleasant-low--eye-left-shine-2" d="M167.6 236C167.6 237.4 166.4 238.6 165 238.6C163.6 238.6 162.4 237.4 162.4 236C162.4 234.6 163.6 233.4 165 233.4C166.4 233.4 167.6 234.6 167.6 236Z" fill="#F7F1E8"></path>
+<path id="unpleasant-low--eye-left-wet" d="M155 248C165 252.7 175 252.7 185 248" stroke="#587489" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path>
+</g>
+<g id="unpleasant-low--eye-right">
+<path id="unpleasant-low--eye-right-pupil" d="M245 230C245 238.8 238.3 246 230 246C221.7 246 215 238.8 215 230C215 221.2 221.7 214 230 214C238.3 214 245 221.2 245 230Z" fill="#2F2724"></path>
+<path id="unpleasant-low--eye-right-shine" d="M239.5 224C239.5 227 237 229.5 234 229.5C231 229.5 228.5 227 228.5 224C228.5 221 231 218.5 234 218.5C237 218.5 239.5 221 239.5 224Z" fill="#F7F1E8"></path>
+<path id="unpleasant-low--eye-right-shine-2" d="M227.6 236C227.6 237.4 226.4 238.6 225 238.6C223.6 238.6 222.4 237.4 222.4 236C222.4 234.6 223.6 233.4 225 233.4C226.4 233.4 227.6 234.6 227.6 236Z" fill="#F7F1E8"></path>
+<path id="unpleasant-low--eye-right-wet" d="M215 248C225 252.7 235 252.7 245 248" stroke="#587489" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path>
+</g>
+</g>
+<g id="unpleasant-low--mouth">
+<path id="unpleasant-low--mouth-line" d="M188 266C196 259.3 204 259.3 212 266" stroke="#2F2724" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"></path>
+</g>
+<g id="unpleasant-low--blush">
+<path id="unpleasant-low--blush-left" d="M148 254C148 257.9 142.6 261 136 261C129.4 261 124 257.9 124 254C124 250.1 129.4 247 136 247C142.6 247 148 250.1 148 254Z" fill="#A9442A" fill-opacity="0.22"></path>
+<path id="unpleasant-low--blush-right" d="M276 254C276 257.9 270.6 261 264 261C257.4 261 252 257.9 252 254C252 250.1 257.4 247 264 247C270.6 247 276 250.1 276 254Z" fill="#A9442A" fill-opacity="0.22"></path>
+</g>
+</g>
+<g id="unpleasant-low--paws">
+<path id="unpleasant-low--paw-left" d="M170 312C170 317 161 321 150 321C139 321 130 317 130 312C130 307 139 303 150 303C161 303 170 307 170 312Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="unpleasant-low--paw-right" d="M270 312C270 317 261 321 250 321C239 321 230 317 230 312C230 307 239 303 250 303C261 303 270 307 270 312Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+</g>
+<g id="unpleasant-low--tear">
+<g id="unpleasant-low--tear-drop">
+<path id="unpleasant-low--tear-drop-fill" d="M150 252.1C154.8 260.6 159.5 265.4 159.5 272C159.5 277.2 155.2 281.5 150 281.5C144.8 281.5 140.5 277.2 140.5 272C140.5 265.4 145.2 260.6 150 252.1Z" fill="#587489" stroke="#2F2724" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="unpleasant-low--tear-drop-shine" d="M148.8 270.6C148.8 272.1 147.8 273.4 146.7 273.4C145.5 273.4 144.6 272.1 144.6 270.6C144.6 269 145.5 267.7 146.7 267.7C147.8 267.7 148.8 269 148.8 270.6Z" fill="#F7F1E8"></path>
+</g>
+</g>
+</g>
+</g>
+</g>
+</svg>
+</template>
+
+<main class="page">
+  <section class="stage">
+    <div class="lang-switch" role="group" aria-label="Interface language">
+      <button type="button" data-lang="zh" lang="zh-Hans" aria-label="中文" aria-pressed="false">中文</button>
+      <button type="button" data-lang="en" lang="en" aria-label="English" aria-pressed="true">EN</button>
+    </div>
+    <div class="companion" data-testid="companion" data-mood="pleasant-low" role="img" aria-label="Little Buddy, at ease">
+      <div class="companion__layers"><div class="companion__layer" data-mood-layer="pleasant-low">
+<svg class="companion__art" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400" fill="none">
+<g id="pleasant-low--companion-pleasant-low">
+<g id="pleasant-low--stage">
+<path id="pleasant-low--glow" d="M380 200C380 299.4 299.4 380 200 380C100.6 380 20 299.4 20 200C20 100.6 100.6 20 200 20C299.4 20 380 100.6 380 200Z" fill="#F2B25C" fill-opacity="0.3"></path>
+<path id="pleasant-low--ground" opacity="0.1" d="M312 340C312 345 261.9 349 200 349C138.1 349 88 345 88 340C88 335 138.1 331 200 331C261.9 331 312 335 312 340Z" fill="black"></path>
+<g id="pleasant-low--character">
+<g id="pleasant-low--tail">
+<path id="pleasant-low--tail-line" d="M270 300C316 312 344 300 348 278" stroke="#2F2724" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="pleasant-low--tail-fur" d="M270 300C316 312 344 300 348 278" stroke="#F2B25C" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"></path>
+</g>
+<g id="pleasant-low--ears">
+<g id="pleasant-low--ear-left">
+<path id="pleasant-low--ear-left-fur" d="M161.1 160.7C144.6 123.7 146.1 98.5 160.3 89.7C175.5 90.6 197.2 109.7 206 130.5L161.1 160.7Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="pleasant-low--ear-left-inner" d="M167.4 140.8C160.9 122.7 162.2 109.1 166.8 104.5C175.4 108.9 184.5 118 188.9 128.4L167.4 140.8Z" fill="#A9442A" fill-opacity="0.35"></path>
+</g>
+<g id="pleasant-low--ear-right">
+<path id="pleasant-low--ear-right-fur" d="M283.1 180C310.2 150 316.6 125.5 305.8 112.7C291.1 108.9 264.6 120.3 249.7 137.4L283.1 180Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="pleasant-low--ear-right-inner" d="M283.3 159.2C295.1 143.9 298 130.6 295.1 124.9C285.5 126.3 274.1 132.2 266.6 140.7L283.3 159.2Z" fill="#A9442A" fill-opacity="0.35"></path>
+</g>
+</g>
+<g id="pleasant-low--body">
+<path id="pleasant-low--body-fur" d="M113.1 219.3C124.1 150.2 179.1 122.4 228.5 130.2C277.9 138.1 321.6 181.5 310.7 250.6C306.5 302.4 260.5 315.5 200.6 306C140.7 296.6 101.1 269.9 113.1 219.3Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="pleasant-low--belly" d="M265.8 277.9C263.1 295.4 234.3 305.3 201.6 300.1C168.8 294.9 144.5 276.6 147.3 259.1C150.1 241.7 178.8 231.7 211.6 236.9C244.3 242.1 268.6 260.4 265.8 277.9Z" fill="#F7F1E8"></path>
+</g>
+<g id="pleasant-low--face">
+<g id="pleasant-low--brows">
+<path id="pleasant-low--brow-left" d="M174.3 178.4C183.3 177.1 191.8 178.4 200 182.4" stroke="#2F2724" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="pleasant-low--brow-right" d="M239.5 188.7C248.4 187.4 257 188.8 265.1 192.7" stroke="#2F2724" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"></path>
+</g>
+<g id="pleasant-low--eyes">
+<path id="pleasant-low--eye-left" d="M170.2 198C177.9 208.6 187.1 210.1 197.8 202.3" stroke="#2F2724" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="pleasant-low--eye-right" d="M235.3 208.3C243.1 219 252.3 220.4 263 212.7" stroke="#2F2724" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"></path>
+</g>
+<g id="pleasant-low--mouth">
+<path id="pleasant-low--mouth-line" d="M196.7 228.5C205.6 240.7 216.1 242.4 228.3 233.5" stroke="#2F2724" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"></path>
+</g>
+<g id="pleasant-low--blush">
+<path id="pleasant-low--blush-left" d="M169.1 224.1C168.2 229.3 160.5 232.4 151.8 231C143 229.6 136.6 224.3 137.5 219.1C138.3 213.9 146 210.8 154.7 212.2C163.5 213.6 169.9 218.9 169.1 224.1Z" fill="#A9442A" fill-opacity="0.5"></path>
+<path id="pleasant-low--blush-right" d="M287.6 242.9C286.8 248.1 279 251.1 270.3 249.8C261.6 248.4 255.2 243.1 256 237.9C256.8 232.7 264.5 229.6 273.3 231C282 232.4 288.4 237.7 287.6 242.9Z" fill="#A9442A" fill-opacity="0.5"></path>
+</g>
+</g>
+<g id="pleasant-low--paws">
+<path id="pleasant-low--paw-left" d="M211.5 263.2C210.3 270.3 201.5 274.8 191.6 273.2C181.8 271.7 174.8 264.7 175.9 257.6C177 250.5 185.9 246 195.7 247.6C205.5 249.1 212.6 256.1 211.5 263.2Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="pleasant-low--paw-right" d="M240.5 271.9C239.3 279 230.5 283.4 220.7 281.9C210.8 280.3 203.8 273.3 204.9 266.2C206 259.1 214.9 254.6 224.7 256.2C234.5 257.8 241.6 264.8 240.5 271.9Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="pleasant-low--foot-left" d="M183 306C183 311.8 174.5 316.5 164 316.5C153.5 316.5 145 311.8 145 306C145 300.2 153.5 295.5 164 295.5C174.5 295.5 183 300.2 183 306Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+<path id="pleasant-low--foot-right" d="M255 306C255 311.8 246.5 316.5 236 316.5C225.5 316.5 217 311.8 217 306C217 300.2 225.5 295.5 236 295.5C246.5 295.5 255 300.2 255 306Z" fill="#F2B25C" stroke="#2F2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+</g>
+<g id="pleasant-low--heart">
+<path id="pleasant-low--heart-shape" d="M318 126.4C298.8 113.6 300.4 97.5999 310 97.5999C314.8 97.5999 318 102.4 318 105.6C318 102.4 321.2 97.5999 326 97.5999C335.6 97.5999 337.2 113.6 318 126.4Z" fill="#A9442A" fill-opacity="0.75"></path>
+</g>
+</g>
+</g>
+</g>
+</svg>
+</div></div>
+    </div>
+    <p class="companion__caption" aria-hidden="true">Little Buddy · right here, at ease</p>
+  </section>
+
+  <section class="talk">
+    <div class="log">
+      
+      <ol class="log__turns" role="log" aria-label="Chat"><li class="turn turn--you"><span class="turn__text">I just made a cup of tea and I feel pretty relaxed.</span></li><li class="turn turn--reply" data-testid="reply">That sounds wonderful! How does your tea taste?</li></ol>
+    </div>
+
+    <div class="composer">
+      <p class="hint" role="status"><svg class="icon hint__icon" aria-hidden="true"><use href="#i-info"></use></svg><span class="hint__text"></span></p>
+      <div class="field">
+        <input class="field__input" data-testid="fake-input" type="text" maxlength="500" autocomplete="off" enterkeyhint="send" placeholder="Or type, Enter sends" aria-label="What you want to tell Little Buddy">
+        <span class="field__note" aria-hidden="true">(sending, your text stays)</span>
+      </div>
+      <button class="talk-button" type="button" aria-disabled="false">
+        <svg class="icon" aria-hidden="true"><use href="#i-mic"></use></svg>
+        <span class="talk-button__label">Hold to talk</span>
+        <span class="talk-button__bars" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span class="talk-button__help" aria-hidden="true"></span>
+      </button>
+    </div>
+  </section>
+</main>
+
+
+</body></html>

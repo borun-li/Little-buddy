@@ -1,0 +1,12 @@
+- main:
+  - group "界面语言":
+    - button "中文" [pressed]
+    - button "English": EN
+  - img "小伙伴，开心"
+  - log "聊天记录":
+    - listitem: 今天考试过了，好开心！
+    - listitem: 太棒了，终于轻松下来了！要不要庆祝一下？
+  - status
+  - textbox "想对小伙伴说的话":
+    - /placeholder: 打字也可以，Enter 发送
+  - button "按住说话"

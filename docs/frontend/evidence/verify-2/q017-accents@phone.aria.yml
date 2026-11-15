@@ -1,0 +1,12 @@
+- main:
+  - group "Interface language":
+    - button "中文"
+    - button "English" [pressed]: EN
+  - img "Little Buddy, at ease"
+  - log "Chat":
+    - listitem: I had a café crème and a crêpe — naïve résumé day, but “fine”…
+    - listitem: A lovely way to start your day! Did you enjoy the café crème more than the sweet crêpe?
+  - status
+  - textbox "What you want to tell Little Buddy":
+    - /placeholder: Or type, Enter sends
+  - button "Hold to talk"

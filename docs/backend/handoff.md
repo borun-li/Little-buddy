@@ -70,15 +70,19 @@ Next agent must know:
 - Left open: 60 s zh voice line at the new window unmeasured (be-architect #3); 4B switch unmeasured.
 Read beyond the list: nothing.
 Next agent reads: docs/backend/08-implementation-log.md § Fix rounds; docs/backend/03-detailed-design.md DES-002, DES-007, DES-009
-## fe-tester #3 · step 4 (test alignment) · round 1 · increment 1 · 2026-11-15T06:00:00Z
-Task: bring two tests in line with fe-ux #5's Hint rules (confirmed 2026-11-15) so `npm test` is green.
-Changed: tests/health-watch.test.js ("a failed send ... resumes checks": after `not_ready` no check at 0 ms or 1999 ms, check at 2000 ms, then awake), tests/talk-button.test.js ("slow open ...": last two hints are `clear`, `listeningNow`). Nothing else touched.
-Result: `npm test` 81/81 (was 77/79; two now green). Expectations from 01-ux.md Hint rules and the PAGE-001 listening row, not from code. Not mutation-run; fnd-r1-fix.test.js already guards the same rules from other angles.
+## fe-tester #4 · step 4 (FE4.evidence fix) · round 3 · increment 1 · 2026-11-15T08:00:00Z
+Task: FE4.evidence: only filenames in backticks in 04-verification.md that exist in evidence/verify-2 or evidence/design.
+Changed: docs/frontend/04-verification.md only (build screenshots cited by full path docs/frontend/evidence/build/...; code, test and package.json names without backticks; the `.aria.yml` and `@phone.png` fragments reworded). Verdicts unchanged.
+Result: a script over the file's backticked names finds none that is missing from verify-2 or design. Rounds 1 and 2 follow.
 Next agent must know:
-- Earlier fe-tester #2 findings (verify-1 empty style probes; 12 not observable; recapture list) still stand and are not re-done here.
-Next agent reads: docs/frontend/01-ux.md Hint rules
+- Pitfalls: a bare backticked filename is read as capture evidence; build screenshots need the full path.
+- Left open: tests/verify-r2.test.js and the Q-012/014/019 recapture needs, as in round 2.
+Next agent reads: docs/frontend/04-verification.md
+Round 2: re-judged Q-008 (done), Q-006, Q-009, Q-012, Q-014, Q-019 (not observable); added tests/verify-r2.test.js (3 tests, mutation-checked); npm test 81/81.
 
-## fe-engineer #16 · step 4 (CTX.codemap fix) · round 2 · increment 1 · 2026-11-15T06:00:00Z
+## fe-engineer #16 · step 4 (FE4.row-tests) · round 3 · increment 1 · 2026-11-15T06:30:00Z
+Round 3: package.json test script + tests/verify-r2.test.js (all other entries kept); web/js/talk-button.js:9 comment now says wait until it says Listening. npm test: 84 tests, 84 pass, 0 fail. No other files touched.
+Round 2 follows.
 Round 2: only docs/codemap.md, backticks removed from non-path words (listeningNow, setPaused, healthHint, hint.key, is-shown); the one backticked path left is tests/fnd-r1-fix.test.js. No code or tests touched. micOpening reword approval confirmed by coordinator (human conditional #172).
 Round 1 follows.
 Task: fix FND-001, FND-002, FND-003 to the 01-ux.md Hint rules; reword hints.micOpening (user's yes relayed by the coordinator).
@@ -102,11 +106,11 @@ Next agent must know:
 Next agent reads: docs/backend/05-test-report.md section 4
 - Carried from be-tester #1 (trimmed by orchestrator): plan 04 has 70 TCs (63 automated); suites tests/server-unit, server-fakes, server-live (COMPANION_URL, refuses 4317), server-boot (COMPANION_BOOT=1); `npm run test:backend` → test-results/junit-backend.xml.
 
-## fe-reviewer #1 · step 4 (review coordinator) · round 2 · increment 1 · 2026-11-15T01:43:17Z
-Task: FE4.findings format fix (filed by orchestrator from the return).
-Changed: docs/frontend/05-review.md — findings table back to template columns; owner as a "- **Owner:**" line per FND.
-Result: 9 FND (0 blocker, 3 major FND-001..003, 6 minor FND-004..009); fe-review gate pass.
+## fe-reviewer #2 · step 4 (frontend review) · round 2 · increment 1 · 2026-11-15T02:04:20Z
+Task: re-check FND-001..004 (fix commit 1ae2fab) against 4399 and the code; record in 05-review.md §5 (filed by orchestrator from the return)
+Changed: docs/frontend/05-review.md — FND-001..004 Status "fixed in round 2"; §5 re-check table
+Result: 4/4 fixed, 0 open; unit tests 26/0 — evidence: session scratchpad fe-reviewer-2/recheck.out, unit.out
 Next agent must know:
-- Pitfalls: fe-review reads the 4th table column as Where; FND-002 needs a pointer hold plus Enter in the focused input; Chrome input clientWidth excludes padding.
-- Left open: FND-001, FND-002 (fe-engineer), FND-003 (fe-ux then fe-engineer); 01-ux.md "failure hint stays until next send" vs warming table "newest wins" needs a fe-ux ruling.
-Next agent reads: docs/frontend/05-review.md §2; web/js/health-watch.js:59-104; web/js/app.js:24-118; web/js/talk-button.js:103-177
+- Pitfalls: 4399 serves web/ directly; "Listening" sits in the hint line without .is-shown (visually hidden, role=status) — read hint.key / ARIA, not visibility
+- Left open: FND-005..009 minors deferred (§4); stale comment web/js/talk-button.js:9 ("wait for the seconds")
+Next agent reads: docs/frontend/05-review.md §5

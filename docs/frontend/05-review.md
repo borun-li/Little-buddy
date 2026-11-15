@@ -1,6 +1,7 @@
 # Review — 离线情绪陪伴小伙伴, increment 1 (Q-010..Q-019)
 
 - Compiled by: fe-reviewer #1 (coordinator) · Round: 1 (format fix in round 2: owner moved out of the Where column) · Date: 2026-11-15
+- Re-checked by: fe-reviewer #2 · Round: 2 (fix round 1, commit 1ae2fab) · Date: 2026-11-15 · FND-001..004 only (§5)
 - Panelists run: fe-review-experience, fe-review-accessibility, fe-review-integration. `risk: normal` (`docs/frontend/state.json`); experience always; accessibility because the diff adds an interactive component (CMP-006 switch) and changes the talk button; integration because it adds the real API calls (`respond`, `transcribe`, `health`) and client state (health watch).
 - Evidence: `evidence/verify-1/manifest.md`; the panel's candidates `logs/review-r1-candidates.md`; my re-runs against the isolated instance 127.0.0.1:4399 (request interception, fake mic) in the session scratchpad: `/private/tmp/claude-501/-Users-apple-Desktop-Hackathon-Local-AI-Hackathon/c499be74-fde0-49e2-a17d-d254a152203e/scratchpad/fe-reviewer-1/` (`probe.mjs` → `probe.out`, `hang.mjs` → `hang.out`, `ph.mjs`, `caret-375.png`, `composer-375-en.png`).
 - Input from fe-tester #2 (`04-verification.md`): no not-done rows; 12 rows not observable (Q-004, 006, 007, 008, 009, 011, 012, 013, 014, 016, 018, 019; capture tool has no fake mic or interception); three minor deviations (Q-001, Q-002, Q-003), listed in § Deferred. None of them duplicates a panel candidate.
@@ -29,7 +30,7 @@
 - **Evidence:** my `probe.out`: `SEND unavailable [[80,"Little Buddy is awake. Go ahead."]] final {"hint":"","input":"hello"}`, `SEND not_ready [[71,…awake…]]`, `VOICE unavailable [[1591,"Little Buddy is awake. Go ahead."]] final {"hint":""}`. The positive controls `SEND failed` and `VOICE failed` keep their hint after 5.5 s. Panel: `integ-r1/hints.out`, `integ-r1/vcodes.out`, `p1.json` "B unavailable/not_ready", `p2.json` "D2 voice unavailable".
 - **Cause (code):** `watch.failed()` sets `notReadyShown = true` (`web/js/health-watch.js:100`) though no not-ready hint was shown. It restarts the checks, the check finds `ready()`, and `ready()` then emits `hint: 'awake'` (`:62-66`). app.js shows it over the send hint (`web/js/app.js:29`, after `:93-94`); the voice path is the same (`web/js/voice-turn.js:17-18`). The awake expiry clears the line (`web/js/app.js:30`). If health instead reports down, the send hint is replaced by unreachable after about 400 ms (`integ-r1/hints.out` "unavailable+health slow400ms"), which also goes against "a failure hint stays until the next send or recording starts".
 - **Suggested direction:** a send or voice failure hint stays until the next send or recording. `failed()` must not count it as a shown not-ready hint.
-- **Status:** open
+- **Status:** fixed in round 2 (§5)
 
 ### FND-002 — hold released during a pending typed reply starts an overlapping turn
 - **Owner:** fe-engineer
@@ -37,7 +38,7 @@
 - **Evidence:** my `probe.out`: `RACE requests [t, line, history.length] [["1.8","typed words",0],["2.4","spoken words",0]]`; `RACE both settled {"turns":["turn--you|typed words","turn--typing|…Little Buddy is replying","turn--you|Voicespoken words","turn--reply|reply to typed words","turn--reply|reply to spoken words"]} typing nodes: 1`. Panel: `integ-r1/race.out`.
 - **Cause (code):** `send()` skips the pending guard for a standing voice turn (`web/js/app.js:100`). A hold that began before the send is never stopped by `setPending` (`web/js/talk-button.js:153-166` sends on release; `isPaused` is asked only at press, `:104`). Each `send()` calls `log.showTyping()` (`web/js/app.js:104`), and each first `setPending(false)` lifts the pause (`:116`).
 - **Suggested direction:** one turn in flight at a time. Hold the voice line, or refuse the send that would overlap.
-- **Status:** open
+- **Status:** fixed in round 2 (§5)
 
 ### FND-003 — listening start is visual only for screen-reader users
 - **Owner:** fe-ux
@@ -45,13 +46,13 @@
 - **Evidence:** my `probe.out`: `A11Y live ["1313 status \"Opening the mic. Start talking when the \"","2608 status \"\"","3706 log \"VoiceTurning it into text…\""]`; `button aria-live null hint role status`. Panel: `a11y/p3.out` LIVE line. Code: `hint.clear()` at listen start (`web/js/talk-button.js:127`); the words "when the seconds appear" (`web/js/copy.js:30`, `:82`) come from the `hints.micOpening` Words row in 01-ux.md.
 - **Owner note:** the state rows (loading · mic opening, listening) do not say what is announced when listening starts. fe-ux decides the words and announcement first, then fe-engineer builds them.
 - **Suggested direction:** listening start reaches the status line in words that do not depend on seeing the seconds.
-- **Status:** open
+- **Status:** fixed in round 2 (§5)
 
 ### FND-004 — awake expiry wipes a newer talk-button hint
 - **Owner:** fe-engineer
 - **Scenario:** builder, after a warm-up. "Little Buddy is awake. Go ahead." shows. Within 4 s they tap the talk button too briefly, and "That was quick! Hold a little longer." shows. When the 4 s awake timer ends, that hint vanishes as well.
 - **Evidence:** my `probe.out`: `AWAKE tooShort {"hint":"That was quick! …"}` then `AWAKE +4.4s {"hint":""}`. Panel: `p2.json` "D5". Cause: `shownKey` follows only app.js hints, so it is still `'awake'` when the timer clears the shared line (`web/js/app.js:30`, `:71-75`; talk-button calls `hint.show` directly, `web/js/talk-button.js:21-29`).
-- **Status:** open (deferred, minor)
+- **Status:** fixed in round 2 (§5; resolved by the FND-001 fix, re-checked though minor)
 
 ### FND-005 — still-down 10 s late when health hangs
 - **Owner:** fe-engineer
@@ -89,9 +90,15 @@ None. I re-ran each candidate against 4399 or read its cited code, and each one 
 |---|---|---|---|
 
 ## 4. Deferred
-- Minors: FND-004, FND-005, FND-006, FND-007, FND-008, FND-009.
+- Minors: FND-005, FND-006, FND-007, FND-008, FND-009.
 - fe-tester #2 minor deviations (`04-verification.md` § Minor deviations): Q-001 disc about 460 px and caption 10 px low (`evidence/verify-1/q001-open@laptop.png`); Q-002 reply text and pose differ from FRAME-002 (`evidence/verify-1/q002-typed-zh@laptop.png`); Q-003 faint second sweat drop while the mood settles (`evidence/verify-1/q016-en-layout@laptop.png`).
 
 ## 5. Re-check (fix rounds)
 | FND | Result | Evidence |
 |---|---|---|
+| FND-001 | fixed in round 2 | `recheck.out` (health ready, en, 390): `SEND unavailable` hint log ends at 94 ms on "Couldn't reach Little Buddy, so this did…" and is still there at 6.5 s, no awake; first health check 2018 ms after the 503. `VOICE unavailable`: "Couldn't connect, so that wasn't turned…" stays, check at 2008 ms, no awake. `not_ready` (health hint): warming (72 ms), then awake at 2079 ms, cleared by its own 4 s end at 6049 ms; voice `not_ready` the same (voiceNotReady, then awake at 3572 ms). Controls `SEND failed` / `VOICE failed`: hint kept, no check. `DOWN` (unavailable, health then down): the action hint stays through the unreachable checks, replaced only by stillDown at 30166 ms. Code: `web/js/health-watch.js:102-107` (`notReadyShown` only for `not_ready`; first check one poll later), `web/js/app.js:30-35` (awake only over a health hint, clears only itself). |
+| FND-002 | fixed in round 2 | `recheck.out` `RACE` (1440): Enter during the pointer hold ends listening (`listening 0`), release adds no voice turn, one respond request `["1.8","typed words",0]`, no transcribe request, after settling `typing nodes: 0`; the next typed line carries history 2 (`["6.8","second",2]`). `PENDENTER`: Enter while a voice line transcribes or replies keeps "typed meanwhile" in the input and sends nothing (respond lines `["spoken words"]`). Code: `web/js/talk-button.js:221-224` (setPaused cancels a running hold), `web/js/app.js:58` (an utterance ending while pending is dropped), `web/js/app.js:132`. |
+| FND-003 | fixed in round 2 | `recheck.out` `A11Y` (1440, first mic open delayed 1.5 s): status line announces "Opening the mic. Start talking when it says Listening." (1301 ms, user-approved wording), then "Listening" when the stream opens (2630 ms) and again on the second, fast hold (5251 ms); during the hold the line is visually hidden but exposed (`shown:false`, 1×1, `clip-path: inset(50%)`, `visibility: visible`; ARIA snapshot `- status: Listening`); it clears at release (3687 ms). Code: `web/js/talk-button.js:131`, `:28`, `:146`, `:164`; `web/js/copy.js` `listeningNow`; `web/css/page.css:125-127`. |
+| FND-004 | fixed in round 2 | `recheck.out` `AWAKE`: awake at 2020 ms, tooShort at 2813 ms, still "That was quick! Hold a little longer." at +4.9 s after the awake timer ran out. `AWAKEHOLD`: a hold that outlives awake's 4 s keeps `listeningNow` on the line ("Listening", `shown:false`). Code: `web/js/app.js:33` (awake's end clears only `awake`). |
+
+Probe: `/private/tmp/claude-501/-Users-apple-Desktop-Hackathon-Local-AI-Hackathon/c499be74-fde0-49e2-a17d-d254a152203e/scratchpad/fe-reviewer-2/recheck.mjs` → `recheck.out` against 127.0.0.1:4399 (served `web/` files byte-identical to the working tree, `cmp`). Unit tests `tests/fnd-r1-fix.test.js`, `tests/health-watch.test.js`, `tests/talk-button.test.js`: 26 pass, 0 fail (`unit.out`, same folder).

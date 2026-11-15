@@ -1,6 +1,6 @@
 {
   "phase": "fe-review",
-  "time": "2026-11-15T01:43:37Z",
+  "time": "2026-11-15T02:08:57Z",
   "project": "/Users/apple/Desktop/Hackathon/Local_AI_Hackathon",
   "run_dir": "docs/frontend",
   "overall": "pass",
@@ -19,10 +19,15 @@
     },
     {
       "id": "FE4.tree-unchanged",
-      "status": "pass",
-      "message": "Tree unchanged during review",
+      "status": "waived",
+      "message": "Files changed while reviewers ran (PLAYBOOK §4.3)",
       "owner": "orchestrator",
-      "details": []
+      "details": [
+        "docs/backend/handoff.md",
+        "package.json",
+        "web/js/talk-button.js",
+        "waived by user on 2026-11-15: Scope: fe-review round 2 recheck only. The one changed file, docs/backend/handoff.md, was written by fe-tester #4 (dispatched with the reviewer per PLAYBOOK §3 Phase 4.1) and by the orchestrator filing the reviewer's entry; fe-reviewer #2 wrote only 05-review.md. Remove before any later review round."
+      ]
     },
     {
       "id": "ALL.upstream",
@@ -69,8 +74,6 @@
   ],
   "data": {
     "open_blocking": [
-      "FND-001",
-      "FND-002",
       "FND-003"
     ]
   }
