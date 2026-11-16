@@ -8,13 +8,14 @@ import { test } from 'node:test';
 import { toMessages } from '../server/bonsai.js';
 import { CONFIG } from '../server/config.js';
 import { attachMemory, route } from '../server/main.js';
-import { createMemory, OWN_NAME_LINE, SAYS_NAME } from '../server/memory.js';
+import { BARE_NAME, createMemory, grounded, groundTokens, OWN_NAME_LINE, SAYS_NAME } from '../server/memory.js';
 import { SECTIONS } from '../server/memory-files.js';
 import { createStore } from '../server/memory-store.js';
 import {
   CRISIS_RULE, LANG_RULE, MEMORY_RULE, NO_NOTES, REPLY_SYSTEM, replySystem, UPDATE_LANG, UPDATE_SAMPLING, UPDATE_SCHEMA, UPDATE_SYSTEM, updateUser,
 } from '../server/prompts.js';
-import { captureLogs, fakeTimers, fx, ROOT, sleep, tmpDir, waitFor } from './memory-helpers.js';
+import { captureLogs, fakeTimers, fx, ROOT, seed, sleep, tmpDir, waitFor } from './memory-helpers.js';
+import { BUDGET_FULL } from './support/perf-data.js';
 
 // ---------- TC-157 SAYS_NAME
 test('TC-157 [FX-017] REQ-041: SAYS_NAME on the 10 must-true and 10 must-false sentences of 03 §4 guard C, plus extras', () => {
@@ -56,7 +57,9 @@ async function runGuard({ line, res, lang = 'zh' }) {
   });
   return { dir, store, logs, upd: logs.find((l) => l.event === 'memory_update'), about: readFileSync(join(dir, '关于你.md'), 'utf8').toString(), diary: readFileSync(join(dir, '日志.md'), 'utf8') };
 }
-const NOTE = '在准备考试'; // an innocent line in every update: it must be written even when the guilty one is dropped
+// an innocent line in every update: it must be written even when the guilty one is dropped. DES-033 guard E (O-4): a new line must come from
+// the user's line, so each case below takes its NOTE from its own user line (first 6 Han characters, or the first 3 English words).
+const noteOf = (line) => ((line.match(/\p{Script=Han}/gu) ?? []).length >= 3 ? (line.match(/\p{Script=Han}/gu)).slice(0, 6).join('') : line.match(/[A-Za-z']+/g).slice(0, 3).join(' '));
 const has = (text, s) => text.split('\n').some((l) => l.replace(/^- /, '') === s);
 
 test('TC-158 [FX-016, FX-017] REQ-041/040: guards C and D inside the update path, eight cases', async () => {
@@ -67,16 +70,20 @@ test('TC-158 [FX-016, FX-017] REQ-041/040: guards C and D inside the update path
   const empty = { busy: [], people: [], likes: [] };
   const run = (line, res, lang) => runGuard({ line, res: { point: null, ...res, add: { ...empty, ...(res.add ?? {}) } }, lang });
 
-  let r = await run('我妹妹的名字叫Lily', { add: { people: ["I'm Lily"], busy: [NOTE] } });
+  const L1 = '我妹妹的名字叫Lily'; let NOTE = noteOf(L1);
+  let r = await run(L1, { add: { people: ["I'm Lily"], busy: [NOTE] } });
   assert.ok(!has(r.about, "I'm Lily") && has(r.about, NOTE), '(1) dropped, the other line of the update is written');
   assert.equal(r.upd.reason, 'own_name', '(1) reason');
+  NOTE = noteOf(f17[3].say);
   r = await run(f17[3].say, { add: { people: ['我叫小雨'], busy: [NOTE] } });
   assert.ok(has(r.about, '我叫小雨') && has(r.about, NOTE), '(2) FX-017-04 says a name: kept');
+  NOTE = noteOf(f17[2].say);
   r = await run(f17[2].say, { add: { people: ["I'm Alex"], busy: [NOTE] } }, 'en');
   assert.ok(has(r.about, "I'm Alex"), '(3) FX-017-03: kept');
   r = await run("I'm exhausted today", { add: { busy: ["I'm exhausted"] } }, 'en');
   assert.ok(has(r.about, "I'm exhausted"), '(4) busy is not checked');
   const twelve = [...'我昨天晚上十一点才下班，回家路上下大雨'].filter((c) => /\p{Script=Han}/u.test(c)).slice(0, 12).join('');
+  NOTE = noteOf(zhLine);
   r = await run(zhLine, { point: twelve, add: { busy: [NOTE] } });
   assert.ok(!r.diary.includes(twelve) && /^- 开心$/m.test(r.diary), '(5) copied point dropped, entry stays mood only');
   assert.equal(r.upd.reason, 'verbatim', '(5) reason'); assert.ok(has(r.about, NOTE), '(5) the line of the same update is written');
@@ -88,6 +95,7 @@ test('TC-158 [FX-016, FX-017] REQ-041/040: guards C and D inside the update path
   r = await run(zhLine, { point: paraphrase, add: { busy: [paraphrase] } });
   assert.ok(r.diary.includes(paraphrase) && has(r.about, paraphrase), '(7) the FX-016-01 paraphrase is kept (point and line)');
   assert.equal(r.upd.reason, null);
+  NOTE = noteOf('我今天去了公园');
   r = await run('我今天去了公园', { add: { people: ["I'm Lily Chen"], busy: [NOTE] } });
   assert.ok(!r.about.includes('Lily Chen') && has(r.about, NOTE), '(8) two-word claimed name dropped when the line says no name');
   assert.equal(r.upd.reason, 'own_name');
@@ -198,7 +206,7 @@ test('TC-223a [A32, DES-033] REQ-037: nothing is sent while a turn runs or befor
 });
 
 test('TC-223b [A32, DES-033] REQ-037: a new turn during a flush aborts the call with reason busy; the line stays first and lands at the next quiet', async () => {
-  const { dir, store, calls, timers, mem } = await mkMem(['hang', note('第二句的事'), note('第一句的事')]);
+  const { dir, store, calls, timers, mem } = await mkMem(['hang', note('第一句的事'), note('第二句的事')] /* DES-033 guard E: each line gets its own note (was crossed) */);
   const { logs } = await captureLogs(async () => {
     mem.turnStarted(); mem.enqueue(job(store, '第一句')); mem.turnEnded();
     timers.advance(QUIET);
@@ -303,4 +311,63 @@ test('TC-223e [A32, DES-036] REQ-042: a crisis turn never enters the waiting lis
   assert.equal(mem.pending, 0);
   timers.advance(10 * QUIET);
   assert.equal(rd(dir).includes('我不想活'), false, 'nothing about the line is written');
+});
+
+// ---------- TC-225..227 guard E (O-4, DES-033 `grounded`, 03 §4 Guards row E); be-tester #7. Cases are the design's, the sentences come from the fixtures.
+const YEAR = '我还养了一只叫年糕的仓鼠';
+const JORDAN = "Hi, I'm called Jordan and I just started a new job.";
+const fxLine = (id, i = 0) => { const c = fx(id).input.cases[i]; return c.say ?? c.sessions[0][0]; };
+
+test('TC-225 [FX-014, FX-016, FX-017] REQ-039/041: guard E `grounded` on the 24 cases of 03 §4 row E (12 false, 12 true) and BARE_NAME', () => {
+  const F14 = (n) => fxLine('FX-014', n - 1); const F17 = (n) => fxLine('FX-017', n - 1);
+  const no = [
+    ['猫叫豆豆', YEAR], ['sister Lily visits this weekend', YEAR], ['sister Lily visits this weekend', JORDAN], ['我叫', YEAR], ['我叫', '我叫小雨'],
+    ["I'm", JORDAN], ['狗叫小黑掉毛', F17(4)], ['Convenience store clerk remembers my soy milk', F17(3)], ['外婆耳朵不太好，打电话要说得慢', F14(2)],
+    ['Grandma', 'My grandpa Walter is turning ninety next Sunday.'], ['Brother AJ', F17(3)], ['ok', 'ok'],
+  ];
+  const yes = [
+    ['下班很晚，路上下雨，鞋湿了，室友吃了外卖', fxLine('FX-016', 0)], ['不喜欢香菜', '我最讨厌吃香菜了。'], ['小白是狗', '我家狗叫小白，今天它咬坏了我的拖鞋。'], ['仓鼠叫年糕', YEAR],
+    ['Pet called Pepper', 'I adopted a rabbit named Pepper last week.'], ['我叫小雨', F17(4)], ["I'm Alex", F17(3)], ["I'm Jordan", JORDAN], ['Sister Lily', F14(4)],
+    ['猫叫豆豆', F14(2)], ['Training for a half marathon next month.', F14(3)], ['Hates mosquitoes', 'I really love hiking but I hate mosquitoes.'],
+  ];
+  assert.equal(no.length, 12); assert.equal(yes.length, 12);
+  for (const [t, l] of no) assert.equal(grounded(t, l), false, `must be false: ${JSON.stringify(t)} / ${l}`);
+  for (const [t, l] of yes) assert.equal(grounded(t, l), true, `must be true: ${JSON.stringify(t)} / ${l}`);
+  for (const t of ['我叫', "I'm", 'my name is']) assert.equal(BARE_NAME.test(t), true, `BARE_NAME true: ${t}`);
+  assert.equal(BARE_NAME.test('我叫小雨'), false);
+  assert.equal(grounded('', 'x'), false, 'no tokens is not grounded');
+  assert.deepEqual(groundTokens('猫叫豆豆'), ['猫叫', '叫豆', '豆豆']); assert.deepEqual(groundTokens('猫'), ['猫']);
+});
+
+test('TC-226 [DES-033, O-4] REQ-039/041: update path with the 年糕 line: only the grounded line is written, reason ungrounded, stdout carries none of the words', async () => {
+  const empty = { busy: [], likes: [] };
+  const r = await runGuard({ line: YEAR, res: { point: '养了一只仓鼠', add: { ...empty, people: ['猫叫豆豆', 'sister Lily visits this weekend', '我叫', '仓鼠叫年糕'] } } });
+  const lines = r.about.split('\n').filter((l) => l.startsWith('- '));
+  assert.deepEqual(lines, ['- 仓鼠叫年糕'], 'only the line that comes from the user line is added');
+  assert.ok(!/豆豆|Lily|猫/.test(r.about));
+  const ups = r.logs.filter((l) => l.event === 'memory_update');
+  assert.equal(ups.length, 1);
+  assert.equal(ups[0].ok, true); assert.equal(ups[0].point, true); assert.equal(ups[0].reason, 'ungrounded');
+  const out = JSON.stringify(r.logs);
+  for (const w of ['豆豆', 'Lily', '年糕', '仓鼠']) assert.ok(!out.includes(w), `A9: stdout has no ${w}`);
+});
+
+test('TC-227 [FX-017-03, DES-033, O-4] REQ-039/041: a full page and a rewrite answer: only "- I\'m Alex" is added, every other byte stays', async () => {
+  const dir = tmpDir('lb-guardE-'); seed(dir, { '关于你.md': BUDGET_FULL });
+  const store = createStore({ dir, say: () => {} });
+  const answer = { point: null, add: { busy: [], people: ["I'm Alex", 'Brother AJ', 'Grandma is hospitalized', 'Convenience store clerk remembers my soy milk'], likes: [] } };
+  const timers = fakeTimers();
+  const mem = createMemory({ store, bonsai: { remember: async () => answer }, cfg, timers });
+  const { logs } = await captureLogs(async () => {
+    await store.lock(); await store.load();
+    mem.turnStarted(); mem.enqueue({ gen: store.generation, ref: null, line: fxLine('FX-017', 2), lang: 'en' }); mem.turnEnded();
+    timers.advance(cfg.memory.quietMs);
+    await waitFor(() => mem.pending === 0, 5000, 'update finished'); await sleep(50);
+  });
+  const after = rd(dir);
+  const before = BUDGET_FULL.split('\n'), now = after.split('\n');
+  assert.equal(now.length, before.length + 1, 'exactly one line more');
+  assert.deepEqual(now.filter((l) => !before.includes(l)), ["- I'm Alex"], 'the only new line');
+  assert.deepEqual(before.filter((l) => !now.includes(l)), [], 'every old line is still there');
+  assert.equal(logs.find((l) => l.event === 'memory_update').reason, 'ungrounded');
 });

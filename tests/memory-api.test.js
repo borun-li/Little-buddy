@@ -255,7 +255,7 @@ test('TC-179 REQ-044/042/049/054: every 200 turn records its mood before the res
   const script = {
     moods: [{ when: '开心', mood: 'pleasant-high' }, { when: '难过', mood: 'unpleasant-low' }, { when: '紧张', mood: 'unpleasant-high' }, { when: '平静', mood: 'pleasant-low' }],
     replies: [{ when: '失败', status: 503 }, { when: '慢', delayMs: 2500, reply: '好的' }],
-    updates: [{ when: '事实', point: '备考', add: { busy: ['在备考'] } }],
+    updates: [{ when: '事实', point: '备考', add: { busy: ['开心事实'] } }], // DES-033 guard E (O-4): the new line comes from its own user line
   };
   const dir = tmpDir();
   await withGateway({ dir, script }, async (gw) => {
@@ -270,7 +270,7 @@ test('TC-179 REQ-044/042/049/054: every 200 turn records its mood before the res
       history.push({ role: 'user', text: l }, { role: 'companion', text: r.json.reply });
     }
     assert.equal(diaryEntries(readDiary(dir)).length, 3);
-    await waitFor(() => fileHas(join(dir, '关于你.md'), '在备考') && diaryEntries(readDiary(dir))[0].point === '备考', 15000, 'update landed');
+    await waitFor(() => fileHas(join(dir, '关于你.md'), '开心事实') && diaryEntries(readDiary(dir))[0].point === '备考', 15000, 'update landed');
     await waitFor(() => gw.logs().filter((l) => l.event === 'memory_update').length >= 3, 15000, 'the updates of all three turns are done');
     const upd0 = kind(gw, 'update').length;
     assert.equal(upd0, 3, 'one update call per recorded turn');
@@ -307,7 +307,7 @@ test('TC-179 REQ-044/042/049/054: every 200 turn records its mood before the res
     const g = await respond(gw, '忘了之后开心事实');
     assert.equal(g.status, 200);
     assert.equal(diaryEntries(readDiary(dir)).length, 1, '(g) the new turn is recorded'); assert.equal(diaryEntries(readDiary(dir))[0].word, '开心');
-    await waitFor(() => fileHas(join(dir, '关于你.md'), '在备考'), 15000, '(g) and its update lands');
+    await waitFor(() => fileHas(join(dir, '关于你.md'), '开心事实'), 15000, '(g) and its update lands');
   });
   // (f) unreadable and read-only gateways: reply 200, no file change, skip reason in the log
   const un = tmpDir(); seed(un, filesOf('FX-022')); chmodSync(join(un, '关于你.md'), 0o000);
@@ -368,7 +368,7 @@ test('TC-181 REQ-037/050 (A32 idle-time): update after 8 s quiet and <= 30 s, 20
     const dir = tmpDir();
     const N = 21;
     const tag = (i) => `T${String(i).padStart(2, '0')}`;
-    const updates = Array.from({ length: N }, (_, i) => ({ when: tag(i + 1), delayMs: 1000, point: `点${i + 1}`, add: { busy: [`事${tag(i + 1)}`] } }));
+    const updates = Array.from({ length: N }, (_, i) => ({ when: tag(i + 1), delayMs: 1000, point: `点${i + 1}`, add: { busy: [`在忙${tag(i + 1)}`] } })); // guard E: grounded in the line `Tnn 在忙`
     await withGateway({ dir, script: { updates } }, async (gw) => {
       for (let i = 1; i <= N; i++) assert.equal((await respond(gw, `${tag(i)} 在忙`)).status, 200);
       await sleep(5000);
@@ -381,15 +381,15 @@ test('TC-181 REQ-037/050 (A32 idle-time): update after 8 s quiet and <= 30 s, 20
       check(reqs.map((x) => x.n).join() === Array.from({ length: N - 1 }, (_, i) => tag(i + 2).slice(1)).join(), `(b) updates ran oldest first, T01 dropped: ${reqs.map((x) => x.n)}`);
       check(reqs.slice(1).every((x, i) => x.t - reqs[i].t >= 900), '(b) one at a time');
       const about = readAbout(dir);
-      for (const n of ['02', '10', '21']) check(about.includes(`事T${n}`), `(b) line T${n} landed`);
-      check(!about.includes('事T01'), '(b) line T01 was dropped');
+      for (const n of ['02', '10', '21']) check(about.includes(`在忙T${n}`), `(b) line T${n} landed`);
+      check(!about.includes('在忙T01'), '(b) line T01 was dropped');
       check((await api(gw.base, '/api/health')).status === 200, '(b) gateway alive');
     });
   };
   const c = async () => {
     const dir = tmpDir();
     await withGateway({ dir, script: { updates: [{ when: 'HANG', hang: true }, { when: 'NORMAL', point: '正常点', add: { busy: ['正常行'] } }, { when: 'WRONG', raw: '{"point":5,"add":{"busy":[]}}' }] } }, async (gw) => {
-      await respond(gw, 'HANG 第一句'); await respond(gw, 'NORMAL 第二句');
+      await respond(gw, 'HANG 第一句'); await respond(gw, 'NORMAL 正常行'); // DES-033 guard E (O-4): the new line comes from this line
       await waitFor(() => gw.logs().some((l) => l.event === 'memory_update' && l.ok === false && l.reason), 45000, 'the stuck update is cut (8 s quiet + 14 s deadline, A32)');
       const cut = gw.logs().find((l) => l.event === 'memory_update' && l.ok === false);
       check(cut.reason === 'timeout' && cut.ms >= 13500 && cut.ms <= 16000, `(c) cut at the deadline: ${JSON.stringify(cut)}`);
@@ -407,7 +407,7 @@ test('TC-181 REQ-037/050 (A32 idle-time): update after 8 s quiet and <= 30 s, 20
   const e = async () => {
     // A32 (step 8.5, was: forget aborts the running call, 1 sent): forget before the quiet, so 0 are sent and the waiting lines log reason forgotten
     const dir = tmpDir();
-    await withGateway({ dir, script: { updates: ['F1', 'F2', 'F3'].map((w) => ({ when: w, delayMs: 3000, point: `点${w}`, add: { busy: [`事${w}`] } })).concat([{ when: 'AFTER', point: '之后', add: { busy: ['之后的事'] } }]) } }, async (gw) => {
+    await withGateway({ dir, script: { updates: ['F1', 'F2', 'F3'].map((w) => ({ when: w, delayMs: 3000, point: `点${w}`, add: { busy: [`在忙${w}`] } })).concat([{ when: 'AFTER', point: '之后', add: { busy: ['之后的事'] } }]) } }, async (gw) => {
       for (const w of ['F1', 'F2', 'F3']) await respond(gw, `${w} 在忙`);
       await sleep(300);
       check((await post(gw, '/api/forget', {})).status === 200, '(e) forget answered');
@@ -430,15 +430,15 @@ test('TC-182 REQ-038/039/049/055 (A55): what the reply request carries: memory b
   const dir = tmpDir();
   const about = '# 关于你\n\n## 最近在忙\n- 在准备实习面试\n\n## 在意的人和事\n- 猫叫豆豆\n\n## 喜欢·不喜欢\n';
   seed(dir, { '关于你.md': about, '日志.md': '# 日志\n\n## 2026-11-14\n- 开心 · POINTSECRET一二三\n' });
-  await withGateway({ dir, script: { updates: [{ when: '第一句', point: '问好', add: { busy: ['NEWLINE-X'] } }] } }, async (gw) => {
-    await respond(gw, '第一句你好');
+  await withGateway({ dir, script: { updates: [{ when: '第一句', point: '问好', add: { busy: ['NEWLINE-X'] } }] } }, async (gw) => { // DES-033 guard E (O-4): the line carries the word NEWLINE
+    await respond(gw, '第一句你好 NEWLINE-X');
     const [r1] = turnReqs(gw, 'reply', '第一句');
     const s1 = sysOf(r1);
     assert.ok(s1.includes(`<memory>\n${about}\n</memory>`), 'the notes text inside <memory>');
     assert.ok(s1.includes(GUARD), 'MEMORY_RULE guard sentence');
     assert.ok(s1.indexOf('</memory>') < s1.indexOf('只用简体中文回复'), 'LANG_RULE after the memory block');
     await waitFor(() => fileHas(join(dir, '关于你.md'), 'NEWLINE-X'), 15000, 'file changed by an update');
-    await respond(gw, '第二句继续', [{ role: 'user', text: '第一句你好' }, { role: 'companion', text: 'Fake reply.' }]);
+    await respond(gw, '第二句继续', [{ role: 'user', text: '第一句你好 NEWLINE-X' }, { role: 'companion', text: 'Fake reply.' }]);
     assert.ok(!sysOf(turnReqs(gw, 'reply', '第二句')[0]).includes('NEWLINE-X'), 'the same chat keeps its snapshot');
     await respond(gw, '第三句新的聊天');
     assert.ok(sysOf(turnReqs(gw, 'reply', '第三句')[0]).includes('NEWLINE-X'), 'a new chat (history []) picks up the new text');
@@ -471,7 +471,7 @@ test('TC-183 [FX-025] REQ-055/043 (A44): a 2000-Han hand-written file: replies a
   const file = `# 关于你\n\n## 最近在忙\n${lines.join('\n')}\n\n## 在意的人和事\n\n## 喜欢·不喜欢\n`;
   assert.ok(file.match(/\p{Script=Han}/gu).length >= 1990);
   const dir = tmpDir(); seed(dir, { '关于你.md': file });
-  await withGateway({ dir, script: { updates: [{ when: '第二', point: '点', add: { busy: ['新加的一行'] } }] } }, async (gw) => {
+  await withGateway({ dir, script: { updates: [{ when: '第二', point: '点', add: { busy: ['新加的一行'] } }] } }, async (gw) => { // DES-033 guard E (O-4): the second line says it
     await respond(gw, '第一句');
     const block = budgetBlock(sysOf(turnReqs(gw, 'reply', '第一句')[0]));
     assert.ok(wt(block) <= 1200, `weight ${wt(block)}`);
@@ -481,7 +481,7 @@ test('TC-183 [FX-025] REQ-055/043 (A44): a 2000-Han hand-written file: replies a
     const upd = kind(gw, 'update')[0].body.messages[1].content;
     const page = /Notes page:\n"""\n([\s\S]*?)\n"""\nNewest message/.exec(upd)[1];
     assert.equal(page, block, 'the update request page is the same cut text');
-    await respond(gw, '第二句');
+    await respond(gw, '第二句，新加的一行');
     await waitFor(() => fileHas(join(dir, '关于你.md'), '新加的一行'), 15000, 'update line');
     const p = (await api(gw.base, '/api/profile')).json;
     assert.equal(p.about, readAbout(dir)); assert.ok(p.about.includes('第111行'), 'GET /api/profile about is the whole file');
@@ -602,7 +602,7 @@ test('TC-187 REQ-051: data stays on this machine: only the three files (+.lock),
     return out;
   };
   const tmpTop = () => readdirSync(tmpdir()).sort();
-  const gw = await startGateway({ dir, script: { updates: [{ when: '事', point: '点', add: { busy: ['x'] } }] } });
+  const gw = await startGateway({ dir, script: { updates: [{ when: '事', point: '点', add: { busy: ['有事发生'] } }] } }); // DES-033 guard E (O-4): grounded in the line
   const repoBefore = new Set(walk(ROOT, 0).filter(() => false));
   const since = Date.now();
   let lsof = '';
@@ -613,7 +613,7 @@ test('TC-187 REQ-051: data stays on this machine: only the three files (+.lock),
     await post(gw, '/api/profile', { region: 'US' });
     const prof = await api(gw.base, '/api/profile'); const diary = await api(gw.base, '/api/diary');
     for (const x of [prof, diary]) assert.equal(x.headers.get('access-control-allow-origin'), null, 'no CORS header');
-    await waitFor(() => fileHas(join(dir, '关于你.md'), '- x'), 15000, 'update');
+    await waitFor(() => fileHas(join(dir, '关于你.md'), '- 有事发生'), 15000, 'update');
     const pids = [gw.pid, ...gw.kids()];
     const lo = await nonLoopback(pids);
     lsof = lo.raw; mkdirSync(join(ROOT, 'test-results'), { recursive: true }); writeFileSync(join(ROOT, 'test-results/lsof-r1.txt'), `gateway pid ${gw.pid}, children ${pids.slice(1)}\n${lo.raw}`);

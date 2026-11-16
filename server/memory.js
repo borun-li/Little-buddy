@@ -1,5 +1,5 @@
 // Idle-time memory update (03 DES-033, A32): lines wait in `pending` until the chat is quiet for quietMs, then one flush runs them oldest
-// first, one bonsai.remember call per line; a new turn aborts the call in flight ('busy') and the line stays first. Guards C and D.
+// first, one bonsai.remember call per line; a new turn aborts the call in flight ('busy') and the line stays first. Guards C, D and E.
 import { CONFIG } from './config.js';
 import { ApiError } from './errors.js';
 import { log } from './log.js';
@@ -12,6 +12,31 @@ export const SAYS_NAME = /(?:^|[，。！？；：,.!?;:]\s*)(?:(?:请?记住|�
 // An added "people" line that claims the user's name (checked on add.people only).
 export const OWN_NAME_LINE = /^(?:i'?m|i am|my name is|我叫)\s*[^\s,，。.!！]{1,12}(?:\s[^\s,，。.!！]{1,12})?$/i;
 
+// Guard E (O-4, REQ-039; be-architect #5): a new 关于你 line must come from the user's line. Tokens: each Han 2-gram inside a Han
+// run (a one-character run is one token) and each English word of 3+ letters outside STOP, lower-cased, one trailing "s" dropped
+// when 4+ letters. A token is grounded when the line contains it (Han) or has the same word (English). The text is grounded when
+// hits * 4 >= tokens > 0 and it is not a bare own-name lead-in. Checked on every add line (all three sections), never on the point.
+// Unit cases: 03 §4 Guards, row E.
+const STOP = new Set(['the', 'and', 'with', 'this', 'that', 'for', 'has', 'have', 'his', 'her', 'are', 'was', 'were', 'will', 'from', 'they',
+  'them', 'she', 'him', 'but', 'not', 'very', 'really', 'about', 'just', 'its', 'who', 'what', 'user', 'their', 'there', 'been', 'into']);
+export const BARE_NAME = /^(?:i'?m|i am|my name is|我叫|我的名字(?:是|叫)?)[\s.,!。，！]*$/i;
+const enWords = (s) => (s.toLowerCase().match(/[a-z]{3,}/g) ?? []).filter((w) => !STOP.has(w)).map((w) => (w.length > 3 ? w.replace(/s$/, '') : w));
+export function groundTokens(s) {
+  const t = [];
+  for (const run of s.match(/\p{Script=Han}+/gu) ?? []) {
+    if (run.length === 1) t.push(run);
+    else for (let i = 0; i + 2 <= run.length; i++) t.push(run.slice(i, i + 2));
+  }
+  return [...t, ...enWords(s)];
+}
+export function grounded(text, line) {
+  if (BARE_NAME.test(text)) return false;
+  const toks = groundTokens(text);
+  const lineWords = new Set(enWords(line));
+  const hits = toks.filter((t) => (/\p{Script=Han}/u.test(t) ? line.includes(t) : lineWords.has(t))).length;
+  return toks.length > 0 && hits * 4 >= toks.length;
+}
+
 export function createMemory({ store, bonsai, cfg = CONFIG, timers = { setTimeout: (f, ms) => setTimeout(f, ms), clearTimeout: (t) => clearTimeout(t) } }) {
   const pending = []; // waiting jobs, oldest first; during a flush pending[0] is the one being run
   let active = 0; // /api/respond calls between turnStarted and turnEnded
@@ -22,7 +47,7 @@ export function createMemory({ store, bonsai, cfg = CONFIG, timers = { setTimeou
   const done = (job, t0, fields) => ({ ms: Date.now() - t0, waited_ms: t0 - job.queuedAt, ...fields });
   const lost = (job, reason) => done(job, Date.now(), { ok: false, point: false, about_changed: false, reason });
 
-  // Guard D on the point and every line, guard C on people lines; the first reason that fired is logged.
+  // Guard D on the point and every line, guard C on people lines, guard E on every line (D -> C -> E); the first reason that fired is logged.
   function guard(job, res) {
     const reasons = [];
     let point = cleanLine(res.point ?? '', cfg.memory.pointChars) || null;
@@ -40,6 +65,10 @@ export function createMemory({ store, bonsai, cfg = CONFIG, timers = { setTimeou
         }
         if (key === 'people' && !saysName && OWN_NAME_LINE.test(cleanLine(t, cfg.memory.lineChars))) {
           reasons.push('own_name');
+          return false;
+        }
+        if (!grounded(cleanLine(t, cfg.memory.lineChars), job.line)) {
+          reasons.push('ungrounded');
           return false;
         }
         return true;

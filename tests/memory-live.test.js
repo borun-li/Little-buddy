@@ -12,6 +12,7 @@ import { join } from 'node:path';
 import { after, test } from 'node:test';
 import { languageOfReply } from './server-helpers.js';
 import { BUDGET_FULL, handWritten2000 } from './support/perf-data.js';
+import { OOS_LINES } from './support/oos-lines.js';
 import { api, cleanupTmp, diaryEntries, filesOf as fixtureFiles, fx, MOOD_WORD, port4450, readAbout, readDiary, ROOT, sleep, startGateway as startDouble, tmpDir } from './memory-helpers.js';
 
 const ON = process.env.COMPANION_LIVE === '1';
@@ -644,6 +645,64 @@ T('TC-202', '[FX-001..004, FX-009..011] existing live suite with the new REPLY_S
   console.log(`TC-202 ${JSON.stringify(res)}`);
   for (const r of res) assert.ok(r.code === 0 && r.fail === 0 && r.pass > 0, `${r.name}: ${JSON.stringify(r)}`);
 }, 150);
+
+// ---------------------------------------------------------------- TC-228 guard E on the real model (03 §9 9.5 last row, O-4); be-tester #7
+T('TC-228', '[DES-033 guard E, O-4] REQ-039/041: pet and name lines on real Bonsai add no line that is not the user\'s; a full page gets <= 2 new lines', async () => {
+  const f17 = fx('FX-017').input.cases[2].say;
+  const cases = [
+    { id: 'nian', line: '我还养了一只叫年糕的仓鼠', must: ['年糕'], never: ['豆豆', 'lily', '猫'] },
+    { id: 'xiaobai', line: '我家狗叫小白，今天它咬坏了我的拖鞋。', never: ['猫'] },
+    { id: 'rabbits', line: '我养了两只兔子，一只叫团子，一只叫汤圆。', never: ['猫'] },
+    { id: 'parrot', line: '我的鹦鹉叫可乐，它会说你好。', never: ['豆豆'] },
+    { id: 'jordan', line: "Hi, I'm called Jordan and I just started a new job.", never: ['lily'] },
+    { id: 'budget-full', line: f17, seedFile: BUDGET_FULL, maxNew: 2 },
+  ];
+  const rows = [];
+  for (const c of cases) for (const run of runsOf()) {
+    const dir = tmpDir('lb-live228-'); mkdirSync(dir, { recursive: true });
+    if (c.seedFile) writeFileSync(join(dir, '关于你.md'), c.seedFile, { mode: 0o600 });
+    const gw = await boot(dir);
+    const r = await say(gw, chatOf(), c.line, 'TC-228', `${c.id}#${run}`);
+    const w = await waitQuiet(dir, r.at);
+    const upd = gw.logs().filter((l) => l.event === 'memory_update');
+    await gw.stop();
+    const about = aboutOf(dir);
+    const before = new Set((c.seedFile ?? '').split('\n'));
+    const added = about.split('\n').filter((l) => l.startsWith('- ') && !before.has(l));
+    const bad = (c.never ?? []).filter((k) => lc(about).includes(lc(k)));
+    const missing = (c.must ?? []).filter((k) => !lc(about).includes(lc(k)));
+    rows.push({ id: c.id, run, line: c.line, added, bad, missing, lastChangeMs: w.lastChangeMs, update_logs: upd.map((u) => ({ ok: u.ok, reason: u.reason ?? null })), oldKept: c.seedFile ? c.seedFile.split('\n').every((l) => about.split('\n').includes(l)) : null });
+  }
+  keep('TC-228', { rows });
+  console.log(`TC-228 ${JSON.stringify(rows.map((r) => [r.id, r.run, r.added, r.bad, r.missing, r.update_logs.map((u) => u.reason)]))}`);
+  for (const r of rows) {
+    assert.deepEqual(r.bad, [], `${r.id}#${r.run}: forbidden word in 关于你: ${JSON.stringify(r.added)}`);
+    assert.deepEqual(r.missing, [], `${r.id}#${r.run}: the fact is missing: ${JSON.stringify(r.added)}`);
+    if (r.id === 'budget-full') { assert.ok(r.added.length <= 2, `budget-full#${r.run}: ${r.added.length} new lines: ${JSON.stringify(r.added)}`); assert.equal(r.oldKept, true, 'old lines kept'); }
+  }
+}, 60);
+
+// TC-229 out of sample: fresh lines about the user's life, each on a fresh folder. Reports forgetting (the fact is not kept and an update was logged ungrounded)
+// and the added lines for reading by hand (invented lines are judged by eye). Records, asserts only that every gateway answered.
+T('TC-229', '[DES-033 guard E, O-4] out-of-sample lines: forgetting by the 1/4 threshold and invented lines (observation)', async () => {
+  const rows = [];
+  for (const o of OOS_LINES) {
+    const dir = tmpDir('lb-live229-'); mkdirSync(dir, { recursive: true });
+    const gw = await boot(dir);
+    const r = await say(gw, chatOf(), o.line, 'TC-229', 'oos');
+    const w = await waitQuiet(dir, r.at, 25000);
+    const upd = gw.logs().filter((l) => l.event === 'memory_update');
+    await gw.stop();
+    const about = aboutOf(dir);
+    const added = about.split('\n').filter((l) => l.startsWith('- '));
+    const kept = o.expect.some((k) => lc(about).includes(lc(k)));
+    rows.push({ line: o.line, added, kept, ungrounded: upd.filter((u) => u.reason === 'ungrounded').length, reasons: upd.map((u) => ({ ok: u.ok, reason: u.reason ?? null, point: u.point ?? null })), lastChangeMs: w.lastChangeMs });
+  }
+  const forgot = rows.filter((r) => !r.kept && r.ungrounded > 0);
+  keep('TC-229', { n: rows.length, forgotByGuard: forgot.length, notKept: rows.filter((r) => !r.kept).length, rows });
+  console.log(`TC-229 n=${rows.length} not kept ${rows.filter((r) => !r.kept).length}, of those with an ungrounded drop ${forgot.length}`);
+  for (const r of rows) console.log(`TC-229 | ${r.line} | kept=${r.kept} ungrounded=${r.ungrounded} | ${JSON.stringify(r.added)}`);
+}, 60);
 
 // ---------------------------------------------------------------- E live: TC-203, TC-207, TC-213 (headless Chromium through tests/support/page-driver.py, real Bonsai)
 const PY = existsSync('/opt/anaconda3/bin/python') ? '/opt/anaconda3/bin/python' : 'python3';
