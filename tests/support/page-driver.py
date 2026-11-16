@@ -12,6 +12,7 @@ from playwright.sync_api import sync_playwright
 
 INPUT = '[data-testid=fake-input]'
 REPLY = '[data-testid=reply]'
+READY = "!!document.querySelector('[data-testid=memory-notice]') || (document.querySelector('.log__privacy-text') && document.querySelector('.log__privacy-text').textContent.length > 0)"
 
 
 class Page:
@@ -40,8 +41,8 @@ class Page:
 
     def goto(self, wait_profile=True):
         self.page.goto(self.base + '/')
-        if wait_profile:  # the privacy line is written when the profile read has answered (or failed)
-            self.page.wait_for_function("document.querySelector('.log__privacy-text') && document.querySelector('.log__privacy-text').textContent.length > 0", timeout=10000)
+        if wait_profile:  # the profile read has answered (or failed) when the first-run notice is up (FND-046: the privacy line is empty then) or the privacy line has words
+            self.page.wait_for_function(READY, timeout=10000)
         return self
 
     def close(self):
@@ -167,6 +168,12 @@ def s_forget(a, pw):
     pg.settle(300)
     out = {'ms': ms, 'result_text': pg.text('[data-testid=forget-result]'), 'about_empty_visible': pg.visible('[data-testid=about-empty]'),
            'turns_before': before_turns, 'turns_after': pg.turns(), 'forget_status': post_status(pg, '/api/forget')}
+    pg.settle(300)  # the drawer's live region is written 50 ms after the result is drawn
+    out['announce'] = pg.text('[data-testid=drawer-announce]')
+    attr = lambda sel, name: pg.page.get_attribute(sel, name) if pg.page.locator(sel).count() else None
+    out['announce_role'] = attr('[data-testid=drawer-announce]', 'role')
+    out['result_role'] = attr('[data-testid=forget-result]', 'role')
+    out['focus_testid'] = pg.page.evaluate("document.activeElement && document.activeElement.dataset.testid")
     out['diary_has_any'] = pg.api('/api/diary')['json']['hasAny']
     out['about_empty_api'] = pg.api('/api/profile')['json']['aboutEmpty']
     if a.get('send_after'):
@@ -296,7 +303,8 @@ def s_diary(a, pw):
         head: s.querySelector('.day__head').textContent,
         rows: [...s.querySelectorAll('.day__row')].map(r => ({ point: r.querySelector('.day__point').textContent, mood: r.querySelector('.mood').textContent }))
       }));
-      return { dots, none, days, curve: !!document.querySelector('.curve'), start: !!document.querySelector('[data-testid=diary-start]') };
+      const lines = [...document.querySelectorAll('.curve__line')].map(l => l.getAttribute('points'));
+      return { dots, none, lines, days, curve: !!document.querySelector('.curve'), start: !!document.querySelector('[data-testid=diary-start]') };
     }""")
     data['ms'] = ms
     pg.close()
@@ -322,7 +330,7 @@ def s_sweep(a, pw):
     ck('back to Chinese', '会记住' in pg.text('.notice__title'), pg.text('.notice__title'))
     pg.page.click('[data-testid=notice-ok]'); pg.page.wait_for_selector('[data-testid=memory-notice]', state='detached', timeout=3000)
     ck('知道了 stores noticeSeen', prof()['noticeSeen'] is True)
-    pg.page.reload(); pg.page.wait_for_function("document.querySelector('.log__privacy-text')?.textContent.length > 0"); pg.settle(300)
+    pg.page.reload(); pg.page.wait_for_function(READY); pg.settle(300)
     ck('notice gone after reload', not pg.visible('[data-testid=memory-notice]'))
     # drawer open/close and tabs
     pg.open_drawer('diary')
@@ -377,7 +385,7 @@ def s_sweep_off(a, pw):
 
 # ------------------------------------------------------------------ live scenarios (real Bonsai; be-tester #6, TC-203, TC-207, TC-213)
 def wait_privacy(pg):
-    pg.page.wait_for_function("document.querySelector('.log__privacy-text') && document.querySelector('.log__privacy-text').textContent.length > 0", timeout=10000)
+    pg.page.wait_for_function(READY, timeout=10000)
 
 
 def s_live_open(a, pw):  # TC-203 steps 1-2: an earlier-version user (localStorage name), notice before any send, then 知道了, reload
@@ -515,6 +523,195 @@ def s_live_goal_c(a, pw):  # TC-213 stage C: after the last restart and reload: 
     pg.settle(300)
     out['diary_start_visible'] = pg.visible('[data-testid=diary-start]')
     pg.page.screenshot(path=a['shots'] + '/r1-goal-7-after-restart.png')
+    pg.close()
+    return out
+
+
+# ------------------------------------------------------------------ fe-tester #3 (review fixes, round 2)
+def s_caption_fail(a, pw):  # FND-042: rename in the caption when the save answers an error; then the next send
+    pg = Page(pw, a['base'], a.get('lang', 'zh'))
+    if a.get('status'):
+        body = json.dumps({'error': a.get('code', 'not_saved')})
+        def handler(route):
+            if route.request.method == 'POST':
+                route.fulfill(status=a['status'], content_type='application/json', body=body)
+            else:
+                route.continue_()
+        pg.page.route('**/api/profile', handler)
+    pg.goto()
+    pg.page.wait_for_timeout(300)
+    out = {'caption_before': pg.text('.caption__name')}
+    pg.page.click('.caption__name')
+    pg.page.fill('.name-field', a.get('new', 'Mochi'))
+    pg.page.press('.name-field', 'Enter')
+    pg.page.wait_for_timeout(1200)
+    out['caption_after'] = pg.text('.caption__name')
+    out['hint'] = pg.hint()
+    out['post_status'] = post_status(pg, '/api/profile')
+    pg.send('今天开心')
+    bodies = pg.respond_bodies()
+    out['respond_names'] = [b.get('name') if b else None for b in bodies]
+    out['hint_after_send'] = pg.hint()
+    out['profile_api'] = pg.api('/api/profile')['json']
+    pg.page.reload()
+    pg.page.wait_for_function(READY, timeout=10000)
+    out['caption_after_reload'] = pg.text('.caption__name')
+    pg.close()
+    return out
+
+
+def s_clear_inflight(a, pw):  # FND-043: 清空 while the reply is on its way
+    pg = Page(pw, a['base'], storage=a.get('storage'))
+    failed = []
+    pg.page.on('requestfailed', lambda r: failed.append(urlparse(r.url).path))
+    pg.goto()
+    if pg.visible('[data-testid=notice-ok]'):
+        pg.page.click('[data-testid=notice-ok]')
+        pg.page.wait_for_selector('[data-testid=memory-notice]', state='detached', timeout=3000)
+    pg.page.fill(INPUT, a['line'])
+    pg.page.press(INPUT, 'Enter')
+    pg.page.wait_for_function("!!document.querySelector('.typing, [data-typing]')", timeout=3000)
+    pg.page.wait_for_timeout(300)  # the request has left
+    if a.get('clear', True):
+        pg.page.click('[data-testid=clear]')
+    pg.page.wait_for_timeout(a.get('watch_ms', 5000))
+    out = {'failed': failed, 'respond_requests': len(pg.respond_bodies()), 'respond_ok': len(pg.respond_json),
+           'turns': pg.turns(), 'reply_visible': pg.visible(REPLY), 'hint': pg.hint(), 'typing': pg.visible('.typing, [data-typing]'),
+           'input_disabled': pg.page.is_disabled(INPUT)}
+    pg.close()
+    return out
+
+
+def s_drawer_keys(a, pw):  # FND-044: the drawer body is a Tab stop inside the trap, and the keys scroll it
+    pg = Page(pw, a['base'], width=1280, height=600).goto()
+    if pg.visible('[data-testid=notice-ok]'):
+        pg.page.click('[data-testid=notice-ok]')
+        pg.page.wait_for_selector('[data-testid=memory-notice]', state='detached', timeout=3000)
+    pg.open_drawer(a.get('tab', 'diary'))
+    pg.page.wait_for_selector('[data-testid=diary-days] .day', timeout=10000)
+    pg.settle(300)
+    desc = "(() => { const e = document.activeElement; return e ? (e.classList.contains('drawer__scroll') ? 'scroll' : (e.dataset.testid || e.tagName)) : null; })()"
+    metrics = pg.page.evaluate("(() => { const s = document.querySelector('.drawer__scroll'); return { sh: s.scrollHeight, ch: s.clientHeight, role: s.getAttribute('role'), tabindex: s.getAttribute('tabindex'), label: s.getAttribute('aria-labelledby') }; })()")
+    out = {'metrics': metrics, 'order': [pg.page.evaluate(desc)], 'inside': []}
+    inside = "!!document.activeElement && !!document.activeElement.closest('.drawer')"
+    for _ in range(a.get('tabs', 8)):
+        pg.page.keyboard.press('Tab')
+        out['order'].append(pg.page.evaluate(desc))
+        out['inside'].append(pg.page.evaluate(inside))
+        if out['order'][-1] == 'scroll':
+            break
+    st = lambda: pg.page.evaluate("document.querySelector('.drawer__scroll').scrollTop")
+    out['top0'] = st()
+    if out['order'][-1] == 'scroll':
+        pg.page.keyboard.press('ArrowDown'); pg.settle(400); out['after_arrow'] = st()
+        pg.page.keyboard.press('PageDown'); pg.settle(400); out['after_page'] = st()
+        pg.page.keyboard.press('End'); pg.settle(400); out['after_end'] = st()
+    pg.close()
+    return out
+
+
+def s_privacy(a, pw):  # FND-046 / Q-037 / Q-038: the privacy line, the hints after 清空 and 关掉记忆
+    pg = Page(pw, a['base'], a.get('lang', 'zh'), width=a.get('width', 1280), height=a.get('height', 900)).goto()
+    pg.page.wait_for_timeout(400)
+    body_text = "document.body.textContent"
+    out = {'notice_first': pg.visible('[data-testid=memory-notice]'),
+           'privacy_while_notice': pg.page.evaluate("document.querySelector('.log__privacy-text') ? document.querySelector('.log__privacy-text').textContent : null"),
+           'body_has_privacy_while_notice': [pg.page.evaluate("(w) => document.body.textContent.includes(w)", w) for w in a.get('privacy_words', [])]}
+    mode = a.get('mode', 'ok')
+    if mode == 'off':
+        pg.page.click('[data-testid=notice-off]')
+    elif out['notice_first']:
+        pg.page.click('[data-testid=notice-ok]')
+    pg.page.wait_for_selector('[data-testid=memory-notice]', state='detached', timeout=3000)
+    pg.page.wait_for_timeout(300)
+    out['notice_after'] = pg.visible('[data-testid=memory-notice]')
+    out['privacy_after'] = pg.text('.log__privacy-text')
+    out['hint_after_answer'] = pg.hint()
+    if mode == 'clear':
+        pg.send('今天开心')
+        out['hint_after_send'] = pg.hint()
+        pg.page.click('[data-testid=clear]')
+        pg.page.wait_for_timeout(400)
+        out['hint_after_clear'] = pg.hint()
+        out['turns_after_clear'] = pg.turns()
+    pg.close()
+    return out
+
+
+def fit_probe(pg, tag):
+    return pg.page.evaluate("""(tag) => { const d = document.documentElement; const s = document.querySelector('.drawer__scroll'); const dr = document.querySelector('.drawer');
+      return { tag, doc: [d.scrollWidth, d.clientWidth], body: [document.body.scrollWidth, document.body.clientWidth], scrollX: window.scrollX,
+               drawer: dr && !dr.hidden ? [s.scrollWidth, s.clientWidth] : null }; }""", tag)
+
+
+def s_fit(a, pw):  # Q-049: no sideways scroll at one width and language, over notice, chat and both tabs (first open, so the notice shows)
+    pg = Page(pw, a['base'], a.get('lang', 'zh'), width=a['width'], height=a.get('height', 844)).goto()
+    pg.page.wait_for_timeout(300)
+    probes = []
+    if pg.visible('[data-testid=memory-notice]'):
+        probes.append(fit_probe(pg, 'notice'))
+        pg.page.click('[data-testid=notice-ok]')
+        pg.page.wait_for_selector('[data-testid=memory-notice]', state='detached', timeout=3000)
+        pg.page.wait_for_timeout(300)
+    probes.append(fit_probe(pg, 'chat'))
+    pg.send('今天开心')
+    probes.append(fit_probe(pg, 'chat with a reply'))
+    pg.open_drawer('diary')
+    pg.page.wait_for_selector('[data-testid=diary-days] .day', timeout=10000); pg.settle(300)
+    probes.append(fit_probe(pg, 'diary'))
+    pg.page.click('[data-testid=tab-about]')
+    pg.page.wait_for_selector('[data-testid=about-box], [data-testid=about-empty]', timeout=8000); pg.settle(300)
+    probes.append(fit_probe(pg, 'about'))
+    pg.page.click('[data-testid=forget]'); pg.settle(300)
+    probes.append(fit_probe(pg, 'forget asked'))
+    pg.close()
+    return {'probes': probes}
+
+
+def s_loading(a, pw):  # Q-047: the About tab while /api/profile has not answered (the answer is held until released)
+    pg = Page(pw, a['base'], a.get('lang', 'zh')).goto()
+    if pg.visible('[data-testid=notice-ok]'):
+        pg.page.click('[data-testid=notice-ok]')
+        pg.page.wait_for_selector('[data-testid=memory-notice]', state='detached', timeout=3000)
+    held = []
+    def handler(route):
+        if route.request.method == 'GET':
+            held.append(route)
+        else:
+            route.continue_()
+    pg.page.route('**/api/profile', handler)
+    pg.open_drawer('about')
+    pg.page.wait_for_timeout(a.get('hold_ms', 800))
+    real = ['[data-testid=about-box]', '[data-testid=about-empty]', '[data-testid=about-name]', '[data-testid=about-region]', '[data-testid=memory-switch]', '[data-testid=forget]']
+    out = {'held_requests': len(held), 'skeleton': pg.visible('.skeleton--about'), 'busy': pg.page.get_attribute('[data-testid=panel-about]', 'aria-busy'),
+           'real_during': [s for s in real if pg.visible(s)], 'panel_text': pg.text('[data-testid=panel-about]'),
+           'focusables_in_panel': pg.page.evaluate("document.querySelectorAll('[data-testid=panel-about] button, [data-testid=panel-about] input, [data-testid=panel-about] select, [data-testid=panel-about] [tabindex]').length")}
+    for r in held:
+        r.continue_()
+    pg.page.wait_for_selector('[data-testid=about-name]', timeout=8000)
+    pg.settle(200)
+    out['skeleton_after'] = pg.visible('.skeleton--about')
+    out['real_after'] = [s for s in real if pg.visible(s)]
+    pg.close()
+    return out
+
+
+def s_region_a11y(a, pw):  # FND-052 / FND-061: what the region select is described by; what the unreadable state shows
+    pg = Page(pw, a['base']).goto()
+    if pg.visible('[data-testid=notice-ok]'):
+        pg.page.click('[data-testid=notice-ok]')
+        pg.page.wait_for_selector('[data-testid=memory-notice]', state='detached', timeout=3000)
+    pg.open_drawer('about')
+    pg.page.wait_for_selector('[data-testid=about-region]', timeout=8000)
+    pg.settle(300)
+    out = pg.page.evaluate("""() => {
+      const sel = document.querySelector('[data-testid=about-region]');
+      const ids = (sel.getAttribute('aria-describedby') || '').split(/\s+/).filter(Boolean);
+      const el = (id) => document.getElementById(id);
+      return { described_by: sel.getAttribute('aria-describedby'), described_text: ids.map((i) => (el(i) ? el(i).textContent.trim() : '?')).join(' '),
+               line_text: el('region-line') ? el('region-line').textContent : '', note_text: el('region-note') ? el('region-note').textContent : '',
+               shown_option: sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].textContent : null, disabled: sel.disabled };
+    }""")
     pg.close()
     return out
 

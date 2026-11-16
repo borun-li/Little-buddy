@@ -79,6 +79,7 @@
 }
 .drawer__tab:hover { color: var(--color-text-primary); }
 .drawer__tab[aria-selected="true"] { color: var(--color-text-primary); font-weight: 600; border-bottom-color: var(--color-text-primary); }
+.drawer__scroll:focus-visible { outline: 3px solid var(--color-focus-ring); outline-offset: -3px; }
 .drawer__tab:focus-visible { outline: 3px solid var(--color-focus-ring); outline-offset: 2px; }
 .drawer__close { margin-bottom: 8px; flex: none; }
 .drawer select:focus-visible, .drawer input:focus-visible { outline: 0; border-color: var(--color-focus-ring); box-shadow: 0 0 0 1px var(--color-focus-ring); }

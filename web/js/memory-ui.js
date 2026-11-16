@@ -51,6 +51,12 @@ export function createMemoryUi({ client, drawer, main, openers, noticeHost, priv
   };
   const closeBtn = drawer.querySelector('.drawer__close');
   const sub = drawer.querySelector('.drawer__sub');
+  const scrollEl = drawer.querySelector('.drawer__scroll');
+  // FND-045: a live region that exists (empty) before it is written to, so the result of 忘掉我 is announced; the cleared hint
+  // sits in the inert page, so this is the one voice for it. Focus stays on 关闭 (FLOW-020).
+  const announcer = sr('');
+  announcer.dataset.testid = 'drawer-announce';
+  drawer.append(announcer);
   const panels = { diary: drawer.querySelector('[data-panel="diary"]'), about: drawer.querySelector('[data-panel="about"]') };
 
   let profile = null;      // last read of the profile; null until read
@@ -79,7 +85,7 @@ export function createMemoryUi({ client, drawer, main, openers, noticeHost, priv
   // ---------- privacy line + notice (PAGE-001) ----------
   function renderPrivacy() {
     if (!privacyEl) return;
-    if (!profile && !profileFailed) { privacyEl.textContent = ''; return; }
+    if ((!profile && !profileFailed) || noticeEl) { privacyEl.textContent = ''; return; } // not while the first-run notice is open (PAGE-001)
     const key = profileFailed || profile?.readable === false ? 'privacyUnreadable' : memoryOn() ? 'privacyOn' : 'privacyOff';
     privacyEl.textContent = copy[key];
   }
@@ -108,6 +114,7 @@ export function createMemoryUi({ client, drawer, main, openers, noticeHost, priv
     if (!el) return;
     const calm = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (calm) el.remove(); else { el.classList.add('is-leaving'); setTimeout(() => el.remove(), 150); }
+    renderPrivacy(); // the line appears once the notice is answered
     onStartChat?.();
   }
 
@@ -148,9 +155,9 @@ export function createMemoryUi({ client, drawer, main, openers, noticeHost, priv
       profileFailed = false;
       setMemoryPath(profile.path);
     } catch { profile = null; profileFailed = true; }
-    renderPrivacy();
-    onProfile?.(profile);
     if (profile?.readable && !profile.noticeSeen) showNotice();
+    renderPrivacy(); // after showNotice: the line waits while the notice is open
+    onProfile?.(profile);
   }
 
   // ---------- drawer shell ----------
@@ -167,7 +174,8 @@ export function createMemoryUi({ client, drawer, main, openers, noticeHost, priv
     sub.textContent = t(current === 'about' ? 'aboutSub' : 'diarySub');
     panels.diary.hidden = current !== 'diary';
     panels.about.hidden = current !== 'about';
-    drawer.querySelector('.drawer__scroll').scrollTop = 0;
+    scrollEl.scrollTop = 0;
+    scrollEl.setAttribute('aria-labelledby', current === 'about' ? 'tab-about' : 'tab-diary'); // FND-044: the keyboard-scrollable body is named by its tab
     openers.diary.setAttribute('aria-pressed', String(current === 'diary'));
     openers.about.setAttribute('aria-pressed', String(current === 'about'));
   }
@@ -408,7 +416,9 @@ export function createMemoryUi({ client, drawer, main, openers, noticeHost, priv
     const box = h('div', 'dead');
     box.append(h('input', 'input', null, { disabled: '', 'aria-label': t('nameHeading'), value: getName(), 'data-testid': 'about-name' }));
     const sel = h('select', 'select', null, { disabled: '', 'aria-label': t('regionHeading'), 'data-testid': 'about-region' });
-    sel.append(h('option', null, t('regionCN')));
+    // the region a crisis turn would use: the chosen one, else this Mac's (FND-061); nothing known = other
+    const shown = profile?.region ?? profile?.systemRegion ?? 'other';
+    sel.append(h('option', null, t(REGIONS.find(([v]) => v === shown)?.[1] ?? 'regionOther')));
     // a real disabled switch (named, off), so assistive tech finds what cannot be changed (CMP-015 disabled)
     const sw = button('switch', null, 'memory-switch');
     sw.disabled = true;
@@ -505,6 +515,9 @@ export function createMemoryUi({ client, drawer, main, openers, noticeHost, priv
     });
     const line = h('div', 'set__line');
     line.append(wrapSel, lineEl);
+    regionNote.id = 'region-note';
+    lineEl.id = 'region-line';
+    sel.setAttribute('aria-describedby', 'region-line region-note'); // CMP-016: the numbers and the note are read with the select
     regionRow.body.append(line, regionNote, regionMsg);
 
     // memory switch
@@ -579,8 +592,11 @@ export function createMemoryUi({ client, drawer, main, openers, noticeHost, priv
       onForgotten?.(); // the chat on screen goes too
       renderAbout(panels.about); // 关于你 now reads empty; the new forget block is replaced by the result
       forgetHost.removeAttribute('role'); forgetHost.removeAttribute('aria-labelledby');
-      forgetHost.replaceChildren(h('p', 'forget__result', t(memoryOn() ? 'forgotten' : 'forgottenOff'), { role: 'status', 'data-testid': 'forget-result' }));
+      const words = t(memoryOn() ? 'forgotten' : 'forgottenOff');
+      forgetHost.replaceChildren(h('p', 'forget__result', words, { 'data-testid': 'forget-result' })); // announced by the drawer's own live region
       closeBtn.focus();
+      announcer.textContent = '';
+      setTimeout(() => { announcer.textContent = words; }, 50); // written after the result is drawn, so it is spoken
     } catch (err) {
       renderForget(failed('forget', err).key); // the line replaces the question, 删掉 stays for another try
     }

@@ -38,6 +38,7 @@ const history = []; // page memory only (A5)
 let pending = false;
 // Q-022: bumped by every clear; a reply or transcript that belongs to an earlier generation is dropped.
 let generation = 0;
+let inflight = null; // the AbortController of the reply on its way (FND-043)
 const clearCallbacks = []; // later rows (reading, breathing, chip, card) register what a clear must stop
 export function onClear(fn) { clearCallbacks.push(fn); }
 // Q-028 -> Q-029 hook: the offer chip calls this when tapped; Q-029 registers the guide's start here.
@@ -118,9 +119,13 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !e.isCom
 const rename = createRename({
   row: $('.companion__caption'),
   button: $('.caption__name'),
-  onSave(cleaned) {
+  // FND-042: save first, like the drawer's field (memory-ui.js): the name shows and is sent only once the profile kept it;
+  // a failed save leaves the old name (the default while the files are unreadable, DES-039) and says so on the hint line.
+  async onSave(cleaned) {
+    if (cleaned === savedName) return;
+    try { await memory.setName(cleaned); } catch { showHint('nameSaveFailed'); return; }
+    if (hint.key === 'nameSaveFailed') hint.clear();
     applyName(cleaned);
-    memory.setName(cleaned).catch(() => {}); // the profile keeps it; the caption keeps its own answer (FLOW-008)
   },
 });
 // The one place a new name lands (caption rename, the drawer's field, the profile read): the profile keeps it (DES-039);
@@ -240,12 +245,16 @@ async function send(raw, { voice = false, turn: standing = null } = {}) {
   setPending(true);
   log.showTyping();
   let result;
+  const controller = new AbortController(); // FND-043: 清空 aborts this reply, so the service records nothing for it
+  inflight = controller;
   try {
-    result = await respond(line, history.slice(), savedName);
+    result = await respond(line, history.slice(), savedName, controller.signal);
   } catch (err) {
     if (gen !== generation) return false; // cleared meanwhile: no words returned, no hint (A24)
     onSendFailed(err, line, turn);
     return false;
+  } finally {
+    if (inflight === controller) inflight = null;
   }
   if (gen !== generation) return false; // late reply after a clear: dropped
   const { reply, mood, lang, speech, crisis, region } = result;
@@ -265,6 +274,8 @@ async function send(raw, { voice = false, turn: standing = null } = {}) {
 // Q-022 / FLOW-011: one click, no confirm. The input text and the name stay.
 function clearChat() {
   generation += 1;
+  inflight?.abort(); // FND-043: the reply on its way is dropped, no hint (the aborted call lands in send's gen check)
+  inflight = null;
   history.length = 0;
   log.clear();
   setPending(false);

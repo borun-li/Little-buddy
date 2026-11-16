@@ -42,6 +42,7 @@ export const COPY = {
       sendTimeout: '小伙伴想得太久，这次没回上。文字放回输入框了，按 Enter 再发。',
       sendFailed: '这次没回上来。文字放回输入框了，按 Enter 再发。',
       cleared: '聊天清空了，重新开始吧。',
+      nameSaveFailed: '没存上，还是原来的。再试一次。',
       sendDefect: '这句没发出去。文字放回输入框了，再试一次；还不行就刷新页面（聊天会清空）。',
       // R1 (docs/frontend/r1-memory/01-ux.md §5)
       memoryOffNow: '记忆关了，接下来聊的不会被记下。',
@@ -139,6 +140,7 @@ export const COPY = {
       sendTimeout: 'Little Buddy took too long this time. Your words are back in the box; press Enter to send again.',
       sendFailed: "That reply didn't come through. Your words are back in the box; press Enter to send again.",
       cleared: 'Chat cleared. Start fresh any time.',
+      nameSaveFailed: "That didn't save, so nothing changed. Try again.",
       sendDefect: "This didn't send. Your words are back in the box; try again, and if it still fails, reload the page (the chat will clear).",
       // R1 (docs/frontend/r1-memory/01-ux.md §5)
       memoryOffNow: 'Memory is off. Nothing from now on will be kept.',
