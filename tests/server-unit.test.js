@@ -185,24 +185,54 @@ test('TC-012 toMessages = system(REPLY_SYSTEM + LANG_RULE last) + history (compa
   assert.equal(toMessages('嗯', [], 'zh').length, 2);
 });
 
-test('TC-013 windowOf: last 40 entries, then drop oldest until total weight (length + 1.5 per Han) <= 2000', async () => {
+test('TC-013 windowOf: last 40 entries; whole while weight (length + 1.5 per Han) <= 2000, else drop oldest until <= historyLow 1000 (DES-035, step 8.5)', async () => {
   const { windowOf } = await imp('server/bonsai.js');
   const e = (n, len, ch = null) => Array.from({ length: n }, (_, i) => ({ role: i % 2 ? 'companion' : 'user', text: ch ? ch.repeat(len) : String(i % 10).repeat(len) }));
   assert.equal(windowOf(e(45, 10)).length, 40);
   assert.deepEqual(windowOf(e(45, 10)), e(45, 10).slice(5));
-  const w = windowOf(e(40, 200)); // 8000 -> newest 10 (2000)
-  assert.equal(w.length, 10); assert.deepEqual(w, e(40, 200).slice(30));
-  assert.equal(windowOf(e(10, 200)).length, 10, 'exactly 2000 stays');
-  assert.equal(windowOf(e(11, 200)).length, 10);
+  // DES-035 rule 3 (design change, was "cut to <= 2000"): past 2000 the window is cut to <= historyLow 1000, so the start moves rarely
+  const w = windowOf(e(40, 200)); // 8000 > 2000 -> newest 5 (1000)
+  assert.equal(w.length, 5); assert.deepEqual(w, e(40, 200).slice(35));
+  assert.equal(windowOf(e(10, 200)).length, 10, 'exactly 2000 stays whole (rule 2)');
+  assert.equal(windowOf(e(11, 200)).length, 5, '2200 > 2000 -> cut to 1000, not to 2000 (rule 3)');
   assert.equal(windowOf(e(40, 35)).length, 40, 'a 20-turn English chat of ~1400 chars stays whole');
   assert.equal(windowOf(e(20, 49)).length, 20);
-  const han = windowOf(e(21, 40, '好')); // each weight 40 + 60 = 100; 21 x 100 = 2100 -> 20
-  assert.equal(han.length, 20); assert.deepEqual(han, e(21, 40, '好').slice(1));
-  assert.equal(windowOf(e(5, 1500)).length, 1);
+  const han = windowOf(e(21, 40, '好')); // each weight 40 + 60 = 100; 21 x 100 = 2100 > 2000 -> newest 10 (1000)
+  assert.equal(han.length, 10); assert.deepEqual(han, e(21, 40, '好').slice(11));
+  assert.deepEqual(windowOf(e(5, 1500)), [], 'rule 3 may end empty: 1500 > historyLow');
   assert.deepEqual(windowOf(e(1, 2001)), [], 'one entry heavier than the budget -> []');
   assert.deepEqual(windowOf(e(1, 801, '好')), [], 'Han weight 2.5 each: 801 chars = 2002.5');
   assert.equal(windowOf(e(1, 800, '好')).length, 1, '800 Han = 2000');
   assert.deepEqual(windowOf([]), []);
+});
+
+test('TC-224 windowOf anchor (DES-035 rules 1-3, A32 cache-friendly window): anchor present keeps the start, absent or past 2000 falls to rules 2/3', async () => {
+  const { windowOf } = await imp('server/bonsai.js');
+  const { CONFIG } = await imp('server/config.js');
+  const u = (n, len) => Array.from({ length: n }, (_, i) => ({ role: i % 2 ? 'companion' : 'user', text: String(i).padStart(len, 'x') })); // unique, weight len each
+  const at = (h, i) => ({ role: h[i].role, text: h[i].text });
+  // present: 12 x 200 = 2400 would be cut to the last 5 (1000) without the anchor; from entry 4 the window is 8 x 200 = 1600 <= 2000 -> same start
+  let h = u(12, 200);
+  assert.deepEqual(windowOf(h, CONFIG), h.slice(7), 'no anchor: rule 3');
+  assert.deepEqual(windowOf(h, CONFIG, null), h.slice(7), 'anchor null: rule 3');
+  assert.deepEqual(windowOf(h, CONFIG, at(h, 4)), h.slice(4), 'anchor present: window starts at it again (rule 1)');
+  assert.deepEqual(windowOf(h, CONFIG, at(h, 2)), h.slice(2), 'from entry 2: 10 x 200 = 2000 is still within the budget (boundary)');
+  assert.deepEqual(windowOf(h, CONFIG, at(h, 1)), h.slice(7), 'from entry 1: 2200 > 2000 -> rule 1 does not fire, rule 3');
+  // absent: same text with the other role, or text not in history, or the entry older than the last 40
+  assert.deepEqual(windowOf(h, CONFIG, { role: h[4].role === 'user' ? 'companion' : 'user', text: h[4].text }), h.slice(7), 'role differs -> absent');
+  assert.deepEqual(windowOf(h, CONFIG, { role: 'user', text: 'gone' }), h.slice(7), 'text not found -> rule 3');
+  const short = u(8, 200); // 1600 <= 2000
+  assert.deepEqual(windowOf(short, CONFIG, { role: 'user', text: 'gone' }), short, 'absent anchor, within 2000 -> the whole window (rule 2)');
+  const long = u(45, 10); // 450; the anchor is entry 2, outside the last 40
+  assert.deepEqual(windowOf(long, CONFIG, at(long, 2)), long.slice(5), 'anchor older than 40 entries -> absent -> whole last 40');
+  // past 2000: anchor present but the window from it is heavier than historyBudget
+  h = u(14, 200); // 2800
+  assert.deepEqual(windowOf(h, CONFIG, at(h, 1)), h.slice(9), 'from entry 1: 13 x 200 = 2600 > 2000 -> cut to <= 1000 (5 entries)');
+  assert.deepEqual(windowOf(h, CONFIG, at(h, 9)), h.slice(9), 'anchor already at the cut start stays');
+  // the last matching entry wins when the text repeats
+  const rep = [{ role: 'user', text: 'a'.repeat(300) }, { role: 'companion', text: 'b' }, { role: 'user', text: 'a'.repeat(300) }, { role: 'companion', text: 'c' }];
+  assert.deepEqual(windowOf(rep, CONFIG, rep[0]), rep.slice(2), 'findLastIndex: the newest match');
+  assert.deepEqual(windowOf([], CONFIG, { role: 'user', text: 'x' }), []);
 });
 
 // ---------- prompts.js (DES-010)
@@ -222,10 +252,10 @@ test('TC-014 prompts: the 5 mood ids, mood schema enum, sampling parameters, lan
 test('TC-015 CONFIG: loopback host, limits, deadlines, restarts, defaults', async () => {
   const { CONFIG } = await imp('server/config.js');
   assert.equal(CONFIG.host, '127.0.0.1');
-  assert.deepEqual({ ...CONFIG.limits }, { lineChars: 1500, historyEntries: 40, historyTextChars: 1500, historyBudget: 2000, jsonBytes: 262144, wavBytes: 2000000, speakChars: 200, speakJsonBytes: 4096, speakQueue: 4, profileJsonBytes: 4096, forgetJsonBytes: 64 }); // increment 2: + speak limits (DES-023); speakQueue FND-013; R1 profileJsonBytes, forgetJsonBytes (DES-037)
+  assert.deepEqual({ ...CONFIG.limits }, { lineChars: 1500, historyEntries: 40, historyTextChars: 1500, historyBudget: 2000, jsonBytes: 262144, wavBytes: 2000000, speakChars: 200, speakJsonBytes: 4096, speakQueue: 4, profileJsonBytes: 4096, forgetJsonBytes: 64, historyLow: 1000 }); // step 8.1 DES-035 historyLow; increment 2: + speak limits (DES-023); speakQueue FND-013; R1 profileJsonBytes, forgetJsonBytes (DES-037)
   assert.deepEqual({ ...CONFIG.deadlines }, { respondMs: 15000, transcribeMs: 12000, sttBootMs: 600000, bonsaiBootMs: 300000, speakMs: 10000, ttsBootMs: 300000, ttsOverdueMs: 30000, rememberMs: 14000 }); // increment 2: + speakMs, ttsBootMs (DES-023); ttsOverdueMs FND-015; R1 rememberMs (DES-037)
   assert.ok(CONFIG.deadlines.respondMs + CONFIG.deadlines.transcribeMs < 30000, 'voice turn < 30 s (A11)');
-  { const { dir, displayPath, ...rest } = CONFIG.memory; assert.deepEqual(rest, { notesBudget: 1200, lineChars: 80, pointChars: 80, queueMax: 8, lockWaitMs: 1000 }); assert.ok(typeof dir === 'string' && dir.startsWith('/') && typeof displayPath === 'string'); } // R1 memory keys (DES-037)
+  { const { dir, displayPath, ...rest } = CONFIG.memory; assert.deepEqual(rest, { notesBudget: 1200, lineChars: 80, pointChars: 80, pendingMax: 20, quietMs: 8000, lockWaitMs: 1000 }); assert.ok(typeof dir === 'string' && dir.startsWith('/') && typeof displayPath === 'string'); } // R1 memory keys (DES-037); step 8.1 (A32): queueMax -> pendingMax 20 + quietMs 8000
   assert.deepEqual({ ...CONFIG.restarts }, { max: 5, delayMs: 2000 });
   if (!process.env.PORT) assert.equal(CONFIG.port, 4317);
   if (!process.env.BONSAI_PORT) assert.equal(CONFIG.bonsai.port, 4318);

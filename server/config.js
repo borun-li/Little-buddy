@@ -68,12 +68,14 @@ export const CONFIG = Object.freeze({
     lineChars: 1500, historyEntries: 40, historyTextChars: 1500, historyBudget: 2000, jsonBytes: 262144, wavBytes: 2000000,
     speakChars: 200, speakJsonBytes: 4096, speakQueue: 4, // speakQueue: FND-013 (review round 1)
     profileJsonBytes: 4096, forgetJsonBytes: 64, // R1 (03 DES-037)
+    historyLow: 1000, // windowOf re-cut floor when the window passes historyBudget (03 DES-035)
   },
   deadlines: { respondMs: 15000, transcribeMs: 12000, sttBootMs: 600000, bonsaiBootMs: 300000, speakMs: 10000, ttsBootMs: 300000, ttsOverdueMs: 30000, rememberMs: 14000 },
   // ttsOverdueMs (FND-015): from the write to the helper's answer; ≥ 9.6 s audio × RTF 2.7 under load (03 DES-017)
   restarts: { max: 5, delayMs: 2000 },
   // notesBudget: weight of 关于你 that prompts read (≈ 550 Han); lineChars/pointChars in code points (03 DES-037, §6).
-  memory: { dir: DATA_DIR, displayPath: displayPath(DATA_DIR), notesBudget: 1200, lineChars: 80, pointChars: 80, queueMax: 8, lockWaitMs: 1000 },
+  // pendingMax: lines waiting for the idle-time update; quietMs: quiet after the last turn before a flush starts (A32, DES-033).
+  memory: { dir: DATA_DIR, displayPath: displayPath(DATA_DIR), notesBudget: 1200, lineChars: 80, pointChars: 80, pendingMax: 20, quietMs: 8000, lockWaitMs: 1000 },
 });
 
 export function bonsaiFiles(cfg = CONFIG) {

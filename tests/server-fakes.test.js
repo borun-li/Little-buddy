@@ -212,7 +212,8 @@ test('TC-031 bonsai.respond: mood call sees only the line; reply call sees the w
     const big = Array.from({ length: 40 }, (_, i) => ({ role: i % 2 ? 'companion' : 'user', text: 'x'.repeat(200) }));
     await b.respond('hi', big);
     rep = bodies(log).slice(n2).find((x) => !x.response_format);
-    assert.equal(rep.messages.length, 1 + 10 + 1, 'history cut to the weight budget 2000 (10 of 40 entries of 200 chars)');
+    // DES-035 rule 3 (step 8.5): past 2000 the window is cut to <= historyLow 1000, so 5 of 40 entries of 200 chars (was 10)
+    assert.equal(rep.messages.length, 1 + 5 + 1, 'history cut to historyLow 1000 (5 of 40 entries of 200 chars)');
   } finally { b.stop(); }
 });
 

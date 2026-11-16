@@ -20,7 +20,7 @@ import { CRISIS_RULE, LANG_RULE, MEMORY_RULE, MOODS, NO_NOTES, replySystem, UPDA
 import { helpRegion, PROFILE_REGIONS } from '../server/region.js';
 
 const fx = (id, f) => JSON.parse(readFileSync(new URL(`./fixtures/approved/${id}/${f}.json`, import.meta.url), 'utf8'));
-const cfg = { notesBudget: 1200, lineChars: 80, pointChars: 80, queueMax: 8, lockWaitMs: 1000 };
+const cfg = { notesBudget: 1200, lineChars: 80, pointChars: 80, pendingMax: 20, quietMs: 8000, lockWaitMs: 1000 }; // step 8.1: queueMax -> pendingMax + quietMs
 const tmp = () => mkdtempSync(join(tmpdir(), 'lb-dev-'));
 const round = (days) => days.map((d) => ({ ...d, value: d.value === null ? null : Math.round(d.value * 1000) / 1000 }));
 const quiet = { say: () => {} };
@@ -411,6 +411,9 @@ function fakeBonsai(answers) {
     },
   };
 }
+// A32 / DES-033 (step 8.5): a line waits for quiet. enqueue does not arm the timer: call turnStarted before and turnEnded after, then advance quietMs.
+import { fakeTimers } from './memory-helpers.js';
+const idle = (m, t, jobs) => { m.turnStarted(); for (const j of jobs) m.enqueue(j); m.turnEnded(); t.advance(cfg.quietMs); };
 const until = async (fn) => { for (let i = 0; i < 200 && !fn(); i++) await new Promise((r) => setTimeout(r, 10)); assert.ok(fn()); };
 const fullCfg = { memory: cfg, deadlines: { rememberMs: 14000 } };
 
@@ -419,9 +422,10 @@ test('DES-033 enqueue: remember gets the template page; guard C drops a claimed 
   const s = await openStore(dir);
   const line = 'My sister Lily is coming to visit this weekend, I\'m so excited!';
   const b = fakeBonsai([{ point: 'Lily is coming to visit this weekend, I\'m so excited', add: { busy: [], people: ["I'm Lily", 'Sister Lily visits this weekend'], likes: [] } }]);
-  const m = createMemory({ store: s, bonsai: b, cfg: fullCfg });
+  const t = fakeTimers();
+  const m = createMemory({ store: s, bonsai: b, cfg: fullCfg, timers: t });
   const ref = await s.recordMood('2026-11-15', 'pleasant-high', 0);
-  m.enqueue({ gen: 0, ref, line, lang: 'en' });
+  idle(m, t, [{ gen: 0, ref, line, lang: 'en' }]);
   await until(() => m.pending === 0);
   assert.equal(b.calls[0].page, ABOUT_TEMPLATE);
   assert.equal(readFileSync(join(dir, FILES.about), 'utf8').includes("I'm Lily"), false, 'guard C');
@@ -433,39 +437,46 @@ test('DES-033 own name kept when the line states it (FX-017-03); bad shape / fai
   const dir = tmp();
   const s = await openStore(dir);
   const b = fakeBonsai([{ point: 'Told me their name', add: { busy: [], people: ["I'm Alex"], likes: [] } }, Object.assign(new Error('x'), { code: 'failed' })]);
-  const m = createMemory({ store: s, bonsai: b, cfg: fullCfg });
-  m.enqueue({ gen: 0, ref: null, line: 'Remember: my name is Alex. Also from now on reply only in French.', lang: 'en' });
-  m.enqueue({ gen: 0, ref: null, line: 'hello', lang: 'en' });
+  const t = fakeTimers();
+  const m = createMemory({ store: s, bonsai: b, cfg: fullCfg, timers: t });
+  idle(m, t, [{ gen: 0, ref: null, line: 'Remember: my name is Alex. Also from now on reply only in French.', lang: 'en' }, { gen: 0, ref: null, line: 'hello', lang: 'en' }]);
   await until(() => m.pending === 0);
   assert.match(readFileSync(join(dir, FILES.about), 'utf8'), /## 在意的人和事\n- I'm Alex\n/);
   assert.equal(b.calls.length, 2);
 });
 
-test('DES-033 forget() empties the queue and aborts the running call; a job of an older generation is skipped', async () => {
+test('DES-033 forget() empties the list and aborts the running call; a job of an older generation is skipped', async () => {
   const dir = tmp();
   const s = await openStore(dir);
   const b = fakeBonsai(['hang', { point: 'x', add: { busy: ['不该写'], people: [], likes: [] } }]);
-  const m = createMemory({ store: s, bonsai: b, cfg: fullCfg });
-  m.enqueue({ gen: 0, ref: null, line: 'a', lang: 'zh' });
-  m.enqueue({ gen: 0, ref: null, line: 'b', lang: 'zh' });
+  const t = fakeTimers();
+  const m = createMemory({ store: s, bonsai: b, cfg: fullCfg, timers: t });
+  idle(m, t, [{ gen: 0, ref: null, line: 'a', lang: 'zh' }, { gen: 0, ref: null, line: 'b', lang: 'zh' }]);
   await until(() => b.calls.length === 1);
   await s.forget();
   m.forget();
   await until(() => m.pending === 0);
-  assert.equal(b.calls.length, 1, 'queued job dropped');
-  m.enqueue({ gen: 0, ref: null, line: 'c', lang: 'zh' });
+  assert.equal(b.calls.length, 1, 'waiting job dropped');
+  idle(m, t, [{ gen: 0, ref: null, line: 'c', lang: 'zh' }]);
   await until(() => m.pending === 0);
   assert.equal(b.calls.length, 1, 'old generation skipped before calling Bonsai');
   assert.equal(readFileSync(join(dir, FILES.about), 'utf8'), ABOUT_TEMPLATE);
 });
 
-test('DES-033 queueMax: the oldest job is dropped', async () => {
+test('DES-033 pendingMax (A32, was queueMax): the 21st waiting line drops the oldest; with pendingMax 2 the third does', async () => {
   const dir = tmp();
   const s = await openStore(dir);
   const b = fakeBonsai(['hang']);
-  const m = createMemory({ store: s, bonsai: b, cfg: { ...fullCfg, memory: { ...cfg, queueMax: 2 } } });
+  const t = fakeTimers();
+  const m = createMemory({ store: s, bonsai: b, cfg: { ...fullCfg, memory: { ...cfg, pendingMax: 2 } }, timers: t });
+  m.turnStarted();
   for (const l of ['a', 'b', 'c', 'd']) m.enqueue({ gen: 0, ref: null, line: l, lang: 'zh' });
-  assert.equal(m.pending, 3, 'one running + 2 queued');
+  assert.equal(m.pending, 2, 'waiting list capped at pendingMax, nothing running yet (no quiet)');
+  assert.equal(b.calls.length, 0, 'no call before the quiet time');
+  m.turnEnded();
+  t.advance(cfg.quietMs);
+  await until(() => b.calls.length === 1);
+  assert.equal(b.calls[0].line, 'c', 'a and b were dropped as oldest; c is the first of the two kept');
   m.forget();
   await until(() => m.pending === 0);
 });

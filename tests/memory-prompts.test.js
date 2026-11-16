@@ -1,18 +1,20 @@
 // R1 memory, group A (unit, regexes, guards, prompts): TC-157..TC-160. be-tester #4. Expected texts are taken from the design
 // (03 DES-034 block and §4 Guards rows), not from the implementation.
 import assert from 'node:assert/strict';
+import http from 'node:http';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { test } from 'node:test';
 import { toMessages } from '../server/bonsai.js';
 import { CONFIG } from '../server/config.js';
+import { attachMemory, route } from '../server/main.js';
 import { createMemory, OWN_NAME_LINE, SAYS_NAME } from '../server/memory.js';
 import { SECTIONS } from '../server/memory-files.js';
 import { createStore } from '../server/memory-store.js';
 import {
   CRISIS_RULE, LANG_RULE, MEMORY_RULE, NO_NOTES, REPLY_SYSTEM, replySystem, UPDATE_LANG, UPDATE_SAMPLING, UPDATE_SCHEMA, UPDATE_SYSTEM, updateUser,
 } from '../server/prompts.js';
-import { captureLogs, fx, ROOT, sleep, tmpDir, waitFor } from './memory-helpers.js';
+import { captureLogs, fakeTimers, fx, ROOT, sleep, tmpDir, waitFor } from './memory-helpers.js';
 
 // ---------- TC-157 SAYS_NAME
 test('TC-157 [FX-017] REQ-041: SAYS_NAME on the 10 must-true and 10 must-false sentences of 03 §4 guard C, plus extras', () => {
@@ -41,11 +43,14 @@ async function runGuard({ line, res, lang = 'zh' }) {
   const dir = tmpDir('lb-guard-');
   const store = createStore({ dir, say: () => {} });
   const bonsai = { remember: async () => res };
-  const mem = createMemory({ store, bonsai, cfg });
+  const timers = fakeTimers();
+  const mem = createMemory({ store, bonsai, cfg, timers });
   const { logs } = await captureLogs(async () => {
     await store.lock(); await store.load();
     const ref = await store.recordMood('2026-11-16', 'pleasant-high', store.generation);
-    mem.enqueue({ gen: store.generation, ref, line, lang });
+    // A32 / DES-033 (step 8.5): a line waits for quiet; enqueue does not arm the timer, turnEnded does, then quietMs (8 s) passes
+    mem.turnStarted(); mem.enqueue({ gen: store.generation, ref, line, lang }); mem.turnEnded();
+    timers.advance(cfg.memory.quietMs);
     await waitFor(() => mem.pending === 0, 5000, 'update finished');
     await sleep(50);
   });
@@ -150,4 +155,152 @@ test('TC-160 REQ-038/042/049: toMessages carries memory only in the system messa
     }
   }
   assert.equal(replySystem(null), REPLY_SYSTEM);
+});
+
+// ---------- TC-223 idle-time update inside createMemory (A32, 03 DES-033, step 8.6); injectable timers, no real waiting
+const QUIET = CONFIG.memory.quietMs;
+const rd = (dir) => { try { return readFileSync(join(dir, '关于你.md'), 'utf8'); } catch { return ''; } }; // the file is created by the first write
+const mkMem = async (answers, { cfg: c = CONFIG } = {}) => {
+  const dir = tmpDir('lb-idle-');
+  const store = createStore({ dir, say: () => {} });
+  await store.lock(); await store.load();
+  const calls = [];
+  const bonsai = {
+    remember(page, line, lang, signal) {
+      calls.push({ line, signal });
+      const a = answers.shift();
+      if (a === 'hang') return new Promise((_, rej) => signal.addEventListener('abort', () => rej(Object.assign(new Error('aborted'), { name: 'AbortError' }))));
+      return Promise.resolve(a ?? { point: null, add: { busy: [], people: [], likes: [] } });
+    },
+  };
+  const timers = fakeTimers();
+  return { dir, store, calls, timers, mem: createMemory({ store, bonsai, cfg: c, timers }) };
+};
+const job = (store, line) => ({ gen: store.generation, ref: null, line, lang: 'zh' });
+const note = (busy) => ({ point: null, add: { busy: [busy], people: [], likes: [] } });
+
+test('TC-223a [A32, DES-033] REQ-037: nothing is sent while a turn runs or before 8 s of quiet; the line goes at 8 s', async () => {
+  assert.equal(QUIET, 8000, 'quietMs is 8 s (A32 N <= 10 s)');
+  const { dir, store, calls, timers, mem } = await mkMem([note('在备考')]);
+  mem.turnStarted();
+  mem.enqueue(job(store, '我在备考'));
+  assert.equal(mem.pending, 1); assert.equal(timers.armed, 0, 'enqueue does not arm the quiet timer');
+  timers.advance(60000);
+  assert.equal(calls.length, 0, 'a turn is still running: nothing is sent, however long');
+  mem.turnEnded();
+  assert.equal(timers.armed, 1, 'turnEnded arms the quiet timer');
+  timers.advance(QUIET - 1);
+  assert.equal(calls.length, 0, '7.999 s of quiet: not yet');
+  timers.advance(1);
+  await waitFor(() => mem.pending === 0, 3000, 'line written and removed');
+  assert.equal(calls.length, 1); assert.equal(calls[0].line, '我在备考');
+  assert.ok(has(rd(dir), '在备考'), 'the line landed');
+});
+
+test('TC-223b [A32, DES-033] REQ-037: a new turn during a flush aborts the call with reason busy; the line stays first and lands at the next quiet', async () => {
+  const { dir, store, calls, timers, mem } = await mkMem(['hang', note('第二句的事'), note('第一句的事')]);
+  const { logs } = await captureLogs(async () => {
+    mem.turnStarted(); mem.enqueue(job(store, '第一句')); mem.turnEnded();
+    timers.advance(QUIET);
+    await waitFor(() => calls.length === 1, 3000, 'the call is in flight');
+    mem.turnStarted(); // the user sends a new line
+    await sleep(50);
+    assert.equal(calls[0].signal.aborted, true, 'the call was aborted');
+    assert.equal(mem.pending, 1, 'the line stays in the list');
+    mem.enqueue(job(store, '第二句')); mem.turnEnded();
+    timers.advance(QUIET - 1);
+    assert.equal(calls.length, 1, 'quiet restarts from the new reply, not from the old one');
+    timers.advance(1);
+    await waitFor(() => mem.pending === 0, 3000, 'both lines flushed');
+    await sleep(30);
+  });
+  assert.deepEqual(calls.map((c) => c.line), ['第一句', '第一句', '第二句'], 'the interrupted line is first again, then the next one: oldest first, one at a time');
+  const mu = logs.filter((l) => l.event === 'memory_update');
+  assert.equal(mu.filter((l) => l.reason === 'busy').length, 1, 'one busy line, not a failure');
+  assert.equal(mu.find((l) => l.reason === 'busy').ok, false);
+  assert.equal(mu.filter((l) => l.reason !== 'busy' && l.ok === true).length, 2, 'both lines ended ok exactly once each');
+  const about = rd(dir);
+  assert.ok(has(about, '第一句的事') && has(about, '第二句的事'), 'both landed');
+});
+
+test('TC-223c [A32, DES-033] REQ-037: at most 20 lines wait; the 21st drops the oldest (queue_full), then the rest run in order', async () => {
+  assert.equal(CONFIG.memory.pendingMax, 20);
+  const { dir, store, calls, timers, mem } = await mkMem([]);
+  const { logs } = await captureLogs(async () => {
+    mem.turnStarted();
+    for (let i = 1; i <= 20; i++) mem.enqueue(job(store, `L${String(i).padStart(2, '0')}`));
+    assert.equal(mem.pending, 20, '20 wait, none dropped');
+    mem.enqueue(job(store, 'L21'));
+    assert.equal(mem.pending, 20, 'the 21st came in, the oldest went out');
+    mem.turnEnded();
+    timers.advance(QUIET);
+    await waitFor(() => mem.pending === 0, 5000, 'all flushed');
+    await sleep(30);
+  });
+  const full = logs.filter((l) => l.event === 'memory_update' && l.reason === 'queue_full');
+  assert.equal(full.length, 1, 'exactly one queue_full'); assert.equal(full[0].ok, false);
+  assert.deepEqual(calls.map((c) => c.line), Array.from({ length: 20 }, (_, i) => `L${String(i + 2).padStart(2, '0')}`), 'L01 never sent; L02..L21 oldest first');
+  assert.equal(logs.filter((l) => l.event === 'memory_flush').length >= 1, true, 'a memory_flush line is logged');
+  assert.equal(rd(dir).includes('我不想活'), false, 'nothing about the line is written');
+});
+
+test('TC-223d [A32, DES-033] REQ-049/050: drop(forgotten) and drop(off) empty the list; nothing is sent or written after, whether waiting or in flight', async () => {
+  for (const reason of ['forgotten', 'off']) {
+    const { dir, store, calls, timers, mem } = await mkMem([note('不该写')]);
+    const { logs } = await captureLogs(async () => {
+      mem.turnStarted(); mem.enqueue(job(store, 'a')); mem.enqueue(job(store, 'b')); mem.turnEnded();
+      assert.equal(mem.drop(reason), 2, `${reason}: returns the number dropped`);
+      assert.equal(mem.pending, 0);
+      assert.equal(timers.armed, 0, 'the quiet timer is cancelled');
+      timers.advance(10 * QUIET);
+      await sleep(30);
+    });
+    assert.equal(calls.length, 0, `${reason}: nothing sent`);
+    assert.equal(rd(dir).includes('不该写'), false);
+    assert.deepEqual(logs.filter((l) => l.event === 'memory_update').map((l) => [l.reason, l.ok]), [[reason, false], [reason, false]], `${reason}: one line per dropped job`);
+    // and the same while a call is in flight
+    const r = await mkMem(['hang', note('不该写')]);
+    const out = await captureLogs(async () => {
+      r.mem.turnStarted(); r.mem.enqueue(job(r.store, 'a')); r.mem.enqueue(job(r.store, 'b')); r.mem.turnEnded();
+      r.timers.advance(QUIET);
+      await waitFor(() => r.calls.length === 1, 3000, 'in flight');
+      assert.equal(r.mem.drop(reason), 2, 'the one in flight counts');
+      await sleep(50);
+      assert.equal(r.calls[0].signal.aborted, true);
+      assert.equal(r.mem.pending, 0);
+      r.timers.advance(10 * QUIET);
+      await sleep(30);
+    });
+    assert.equal(r.calls.length, 1, `${reason}: b is never sent`);
+    assert.equal(rd(r.dir).includes('不该写'), false);
+    const mu = out.logs.filter((l) => l.event === 'memory_update');
+    assert.equal(mu.length, 2, `${reason}: exactly one line per job, the aborted one not logged twice`);
+    assert.ok(mu.every((l) => l.reason === reason && l.ok === false));
+  }
+});
+
+test('TC-223e [A32, DES-036] REQ-042: a crisis turn never enters the waiting list (route with a spy memory, Bonsai down)', async () => {
+  const dir = tmpDir('lb-idle-crisis-');
+  const store = createStore({ dir, say: () => {} });
+  await store.lock(); await store.load();
+  const timers = fakeTimers();
+  const mem = createMemory({ store, bonsai: { remember: async () => ({ point: null, add: { busy: [], people: [], likes: [] } }) }, cfg: CONFIG, timers });
+  const seen = { enqueue: 0, started: 0, ended: 0 };
+  attachMemory(store, new Proxy(mem, { get(t, k) { if (k === 'enqueue') return (j) => { seen.enqueue += 1; return t.enqueue(j); }; if (k === 'turnStarted') return () => { seen.started += 1; return t.turnStarted(); }; if (k === 'turnEnded') return () => { seen.ended += 1; return t.turnEnded(); }; const v = t[k]; return typeof v === 'function' ? v.bind(t) : v; } }));
+  const srv = http.createServer(route);
+  await new Promise((r) => srv.listen(0, '127.0.0.1', r));
+  try {
+    const { logs } = await captureLogs(async () => {
+      const r = await fetch(`http://127.0.0.1:${srv.address().port}/api/respond`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ line: '我不想活了。', history: [] }) });
+      const j = await r.json();
+      assert.equal(r.status, 200); assert.equal(j.crisis, true);
+      await sleep(100); // the 200 is sent before turnEnded / memory_turn run
+    });
+    assert.equal(logs.find((l) => l.event === 'memory_turn')?.queued, false, 'memory_turn says queued:false');
+  } finally { srv.close(); srv.closeAllConnections?.(); }
+  assert.equal(seen.started, 1); assert.equal(seen.ended, 1, 'every respond is wrapped by turnStarted / turnEnded');
+  assert.equal(seen.enqueue, 0, 'the crisis line was not enqueued');
+  assert.equal(mem.pending, 0);
+  timers.advance(10 * QUIET);
+  assert.equal(rd(dir).includes('我不想活'), false, 'nothing about the line is written');
 });

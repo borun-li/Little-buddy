@@ -4,6 +4,10 @@
 // LITTLEBUDDY_DATA_DIR per cell. Never port 4317, never ~/Library/Application Support/LittleBuddy.
 // Env: PERF_ONLY=hand2000@1.5,budget@1.5,...,tc217  (default: all cells in the order worst first, then tc217)   PERF_MINUTES=10
 //      PERF_OUT=docs/backend/logs/perf-r1 (per-cell JSON)   PERF_SCRATCH=<dir for data folders>
+//      PERF_PREFIX=perf-r1- (file name prefix; round 2 of the idle-time design uses r2-)   PERF_DRAIN_S=240 (cap for the end-of-cell drain)
+// Round 2 (be-tester #6, step 8.7, A32 idle-time update): extra cell `budget@burst` = 3 lines 1.5 s apart, then 30 s without a line, repeated.
+// Landing pairing changed with the design: lines wait for 8 s of quiet, `busy` log lines (a flush cut by a new turn) are not landings,
+// a queue_full line is matched to its turn by the job's own queue time (waited_ms), not by position.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawn, execFileSync } from 'node:child_process';
@@ -18,6 +22,9 @@ const PORT = 4460, BPORT = 4461;
 const MINUTES = Number(process.env.PERF_MINUTES || 10);
 const OUT = join(ROOT, process.env.PERF_OUT || 'docs/backend/logs/perf-r1');
 const SCRATCH = process.env.PERF_SCRATCH;
+const PREFIX = process.env.PERF_PREFIX || 'perf-r1-';
+const DRAIN_MS = Number(process.env.PERF_DRAIN_S || 240) * 1000;
+const BURST_LINES = 3, BURST_QUIET_MS = 30000;
 const RESPOND_MS = 16000, SPEAK_MS = 11000; // the page's own client deadlines (web/js/companion-client.js)
 // PERF_ABORT=1: the next send aborts the readings still in flight, as the page's speaker.stop() does at every send (web/js/app.js `send`).
 // Default (unset) keeps every reading running to its end: the plan's literal "play none" driver, a heavier load than the page puts on the TTS.
@@ -130,8 +137,8 @@ function prepare(dir, size) {
   return file;
 }
 
-async function cell(size, gapS) {
-  const name = `${size}@${gapS}`;
+async function cell(size, gapS, burst = false) {
+  const name = burst ? `${size}@burst` : `${size}@${gapS}`;
   const dir = mkdtempSync(join(SCRATCH, `data-${size}-${gapS}-`)); // a fresh folder per cell
   const aboutAtStart = prepare(dir, size);
   const gw = await startGateway(dir);
@@ -148,12 +155,13 @@ async function cell(size, gapS) {
   let n = 0;
   while (Date.now() < deadline) {
     n += 1;
+    const burstNo = burst ? Math.floor((n - 1) / BURST_LINES) + 1 : null;
     const { line, fact, lang: lineLang } = src.next();
     if (ABORT) { for (const c of live) c.abort(); live.clear(); }
     const t0 = Date.now();
     const r = await post('/api/respond', { line, history: history.slice(-40) }, RESPOND_MS);
     const t1 = Date.now();
-    const turn = { n, sendAt: t0, replyAt: t1, ms: r.ms, status: r.status, outcome: r.outcome, fact, lineLang, lang: r.json?.lang ?? null, parts: r.json?.speech?.length ?? 0, replyChars: r.json?.reply?.length ?? 0, mood: r.json?.mood ?? null, crisis: r.json?.crisis ?? null };
+    const turn = { n, burst: burstNo, sendAt: t0, replyAt: t1, ms: r.ms, status: r.status, outcome: r.outcome, fact, lineLang, lang: r.json?.lang ?? null, parts: r.json?.speech?.length ?? 0, replyChars: r.json?.reply?.length ?? 0, mood: r.json?.mood ?? null, crisis: r.json?.crisis ?? null };
     turns.push(turn);
     if (r.status === 200 && typeof r.json?.reply === 'string') {
       history.push({ role: 'user', text: line }, { role: 'companion', text: r.json.reply });
@@ -177,13 +185,15 @@ async function cell(size, gapS) {
         })());
       }
     } // a failed turn is recorded and not added to history (the page drops it)
-    await sleep(gapS * 1000);
+    // burst cell: 1.5 s between the lines of a burst, then 30 s without a line (A32: the quiet in which <= 3 lines must land)
+    await sleep(burst && n % BURST_LINES === 0 ? BURST_QUIET_MS : gapS * 1000);
   }
-  // drain: every queued update either lands or is logged, up to 60 s
+  // drain: every queued line ends (written, guarded, failed, timed out or dropped by queue_full; a `busy` line is an interruption, not an end), up to PERF_DRAIN_S
   const queuedCount = () => gw.logs().filter((l) => l.event === 'memory_turn' && l.queued).length;
-  const updatesDone = () => gw.logs().filter((l) => l.event === 'memory_update').length;
+  const updatesDone = () => gw.logs().filter((l) => l.event === 'memory_update' && l.reason !== 'busy').length;
   const drainStart = Date.now();
-  while (Date.now() - drainStart < 60000 && updatesDone() < queuedCount()) await sleep(250);
+  while (Date.now() - drainStart < DRAIN_MS && updatesDone() < queuedCount()) await sleep(250);
+  const drainS = r1((Date.now() - drainStart) / 1000);
   await Promise.allSettled(readings);
   await sleep(600);
   watch.stop();
@@ -191,48 +201,56 @@ async function cell(size, gapS) {
   const aboutFinal = readFileSync(join(dir, '关于你.md'), 'utf8').length;
   const leftover = await gw.stop();
 
-  // ---- landing: pair every queued turn, in order, with the memory_update log lines (a queue_full line drops the oldest waiting job)
+  // ---- landing (idle-time design): each queued turn is a job; every final memory_update line (not `busy`) is matched to the job whose queue time
+  // is nearest to the line's own queue time (log time - ms - waited_ms); lines with reason busy are interruptions and counted apart
   const mt = logs.filter((l) => l.event === 'memory_turn');
-  const mu = logs.filter((l) => l.event === 'memory_update');
-  const jobs = []; // {turn, ok, ...}
-  let ti = 0;
+  const muAll = logs.filter((l) => l.event === 'memory_update');
+  const mu = muAll.filter((l) => l.reason !== 'busy');
+  const busyLines = muAll.length - mu.length;
   const okTurns = turns.filter((t) => t.status === 200);
-  const pending = [];
-  const timeline = [...mt.map((l) => ({ k: 'turn', t: Date.parse(l.t), l })), ...mu.map((l) => ({ k: 'upd', t: Date.parse(l.t), l }))].sort((a, b) => a.t - b.t);
-  for (const ev of timeline) {
-    if (ev.k === 'turn') {
-      const tr = okTurns[ti++];
-      if (ev.l.queued && tr) pending.push({ turn: tr, queuedAt: ev.t });
-    } else if (ev.l.reason === 'queue_full') {
-      const j = pending.length > 1 ? pending.splice(1, 1)[0] : pending.shift();
-      if (j) jobs.push({ ...j, upd: ev.l, doneAt: ev.t });
-    } else {
-      const j = pending.shift();
-      if (j) jobs.push({ ...j, upd: ev.l, doneAt: ev.t });
-    }
+  const queuedJobs = [];
+  mt.forEach((l, i) => { if (l.queued && okTurns[i]) queuedJobs.push({ turn: okTurns[i], queuedAt: Date.parse(l.t), used: false }); });
+  const jobs = [];
+  let unmatched = 0;
+  for (const u of mu) {
+    const qAt = Date.parse(u.t) - (u.ms ?? 0) - (u.waited_ms ?? 0);
+    let best = null;
+    for (const j of queuedJobs) if (!j.used && (best === null || Math.abs(j.queuedAt - qAt) < Math.abs(best.queuedAt - qAt))) best = j;
+    if (!best || Math.abs(best.queuedAt - qAt) > 1500) { unmatched += 1; continue; }
+    best.used = true;
+    jobs.push({ ...best, upd: u, doneAt: Date.parse(u.t) });
   }
-  const landings = jobs.map((j) => ({ turn: j.turn.n, ok: j.upd.ok, wrote: !!(j.upd.point || j.upd.about_changed), point: j.upd.point, about_changed: j.upd.about_changed, reason: j.upd.reason ?? null, ms: j.upd.ms, waited_ms: j.upd.waited_ms, landMs: j.doneAt - j.turn.replyAt }));
+  const stillWaiting = queuedJobs.filter((j) => !j.used).length;
+  const landings = jobs.map((j) => ({ turn: j.turn.n, ok: j.upd.ok, wrote: !!(j.upd.point || j.upd.about_changed), point: j.upd.point, about_changed: j.upd.about_changed, reason: j.upd.reason ?? null, ms: j.upd.ms, waited_ms: j.upd.waited_ms, landMs: j.doneAt - j.turn.replyAt, burst: j.turn.burst }));
   const wrote = landings.filter((l) => l.wrote);
   // the same landing seen from the files: first poll event (about changed or a point added) at or after the log line's time minus 0.6 s
   const fileLand = wrote.map((l, i) => { const j = jobs.filter((x) => x.upd.point || x.upd.about_changed)[i]; const e = watch.events.find((x) => (x.about || x.pointsUp) && x.t >= j.doneAt - 600); return e ? (e.t - j.turn.replyAt) / 1000 : null; }).filter((v) => v !== null);
+  // per burst: from the burst's last reply to the final line of its last-ending job (A32: <= 30 s for <= 3 waiting lines)
+  const bursts = burst ? [...new Set(turns.map((t) => t.burst))].map((b) => {
+    const ts = turns.filter((t) => t.burst === b && t.status === 200);
+    const last = ts.length ? Math.max(...ts.map((t) => t.replyAt)) : null;
+    const js = jobs.filter((j) => j.turn.burst === b);
+    const queued = queuedJobs.filter((j) => j.turn.burst === b).length;
+    return { burst: b, lines: ts.length, queued, ended: js.length, wrote: js.filter((j) => j.upd.point || j.upd.about_changed).length, reasons: js.map((j) => j.upd.reason ?? (j.upd.ok ? 'ok' : 'failed')), landS: last && js.length ? r1((Math.max(...js.map((j) => j.doneAt)) - last) / 1000) : null, firstS: last && js.length ? r1((Math.min(...js.map((j) => j.doneAt)) - last) / 1000) : null, allEnded: js.length === queued };
+  }) : [];
   const respondMs = turns.filter((t) => t.status === 200).map((t) => t.ms);
   const speakFail = speaks.filter((s) => s.outcome !== 'ok' && s.outcome !== 'aborted');
   const summary = {
-    cell: name, size, gapS, minutes: MINUTES, wallS: r1((Date.now() - cellStart) / 1000), gatewayReadyS: r1(gw.readyMs / 1000),
+    cell: name, size, gapS, burst, minutes: MINUTES, wallS: r1((Date.now() - cellStart) / 1000), gatewayReadyS: r1(gw.readyMs / 1000),
     turns: turns.length, turnsOk: respondMs.length, respondFailures: turns.filter((t) => t.status !== 200).map((t) => ({ n: t.n, status: t.status, outcome: t.outcome, ms: t.ms })),
     respond: stats(respondMs), respondOver10s: respondMs.filter((m) => m > 10000).length,
     speakCalls: speaks.length, speakTimeouts: speaks.filter((s) => s.outcome === 'timeout').length, speakAborted: speaks.filter((s) => s.outcome === 'aborted').length, abortAtSend: ABORT, readAloud: !NOSPEAK, speakErrors: speaks.filter((s) => s.outcome === 'error').length,
     speakFailures: speakFail.map((s) => ({ turn: s.turn, part: s.part, status: s.status, outcome: s.outcome, ms: s.ms, overlap: s.overlap })), speak: stats(speaks.filter((s) => s.outcome === 'ok').map((s) => s.ms)),
     speakOverlapCalls: speaks.filter((s) => s.overlap).length,
-    updates: { queuedTurns: mt.filter((l) => l.queued).length, logged: mu.length, ok: mu.filter((l) => l.ok).length, wrote: wrote.length, queue_full: mu.filter((l) => l.reason === 'queue_full').length, timeouts: mu.filter((l) => !l.ok && /timeout|Timeout/i.test(`${l.reason}${l.err_name ?? ''}`)).length, failed: mu.filter((l) => !l.ok).map((l) => ({ reason: l.reason, err_name: l.err_name ?? null })), updateMs: stats(mu.filter((l) => l.ok).map((l) => l.ms)) },
+    updates: { queuedTurns: mt.filter((l) => l.queued).length, logged: mu.length, busyLines, unmatched, stillWaiting, flushes: logs.filter((l) => l.event === 'memory_flush').length, ok: mu.filter((l) => l.ok).length, wrote: wrote.length, queue_full: mu.filter((l) => l.reason === 'queue_full').length, timeouts: mu.filter((l) => !l.ok && /timeout|Timeout/i.test(`${l.reason}${l.err_name ?? ''}`)).length, failed: mu.filter((l) => !l.ok).map((l) => ({ reason: l.reason, err_name: l.err_name ?? null })), updateMs: stats(mu.filter((l) => l.ok).map((l) => l.ms)) },
     landingWritten: stats(wrote.map((l) => l.landMs / 1000)), landingAllOk: stats(landings.filter((l) => l.ok).map((l) => l.landMs / 1000)),
     fileEvents: watch.events.length, landingFromFiles: stats(fileLand), fileLandMatched: fileLand.length,
     http504: turns.filter((t) => t.status === 504).length + speaks.filter((s) => s.status === 504).length, statuses: Object.fromEntries([...new Set([...turns.map((t) => t.status), ...speaks.map((s) => s.status)])].map((s) => [s, turns.filter((t) => t.status === s).length + speaks.filter((x) => x.status === s).length])),
     aboutCharsStart: aboutAtStart?.length ?? 0, aboutCharsEnd: aboutFinal, aboutWeightStart: aboutAtStart ? wt(aboutAtStart) : 0,
-    memoryNotesCut: logs.filter((l) => l.event === 'memory_notes_cut').length, gatewayPids: [...gw.pids], leftoverPids: leftover, drainedWithin60s: updatesDone() >= queuedCount(),
+    bursts, drainS, memoryNotesCut: logs.filter((l) => l.event === 'memory_notes_cut').length, gatewayPids: [...gw.pids], leftoverPids: leftover, drainedWithinCap: updatesDone() >= queuedCount(),
   };
   mkdirSync(OUT, { recursive: true });
-  writeFileSync(join(OUT, `perf-r1-${size}-${gapS}${ABORT ? '-abort' : ''}${NOSPEAK ? '-nospeak' : ''}.json`), JSON.stringify({ summary, turns, speaks, landings, fileEvents: watch.events, memoryUpdateLogs: mu, memoryTurnLogs: mt.length, stderrTail: gw.err.slice(-2000) }, null, 1));
+  writeFileSync(join(OUT, `${PREFIX}${burst ? `${size}-burst` : `${size}-${gapS}`}${ABORT ? '-abort' : ''}${NOSPEAK ? '-nospeak' : ''}.json`), JSON.stringify({ summary, turns, speaks, landings, fileEvents: watch.events, memoryUpdateLogs: muAll, memoryTurnLogs: mt.length, stderrTail: gw.err.slice(-2000) }, null, 1));
   return summary;
 }
 
@@ -253,10 +271,10 @@ const FORBID_CASES = [
 ];
 
 // wait until the gateway has logged every turn's memory_turn (it is logged after the response is sent) and every queued update has finished
-async function settle(gw, turns, capMs = 45000) {
+async function settle(gw, turns, capMs = 90000) {
   const t = Date.now();
   const n = (ev, f = () => true) => gw.logs().filter((l) => l.event === ev && f(l)).length;
-  while (Date.now() - t < capMs && (n('memory_turn') < turns || n('memory_update') < n('memory_turn', (l) => l.queued))) await sleep(250);
+  while (Date.now() - t < capMs && (n('memory_turn') < turns || n('memory_update', (l) => l.reason !== 'busy') < n('memory_turn', (l) => l.queued))) await sleep(250);
 }
 
 async function sayLines(dir, lines, { expectWrites = true } = {}) { // one gateway session: lines in one chat, wait for the updates, stop
@@ -328,7 +346,7 @@ async function tc217() {
 if (ON) {
   assert.ok(SCRATCH && existsSync(SCRATCH), 'PERF_SCRATCH must be an existing folder (never the user data folder)');
   assert.ok(!SCRATCH.includes('Application Support'), 'refusing to use the user data folder');
-  const ORDER = ['hand2000@1.5', 'budget@1.5', 'empty@1.5', 'hand2000@6', 'budget@6', 'empty@6', 'tc217'];
+  const ORDER = ['hand2000@1.5', 'budget@1.5', 'empty@1.5', 'hand2000@6', 'budget@6', 'empty@6', 'budget@burst', 'tc217'];
   const only = (process.env.PERF_ONLY ? process.env.PERF_ONLY.split(',') : ORDER).filter((c) => ORDER.includes(c));
   for (const c of only) {
     if (c === 'tc217') {
@@ -348,13 +366,19 @@ if (ON) {
       });
     } else {
       const [size, gap] = c.split('@');
-      test(`TC-216 REQ-037/044: turn time, speak, update landing, cell ${c} (${MINUTES} min)`, { timeout: (MINUTES + 12) * 60000 }, async () => {
-        const s = await cell(size, Number(gap));
-        console.log(`TC-216 cell ${c}: ${JSON.stringify({ respond: s.respond, speakTimeouts: s.speakTimeouts, landing: s.landingWritten, queue_full: s.updates.queue_full, http504: s.http504 })}`);
+      const isBurst = gap === 'burst';
+      test(`TC-216 REQ-037/044 (A32 idle-time): turn time, speak, update landing, cell ${c} (${MINUTES} min)`, { timeout: (MINUTES + 15) * 60000 }, async () => {
+        const s = await cell(size, isBurst ? 1.5 : Number(gap), isBurst);
+        console.log(`TC-216 cell ${c}: ${JSON.stringify({ respond: s.respond, speakTimeouts: s.speakTimeouts, landing: s.landingWritten, updates: s.updates, bursts: s.bursts.map((b) => b.landS), drainS: s.drainS, http504: s.http504 })}`);
         assert.equal(s.leftoverPids.length, 0, `leftover pids ${s.leftoverPids}`);
         assert.ok(s.respond.p95 <= 10000, `p95 turn ${s.respond.p95} ms > 10000`);
-        assert.ok(s.landingWritten.max === null || s.landingWritten.max <= 30, `landing max ${s.landingWritten.max} s > 30`);
-        assert.equal(s.updates.queue_full, 0, 'queue_full count');
+        if (isBurst) { // step 8.7: every burst lands <= 30 s after its last reply, queue_full 0
+          assert.ok(s.bursts.length > 0 && s.bursts.every((b) => b.allEnded && b.landS !== null && b.landS <= 30), `burst landing: ${JSON.stringify(s.bursts.map((b) => [b.burst, b.landS, b.allEnded]))}`);
+          assert.equal(s.updates.queue_full, 0, 'queue_full count');
+        } else if (size === 'budget' && gap === '6') { // step 8.7: the list empties after the chat, no timeout
+          assert.equal(s.updates.stillWaiting, 0, 'lines still waiting after the drain');
+          assert.equal(s.updates.timeouts, 0, 'update timeouts');
+        }
       });
     }
   }

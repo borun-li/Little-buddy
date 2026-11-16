@@ -177,3 +177,24 @@ export const MOOD_WORD = { 'pleasant-high': '开心', 'pleasant-low': '平静', 
 export const MOOD_VALUE = { 'pleasant-high': 1, 'pleasant-low': 0.5, neutral: 0, 'unpleasant-high': -0.5, 'unpleasant-low': -1 };
 // an independent "about is empty" check
 export const aboutEmpty = (t) => t.split('\n').every((l) => l.trim() === '' || l.startsWith('#'));
+
+// Injectable timers for createMemory (A32 idle-time update, 03 DES-033): advance(ms) fires due callbacks in order, no real waiting.
+export function fakeTimers() {
+  let now = 0;
+  let id = 0;
+  const q = new Map();
+  return {
+    setTimeout(f, ms) { id += 1; q.set(id, { f, at: now + ms }); return id; },
+    clearTimeout(k) { q.delete(k); },
+    advance(ms) {
+      const end = now + ms;
+      for (;;) {
+        const next = [...q].filter(([, t]) => t.at <= end).sort((a, b) => a[1].at - b[1].at)[0];
+        if (!next) break;
+        now = next[1].at; q.delete(next[0]); next[1].f();
+      }
+      now = end;
+    },
+    get armed() { return q.size; },
+  };
+}

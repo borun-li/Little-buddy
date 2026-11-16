@@ -19,10 +19,20 @@ const CAPS = { zh: 120, en: 40 };
 // A sentence ends after a run of 。！？!?.… ; emoji (and closing quotes/brackets) right after it stay with it.
 export const SENTENCE = /[\s\S]*?(?:[。！？!?.…]+(?:\p{Extended_Pictographic}|\p{Emoji_Modifier}|️|‍|[”’"'）)」』])*|$)/gu;
 
-export function windowOf(history, cfg = CONFIG) {
+const sumOf = (win) => win.reduce((n, h) => n + weight(h.text), 0);
+
+// Anchored window (03 DES-035, be-architect #4): the last 40 entries; when last turn's first entry (anchor) is still there and the
+// window from it fits historyBudget, start from it again (the reply slot's prompt cache keeps hitting); else the whole window when it
+// fits; else drop the oldest until it fits historyLow (may be []). The caller keeps the anchor: the returned window's first entry.
+export function windowOf(history, cfg = CONFIG, anchor = null) {
   const win = history.slice(-cfg.limits.historyEntries);
-  let total = win.reduce((n, h) => n + weight(h.text), 0);
-  while (win.length && total > cfg.limits.historyBudget) total -= weight(win.shift().text);
+  if (anchor !== null) {
+    const i = win.findLastIndex((h) => h.role === anchor.role && h.text === anchor.text);
+    if (i !== -1 && sumOf(win.slice(i)) <= cfg.limits.historyBudget) return win.slice(i);
+  }
+  let total = sumOf(win);
+  if (total <= cfg.limits.historyBudget) return win;
+  while (win.length && total > cfg.limits.historyLow) total -= weight(win.shift().text);
   return win;
 }
 
@@ -125,6 +135,7 @@ export function createBonsai(cfg = CONFIG, region = systemRegion()) {
   // Per-run key for llama-server (FND-003): passed by env, not argv, so it is not in `ps`; never logged, printed, stored or configurable.
   const apiKey = randomBytes(24).toString('hex');
   let proc = null;
+  let anchor = null; // per run: the first entry of the last reply window (windowOf, 03 DES-035)
 
   async function post(body, signal) {
     let res;
@@ -156,7 +167,8 @@ export function createBonsai(cfg = CONFIG, region = systemRegion()) {
   async function chat(line, history, name = null, strong = false, notes = null, turnRegion = region) {
     const started = Date.now();
     const lang = languageOf(line);
-    const win = windowOf(history, cfg);
+    const win = windowOf(history, cfg, anchor);
+    anchor = win[0] ?? null;
     const signal = AbortSignal.timeout(cfg.deadlines.respondMs);
     const timed = (p) => p.then((v) => ({ v, ms: Date.now() - started }));
     const [reply, mood] = await Promise.allSettled([

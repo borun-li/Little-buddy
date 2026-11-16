@@ -164,20 +164,27 @@ async function handleApi(req, res, path) {
   if (req.method === 'POST' && path === '/api/respond') {
     if (mediaType(req) !== 'application/json') throw new ApiError('bad_request');
     const { line, history, name } = parseTurn(await readBody(req, CONFIG.limits.jsonBytes));
-    let left = false;
-    res.on('close', () => {
-      if (!res.writableFinished) left = true;
-    });
-    const at = { day: localDay(new Date()), gen: store.generation, gone: () => left };
-    const region = helpRegion(store.profile().region, SYSTEM_REGION);
-    const turn = await children.bonsai.respond(line, history, name, { region, notes: notesFor(history) });
-    const { ref, skip } = await recordTurn(turn, at);
-    // region: the turn's effective help-line region; the page's crisis card picks its numbers from it.
-    sendJson(res, 200, { ...turn, region, speech: speechParts(turn.reply, turn.lang) });
-    const queued = skip === null && !turn.crisis;
-    if (queued) memory.enqueue({ gen: at.gen, ref, line, lang: turn.lang });
-    log('info', 'memory_turn', { mood_written: ref !== null, queued, skip });
-    return;
+    // A32 idle update (03 DES-036): a turn makes the memory update wait (and aborts one in flight, 'busy'); every path after the
+    // parse, 200 or thrown ApiError, ends the turn exactly once.
+    memory.turnStarted();
+    try {
+      let left = false;
+      res.on('close', () => {
+        if (!res.writableFinished) left = true;
+      });
+      const at = { day: localDay(new Date()), gen: store.generation, gone: () => left };
+      const region = helpRegion(store.profile().region, SYSTEM_REGION);
+      const turn = await children.bonsai.respond(line, history, name, { region, notes: notesFor(history) });
+      const { ref, skip } = await recordTurn(turn, at);
+      // region: the turn's effective help-line region; the page's crisis card picks its numbers from it.
+      sendJson(res, 200, { ...turn, region, speech: speechParts(turn.reply, turn.lang) });
+      const queued = skip === null && !turn.crisis;
+      if (queued) memory.enqueue({ gen: at.gen, ref, line, lang: turn.lang });
+      log('info', 'memory_turn', { mood_written: ref !== null, queued, skip });
+      return;
+    } finally {
+      memory.turnEnded();
+    }
   }
   if (req.method === 'GET' && path === '/api/profile') {
     return sendJson(res, 200, { ...store.view(), systemRegion: SYSTEM_REGION, path: CONFIG.memory.displayPath });
@@ -186,13 +193,15 @@ async function handleApi(req, res, path) {
   if (req.method === 'POST' && path === '/api/profile') {
     if (mediaType(req) !== 'application/json') throw new ApiError('bad_request');
     const patch = parseProfilePatch(await readBody(req, CONFIG.limits.profileJsonBytes));
-    return sendJson(res, 200, await store.setProfile(patch));
+    const out = await store.setProfile(patch);
+    if (patch.memoryOn === false) memory.drop('off'); // waiting lines are not sent once memory is off (03 DES-036)
+    return sendJson(res, 200, out);
   }
   if (req.method === 'POST' && path === '/api/forget') {
     if (mediaType(req) !== 'application/json') throw new ApiError('bad_request');
     if (!isObject(parseJson(await readBody(req, CONFIG.limits.forgetJsonBytes)))) throw new ApiError('bad_request');
     const out = await store.forget();
-    memory.forget();
+    memory.drop('forgotten');
     return sendJson(res, 200, out);
   }
   if (req.method === 'POST' && path === '/api/speak') {
@@ -312,6 +321,9 @@ export async function main(argv) {
   process.on('exit', stopChildren);
   for (const sig of ['SIGINT', 'SIGTERM']) {
     process.on(sig, () => {
+      // Waiting update lines die with the process (03 DES-036): one line says how many, before the children stop.
+      const n = memory?.drop('shutdown') ?? 0;
+      log('info', 'memory_dropped', { reason: 'shutdown', n });
       stopChildren();
       server?.close();
       process.exit(0);

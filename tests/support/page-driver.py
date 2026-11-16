@@ -15,17 +15,28 @@ REPLY = '[data-testid=reply]'
 
 
 class Page:
-    def __init__(self, pw, base, lang='zh', width=1280, height=900, storage=None):
+    def __init__(self, pw, base, lang='zh', width=1280, height=900, storage=None, once=False):
         self.base = base
         self.browser = pw.chromium.launch()
         self.ctx = self.browser.new_context(viewport={'width': width, 'height': height}, locale='zh-CN' if lang == 'zh' else 'en-US')
-        if storage:
+        if storage and once:  # live runs (be-tester #6): seed once per tab, so a migration that removes the key is not undone by a reload
+            self.ctx.add_init_script('(() => { try { if (sessionStorage.getItem("__seeded")) return; sessionStorage.setItem("__seeded", "1"); for (const [k, v] of Object.entries(%s)) localStorage.setItem(k, v); } catch (e) {} })()' % json.dumps(storage))
+        elif storage:
             self.ctx.add_init_script('(() => { try { for (const [k, v] of Object.entries(%s)) localStorage.setItem(k, v); } catch (e) {} })()' % json.dumps(storage))
         self.page = self.ctx.new_page()
         self.requests = []
         self.responses = []
         self.page.on('request', lambda r: self.requests.append({'method': r.method, 'url': r.url, 'body': r.post_data}))
         self.page.on('response', lambda r: self.responses.append({'method': r.request.method, 'url': r.url, 'status': r.status}))
+        self.respond_json = []
+        self.page.on('response', self._grab)
+
+    def _grab(self, r):  # the /api/respond bodies (mood, reply), for the live checks
+        try:
+            if r.request.method == 'POST' and urlparse(r.url).path == '/api/respond' and r.status == 200:
+                self.respond_json.append(r.json())
+        except Exception:
+            pass
 
     def goto(self, wait_profile=True):
         self.page.goto(self.base + '/')
@@ -362,6 +373,150 @@ def s_sweep_off(a, pw):
     checks.append({'name': 'privacy line says memory is off', 'ok': '记忆关着' in pg.text('.log__privacy-text'), 'detail': pg.text('.log__privacy-text')})
     pg.close()
     return {'checks': checks}
+
+
+# ------------------------------------------------------------------ live scenarios (real Bonsai; be-tester #6, TC-203, TC-207, TC-213)
+def wait_privacy(pg):
+    pg.page.wait_for_function("document.querySelector('.log__privacy-text') && document.querySelector('.log__privacy-text').textContent.length > 0", timeout=10000)
+
+
+def s_live_open(a, pw):  # TC-203 steps 1-2: an earlier-version user (localStorage name), notice before any send, then 知道了, reload
+    pg = Page(pw, a['base'], storage=a.get('storage'), once=True).goto()
+    pg.page.wait_for_timeout(1000)
+    out = {'notice_before_first_send': pg.visible('[data-testid=memory-notice]'), 'notice_text': pg.text('[data-testid=memory-notice]'),
+           'has_turn_off': pg.visible('[data-testid=notice-off]'), 'name_shown': pg.text('.caption__name'), 'turns_before_send': pg.turns()}
+    out['profile'] = pg.api('/api/profile')['json']
+    out['ls_after_open'] = pg.page.evaluate("localStorage.getItem('companion.name')")
+    pg.page.click('[data-testid=notice-ok]')
+    pg.page.wait_for_timeout(800)
+    pg.page.reload()
+    wait_privacy(pg)
+    pg.page.wait_for_timeout(500)
+    out['notice_after_ack_reload'] = pg.visible('[data-testid=memory-notice]')
+    out['name_after_reload'] = pg.text('.caption__name')
+    out['ls_after_reload'] = pg.page.evaluate("localStorage.getItem('companion.name')")
+    pg.close()
+    return out
+
+
+def s_live_read(a, pw):  # a new tab after a restart: notice? name shown? (profile says the rest)
+    pg = Page(pw, a['base']).goto()
+    pg.page.wait_for_timeout(600)
+    out = {'notice_visible': pg.visible('[data-testid=memory-notice]'), 'name_shown': pg.text('.caption__name'), 'profile': pg.api('/api/profile')['json']}
+    pg.close()
+    return out
+
+
+def s_live_rename(a, pw):  # TC-203 steps 4-5: rename to Mochi in the 关于你 tab, three new chats each ask the name
+    pg = Page(pw, a['base']).goto()
+    pg.open_drawer('about')
+    pg.page.wait_for_selector('[data-testid=about-name]', timeout=8000)
+    pg.settle(200)
+    pg.page.fill('[data-testid=about-name]', a.get('name', 'Mochi'))
+    pg.page.press('[data-testid=about-name]', 'Enter')
+    pg.page.wait_for_timeout(1200)
+    pg.page.click('[data-testid=drawer-close]')
+    pg.page.wait_for_timeout(300)
+    out = {'caption_after_rename': pg.text('.caption__name'), 'status': post_status(pg, '/api/profile'), 'replies': []}
+    for i in range(a.get('sends', 3)):
+        if i:
+            pg.page.reload()
+            wait_privacy(pg)
+        pg.send(a.get('line', '你叫什么名字？'))
+        out['replies'].append(pg.text(REPLY))
+    out['profile'] = pg.api('/api/profile')['json']
+    pg.close()
+    return out
+
+
+def s_live_inflight(a, pw):  # TC-207: send, open 小伙伴记得的你 and forget before the reply, then watch the page for the late reply
+    pg = Page(pw, a['base']).goto()
+    pg.page.fill(INPUT, a['line'])
+    pg.page.press(INPUT, 'Enter')
+    t0 = time.time()
+    pg.page.click('[data-testid=open-about]')
+    pg.page.wait_for_selector('[data-testid=forget]', timeout=8000)
+    pg.page.click('[data-testid=forget]')
+    pg.page.wait_for_selector('[data-testid=forget-yes]', timeout=3000)
+    pg.page.click('[data-testid=forget-yes]')
+    pg.page.wait_for_selector('[data-testid=forget-result]', timeout=5000)
+    out = {'forget_after_send_ms': (time.time() - t0) * 1000, 'forget_status': post_status(pg, '/api/forget'), 'responses_at_forget': len(pg.respond_json)}
+    pg.page.click('[data-testid=drawer-close]')
+    pg.page.wait_for_timeout(a.get('watch_ms', 20000))  # the reply arrives (or fails) meanwhile
+    out['responses_after'] = len(pg.respond_json)
+    out['turns_after'] = pg.turns()
+    out['reply_visible'] = pg.visible(REPLY)
+    out['hint'] = pg.hint()
+    pg.close()
+    return out
+
+
+def s_live_goal_a(a, pw):  # TC-213 stage A: open, read the notice, send three lines
+    pg = Page(pw, a['base'], width=1280, height=900).goto()
+    pg.page.wait_for_timeout(600)
+    out = {'notice_text': pg.text('[data-testid=memory-notice]'), 'notice_visible': pg.visible('[data-testid=memory-notice]'), 'path': pg.api('/api/profile')['json']['path']}
+    pg.page.screenshot(path=a['shots'] + '/r1-goal-1-notice.png')
+    for line in a['lines']:
+        pg.send(line)
+    out['moods'] = [j.get('mood') for j in pg.respond_json]
+    out['replies'] = [j.get('reply') for j in pg.respond_json]
+    pg.page.screenshot(path=a['shots'] + '/r1-goal-2-chat.png')
+    pg.close()
+    return out
+
+
+def s_live_goal_b(a, pw):  # TC-213 stage B: after restart and reload: ask, diary, about, rename + region, forget me
+    pg = Page(pw, a['base'], width=1280, height=900).goto()
+    pg.send(a['ask'])
+    out = {'ask_reply': pg.text(REPLY), 'ask_mood': pg.respond_json[-1].get('mood') if pg.respond_json else None}
+    pg.open_drawer('diary')
+    pg.page.wait_for_selector('[data-testid=diary-days] .day, [data-testid=diary-start]', timeout=10000)
+    pg.settle(300)
+    out['diary'] = pg.page.evaluate("""() => ({
+      dots: document.querySelectorAll('.curve__dot').length,
+      days: [...document.querySelectorAll('[data-testid=diary-days] .day')].map(s => ({ head: s.querySelector('.day__head').textContent,
+        rows: [...s.querySelectorAll('.day__row')].map(r => ({ point: r.querySelector('.day__point').textContent, mood: r.querySelector('.mood').textContent })) }))
+    })""")
+    pg.page.screenshot(path=a['shots'] + '/r1-goal-3-diary.png')
+    pg.page.click('[data-testid=tab-about]')
+    pg.page.wait_for_selector('[data-testid=about-box], [data-testid=about-empty]', timeout=8000)
+    pg.settle(300)
+    out['about_text'] = pg.text('[data-testid=about-box]')
+    out['about_empty_visible'] = pg.visible('[data-testid=about-empty]')
+    pg.page.screenshot(path=a['shots'] + '/r1-goal-4-about.png')
+    pg.page.fill('[data-testid=about-name]', a['name'])
+    pg.page.press('[data-testid=about-name]', 'Enter')
+    pg.page.wait_for_timeout(1000)
+    pg.page.select_option('[data-testid=about-region]', a['region'])
+    pg.page.wait_for_timeout(1000)
+    out['profile_after_settings'] = pg.api('/api/profile')['json']
+    pg.page.screenshot(path=a['shots'] + '/r1-goal-5-settings.png')
+    pg.page.click('[data-testid=forget]')
+    pg.page.wait_for_selector('[data-testid=forget-yes]', timeout=3000)
+    pg.page.click('[data-testid=forget-yes]')
+    pg.page.wait_for_selector('[data-testid=forget-result]', timeout=5000)
+    pg.settle(400)
+    out['forget_result'] = pg.text('[data-testid=forget-result]')
+    out['after_forget'] = {'about_empty': pg.api('/api/profile')['json']['aboutEmpty'], 'diary_has_any': pg.api('/api/diary')['json']['hasAny']}
+    pg.page.screenshot(path=a['shots'] + '/r1-goal-6-forgotten.png')
+    pg.close()
+    return out
+
+
+def s_live_goal_c(a, pw):  # TC-213 stage C: after the last restart and reload: everything empty, name and region kept
+    pg = Page(pw, a['base'], width=1280, height=900).goto()
+    pg.page.wait_for_timeout(500)
+    pg.open_drawer('about')
+    pg.page.wait_for_selector('[data-testid=about-empty], [data-testid=about-box]', timeout=8000)
+    pg.settle(300)
+    out = {'about_empty_visible': pg.visible('[data-testid=about-empty]'), 'name_input': pg.page.input_value('[data-testid=about-name]'), 'region_input': pg.page.input_value('[data-testid=about-region]'), 'profile': pg.api('/api/profile')['json'], 'diary_api': pg.api('/api/diary')['json']['hasAny']}
+    pg.page.click('[data-testid=tab-diary]')
+    pg.page.wait_for_selector('[data-testid=diary-start], [data-testid=diary-days] .day', timeout=8000)
+    pg.settle(300)
+    out['diary_start_visible'] = pg.visible('[data-testid=diary-start]')
+    pg.page.screenshot(path=a['shots'] + '/r1-goal-7-after-restart.png')
+    pg.close()
+    return out
 
 
 SCEN = {k[2:]: v for k, v in globals().items() if k.startswith('s_')}

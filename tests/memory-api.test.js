@@ -351,7 +351,7 @@ test('TC-180 [FX-019-02] REQ-044/046 (A38): a mood goes under the day the line w
 });
 
 // ---------------------------------------------------------------- TC-181
-test('TC-181 REQ-037/050: background update: lands <= 30 s, queue of 8, deadline, wrong answer, forget aborts', async () => {
+test('TC-181 REQ-037/050 (A32 idle-time): update after 8 s quiet and <= 30 s, 20 waiting lines and the 21st dropped, deadline, wrong answer, forget before the quiet', async () => {
   const problems = [];
   const check = (cond, msg) => { if (!cond) problems.push(msg); };
   const a = async () => {
@@ -359,24 +359,30 @@ test('TC-181 REQ-037/050: background update: lands <= 30 s, queue of 8, deadline
     await withGateway({ dir, script: { updates: [{ when: 'FACT-A', point: '备考雅思', add: { busy: ['在备考雅思'] } }] } }, async (gw) => {
       const r = await respond(gw, 'FACT-A 我在备考雅思'); const t0 = Date.now();
       await waitFor(() => fileHas(join(dir, '关于你.md'), '在备考雅思') && fileHas(join(dir, '日志.md'), '备考雅思'), 30000, 'point and notes line');
-      const ms = Date.now() - t0; check(r.status === 200 && ms <= 30000, `(a) landed in ${ms} ms`); console.log(`TC-181 (a) landed ${ms} ms after the reply`);
+      // A32 (step 8.5): counted from the last reply, which includes the 8 s quiet; a line cannot land before the quiet (REQ-037)
+      const ms = Date.now() - t0; check(r.status === 200 && ms <= 30000 && ms >= 7500, `(a) landed in ${ms} ms (8 s quiet .. 30 s)`); console.log(`TC-181 (a) landed ${ms} ms after the reply`);
     });
   };
   const b = async () => {
+    // A32 (step 8.5, was: 12 turns, queue_full 3 of a queue of 8): 21 lines wait, the 21st drops the oldest; then the 20 run one at a time, oldest first
     const dir = tmpDir();
-    const updates = Array.from({ length: 12 }, (_, i) => ({ when: `T${String(i + 1).padStart(2, '0')}`, delayMs: 2000, point: `点${i + 1}`, add: { busy: [`事T${String(i + 1).padStart(2, '0')}`] } }));
+    const N = 21;
+    const tag = (i) => `T${String(i).padStart(2, '0')}`;
+    const updates = Array.from({ length: N }, (_, i) => ({ when: tag(i + 1), delayMs: 1000, point: `点${i + 1}`, add: { busy: [`事${tag(i + 1)}`] } }));
     await withGateway({ dir, script: { updates } }, async (gw) => {
-      for (let i = 1; i <= 12; i++) assert.equal((await respond(gw, `T${String(i).padStart(2, '0')} 在忙`)).status, 200);
-      await waitFor(() => gw.logs().filter((l) => l.event === 'memory_update').length >= 12, 60000, '12 memory_update lines');
+      for (let i = 1; i <= N; i++) assert.equal((await respond(gw, `${tag(i)} 在忙`)).status, 200);
+      await sleep(5000);
+      check(kind(gw, 'update').filter((x) => /T\d\d/.test(x.line)).length === 0, '(b) nothing is sent before the 8 s quiet');
+      await waitFor(() => gw.logs().filter((l) => l.event === 'memory_update').length >= N, 90000, `${N} memory_update lines`);
       const ups = gw.logs().filter((l) => l.event === 'memory_update');
       const full = ups.filter((u) => u.reason === 'queue_full').length;
-      check(full === 3, `(b) queue_full count ${full}, expected 3 (12 turns, one running, 8 waiting)`);
+      check(full === 1, `(b) queue_full count ${full}, expected 1 (21 lines, 20 may wait)`);
       const reqs = kind(gw, 'update').filter((x) => /T\d\d/.test(x.line)).map((x) => ({ n: /T(\d\d)/.exec(x.line)[1], t: x.t }));
-      check(reqs.map((x) => x.n).join() === ['01', '05', '06', '07', '08', '09', '10', '11', '12'].join(), `(b) updates ran in order, oldest dropped: ${reqs.map((x) => x.n)}`);
-      check(reqs.slice(1).every((x, i) => x.t - reqs[i].t >= 1900), '(b) one at a time');
+      check(reqs.map((x) => x.n).join() === Array.from({ length: N - 1 }, (_, i) => tag(i + 2).slice(1)).join(), `(b) updates ran oldest first, T01 dropped: ${reqs.map((x) => x.n)}`);
+      check(reqs.slice(1).every((x, i) => x.t - reqs[i].t >= 900), '(b) one at a time');
       const about = readAbout(dir);
-      for (const n of ['01', '05', '12']) check(about.includes(`事T${n}`), `(b) line T${n} landed`);
-      for (const n of ['02', '03', '04']) check(!about.includes(`事T${n}`), `(b) line T${n} was dropped`);
+      for (const n of ['02', '10', '21']) check(about.includes(`事T${n}`), `(b) line T${n} landed`);
+      check(!about.includes('事T01'), '(b) line T01 was dropped');
       check((await api(gw.base, '/api/health')).status === 200, '(b) gateway alive');
     });
   };
@@ -384,33 +390,34 @@ test('TC-181 REQ-037/050: background update: lands <= 30 s, queue of 8, deadline
     const dir = tmpDir();
     await withGateway({ dir, script: { updates: [{ when: 'HANG', hang: true }, { when: 'NORMAL', point: '正常点', add: { busy: ['正常行'] } }, { when: 'WRONG', raw: '{"point":5,"add":{"busy":[]}}' }] } }, async (gw) => {
       await respond(gw, 'HANG 第一句'); await respond(gw, 'NORMAL 第二句');
-      await waitFor(() => gw.logs().some((l) => l.event === 'memory_update' && l.ok === false && l.reason), 25000, 'the stuck update is cut');
+      await waitFor(() => gw.logs().some((l) => l.event === 'memory_update' && l.ok === false && l.reason), 45000, 'the stuck update is cut (8 s quiet + 14 s deadline, A32)');
       const cut = gw.logs().find((l) => l.event === 'memory_update' && l.ok === false);
       check(cut.reason === 'timeout' && cut.ms >= 13500 && cut.ms <= 16000, `(c) cut at the deadline: ${JSON.stringify(cut)}`);
-      await waitFor(() => fileHas(join(dir, '关于你.md'), '正常行'), 20000, 'the next turn update runs');
+      await waitFor(() => fileHas(join(dir, '关于你.md'), '正常行'), 30000, 'the next line runs after the stuck one');
       const es = diaryEntries(readDiary(dir));
       check(es[0].point === null && es[1].point === '正常点', `(c) the stuck turn keeps a mood-only entry: ${JSON.stringify(es)}`);
       const aboutBefore = readAbout(dir);
       await respond(gw, 'WRONG 第三句');
-      await waitFor(() => gw.logs().filter((l) => l.event === 'memory_update').length >= 3, 15000, 'wrong-shape update logged');
+      await waitFor(() => gw.logs().filter((l) => l.event === 'memory_update').length >= 3, 30000, 'wrong-shape update logged (after its 8 s quiet)');
       const bad = gw.logs().filter((l) => l.event === 'memory_update').at(-1);
       check(bad.ok === false && bad.reason === 'failed', `(d) wrong shape: ${JSON.stringify(bad)}`);
       check(readAbout(dir) === aboutBefore && diaryEntries(readDiary(dir))[2].point === null, '(d) no write');
     });
   };
   const e = async () => {
+    // A32 (step 8.5, was: forget aborts the running call, 1 sent): forget before the quiet, so 0 are sent and the waiting lines log reason forgotten
     const dir = tmpDir();
     await withGateway({ dir, script: { updates: ['F1', 'F2', 'F3'].map((w) => ({ when: w, delayMs: 3000, point: `点${w}`, add: { busy: [`事${w}`] } })).concat([{ when: 'AFTER', point: '之后', add: { busy: ['之后的事'] } }]) } }, async (gw) => {
       for (const w of ['F1', 'F2', 'F3']) await respond(gw, `${w} 在忙`);
       await sleep(300);
       check((await post(gw, '/api/forget', {})).status === 200, '(e) forget answered');
-      await sleep(7000);
+      await sleep(10000); // past the 8 s quiet and the 3 s delays
       const ups = gw.logs().filter((l) => l.event === 'memory_update');
-      check(ups.some((u) => u.reason === 'aborted'), `(e) the running call is aborted: ${JSON.stringify(ups)}`);
+      check(ups.filter((u) => u.reason === 'forgotten').length === 3 && ups.every((u) => u.ok === false), `(e) the 3 waiting lines are logged forgotten: ${JSON.stringify(ups)}`);
       check(readAbout(dir) === ABOUT_T && readDiary(dir) === '# 日志\n', `(e) files stay as forget left them: ${JSON.stringify(readDiary(dir))} ${JSON.stringify(readAbout(dir))}`);
-      check(kind(gw, 'update').filter((x) => /F\d/.test(x.line)).length === 1, '(e) the queued jobs were never sent');
+      check(kind(gw, 'update').filter((x) => /F\d/.test(x.line)).length === 0, '(e) 0 sent: the waiting lines were never sent');
       await respond(gw, 'AFTER 之后');
-      await waitFor(() => fileHas(join(dir, '关于你.md'), '之后的事'), 15000, '(f) a turn right after lands');
+      await waitFor(() => fileHas(join(dir, '关于你.md'), '之后的事'), 25000, '(f) a turn right after lands after its quiet');
       check(diaryEntries(readDiary(dir)).length === 1, '(f) one entry');
     });
   };
