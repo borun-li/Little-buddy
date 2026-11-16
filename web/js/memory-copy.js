@@ -7,6 +7,9 @@ import { getLang, getName } from './copy.js';
 
 export const MEMORY_FILE = '关于你.md'; // a file name, never translated
 export const MEMORY_PATH = '~/Library/Application Support/LittleBuddy/';
+let memoryPath = MEMORY_PATH; // the folder the service reports (GET /api/profile .path); the default shows until then
+export function setMemoryPath(path) { memoryPath = typeof path === 'string' && path ? path : MEMORY_PATH; }
+export const getMemoryPath = () => memoryPath;
 
 export const MEMORY_COPY = {
   zh: {
@@ -154,6 +157,22 @@ export const MEMORY_COPY = {
 // t('noticeTitle') -> string with {name} and {path} filled; functions and tables are read with tf().
 export function t(key) {
   const v = MEMORY_COPY[getLang()][key];
-  return typeof v === 'string' ? v.split('{name}').join(getName()).split('{path}').join(MEMORY_PATH) : v;
+  return typeof v === 'string' ? v.split('{name}').join(getName()).split('{path}').join(memoryPath) : v;
 }
 export const tf = (key) => MEMORY_COPY[getLang()][key];
+
+// 01-ux.md §6: the words for a failed call, by the row it failed in and the code the seam gave (contract § R1 seam).
+// Every code of a row says that row's words (nothing raw is shown); 'unreadable' also means the files cannot be
+// read, so the caller marks the profile unreadable (the privacy line). kind 'hint' = a key of copy.hints, 'word' = t().
+const ROW_WORDS = {
+  notice: { kind: 'hint', key: 'noticeFailed' },       // 知道了 not saved: the notice stays
+  memoryOff: { kind: 'hint', key: 'memoryOffFailed' }, // 关掉记忆 not saved: memory is still on
+  setting: { kind: 'word', key: 'saveFailed' },        // name, region, memory switch
+  forget: { kind: 'word', key: 'forgetFailed' },
+  diary: { kind: 'word', key: 'diaryError' },
+  profile: { kind: 'word', key: 'profileError' },
+};
+export function errorWords(row, code) {
+  const r = ROW_WORDS[row];
+  return { ...r, unreadable: code === 'unreadable' };
+}

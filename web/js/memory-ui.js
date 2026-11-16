@@ -3,10 +3,9 @@
 // client (memory-client.js); every user-visible word is t() from memory-copy.js or copy.js. All text goes in
 // with textContent, so the user's own file is never read as markup. Focus rules: FLOW-015..020, 01-ux.md §2.
 import { copy, getName } from './copy.js';
-import { t, tf, MEMORY_PATH, MEMORY_FILE } from './memory-copy.js';
+import { t, tf, getMemoryPath, setMemoryPath, errorWords, MEMORY_FILE } from './memory-copy.js';
 import { cleanName, typingFilter, MAX_NAME } from './name.js';
 
-const VALENCE = { 'pleasant-high': 1, 'pleasant-low': 0.5, neutral: 0, 'unpleasant-high': -0.5, 'unpleasant-low': -1 };
 const REGIONS = [['CN', 'regionCN', 'regionLineCN'], ['US', 'regionUS', 'regionLineUS'], ['other', 'regionOther', 'regionLineOther']];
 const NS = 'http://www.w3.org/2000/svg';
 const FOCUSABLE = 'button:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex="0"]';
@@ -42,9 +41,8 @@ export function renderMarkdown(text) {
   }
   return box;
 }
-export const aboutIsEmpty = (md) => !String(md).split('\n').some((l) => l.trim() && !/^\s*#/.test(l));
 
-export function createMemoryUi({ client, drawer, main, openers, noticeHost, privacyEl, showHint, onNameSaved, onForgotten, onStartChat }) {
+export function createMemoryUi({ client, drawer, main, openers, noticeHost, privacyEl, showHint, onNameSaved, onForgotten, onStartChat, onProfile }) {
   const tabs = {
     diary: drawer.querySelector('[data-tab="diary"]'),
     about: drawer.querySelector('[data-tab="about"]'),
@@ -62,6 +60,12 @@ export function createMemoryUi({ client, drawer, main, openers, noticeHost, priv
   let asking = false;      // forget me: asked in place
 
   const memoryOn = () => profile?.memoryOn !== false;
+  // A failed call says its row's words (01-ux.md §6); 'unreadable' also marks the files unreadable (privacy line).
+  function failed(row, err) {
+    const w = errorWords(row, err?.code);
+    if (w.unreadable && profile) { profile = { ...profile, readable: false }; renderPrivacy(); }
+    return w;
+  }
   const api = {
     get kept() { return Boolean(profile?.kept); },
     get isOpen() { return current !== null; },
@@ -88,7 +92,7 @@ export function createMemoryUi({ client, drawer, main, openers, noticeHost, priv
       li.append(h('strong', null, text.slice(0, cut + 1)), document.createTextNode(text.slice(cut + 1)));
     });
     noticeEl.querySelector('.notice__never').textContent = t('noticeNever');
-    noticeEl.querySelector('.notice__where').replaceChildren(document.createTextNode(t('noticeWhere')), h('span', 'notice__path', MEMORY_PATH));
+    noticeEl.querySelector('.notice__where').replaceChildren(document.createTextNode(t('noticeWhere')), h('span', 'notice__path', getMemoryPath()));
     noticeEl.querySelector('.notice__later').textContent = t('noticeLater');
     noticeEl.querySelector('[data-testid="notice-ok"]').textContent = t('noticeOk');
     noticeEl.querySelector('[data-testid="notice-off"]').textContent = t('noticeOff');
@@ -120,7 +124,7 @@ export function createMemoryUi({ client, drawer, main, openers, noticeHost, priv
     ok.addEventListener('click', async () => {
       if (busy) return; busy = true;
       try { await client.acknowledgeNotice(); profile = { ...profile, noticeSeen: true }; removeNotice(); }
-      catch { showHint('noticeFailed'); } // the notice stays
+      catch (err) { showHint(failed('notice', err).key); } // the notice stays
       busy = false;
     });
     off.addEventListener('click', async () => {
@@ -129,7 +133,7 @@ export function createMemoryUi({ client, drawer, main, openers, noticeHost, priv
         await client.setMemory(false);
         profile = { ...profile, memoryOn: false, noticeSeen: true };
         removeNotice(); renderPrivacy(); showHint('memoryOffNow');
-      } catch { showHint('memoryOffFailed'); }
+      } catch (err) { showHint(failed('memoryOff', err).key); }
       busy = false;
     });
   }
@@ -138,8 +142,10 @@ export function createMemoryUi({ client, drawer, main, openers, noticeHost, priv
     try {
       profile = await client.getProfile();
       profileFailed = false;
+      setMemoryPath(profile.path);
     } catch { profile = null; profileFailed = true; }
     renderPrivacy();
+    onProfile?.(profile);
     if (profile?.readable && !profile.noticeSeen) showNotice();
   }
 
@@ -241,13 +247,14 @@ export function createMemoryUi({ client, drawer, main, openers, noticeHost, priv
     const panel = panels.diary;
     loading(panel, 'diaryLoading');
     let data;
-    try { data = await client.getDiary(); } catch {
+    try { data = await client.getDiary(); } catch (err) {
       if (mine !== token) return;
-      errorBlock(panel, 'diaryError', loadDiary).focus();
+      errorBlock(panel, failed('diary', err).key, loadDiary).focus();
       return;
     }
     if (mine !== token) return;
     panel.removeAttribute('aria-busy');
+    if (data.readable === false) { errorBlock(panel, errorWords('diary').key, loadDiary).focus(); return; } // no retry loop: the button is the user's
     renderDiary(panel, data);
   }
 
@@ -301,7 +308,7 @@ export function createMemoryUi({ client, drawer, main, openers, noticeHost, priv
         renderPrivacy();
         renderDiary(panel, { ...data, memoryOn: true });
         tabs.diary.focus();
-      } catch { on.disabled = false; row.append(h('p', 'field-msg', t('saveFailed'), { role: 'alert' })); }
+      } catch (err) { on.disabled = false; row.append(h('p', 'field-msg', t(failed('setting', err).key), { role: 'alert' })); }
     });
     row.append(on);
     return row;
@@ -345,12 +352,12 @@ export function createMemoryUi({ client, drawer, main, openers, noticeHost, priv
       lab.append(h('span', 'curve__wd', isToday ? t('dayToday') : tf('weekday')(dt.getDay())));
       lab.append(h('span', 'curve__md', `${m}/${d}`));
       labels.append(lab);
-      if (!day.entries.length) {
+      if (day.value == null) {
         flush();
         area.append(Object.assign(h('span', 'curve__none', t('dayNone')), { style: `left:${((i + 0.5) / 7) * 100}%` }));
         return;
       }
-      const v = day.entries.reduce((s, e) => s + (VALENCE[e.mood] ?? 0), 0) / day.entries.length;
+      const v = day.value; // the service's day value, -1..+1 (contract § R1 seam); the page does not average
       const y = 1 - v;
       run.push([i + 0.5, y]);
       const tone = v >= 0.2 ? 'up' : v <= -0.2 ? 'down' : 'mid';
@@ -370,17 +377,17 @@ export function createMemoryUi({ client, drawer, main, openers, noticeHost, priv
     const panel = panels.about;
     loading(panel, 'profileLoading');
     let p;
-    try { p = await client.getProfile(); } catch {
+    try { p = await client.getProfile(); } catch (err) {
       if (mine !== token) return;
       profileFailed = true; profile = null; renderPrivacy();
-      errorBlock(panel, 'profileError', loadAbout).focus();
+      errorBlock(panel, failed('profile', err).key, loadAbout).focus();
       panel.append(deadControls());
       return;
     }
     if (mine !== token) return;
-    profile = p; profileFailed = false; renderPrivacy();
+    profile = p; profileFailed = false; setMemoryPath(p.path); renderPrivacy();
     panel.removeAttribute('aria-busy');
-    if (!p.readable) { errorBlock(panel, 'profileError', loadAbout); panel.append(deadControls()); return; }
+    if (!p.readable) { errorBlock(panel, errorWords('profile').key, loadAbout); panel.append(deadControls()); return; }
     renderAbout(panel);
   }
 
@@ -409,7 +416,7 @@ export function createMemoryUi({ client, drawer, main, openers, noticeHost, priv
     panel.replaceChildren();
     const p = profile;
     if (!memoryOn()) panel.append(h('p', 'about__paused', t('aboutPaused')));
-    if (aboutIsEmpty(p.about)) panel.append(h('p', 'about__empty', t('aboutEmpty'), { 'data-testid': 'about-empty' }));
+    if (p.aboutEmpty) panel.append(h('p', 'about__empty', t('aboutEmpty'), { 'data-testid': 'about-empty' }));
     else {
       const box = h('div', 'about__box');
       box.dataset.testid = 'about-box';
@@ -435,7 +442,7 @@ export function createMemoryUi({ client, drawer, main, openers, noticeHost, priv
         await client.setName(cleaned);
         onNameSaved(cleaned);
         nameIn.value = nameShown = getName();
-      } catch { nameIn.value = nameShown; say(nameMsg, t('saveFailed')); }
+      } catch (err) { nameIn.value = nameShown; say(nameMsg, t(failed('setting', err).key)); }
       nameBusy = false;
     }
     nameIn.addEventListener('input', () => { const v = typingFilter(nameIn.value); if (v !== nameIn.value) nameIn.value = v; });
@@ -475,7 +482,7 @@ export function createMemoryUi({ client, drawer, main, openers, noticeHost, priv
         sel.querySelectorAll('option').forEach((o, i) => { o.textContent = t(REGIONS[i][1]); });
         lineEl.textContent = t(regionKey(next));
         say(regionMsg, t('regionSaved'));
-      } catch { sel.value = regionShown; say(regionMsg, t('saveFailed')); }
+      } catch (err) { sel.value = regionShown; say(regionMsg, t(failed('setting', err).key)); }
     });
     const line = h('div', 'set__line');
     line.append(wrapSel, lineEl);
@@ -511,7 +518,7 @@ export function createMemoryUi({ client, drawer, main, openers, noticeHost, priv
         const paused = panel.querySelector('.about__paused');
         if (next) paused?.remove();
         else if (!paused) panel.prepend(h('p', 'about__paused', t('aboutPaused')));
-      } catch { say(memMsg, t('saveFailed')); }
+      } catch (err) { say(memMsg, t(failed('setting', err).key)); }
       sw.disabled = false; sw.focus();
     });
     const swLine = h('div', 'set__line');
@@ -559,16 +566,16 @@ export function createMemoryUi({ client, drawer, main, openers, noticeHost, priv
         yes.disabled = no.disabled = true;
         try {
           const r = await client.forget();
-          profile = { ...profile, about: '', kept: false, memoryOn: r?.memoryOn ?? memoryOn() };
+          profile = { ...profile, about: '', aboutEmpty: true, kept: false, memoryOn: r?.memoryOn ?? memoryOn() };
           asking = false;
           onForgotten?.();
           renderAbout(panels.about);
           const host = forgetHost;
           host.prepend(h('p', 'forget__result', t(memoryOn() ? 'forgotten' : 'forgottenOff'), { role: 'status', 'data-testid': 'forget-result' }));
           closeBtn.focus();
-        } catch {
+        } catch (err) {
           yes.disabled = no.disabled = false;
-          forgetHost.append(h('p', 'field-msg', t('forgetFailed'), { role: 'alert' }));
+          forgetHost.append(h('p', 'field-msg', t(failed('forget', err).key), { role: 'alert' }));
           yes.focus();
         }
       });

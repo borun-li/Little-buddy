@@ -120,13 +120,13 @@ const rename = createRename({
   button: $('.caption__name'),
   onSave(cleaned) {
     applyName(cleaned);
-    memory.setName(cleaned).catch(() => {}); // R1: the profile hears it too; the caption keeps its own answer (FLOW-008)
+    memory.setName(cleaned).catch(() => {}); // the profile keeps it; the caption keeps its own answer (FLOW-008)
   },
 });
-// The one place a new name lands (caption rename and the drawer's field): saved here until the real seam keeps it.
+// The one place a new name lands (caption rename, the drawer's field, the profile read): the profile keeps it (DES-039);
+// localStorage is only read once for the migration below and never written again.
 function applyName(cleaned) {
   savedName = cleaned;
-  saveName(storage, cleaned);
   setName(cleaned);
   applyCopy(); // every name updates; turns already in the log are not rewritten
 }
@@ -275,6 +275,18 @@ function clearChat() {
 $('.stage-clear').addEventListener('click', clearChat);
 
 // R1: the notice in the empty log, the privacy line and the drawer (日记 / 关于你). Data: memory-client.js only.
+// DES-039: the profile is where the name lives. Unreadable -> the default name, no write, no migration. Readable and
+// brand new, with an old name in localStorage -> setName once; the key goes only after the service says saved, and a
+// failed try shows and sends the old name until the next open. Otherwise the profile's name is the name.
+async function onProfile(p) {
+  if (!p) return; // no answer: the name the page shows stays (the stored one), nothing is written
+  if (!p.readable) { if (savedName !== null) applyName(null); return; }
+  const old = p.newProfile ? loadName(storage) : null;
+  if (old === null) { if (p.name !== savedName) applyName(p.name); return; }
+  if (old !== savedName) applyName(old);
+  try { await memory.setName(old); } catch { return; }
+  saveName(storage, null); // saved: the key goes (removeItem)
+}
 const memoryUi = createMemoryUi({
   client: memory,
   drawer: $('.drawer'),
@@ -286,6 +298,7 @@ const memoryUi = createMemoryUi({
   onNameSaved: applyName,
   onForgotten: () => { clearChat(); },
   onStartChat: () => input.focus(),
+  onProfile,
 });
 
 input.addEventListener('keydown', (e) => {

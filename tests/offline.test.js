@@ -91,12 +91,12 @@ test('Q-033 REQ-014 the only network call in page code is the one fetch seam, an
   for (const p of appJs) {
     const src = stripComments(read(p));
     for (const m of src.matchAll(/\bfetch\s*\(/g)) direct.push(`${relative(WEB, p)}@${m.index}`);
-    for (const m of src.matchAll(/\bcall\(\s*(['"`])([^'"`]+)\1/g)) paths.add(m[2]);
+    for (const m of src.matchAll(/\b(?:call|post)\(\s*(['"`])([^'"`]+)\1/g)) paths.add(m[2]);
     assert.doesNotMatch(src, /\b(XMLHttpRequest|WebSocket|EventSource|sendBeacon|importScripts)\b/, relative(WEB, p));
   }
   // fetch is only reached through createClient's injectable doFetch, never called by name elsewhere
   assert.deepEqual(direct, []);
-  assert.deepEqual([...paths].sort(), ['/api/health', '/api/respond', '/api/speak', '/api/transcribe']);
+  assert.deepEqual([...paths].sort(), ['/api/diary', '/api/forget', '/api/health', '/api/profile', '/api/respond', '/api/speak', '/api/transcribe']); // R1 Q-036: memory-client.js adds diary, forget, profile
   for (const path of paths) assert.match(path, /^\/api\/[a-z]+$/);
 });
 
