@@ -63,13 +63,14 @@ export async function captureLogs(fn) {
 
 // ---- ports >= 4450, never 4317
 const taken = new Set();
+const UNSAFE = new Set([5060, 5061]); // Chromium refuses these (net::ERR_UNSAFE_PORT), seen in a TC-211 run on port 5060
 function canBind(port) {
   return new Promise((res) => { const s = net.createServer(); s.once('error', () => res(false)); s.listen(port, '127.0.0.1', () => s.close(() => res(true))); });
 }
 export async function port4450() {
   for (let i = 0; i < 400; i++) {
     const p = 4450 + Math.floor(Math.random() * 1500);
-    if (taken.has(p) || p === 4317 || !(await canBind(p))) continue;
+    if (taken.has(p) || p === 4317 || UNSAFE.has(p) || !(await canBind(p))) continue;
     taken.add(p);
     return p;
   }
