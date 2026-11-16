@@ -22,6 +22,7 @@ export class FolderInUse extends Error {
 }
 
 const EMPTY_DIARY = `${DIARY_HEADER}\n`;
+const MARKER_CANCELLED = 'cancelled'; // .forget text meaning "this forget answered not_saved"; an empty marker is pending
 const LOCK_TIMEOUT = Symbol('lock timeout');
 const errCode = (err) => err?.code ?? null;
 
@@ -184,6 +185,31 @@ export function createStore({ dir, cfg = CONFIG.memory, say = (t) => process.std
     }
   }
 
+  // A forget that answered not_saved must never leave a marker that redoes it. Unlink it; when that fails, write
+  // MARKER_CANCELLED into it (needs only the file's own write bit), which load() reads as "no forget pending" and removes.
+  async function cancelMarker(t0) {
+    const marker = at(FILES.forget);
+    try {
+      await unlinkIfThere(marker);
+    } catch (err) {
+      log('error', 'memory_forget', { ok: false, ms: Date.now() - t0, stage: 'cleanup', marker: 'unlink_failed', err_code: errCode(err) });
+      try {
+        const fh = await open(marker, 'r+');
+        try {
+          await fh.writeFile(MARKER_CANCELLED);
+          await fh.sync();
+        } finally {
+          await fh.close();
+        }
+      } catch (e) {
+        // Nothing else can be done now; the next load reads an empty marker as pending (it cannot tell).
+        log('error', 'memory_forget', { ok: false, ms: Date.now() - t0, stage: 'cleanup', marker: 'left_pending', err_code: errCode(e) });
+      }
+      return;
+    }
+    await syncDir().catch((e) => log('error', 'memory_forget', { ok: false, ms: Date.now() - t0, stage: 'cleanup', marker: 'unsynced', err_code: errCode(e) }));
+  }
+
   // Leftovers of a write cut short; a failure here only costs a stray file, so it is logged and start goes on.
   async function removeTemps() {
     try {
@@ -283,8 +309,19 @@ export function createStore({ dir, cfg = CONFIG.memory, say = (t) => process.std
           log('warn', 'memory_read_failed', { file: 'forget', err_code: errCode(err) });
         }
       }
+      if (marker) {
+        try {
+          if ((await readFile(at(FILES.forget), 'utf8')) === MARKER_CANCELLED) marker = false;
+        } catch (err) {
+          log('warn', 'memory_read_failed', { file: 'forget', err_code: errCode(err) }); // text unknown: pending, as any marker
+        }
+        if (!marker && writable) {
+          await unlinkIfThere(at(FILES.forget)).catch((e) => log('warn', 'memory_tmp_left', { file: 'forget', err_code: errCode(e) }));
+        }
+      }
       if (marker && writable) {
         try {
+          await removeTemps(); // staged files of the interrupted forget would make the 'wx' writes below fail (EEXIST)
           await writeAtomic(FILES.about, ABOUT_TEMPLATE);
           await writeAtomic(FILES.diary, EMPTY_DIARY);
           await unlink(at(FILES.forget));
@@ -434,28 +471,26 @@ export function createStore({ dir, cfg = CONFIG.memory, say = (t) => process.std
         const diaryTmp = at(`.${FILES.diary}.tmp`);
         let stage = 'marker';
         let markerMade = false;
+        const made = [];
         try {
-          try {
-            await writeNew(at(FILES.forget), '');
-            markerMade = true;
-          } catch (err) {
-            if (err.code !== 'EEXIST') throw err; // a marker left by an earlier forget this run means the same thing
-          }
+          // 'wx': an existing marker (a pending forget the next load finishes) fails this call with not_saved (§4 step 2).
+          await writeNew(at(FILES.forget), '');
+          markerMade = true;
           await syncDir();
           stage = 'stage';
           await writeNew(aboutTmp, ABOUT_TEMPLATE);
+          made.push(aboutTmp);
           await writeNew(diaryTmp, EMPTY_DIARY);
+          made.push(diaryTmp);
           stage = 'rename_about';
           await rename(aboutTmp, at(FILES.about));
         } catch (err) {
           log('error', 'memory_forget', { ok: false, ms: Date.now() - t0, stage, err_code: errCode(err) });
-          try {
-            await unlinkIfThere(aboutTmp);
-            await unlinkIfThere(diaryTmp);
-            if (markerMade) await unlinkIfThere(at(FILES.forget));
-          } catch (e) {
-            log('error', 'memory_forget', { ok: false, ms: Date.now() - t0, stage: 'cleanup', err_code: errCode(e) });
+          // Each removal on its own: a temp that will not go must never keep the marker, which would wipe on the next load.
+          for (const tmp of made) {
+            await unlinkIfThere(tmp).catch((e) => log('error', 'memory_forget', { ok: false, ms: Date.now() - t0, stage: 'cleanup', err_code: errCode(e) }));
           }
+          if (markerMade) await cancelMarker(t0);
           throw new ApiError('not_saved', 'memory');
         }
         about = ABOUT_TEMPLATE;
