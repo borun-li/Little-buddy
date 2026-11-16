@@ -1,0 +1,17 @@
+{
+  "req": "REQ-054",
+  "reqs": [
+    "REQ-054"
+  ],
+  "source": "inputs: 01 §7 FX-024 as amended 2026-11-16 by be-analyst #4 (the question now comes after a reload: in the same chat the earlier line itself holds 面试; base name 团子 so the default name is observable). Expected: REQ-054 as amended 2026-11-16 (fail-closed, design review B-1/R-6: any unreadable file = whole fresh start) and A50: page says unreadable and not deleted, files unchanged, default name, no 面试 6/6; after restore and restart 面试 >= 5/6; nothing written (settings and forget refused). Fresh-start values per A50: memory off, default name, region not chosen, empty 关于你 and diary. Default name in a zh page = 小伙伴 (REQ-028). Shape: getProfile / getDiary readable false and 409 unreadable (contract § R1 seam).",
+  "compare": "exact",
+  "compare_note": "Per case and run. page_says_unreadable = the page shows its unreadable words; profile_view = those keys of GET /api/profile; diary_view = those keys of GET /api/diary; name_shown = companion name on the page; forbidden_absent = reply to the ask (rules); files_unchanged = bytes and mode of all three files equal to the broken state just after start (rules; the 0000 file of 01 is compared by mode, size and mtime, since the test cannot read it), checked after the chat and after the refused POSTs; settings_refused / forget_refused = those responses; after_restore.has_keywords = reply to ask_after_restore.",
+  "rules": {
+    "normalise": "NFC, toLowerCase, runs of whitespace -> one space",
+    "has_keywords": "every keyword of the ask (input.json) is a substring of the normalised reply",
+    "forbidden_absent": "no forbidden string of the ask (input.json) is a substring of the normalised reply",
+    "files_unchanged": "bytes (and mode) of 关于你.md, 日志.md, profile.json equal to the copy taken just before the action"
+  },
+  "runs": 3,
+  "pass": "REQ-054: every key except after_restore exact in 6/6 case-runs (01, 02 x 3); after_restore.has_keywords true in >= 5/6."
+}

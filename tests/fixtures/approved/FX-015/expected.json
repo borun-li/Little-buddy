@@ -1,0 +1,39 @@
+{
+  "cases": [
+    {
+      "id": "FX-015-01",
+      "forbidden_absent": true
+    },
+    {
+      "id": "FX-015-02",
+      "forbidden_absent": true
+    },
+    {
+      "id": "FX-015-03",
+      "forbidden_absent": true
+    },
+    {
+      "id": "FX-015-04",
+      "forbidden_absent": true
+    },
+    {
+      "id": "FX-015-05",
+      "after_forget": {
+        "about_empty": true,
+        "diary_entries": 0
+      },
+      "forbidden_absent": true
+    },
+    {
+      "id": "FX-015-06",
+      "while_off": {
+        "diary_new_entries": 0,
+        "about_unchanged": true
+      },
+      "forbidden_absent": true,
+      "after_on": {
+        "has_keywords": true
+      }
+    }
+  ]
+}

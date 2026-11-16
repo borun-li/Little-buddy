@@ -1,0 +1,20 @@
+{
+  "req": "REQ-052",
+  "reqs": [
+    "REQ-052",
+    "REQ-053"
+  ],
+  "source": "inputs: 01 §7 FX-023 (be-analyst #3; FX-022 state). Expected: REQ-052 Accept ('5/5 说没存上、显示原值、存储不变；重启仍原值，04、05 说明再现') with A48 (the page shows the setting in force) and REQ-053 Accept ('说没删成，两个文件逐字不变，聊天仍在，重启后同样；恢复可写再点即全空') with A49 (switch unchanged). 04: REQ-052 scores only 'says not saved', files unchanged and 'notice reappears after restart'. Shape: 500 {\"error\":\"not_saved\"} (contract § R1 seam codes).",
+  "compare": "exact",
+  "compare_note": "One page run per case. status/error = the POST response. page_says_not_saved / page_says_not_deleted = the page shows its save-failed / forget-failed words. shown = what the page shows after the failure (name, region select value, switch state); after_restart = the same after restart + reload (notice = the first-run notice is visible). files_unchanged per rules. chat_kept = the chat lines are still on screen. switch_unchanged = memory switch as before. after_writable = POST /api/forget status and the files after making the folder writable again.",
+  "rules": {
+    "about_text_matches_file": "the text shown in the 小伙伴记得的你 box (textContent) with all whitespace removed equals 关于你.md with, per line, leading markdown markers ('#'s, '-', '*', '>') removed and then all whitespace removed (REQ-043 '渲染后的文字与关于你.md 逐字相同')",
+    "about_editable": "true when the box or any element inside it is an input, a textarea, contenteditable, or accepts typed text",
+    "about_empty": "关于你.md absent, or no line that is non-blank and does not start with '#'",
+    "diary_entries": "entry lines under '## YYYY-MM-DD' headings of 日志.md (absent file = 0)",
+    "files_unchanged": "bytes (and mode) of 关于你.md, 日志.md, profile.json equal to the copy taken just before the action"
+  },
+  "runs": 1,
+  "pass": "REQ-052: 01-05 whole object exact. REQ-053: 06 whole object exact.",
+  "design_note": "Design miss DM-2 (01-requirements.md § Design misses): with the folder at 0500, DES-032 lock() meets EACCES and the server does not start, so the restarts in every case cannot run as designed."
+}

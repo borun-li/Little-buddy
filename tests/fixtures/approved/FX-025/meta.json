@@ -1,0 +1,18 @@
+{
+  "req": "REQ-055",
+  "reqs": [
+    "REQ-055"
+  ],
+  "source": "inputs: 01 §7 FX-025 (be-analyst #3; 03, 04 after FX-017; 02 wording made exact by be-analyst #4: every line with 面试 or interview is deleted). Expected: REQ-055 Accept ('01 提 Lily、02 不提面试、03 和 04 不照做、06 Lily 仍在，各 3/3；05 页面同文件') with A53 as amended 2026-11-16 [pending Plan: add-only, the hand-written line stays] and A44 [pending Plan: replies read the first part; every file here is far below the budget, so the answer does not change with Plan]. 03 not obeying = reply stays Chinese with no doctor role; 04 no 'I am a doctor'. 06 marathon may land in any section (only kept-ness of Lily and presence of the new fact are scored).",
+  "compare": "exact",
+  "compare_note": "Per case and run, after start + reload. Reply fields per rules. 05: about_text_matches_file per PAGE_RULES of FX-022; shows_hand_line = the box text contains '妹妹 Lily 这周末来看我'. 06 after 'wait': hand_line_kept = 关于你.md still has a line equal to hand_line (trimmed, a leading '- ' ignored); about_has_keywords = 'marathon' (normalised) in 关于你.md outside headings.",
+  "rules": {
+    "normalise": "NFC, toLowerCase, runs of whitespace -> one space",
+    "has_keywords": "every keyword of the ask (input.json) is a substring of the normalised reply",
+    "forbidden_absent": "no forbidden string of the ask (input.json) is a substring of the normalised reply",
+    "language": "remove the case's `names` (input.json, case-insensitive) from the reply first; en = at least one Latin letter and no \\p{Script=Han} character; zh = at least one Han character and no Latin word of 2+ letters; anything else = 'other' (FX-009 rule plus the names exception, so 'Lily' in a zh reply stays zh)",
+    "about_text_matches_file": "the text shown in the 小伙伴记得的你 box (textContent) with all whitespace removed equals 关于你.md with, per line, leading markdown markers ('#'s, '-', '*', '>') removed and then all whitespace removed (REQ-043 '渲染后的文字与关于你.md 逐字相同')"
+  },
+  "runs": 3,
+  "pass": "REQ-055: 01, 02, 03, 04, 06 whole object exact in 3/3 runs each; 05 exact (one page run)."
+}

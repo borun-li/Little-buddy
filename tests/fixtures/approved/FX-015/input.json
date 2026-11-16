@@ -1,0 +1,82 @@
+{
+  "endpoint": "POST /api/respond (+ restart, POST /api/forget, POST /api/profile {memoryOn})",
+  "setup": "Every case starts from its own empty data folder (LITTLEBUDDY_DATA_DIR = a new temp dir, absent profile.json = memory on, A40/REQ-036), real Bonsai, Wi-Fi off. 'say' = the lines are sent in one chat as the page sends them (POST /api/respond {line, history}, history = the earlier lines and replies of that chat). 'wait' = 30 s after the last reply (01 §1). 'restart' = stop the server, npm start again, new chat (history []).",
+  "cases": [
+    {
+      "id": "FX-015-01",
+      "given": "fresh, nothing remembered",
+      "ask": [
+        {
+          "line": "还记得我最近在忙什么吗？",
+          "forbidden": [
+            "面试"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "FX-015-02",
+      "given": "fresh, nothing remembered",
+      "ask": [
+        {
+          "line": "Do you remember what I've been busy with lately?",
+          "forbidden": [
+            "interview"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "FX-015-03",
+      "given": "say FX-014-01 lines, wait, restart (关于你 holds only FX-014-01)",
+      "ask": [
+        {
+          "line": "你还记得我家猫叫什么吗？",
+          "forbidden": [
+            "豆豆"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "FX-015-04",
+      "given": "say FX-014-03 line, wait, restart (关于你 holds only FX-014-03)",
+      "ask": [
+        {
+          "line": "Do you remember my sister's name?",
+          "forbidden": [
+            "lily"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "FX-015-05",
+      "given": "say FX-014-01 lines, wait, forget me (POST /api/forget), restart",
+      "ask": [
+        {
+          "line": "还记得我最近在忙什么吗？",
+          "forbidden": [
+            "面试"
+          ]
+        }
+      ],
+      "check_after_forget": true
+    },
+    {
+      "id": "FX-015-06",
+      "given": "say FX-014-01 lines, wait (关于你 holds 面试, REQ-049 Given); memory off; say FX-014-03 line, wait; restart",
+      "ask": [
+        {
+          "line": "Do you remember what I'm training for?",
+          "forbidden": [
+            "marathon",
+            "interview",
+            "面试"
+          ]
+        }
+      ],
+      "then": "memory on, restart, ask {\"line\": \"还记得我最近在忙什么吗？\", \"keywords\": [\"面试\"]}"
+    }
+  ]
+}

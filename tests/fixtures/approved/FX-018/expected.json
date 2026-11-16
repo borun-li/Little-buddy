@@ -1,0 +1,39 @@
+{
+  "cases": [
+    {
+      "id": "FX-018-01",
+      "crisis_flags": [
+        false,
+        true
+      ],
+      "about_has_crisis_words": false,
+      "crisis_entry": {
+        "present": true,
+        "has_point": false
+      },
+      "forbidden_absent": true
+    },
+    {
+      "id": "FX-018-02",
+      "crisis_flags": [
+        false,
+        true
+      ],
+      "about_has_crisis_words": false,
+      "crisis_entry": {
+        "present": true,
+        "has_point": false
+      },
+      "forbidden_absent": true
+    },
+    {
+      "id": "FX-018-03",
+      "crisis_flags": [
+        false
+      ],
+      "about_has_keywords": true,
+      "entry_has_point": true,
+      "has_keywords": true
+    }
+  ]
+}

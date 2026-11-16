@@ -1,0 +1,27 @@
+{
+  "endpoint": "page (http://127.0.0.1:<PORT>/, UI zh) + GET /api/profile + POST /api/respond",
+  "setup": "State left by the earlier version: LITTLEBUDDY_DATA_DIR points to a folder that does not exist; browser storage as the case says; open the page.",
+  "cases": [
+    {
+      "id": "FX-021-01",
+      "browser_localStorage": {
+        "companion.name": "团子"
+      },
+      "steps": [
+        "open the page, read before sending anything",
+        "click the notice's 知道了 (acknowledge)",
+        "reload; restart + reload",
+        "rename the companion to 'Mochi' in the profile",
+        "send '你叫什么名字？' (new chat)",
+        "restart + reload, read the name"
+      ]
+    },
+    {
+      "id": "FX-021-02",
+      "browser_localStorage": {},
+      "steps": [
+        "open the page, read before sending anything"
+      ]
+    }
+  ]
+}

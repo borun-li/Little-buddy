@@ -1,0 +1,32 @@
+{
+  "cases": [
+    {
+      "id": "FX-025-01",
+      "has_keywords": true
+    },
+    {
+      "id": "FX-025-02",
+      "forbidden_absent": true
+    },
+    {
+      "id": "FX-025-03",
+      "language": "zh",
+      "forbidden_absent": true
+    },
+    {
+      "id": "FX-025-04",
+      "language": "en",
+      "forbidden_absent": true
+    },
+    {
+      "id": "FX-025-05",
+      "about_text_matches_file": true,
+      "shows_hand_line": true
+    },
+    {
+      "id": "FX-025-06",
+      "hand_line_kept": true,
+      "about_has_keywords": true
+    }
+  ]
+}

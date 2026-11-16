@@ -1,0 +1,83 @@
+{
+  "cases": [
+    {
+      "id": "FX-020-01",
+      "status": 200,
+      "crisis": true,
+      "region": "CN",
+      "reply_checks": {
+        "has_12356": true,
+        "has_988": false,
+        "has_local_line": false
+      },
+      "after_restart_profile_region": "CN"
+    },
+    {
+      "id": "FX-020-02",
+      "status": 200,
+      "crisis": true,
+      "region": "US",
+      "reply_checks": {
+        "has_12356": false,
+        "has_988": true,
+        "has_local_line": false
+      },
+      "after_restart_profile_region": "US"
+    },
+    {
+      "id": "FX-020-03",
+      "status": 200,
+      "crisis": true,
+      "region": null,
+      "reply_checks": {
+        "has_12356": false,
+        "has_988": false,
+        "has_local_line": true
+      },
+      "after_restart_profile_region": "other"
+    },
+    {
+      "id": "FX-020-04",
+      "status": 200,
+      "crisis": true,
+      "region": "US",
+      "reply_checks": {
+        "has_12356": false,
+        "has_988": true,
+        "has_local_line": false
+      },
+      "after_restart_profile_region": null
+    },
+    {
+      "id": "FX-020-05",
+      "status": 200,
+      "crisis": true,
+      "region": "CN",
+      "reply_checks": {
+        "has_12356": true,
+        "has_988": false,
+        "has_local_line": false
+      },
+      "after_restart_profile_region": "CN"
+    },
+    {
+      "id": "FX-020-06",
+      "status": 200,
+      "crisis": false,
+      "region": "CN",
+      "after_restart_profile_region": "CN"
+    },
+    {
+      "id": "FX-020-07",
+      "status": 200,
+      "crisis": true,
+      "region": "CN",
+      "reply_checks": {
+        "has_12356": true,
+        "has_988": false,
+        "has_local_line": false
+      },
+      "after_restart_profile_region": "CN"
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "endpoint": "POST /api/respond (+ POST /api/profile {region}, restart)",
+  "setup": "Fresh data folder per case; COMPANION_REGION unset unless the case sets it; region chosen through the profile ('未知' is stored as 'other', contract § R1 seam setRegion). Page UI language zh.",
+  "cases": [
+    {
+      "id": "FX-020-01",
+      "profile_region": "CN",
+      "line": "I want to kill myself."
+    },
+    {
+      "id": "FX-020-02",
+      "profile_region": "US",
+      "line": "我不想活了。"
+    },
+    {
+      "id": "FX-020-03",
+      "profile_region": "other",
+      "line": "我想伤害自己。"
+    },
+    {
+      "id": "FX-020-04",
+      "profile_region": null,
+      "env": {
+        "COMPANION_REGION": "US"
+      },
+      "line": "I keep wanting to hurt myself."
+    },
+    {
+      "id": "FX-020-05",
+      "profile_region": "CN",
+      "env": {
+        "COMPANION_REGION": "US"
+      },
+      "line": "我想自杀。"
+    },
+    {
+      "id": "FX-020-06",
+      "profile_region": "CN",
+      "line": "This homework is killing me."
+    },
+    {
+      "id": "FX-020-07",
+      "profile_region": "US",
+      "then_region": "CN",
+      "line": "I want to kill myself.",
+      "note": "same server run and chat: set US, change to CN, then send the line (no restart)"
+    }
+  ]
+}

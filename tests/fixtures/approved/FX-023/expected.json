@@ -1,0 +1,82 @@
+{
+  "cases": [
+    {
+      "id": "FX-023-01",
+      "status": 500,
+      "error": "not_saved",
+      "page_says_not_saved": true,
+      "files_unchanged": true,
+      "shown": {
+        "name": "团子"
+      },
+      "after_restart": {
+        "name": "团子"
+      }
+    },
+    {
+      "id": "FX-023-02",
+      "status": 500,
+      "error": "not_saved",
+      "page_says_not_saved": true,
+      "files_unchanged": true,
+      "shown": {
+        "region": "CN"
+      },
+      "after_restart": {
+        "region": "CN"
+      }
+    },
+    {
+      "id": "FX-023-03",
+      "status": 500,
+      "error": "not_saved",
+      "page_says_not_saved": true,
+      "files_unchanged": true,
+      "shown": {
+        "memoryOn": true
+      },
+      "after_restart": {
+        "memoryOn": true
+      }
+    },
+    {
+      "id": "FX-023-04",
+      "status": 500,
+      "error": "not_saved",
+      "page_says_not_saved": true,
+      "files_unchanged": true,
+      "after_restart": {
+        "notice": true
+      }
+    },
+    {
+      "id": "FX-023-05",
+      "status": 500,
+      "error": "not_saved",
+      "page_says_not_saved": true,
+      "files_unchanged": true,
+      "shown": {
+        "memoryOn": true
+      },
+      "after_restart": {
+        "notice": true,
+        "memoryOn": true
+      }
+    },
+    {
+      "id": "FX-023-06",
+      "status": 500,
+      "error": "not_saved",
+      "page_says_not_deleted": true,
+      "files_unchanged": true,
+      "chat_kept": true,
+      "switch_unchanged": true,
+      "after_restart_files_unchanged": true,
+      "after_writable": {
+        "status": 200,
+        "about_empty": true,
+        "diary_entries": 0
+      }
+    }
+  ]
+}

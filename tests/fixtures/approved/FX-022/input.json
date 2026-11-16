@@ -1,0 +1,32 @@
+{
+  "endpoint": "page + POST /api/forget + GET /api/profile, GET /api/diary",
+  "setup": "LITTLEBUDDY_DATA_DIR = a new temp dir holding the files below ({today} = the server's local date); memory on; start, open the page. Each case starts from these files.",
+  "files": {
+    "关于你.md": "# 关于你\n\n## 最近在忙\n- 在准备实习面试\n\n## 在意的人和事\n- 猫叫豆豆，最近不太爱吃饭\n\n## 喜欢·不喜欢\n",
+    "日志.md": "# 日志\n\n## {today}\n- 开心 · 模拟面试顺利\n- 紧张 · 和朋友吵架\n- 难过\n",
+    "profile.json": "{\n  \"version\": 1,\n  \"name\": \"团子\",\n  \"region\": \"CN\",\n  \"memoryOn\": true,\n  \"noticeSeen\": true\n}\n"
+  },
+  "cases": [
+    {
+      "id": "FX-022-01",
+      "steps": [
+        "open 小伙伴记得的你"
+      ]
+    },
+    {
+      "id": "FX-022-02",
+      "steps": [
+        "forget me (confirm once), time click to result",
+        "restart + reload, open both tabs"
+      ]
+    },
+    {
+      "id": "FX-022-03",
+      "steps": [
+        "send '我明天还有一轮面试。'",
+        "forget me before the reply appears",
+        "wait for the reply (or its failure) + 30 s"
+      ]
+    }
+  ]
+}

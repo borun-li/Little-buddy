@@ -1,0 +1,33 @@
+{
+  "endpoint": "GET /api/diary (page: 心情日记 tab)",
+  "setup": "Server clock: local date 2026-11-15 (fixed time zone, e.g. TZ=America/New_York, any time of day unless the case says otherwise); LITTLEBUDDY_DATA_DIR = a new temp dir holding only the case's files; memory on.",
+  "cases": [
+    {
+      "id": "FX-019-01",
+      "files": {
+        "日志.md": "# 日志\n\n## 2026-11-07\n- 开心 · 收到实习面试通知\n\n## 2026-11-09\n- 难过 · 论文被导师打回\n- 难过 · 一夜没睡好\n- 平常\n\n## 2026-11-11\n- 平静 · 和室友吃了火锅\n\n## 2026-11-12\n- 开心 · 猫豆豆又肯吃饭了\n- 紧张 · 和朋友吵架\n\n## 2026-11-14\n- 紧张 · 面试前很焦虑\n\n## 2026-11-15\n- 开心 · 模拟面试顺利\n- 难过 · 下雨鞋湿了\n- 平常\n- 开心 · 妹妹周末要来\n"
+      },
+      "note": "01 §7 content written in the DES-031 line format (mood word 开心/平静/平常/紧张/难过 = pleasant-high/pleasant-low/neutral/unpleasant-high/unpleasant-low); 11-10 and 11-13 have no section"
+    },
+    {
+      "id": "FX-019-02",
+      "files": {},
+      "clock_at_send": "2026-11-14T23:59:55 local",
+      "say": "今天累死了。",
+      "note": "the reply must appear after 00:00:00 on 2026-11-15 (delay the reply if Bonsai answers within 5 s); then GET /api/diary on 2026-11-15"
+    },
+    {
+      "id": "FX-019-03",
+      "files": {},
+      "note": "日志.md does not exist (absent shape)"
+    },
+    {
+      "id": "FX-019-04",
+      "files": {
+        "日志.md": "GENERATED"
+      },
+      "generator": "'# 日志' then, for each local date from 2025-11-16 to 2026-11-15 (365 days), a '## YYYY-MM-DD' section with 100 lines; line k (k = 0..99) = '- ' + ['开心','平静','平常','紧张','难过'][k % 5] + ' · 第' + (k+1) + '条' -> 36,500 entries (A42)",
+      "note": "time GET /api/diary from request to full body, and the page from opening the tab to the curve and list shown"
+    }
+  ]
+}

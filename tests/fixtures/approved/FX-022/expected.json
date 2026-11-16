@@ -1,0 +1,37 @@
+{
+  "cases": [
+    {
+      "id": "FX-022-01",
+      "about_text_matches_file": true,
+      "about_editable": false,
+      "about_empty_state": false
+    },
+    {
+      "id": "FX-022-02",
+      "forget_ms_le_1000": true,
+      "about_empty": true,
+      "about_headings": [
+        "最近在忙",
+        "在意的人和事",
+        "喜欢·不喜欢"
+      ],
+      "diary_entries": 0,
+      "profile": {
+        "name": "团子",
+        "region": "CN",
+        "memoryOn": true
+      },
+      "after_restart": {
+        "about_empty": true,
+        "diary_entries": 0,
+        "about_empty_state": true,
+        "diary_empty_state": true
+      }
+    },
+    {
+      "id": "FX-022-03",
+      "about_empty": true,
+      "diary_entries": 0
+    }
+  ]
+}
