@@ -81,7 +81,6 @@ export function createMemoryUi({ client, drawer, main, openers, noticeHost, priv
 
   function noticeText() {
     if (!noticeEl) return;
-    noticeEl.setAttribute('aria-label', t('noticeLabel'));
     noticeEl.querySelector('.notice__title').textContent = t('noticeTitle');
     ['noticeSummary', 'noticeMoods', 'noticeProfile'].forEach((k, i) => {
       const li = noticeEl.querySelectorAll('.notice__kept li')[i];
@@ -109,13 +108,13 @@ export function createMemoryUi({ client, drawer, main, openers, noticeHost, priv
 
   function showNotice() {
     if (noticeEl || !noticeHost) return;
-    noticeEl = h('section', 'notice', null, { role: 'region' });
+    noticeEl = h('section', 'notice', null, { role: 'region', 'aria-labelledby': 'notice-title' }); // named by its title (CMP-020)
     noticeEl.dataset.testid = 'memory-notice';
     const kept = h('ul', 'notice__kept');
     kept.append(h('li'), h('li'), h('li'));
     const ok = button('btn btn--soft', '', 'notice-ok');
     const off = button('btn', '', 'notice-off');
-    noticeEl.append(h('p', 'notice__title'), kept, h('p', 'notice__never'), h('p', 'notice__where'), h('p', 'notice__later'),
+    noticeEl.append(h('p', 'notice__title', null, { id: 'notice-title' }), kept, h('p', 'notice__never'), h('p', 'notice__where'), h('p', 'notice__later'),
       h('div', 'notice__actions'));
     noticeEl.querySelector('.notice__actions').append(ok, off);
     noticeHost.prepend(noticeEl);
