@@ -63,9 +63,13 @@ export async function captureLogs(fn) {
 
 // ---- ports >= 4450, never 4317
 const taken = new Set();
-const UNSAFE = new Set([5060, 5061]); // Chromium refuses these (net::ERR_UNSAFE_PORT), seen in a TC-211 run on port 5060
-function canBind(port) {
-  return new Promise((res) => { const s = net.createServer(); s.once('error', () => res(false)); s.listen(port, '127.0.0.1', () => s.close(() => res(true))); });
+const UNSAFE = new Set([5060, 5061, 5000, 7000]); // Chromium refuses 5060/5061 (net::ERR_UNSAFE_PORT, TC-211); 5000 and 7000 are held by macOS AirPlay (ControlCenter) on *:5000/*:7000 (TC-185 flake, be-developer #5 round 2)
+// A port counts as free only when it binds on loopback AND on every address (a listener on *:PORT does not stop a 127.0.0.1 bind test on macOS).
+function bindOn(port, host) {
+  return new Promise((res) => { const s = net.createServer(); s.once('error', () => res(false)); s.listen(port, host, () => s.close(() => res(true))); });
+}
+async function canBind(port) {
+  return (await bindOn(port, '127.0.0.1')) && (await bindOn(port, undefined)); // undefined = all addresses (dual-stack ::)
 }
 export async function port4450() {
   for (let i = 0; i < 400; i++) {

@@ -8,6 +8,7 @@ import { chmodSync, existsSync, mkdirSync, readdirSync, readFileSync, statSync, 
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { after, test } from 'node:test';
+import { LANG_TAG } from '../server/prompts.js';
 import { nonLoopback } from './server-helpers.js';
 import {
   aboutEmpty, api, cleanupTmp, diaryEntries, filesOf, fx, MOOD_VALUE, MOOD_WORD, mode, port4450, raw, readAbout, readDiary, respond, ROOT, round3, roundDays,
@@ -436,7 +437,8 @@ test('TC-182 REQ-038/039/049/055 (A55): what the reply request carries: memory b
     const s1 = sysOf(r1);
     assert.ok(s1.includes(`<memory>\n${about}\n</memory>`), 'the notes text inside <memory>');
     assert.ok(s1.includes(GUARD), 'MEMORY_RULE guard sentence');
-    assert.ok(s1.indexOf('</memory>') < s1.indexOf('只用简体中文回复'), 'LANG_RULE after the memory block');
+    assert.ok(s1.indexOf('</memory>') < s1.indexOf(LANG_TAG), 'the language rule (LANG_TAG, FND-029 / 03 §9 10.6) after the memory block');
+    assert.ok(r1.body.messages.at(-1).content.endsWith('\n<lang:zh>'), 'the last message ends with the tag');
     await waitFor(() => fileHas(join(dir, '关于你.md'), 'NEWLINE-X'), 15000, 'file changed by an update');
     await respond(gw, '第二句继续', [{ role: 'user', text: '第一句你好 NEWLINE-X' }, { role: 'companion', text: 'Fake reply.' }]);
     assert.ok(!sysOf(turnReqs(gw, 'reply', '第二句')[0]).includes('NEWLINE-X'), 'the same chat keeps its snapshot');

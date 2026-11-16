@@ -31,6 +31,8 @@ const RESPOND_MS = 16000, SPEAK_MS = 11000; // the page's own client deadlines (
 const ABORT = process.env.PERF_ABORT === '1';
 // PERF_NOSPEAK=1: diagnostic control only (read-aloud off, no /api/speak call); TC-216 proper always has read-aloud on.
 const NOSPEAK = process.env.PERF_NOSPEAK === '1';
+// PERF_SWITCH=0.15 (be-tester #8): the chance that a line is in the other language than the one before it (a realistic mix); unset = the old driver (about 46 % switches).
+const SWITCH = process.env.PERF_SWITCH === undefined ? null : Number(process.env.PERF_SWITCH);
 const BASE = `http://127.0.0.1:${PORT}`;
 const pct = (a, p) => { if (!a.length) return null; const s = [...a].sort((x, y) => x - y); return s[Math.min(s.length - 1, Math.ceil(p * s.length) - 1)]; };
 const r1 = (v) => (v === null || v === undefined ? null : Math.round(v * 10) / 10);
@@ -144,7 +146,7 @@ async function cell(size, gapS, burst = false) {
   const gw = await startGateway(dir);
   const cellStart = Date.now();
   const watch = watchFiles(dir);
-  const src = lineSource(7);
+  const src = lineSource(7, SWITCH);
   const turns = [];
   const speaks = [];
   const readings = []; // promises
@@ -234,10 +236,15 @@ async function cell(size, gapS, burst = false) {
     return { burst: b, lines: ts.length, queued, ended: js.length, wrote: js.filter((j) => j.upd.point || j.upd.about_changed).length, reasons: js.map((j) => j.upd.reason ?? (j.upd.ok ? 'ok' : 'failed')), landS: last && js.length ? r1((Math.max(...js.map((j) => j.doneAt)) - last) / 1000) : null, firstS: last && js.length ? r1((Math.min(...js.map((j) => j.doneAt)) - last) / 1000) : null, allEnded: js.length === queued };
   }) : [];
   const respondMs = turns.filter((t) => t.status === 200).map((t) => t.ms);
+  const isSwitch = (t, i) => i > 0 && t.lineLang !== turns[i - 1].lineLang;
+  const switchMs = turns.filter((t, i) => t.status === 200 && isSwitch(t, i)).map((t) => t.ms);
+  const sameMs = turns.filter((t, i) => t.status === 200 && i > 0 && !isSwitch(t, i)).map((t) => t.ms);
+  const switchTurns = turns.filter((t, i) => isSwitch(t, i)).length;
   const speakFail = speaks.filter((s) => s.outcome !== 'ok' && s.outcome !== 'aborted');
   const summary = {
     cell: name, size, gapS, burst, minutes: MINUTES, wallS: r1((Date.now() - cellStart) / 1000), gatewayReadyS: r1(gw.readyMs / 1000),
     turns: turns.length, turnsOk: respondMs.length, respondFailures: turns.filter((t) => t.status !== 200).map((t) => ({ n: t.n, status: t.status, outcome: t.outcome, ms: t.ms })),
+    switchP: SWITCH, switchShare: r1(100 * switchTurns / Math.max(1, turns.length - 1)), respondSwitch: stats(switchMs), respondSameLang: stats(sameMs), // be-tester #8: a turn whose line is in the other language than the previous line vs the rest (first turn excluded)
     respond: stats(respondMs), respondOver10s: respondMs.filter((m) => m > 10000).length,
     speakCalls: speaks.length, speakTimeouts: speaks.filter((s) => s.outcome === 'timeout').length, speakAborted: speaks.filter((s) => s.outcome === 'aborted').length, abortAtSend: ABORT, readAloud: !NOSPEAK, speakErrors: speaks.filter((s) => s.outcome === 'error').length,
     speakFailures: speakFail.map((s) => ({ turn: s.turn, part: s.part, status: s.status, outcome: s.outcome, ms: s.ms, overlap: s.overlap })), speak: stats(speaks.filter((s) => s.outcome === 'ok').map((s) => s.ms)),
@@ -250,7 +257,7 @@ async function cell(size, gapS, burst = false) {
     bursts, drainS, memoryNotesCut: logs.filter((l) => l.event === 'memory_notes_cut').length, gatewayPids: [...gw.pids], leftoverPids: leftover, drainedWithinCap: updatesDone() >= queuedCount(),
   };
   mkdirSync(OUT, { recursive: true });
-  writeFileSync(join(OUT, `${PREFIX}${burst ? `${size}-burst` : `${size}-${gapS}`}${ABORT ? '-abort' : ''}${NOSPEAK ? '-nospeak' : ''}.json`), JSON.stringify({ summary, turns, speaks, landings, fileEvents: watch.events, memoryUpdateLogs: muAll, memoryTurnLogs: mt.length, stderrTail: gw.err.slice(-2000) }, null, 1));
+  writeFileSync(join(OUT, `${PREFIX}${burst ? `${size}-burst` : `${size}-${gapS}`}${ABORT ? '-abort' : ''}${NOSPEAK ? '-nospeak' : ''}${SWITCH !== null ? `-sw${Math.round(SWITCH * 100)}` : ''}.json`), JSON.stringify({ summary, turns, speaks, landings, fileEvents: watch.events, memoryUpdateLogs: muAll, memoryTurnLogs: mt.length, stderrTail: gw.err.slice(-2000) }, null, 1));
   return summary;
 }
 

@@ -195,25 +195,47 @@ test('TC-031 bonsai.respond: mood call sees only the line; reply call sees the w
     const before = bodies(log).length;
     await b.respond('But I am SAD now', hist);
     let [rep, mood] = (c => [c.find((x) => !x.response_format), c.find((x) => x.response_format)])(bodies(log).slice(before));
-    assert.equal(rep.messages.at(-1).content, 'But I am SAD now\n' + P.RECALL.en(hist[0].text), 'RECALL (language of the line) appended: window holds an earlier user line');
+    // FND-029 round 2 / DES-035 (03 §9 10.6): the last message ends with the app tag of the line's language; the rule is at the system end (LANG_TAG)
+    assert.equal(rep.messages.at(-1).content, 'But I am SAD now\n' + P.RECALL.en(hist[0].text) + '\n<lang:en>', 'RECALL (language of the line) appended: window holds an earlier user line');
     assert.deepEqual(rep.messages.slice(1, 3), [{ role: 'user', content: hist[0].text }, { role: 'assistant', content: '太棒了！' }]);
-    assert.ok(rep.messages[0].content.endsWith(P.LANG_RULE.en), 'English line -> English rule although history is Chinese');
+    assert.ok(rep.messages[0].content.endsWith(P.LANG_TAG), 'LANG_TAG ends the system message (FND-029)');
+    assert.ok(rep.messages.at(-1).content.endsWith('\n<lang:en>'), 'English line -> <lang:en> although history is Chinese');
     assert.ok(!JSON.stringify(mood.messages).includes('今天考试过了'), 'mood call has no history');
     assert.ok(JSON.stringify(mood.messages).includes('But I am SAD now'));
     assert.ok(!JSON.stringify(mood.messages).includes('Connect your reply'), 'mood call carries no RECALL');
     await b.respond('Just checking', [{ role: 'companion', text: 'Hello' }]);
     const only = bodies(log).slice(-2).find((x) => !x.response_format);
-    assert.equal(only.messages.at(-1).content, 'Just checking', 'no earlier user line -> line alone');
+    assert.equal(only.messages.at(-1).content, 'Just checking\n<lang:en>', 'no earlier user line -> line alone');
     const n = bodies(log).length;
     await b.respond('我今天很happy', []);
     rep = bodies(log).slice(n).find((x) => !x.response_format);
-    assert.ok(rep.messages[0].content.endsWith(P.LANG_RULE.zh));
+    assert.ok(rep.messages[0].content.endsWith(P.LANG_TAG));
+    assert.ok(rep.messages.at(-1).content.endsWith('\n<lang:zh>'), 'zh line -> <lang:zh> (DES-035)');
     const n2 = bodies(log).length;
     const big = Array.from({ length: 40 }, (_, i) => ({ role: i % 2 ? 'companion' : 'user', text: 'x'.repeat(200) }));
     await b.respond('hi', big);
     rep = bodies(log).slice(n2).find((x) => !x.response_format);
     // DES-035 rule 3 (step 8.5): past 2000 the window is cut to <= historyLow 1000, so 5 of 40 entries of 200 chars (was 10)
     assert.equal(rep.messages.length, 1 + 5 + 1, 'history cut to historyLow 1000 (5 of 40 entries of 200 chars)');
+  } finally { b.stop(); }
+});
+
+test('TC-234 [FX-004] bonsai.respond 嗯 / 面试 / 嗯 chat: the 4th reply request carries 6 history entries and the interview line (HEAD carried 2, FND-028)', async () => {
+  // 03 §9 10.7 "window by position": createBonsai keeps the anchor { prev, start }; the page appends each line and the fake reply.
+  const { b, log, ready } = await makeBonsai();
+  try {
+    await ready();
+    const history = [];
+    const carried = [];
+    for (const line of ['嗯', '我在准备实习面试，有点紧张', '嗯', '你觉得我能过吗']) {
+      const n = bodies(log).length;
+      const r = await b.respond(line, history.slice()); // a copy, as the page sends a new array each turn
+      const rep = bodies(log).slice(n).find((c) => !c.response_format);
+      carried.push(rep.messages.slice(1, -1));
+      history.push({ role: 'user', text: line }, { role: 'companion', text: r.reply });
+    }
+    assert.deepEqual(carried.map((m) => m.length), [0, 2, 4, 6], 'history entries per request');
+    assert.ok(carried[3].some((m) => m.content === '我在准备实习面试，有点紧张'), 'the 4th request still holds the interview line');
   } finally { b.stop(); }
 });
 
@@ -263,7 +285,7 @@ test('TC-035 bonsai warm-up sends respond("Hello", []) -- both the reply call an
     const warm = bodies(log);
     assert.ok(warm.length >= 2, `warm calls: ${warm.length}`);
     assert.ok(warm.some((c) => c.response_format), 'mood call during warm-up');
-    assert.ok(warm.some((c) => !c.response_format && c.messages.at(-1).content === 'Hello'), 'reply call "Hello"');
+    assert.ok(warm.some((c) => !c.response_format && c.messages.at(-1).content === 'Hello\n<lang:en>'), 'reply call "Hello" + tag (DES-035; warm is still chat("Hello", []))');
   } finally { b.stop(); }
 });
 
@@ -398,7 +420,8 @@ test('TC-113 [DES-034/035] REQ-005/REQ-014 bonsai.respond returns {reply, mood, 
       assert.deepEqual(Object.keys(r).sort(), ['crisis', 'lang', 'mood', 'reply']);
       assert.equal(r.lang, lang, line); assert.equal(r.crisis, false); assert.ok(MOODS.includes(r.mood));
       const rep = repOf(bodies(log).slice(n));
-      assert.equal(sysOf(rep), P.replySystem(null) + '\n' + P.NO_NOTES + '\n' + P.LANG_RULE[lang], line); // DES-034/035: NO_NOTES with no notes
+      assert.equal(sysOf(rep), P.replySystem(null) + '\n' + P.NO_NOTES + '\n' + P.LANG_TAG, line); // DES-034/035 (FND-029): NO_NOTES with no notes, LANG_TAG ends the system message
+      assert.ok(rep.messages.at(-1).content.endsWith('\n<lang:' + lang + '>'), line);
       assert.ok(!sysOf(rep).includes(P.CRISIS_RULE[lang]) && !sysOf(rep).includes('Your name is'));
     }
   } finally { b.stop(); }
@@ -417,7 +440,9 @@ test('TC-114 [FX-009] REQ-023/REQ-024 bonsai.respond on a crisis line: crisis tr
       assert.equal(r.crisis, true, id); assert.equal(r.lang, lang, id);
       // FND-026: the rule is added on the strong-word floor; non-strong lines stay crisis via the fallback (no risk in the fake mood answer)
       if (isStrongCrisis(line)) assert.ok(sysOf(repOf(calls)).endsWith('\n' + P.CRISIS_RULE[lang]), `${id}: reply system message ends with the crisis rule`);
-      assert.ok(sysOf(repOf(calls)).includes(P.LANG_RULE[lang]), id);
+      // 03 §9 10.6: a strong crisis turn keeps LANG_RULE + CRISIS_RULE (byte-identical to HEAD); a non-strong one is a normal turn: LANG_TAG + tag
+      if (isStrongCrisis(line)) assert.ok(sysOf(repOf(calls)).includes(P.LANG_RULE[lang]), id);
+      else { assert.ok(sysOf(repOf(calls)).endsWith(P.LANG_TAG), `${id}: LANG_TAG`); assert.ok(repOf(calls).messages.at(-1).content.endsWith('\n<lang:' + lang + '>'), `${id}: tag`); }
       assert.ok(!JSON.stringify(moodOf(calls).messages).includes(P.CRISIS_RULE[lang]), `${id}: mood call carries no crisis rule`);
       assert.equal(r.mood, 'unpleasant-low', `${id}: mood from the mood call`);
       assert.ok(r.reply.includes('988'), `${id}: ${r.reply}`);
@@ -482,17 +507,17 @@ test('TC-116 [FX-012 FX-011 DES-034/035] REQ-030/REQ-031 name -> Bonsai: system 
       const n = bodies(log).length;
       await b.respond(turn.line, turn.history, turn.name);
       const calls = bodies(log).slice(n);
-      assert.equal(sysOf(repOf(calls)), P.replySystem(want) + '\n' + P.NO_NOTES + '\n' + P.LANG_RULE.en, c.id); // DES-035: NO_NOTES
+      assert.equal(sysOf(repOf(calls)), P.replySystem(want) + '\n' + P.NO_NOTES + '\n' + P.LANG_TAG, c.id); // DES-035: NO_NOTES, LANG_TAG (FND-029)
       if (want === null) assert.ok(!sysOf(repOf(calls)).includes('Your name is'), `${c.id}: no NAME_RULE`);
       else { assert.ok(sysOf(repOf(calls)).includes(`Your name is "${want}"`), c.id); assert.ok(!sysOf(repOf(calls)).includes('小伙伴 (Little Buddy)'), c.id); assert.ok(!JSON.stringify(moodOf(calls).messages).includes(want), `${c.id}: mood call`); }
     }
     const n = bodies(log).length;
     await b.respond('你叫什么名字？', [], '团子');
     const calls = bodies(log).slice(n);
-    assert.ok(sysOf(repOf(calls)).includes('"团子"') && sysOf(repOf(calls)).includes(P.LANG_RULE.zh));
+    assert.ok(sysOf(repOf(calls)).includes('"团子"') && sysOf(repOf(calls)).endsWith(P.LANG_TAG) && repOf(calls).messages.at(-1).content.endsWith('\n<lang:zh>'));
     const n2 = bodies(log).length;
     await b.respond('你叫什么名字？', []);
-    assert.equal(sysOf(repOf(bodies(log).slice(n2))), P.replySystem(null) + '\n' + P.NO_NOTES + '\n' + P.LANG_RULE.zh, 'name omitted -> default text (FX-011-03 shape)');
+    assert.equal(sysOf(repOf(bodies(log).slice(n2))), P.replySystem(null) + '\n' + P.NO_NOTES + '\n' + P.LANG_TAG, 'name omitted -> default text (FX-011-03 shape)');
   } finally { b.stop(); }
 });
 

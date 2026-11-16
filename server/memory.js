@@ -9,8 +9,22 @@ import { ABOUT_TEMPLATE, cleanLine, SECTIONS, verbatim } from './memory-files.js
 // "my name is / 我的名字是|叫 / 我叫 / i'm called" may follow a "记住 / 请记住 / 记得 / remember (that)" lead-in, "叫我 / call me" may not
 // ("记得叫我起床", "remember to call me" are not names). Unit cases: 03 §4 Guards, row C.
 export const SAYS_NAME = /(?:^|[，。！？；：,.!?;:]\s*)(?:(?:请?记住|记得|remember(?: that)?)[\s,，:：]*)?(?:我叫(?!了)|我的名字(?:是|叫)|my name is|i'?m called)|(?:^|[，。！？；：,.!?;:]\s*)(?:叫我|call me)/i;
-// An added "people" line that claims the user's name (checked on add.people only).
-export const OWN_NAME_LINE = /^(?:i'?m|i am|my name is|我叫)\s*[^\s,，。.!！]{1,12}(?:\s[^\s,，。.!！]{1,12})?$/i;
+// An added "people" line that claims the user's name (checked on add.people only); group 1 = the name (FND-027: same matches as before).
+export const OWN_NAME_LINE = /^(?:i'?m|i am|my name is|我叫)\s*([^\s,，。.!！]{1,12}(?:\s[^\s,，。.!！]{1,12})?)$/i;
+// FND-027 (be-architect #6): the user's line introduces themselves by this name, written literally right after a lead-in.
+// Any case: 我叫 / 我名字是·叫 / 我的名字是·叫 / my name is / my name's / i'm called. Han, not after 记得 / 记住 for 叫我 (DM-1): 我是 / 叫我.
+// I'm / I am / call me (not after "remember to"): only a name that starts with a capital letter, as written in the line ("I'm tired",
+// "call me later", "I am a doctor" are not names). The name must not be followed by a Latin letter or digit, nor by 的
+// ("我是Lily的姐姐", "我是小雨的妈妈"). A name holding 你 / 您 / 我 / 的 never counts. Unit cases: 03 §4 Guards, row C.
+const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+export function namesSelf(line, name) {
+  if (/[你您我的]/u.test(name)) return false;
+  const n = esc(name);
+  const end = String.raw`(?![A-Za-z0-9])(?!\s*的)`;
+  if (new RegExp(String.raw`(?:我叫|我的?名字(?:是|叫)|my name(?:['’]s| is)|i['’]?m called)\s*${n}${end}`, 'i').test(line)) return true;
+  if (new RegExp(String.raw`(?:我是|(?<!记得|记住)叫我)\s*${n}${end}`).test(line)) return true;
+  return /^\p{Lu}/u.test(name) && new RegExp(String.raw`(?:\b[Ii]['’]?m|\b[Ii] am|(?<![Rr]emember to )\b[Cc]all me)\s+${n}${end}`).test(line);
+}
 
 // Guard E (O-4, REQ-039; be-architect #5): a new 关于你 line must come from the user's line. Tokens: each Han 2-gram inside a Han
 // run (a one-character run is one token) and each English word of 3+ letters outside STOP, lower-cased, one trailing "s" dropped
@@ -47,7 +61,7 @@ export function createMemory({ store, bonsai, cfg = CONFIG, timers = { setTimeou
   const done = (job, t0, fields) => ({ ms: Date.now() - t0, waited_ms: t0 - job.queuedAt, ...fields });
   const lost = (job, reason) => done(job, Date.now(), { ok: false, point: false, about_changed: false, reason });
 
-  // Guard D on the point and every line, guard C on people lines, guard E on every line (D -> C -> E); the first reason that fired is logged.
+  // Guard D on the point and every line, guard C on people lines (SAYS_NAME or namesSelf keeps an own-name line), guard E on every line (D -> C -> E); the first reason that fired is logged.
   function guard(job, res) {
     const reasons = [];
     let point = cleanLine(res.point ?? '', cfg.memory.pointChars) || null;
@@ -63,11 +77,13 @@ export function createMemory({ store, bonsai, cfg = CONFIG, timers = { setTimeou
           reasons.push('verbatim');
           return false;
         }
-        if (key === 'people' && !saysName && OWN_NAME_LINE.test(cleanLine(t, cfg.memory.lineChars))) {
+        const c = cleanLine(t, cfg.memory.lineChars);
+        const m = key === 'people' ? OWN_NAME_LINE.exec(c) : null;
+        if (m && !saysName && !namesSelf(job.line, m[1])) {
           reasons.push('own_name');
           return false;
         }
-        if (!grounded(cleanLine(t, cfg.memory.lineChars), job.line)) {
+        if (!grounded(c, job.line)) {
           reasons.push('ungrounded');
           return false;
         }

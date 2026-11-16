@@ -16,7 +16,7 @@ import {
   parseProfile, profileText, SECTIONS, UnreadableFile, verbatim, weekOf,
 } from '../server/memory-files.js';
 import { createStore, FILES, FolderInUse } from '../server/memory-store.js';
-import { CRISIS_RULE, LANG_RULE, MEMORY_RULE, MOODS, NO_NOTES, replySystem, UPDATE_SCHEMA } from '../server/prompts.js';
+import { CRISIS_RULE, LANG_RULE, LANG_TAG, MEMORY_RULE, MOODS, NO_NOTES, replySystem, UPDATE_SCHEMA } from '../server/prompts.js';
 import { helpRegion, PROFILE_REGIONS } from '../server/region.js';
 
 const fx = (id, f) => JSON.parse(readFileSync(new URL(`./fixtures/approved/${id}/${f}.json`, import.meta.url), 'utf8'));
@@ -161,8 +161,8 @@ test('DES-033 SAYS_NAME: the 10 must-true and 10 must-false cases of 03 §4 row 
 
 // ---------- DES-034 / DES-035 reply prompt
 test('DES-035 toMessages: memory block or NO_NOTES before LANG_RULE; a strong crisis turn carries neither', () => {
-  assert.equal(toMessages('嗯', [], 'zh')[0].content, `${replySystem(null)}\n${NO_NOTES}\n${LANG_RULE.zh}`);
-  assert.equal(toMessages('hi', [], 'en', 'Mochi', false, '- x')[0].content, `${replySystem('Mochi')}\n${MEMORY_RULE('- x')}\n${LANG_RULE.en}`);
+  assert.equal(toMessages('嗯', [], 'zh')[0].content, `${replySystem(null)}\n${NO_NOTES}\n${LANG_TAG}`); // FND-029 (03 §9 10.6): LANG_TAG, the same for both languages
+  assert.equal(toMessages('hi', [], 'en', 'Mochi', false, '- x')[0].content, `${replySystem('Mochi')}\n${MEMORY_RULE('- x')}\n${LANG_TAG}`);
   assert.equal(toMessages('hi', [], 'en', null, true, '- x')[0].content, `${replySystem(null)}\n${LANG_RULE.en}\n${CRISIS_RULE.en}`);
 });
 

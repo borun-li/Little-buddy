@@ -8,7 +8,7 @@ import { languageOf, weight } from './lang.js';
 import { log } from './log.js';
 import { systemRegion } from './region.js';
 import {
-  CRISIS_FALLBACK, CRISIS_RULE, crisisLineOf, LANG_RULE, MEMORY_RULE, MOOD_SAMPLING, MOOD_SCHEMA, MOOD_SYSTEM, MOODS, NO_NOTES, RECALL,
+  CRISIS_FALLBACK, CRISIS_RULE, crisisLineOf, LANG_RULE, LANG_TAG, MEMORY_RULE, MOOD_SAMPLING, MOOD_SCHEMA, MOOD_SYSTEM, MOODS, NO_NOTES, RECALL,
   REPLY_SAMPLING, replySystem, UPDATE_SAMPLING, UPDATE_SCHEMA, UPDATE_SYSTEM, updateUser,
 } from './prompts.js';
 import { supervise } from './supervisor.js';
@@ -21,14 +21,27 @@ export const SENTENCE = /[\s\S]*?(?:[。！？!?.…]+(?:\p{Extended_Pictographi
 
 const sumOf = (win) => win.reduce((n, h) => n + weight(h.text), 0);
 
-// Anchored window (03 DES-035, be-architect #4): the last 40 entries; when last turn's first entry (anchor) is still there and the
-// window from it fits historyBudget, start from it again (the reply slot's prompt cache keeps hitting); else the whole window when it
-// fits; else drop the oldest until it fits historyLow (may be []). The caller keeps the anchor: the returned window's first entry.
+// FND-028 (03 DES-035, be-architect #6): the page's history only grows by appending until it is cleared or keeps only the last 40, so
+// this history is the previous one shifted left by d. shiftOf = the smallest d in 0..prev.length-1 with prev.slice(d) equal (role and
+// text, entry by entry) to the start of next; prev.length when none (cleared, or another chat). The smallest d keeps the longest window.
+export function shiftOf(prev, next) {
+  const same = (a, b) => a.role === b.role && a.text === b.text;
+  for (let d = 0; d < prev.length; d++) {
+    if (prev.length - d <= next.length && prev.slice(d).every((h, k) => same(h, next[k]))) return d;
+  }
+  return prev.length;
+}
+
+// Anchored window (03 DES-035, be-architect #4/#6): the last 40 entries. Position anchor { prev, start } = the previous call's history
+// and the index in it of that window's first entry. 1. the same entry, found by position (shiftOf), still in the last 40 and the window
+// from it fits historyBudget -> start there (the reply slot's prompt cache keeps hitting; wins over 2.); 2. else the whole window when
+// it fits; 3. else drop the oldest until it fits historyLow (may be []).
 export function windowOf(history, cfg = CONFIG, anchor = null) {
-  const win = history.slice(-cfg.limits.historyEntries);
+  const off = Math.max(0, history.length - cfg.limits.historyEntries);
+  const win = history.slice(off);
   if (anchor !== null) {
-    const i = win.findLastIndex((h) => h.role === anchor.role && h.text === anchor.text);
-    if (i !== -1 && sumOf(win.slice(i)) <= cfg.limits.historyBudget) return win.slice(i);
+    const i = anchor.start - shiftOf(anchor.prev, history) - off;
+    if (i >= 0 && i < win.length && sumOf(win.slice(i)) <= cfg.limits.historyBudget) return win.slice(i);
   }
   let total = sumOf(win);
   if (total <= cfg.limits.historyBudget) return win;
@@ -37,16 +50,22 @@ export function windowOf(history, cfg = CONFIG, anchor = null) {
 }
 
 // The last message carries a reminder of the newest earlier user line (03 DES-008); it is never stored, logged or counted by windowOf.
-// System message = replySystem(name) + (MEMORY_RULE(notes) or NO_NOTES) + LANG_RULE, or on a strong crisis turn
-// replySystem(name) + LANG_RULE + CRISIS_RULE with no memory at all (03 DES-020, DES-021, DES-035 step 2).
+// FND-029 round 2 (03 DES-035): nothing before the history depends on the line's language, so a zh<->en switch keeps the reply slot's
+// cache, and the rule is not in the user's voice (round 1's line + LANG_RULE was answered as an order).
+// Normal turn: system = replySystem(name) + (MEMORY_RULE(notes) or NO_NOTES) + LANG_TAG; last = line + RECALL + '\n<lang:zh|en>' (the
+// tag is never stored, logged or counted).
+// Strong crisis turn (byte-identical to before): system = replySystem(name) + LANG_RULE + CRISIS_RULE with no memory at all;
+// last = line + RECALL (03 DES-020, DES-021, DES-035 step 2).
 export function toMessages(line, history, lang, name = null, crisis = false, notes = null) {
   const prev = history.findLast((h) => h.role === 'user')?.text;
-  const memory = crisis ? '' : `${notes ? MEMORY_RULE(notes) : NO_NOTES}\n`;
-  const system = `${replySystem(name)}\n${memory}${LANG_RULE[lang]}${crisis ? `\n${CRISIS_RULE[lang]}` : ''}`;
+  const recall = prev === undefined ? '' : `\n${RECALL[lang](prev)}`;
+  const system = crisis
+    ? `${replySystem(name)}\n${LANG_RULE[lang]}\n${CRISIS_RULE[lang]}`
+    : `${replySystem(name)}\n${notes ? MEMORY_RULE(notes) : NO_NOTES}\n${LANG_TAG}`;
   return [
     { role: 'system', content: system },
     ...history.map((h) => ({ role: h.role === 'companion' ? 'assistant' : 'user', content: h.text })),
-    { role: 'user', content: prev === undefined ? line : `${line}\n${RECALL[lang](prev)}` },
+    { role: 'user', content: crisis ? `${line}${recall}` : `${line}${recall}\n<lang:${lang}>` },
   ];
 }
 
@@ -92,7 +111,8 @@ const size = (s, lang) => (lang === 'zh' ? [...s].length : s.split(/\s+/).filter
 const isQuestion = (s) => /[?？]/.test(s);
 
 export function shapeReply(text, lang) {
-  const clean = unwrap(String(text ?? '').replace(/<think>[\s\S]*?(?:<\/think>|$)/g, ''));
+  // FND-029 round 2: an echoed language tag is removed first (03 DES-035 shapeReply).
+  const clean = unwrap(String(text ?? '').replace(/\s*<lang:(?:zh|en)>/gi, '').replace(/<think>[\s\S]*?(?:<\/think>|$)/g, ''));
   const sentences = (clean.match(SENTENCE) ?? []).map((s) => s.trim()).filter(Boolean);
   const kept = [];
   for (const s of sentences) {
@@ -135,7 +155,7 @@ export function createBonsai(cfg = CONFIG, region = systemRegion()) {
   // Per-run key for llama-server (FND-003): passed by env, not argv, so it is not in `ps`; never logged, printed, stored or configurable.
   const apiKey = randomBytes(24).toString('hex');
   let proc = null;
-  let anchor = null; // per run: the first entry of the last reply window (windowOf, 03 DES-035)
+  let anchor = null; // per run: position anchor { prev, start } of the last reply window (windowOf, 03 DES-035, FND-028)
 
   async function post(body, signal) {
     let res;
@@ -168,7 +188,7 @@ export function createBonsai(cfg = CONFIG, region = systemRegion()) {
     const started = Date.now();
     const lang = languageOf(line);
     const win = windowOf(history, cfg, anchor);
-    anchor = win[0] ?? null;
+    anchor = win.length ? { prev: history, start: history.length - win.length } : null; // the window is always a suffix of history
     const signal = AbortSignal.timeout(cfg.deadlines.respondMs);
     const timed = (p) => p.then((v) => ({ v, ms: Date.now() - started }));
     const [reply, mood] = await Promise.allSettled([

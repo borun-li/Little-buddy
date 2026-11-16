@@ -125,14 +125,19 @@ function rng(seed) { let s = seed >>> 0; return () => { s = (Math.imul(s, 166452
 const pick = (r, a) => a[Math.floor(r() * a.length)];
 
 // deterministic generator: next() -> { line, fact: bool, lang }
-export function lineSource(seed = 7) {
+// switchP (be-tester #8, review round 1): null = each line's language is an independent coin (about 46-50 % of turns switch language, the old driver);
+// a number = the chance that a line is in the OTHER language than the previous line (0.15 = a realistic chat that mostly stays in one language).
+// Either way one r() call picks the language, so the first line and the fact/chat draws of the default mode are unchanged.
+export function lineSource(seed = 7, switchP = null) {
   const r = rng(seed);
-  let i = 0, zi = 0, ei = 0, sinceFact = 0;
+  let i = 0, zi = 0, ei = 0, sinceFact = 0, prevZh = null;
   return {
     next() {
       i += 1;
       const wantFact = sinceFact >= 1 || r() < 0.6; // never two lines in a row without a fact
-      const zh = r() < 0.5;
+      const coin = r();
+      const zh = switchP === null || prevZh === null ? coin < 0.5 : (coin < switchP ? !prevZh : prevZh);
+      prevZh = zh;
       if (!wantFact) { sinceFact += 1; return { line: pick(r, zh ? CHAT_ZH : CHAT_EN), fact: false, lang: zh ? 'zh' : 'en' }; }
       sinceFact = 0;
       if (zh) {
