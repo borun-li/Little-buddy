@@ -9,11 +9,12 @@
 <link rel="stylesheet" href="css/tokens.css">
 <link rel="stylesheet" href="css/page.css">
 <link rel="stylesheet" href="css/companion.css">
+<link rel="stylesheet" href="css/memory.css">
 <script type="module" src="js/app.js"></script>
 </head>
 <body>
 <!--
-  Icons: Lucide 1.73.0 (mic, mic-off, info, lock, volume, volume-2, volume-x, wind), inlined as symbols.
+  Icons: Lucide 1.73.0 (mic, mic-off, info, lock, volume, volume-2, volume-x, wind, chevron-down), inlined as symbols.
   ISC License. Copyright (c) 2026 Lucide Icons and Contributors.
   Permission to use, copy, modify, and/or distribute this software for any purpose with or without
   fee is hereby granted, provided that the above copyright notice and this permission notice appear
@@ -59,6 +60,9 @@
   </symbol>
   <symbol id="i-square" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <rect width="18" height="18" x="3" y="3" rx="2"/>
+  </symbol>
+  <symbol id="i-chevron-down" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="m6 9 6 6 6-6"/>
   </symbol>
   <symbol id="i-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
@@ -392,7 +396,11 @@
 
 <main class="page">
   <section class="stage">
-    <button type="button" class="stage-clear" data-testid="clear" data-copy="clear">清空</button>
+    <div class="stage-actions">
+      <button type="button" class="stage-clear" data-testid="clear" data-copy="clear">清空</button>
+      <button type="button" class="stage-btn stage-diary" data-testid="open-diary" data-copy="diary" aria-pressed="false" aria-haspopup="dialog">日记</button>
+      <button type="button" class="stage-btn stage-about" data-testid="open-about" data-copy="about" aria-pressed="false" aria-haspopup="dialog">关于你</button>
+    </div>
     <div class="lang-switch" role="group" aria-label="界面语言">
       <button type="button" data-lang="zh" lang="zh-Hans" aria-label="中文" aria-pressed="true">中文</button>
       <button type="button" data-lang="en" lang="en" aria-label="English" aria-pressed="false">EN</button>
@@ -409,7 +417,7 @@
     <div class="log">
       <div class="log__empty">
         <p class="log__empty-hint" data-copy="emptyHint"></p>
-        <p class="log__privacy"><svg class="icon icon--small" aria-hidden="true"><use href="#i-lock"/></svg><span data-copy="privacy"></span></p>
+        <p class="log__privacy"><svg class="icon icon--small" aria-hidden="true"><use href="#i-lock"/></svg><span class="log__privacy-text"></span></p>
       </div>
       <ol class="log__turns" role="log"></ol>
     </div>
@@ -429,5 +437,21 @@
     </div>
   </section>
 </main>
+
+<!-- R1 drawer (PAGE-002 / PAGE-003): modal over the log column (laptop) or a full-height sheet (phone); app.js makes <main> inert while it is open. -->
+<div class="drawer" data-testid="drawer" role="dialog" aria-modal="true" hidden>
+  <div class="drawer__bar">
+    <div class="drawer__tabs" role="tablist">
+      <button type="button" class="drawer__tab" role="tab" id="tab-diary" data-tab="diary" data-testid="tab-diary" aria-controls="panel-diary" aria-selected="false" tabindex="-1">心情日记</button>
+      <button type="button" class="drawer__tab" role="tab" id="tab-about" data-tab="about" data-testid="tab-about" aria-controls="panel-about" aria-selected="false" tabindex="-1">小伙伴记得的你</button>
+    </div>
+    <button type="button" class="drawer__close" data-testid="drawer-close">关闭</button>
+  </div>
+  <div class="drawer__scroll">
+    <p class="drawer__sub"></p>
+    <section class="panel" id="panel-diary" data-panel="diary" data-testid="panel-diary" role="tabpanel" aria-labelledby="tab-diary" hidden></section>
+    <section class="panel" id="panel-about" data-panel="about" data-testid="panel-about" role="tabpanel" aria-labelledby="tab-about" hidden></section>
+  </div>
+</div>
 </body>
 </html>

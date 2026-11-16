@@ -1,5 +1,7 @@
 // Entry: turn flow idle -> pending -> idle (FLOW-001, FLOW-002). Data comes only from companion-client.js.
 import { respond, transcribe, health, speak } from './companion-client.js';
+import { memory } from './memory-client.js';
+import { createMemoryUi } from './memory-ui.js';
 import { copy, voiceHintKey, MAX_VOICE_CHARS, setLang, getLang, resolveLang, setName } from './copy.js';
 import { loadName, saveName, createRename } from './name.js';
 import { createLog } from './log.js';
@@ -117,12 +119,17 @@ const rename = createRename({
   row: $('.companion__caption'),
   button: $('.caption__name'),
   onSave(cleaned) {
-    savedName = cleaned;
-    saveName(storage, cleaned);
-    setName(cleaned);
-    applyCopy(); // every name updates; turns already in the log are not rewritten
+    applyName(cleaned);
+    memory.setName(cleaned).catch(() => {}); // R1: the profile hears it too; the caption keeps its own answer (FLOW-008)
   },
 });
+// The one place a new name lands (caption rename and the drawer's field): saved here until the real seam keeps it.
+function applyName(cleaned) {
+  savedName = cleaned;
+  saveName(storage, cleaned);
+  setName(cleaned);
+  applyCopy(); // every name updates; turns already in the log are not rewritten
+}
 
 const hint = createHint($('.hint'));
 
@@ -262,10 +269,24 @@ function clearChat() {
   setPending(false);
   companion.setMood('neutral');
   clearCallbacks.forEach((fn) => fn());
-  showHint('cleared');
+  showHint(memoryUi.kept ? 'clearedKept' : 'cleared'); // R1: something is kept -> say where to delete it
   input.focus();
 }
 $('.stage-clear').addEventListener('click', clearChat);
+
+// R1: the notice in the empty log, the privacy line and the drawer (日记 / 关于你). Data: memory-client.js only.
+const memoryUi = createMemoryUi({
+  client: memory,
+  drawer: $('.drawer'),
+  main: $('main.page'),
+  openers: { diary: $('.stage-diary'), about: $('.stage-about') },
+  noticeHost: $('.log__empty'),
+  privacyEl: $('.log__privacy-text'),
+  showHint,
+  onNameSaved: applyName,
+  onForgotten: () => { clearChat(); },
+  onStartChat: () => input.focus(),
+});
 
 input.addEventListener('keydown', (e) => {
   if (e.key !== 'Enter' || e.isComposing || e.keyCode === 229) return; // 229: IME still composing
@@ -304,6 +325,7 @@ function applyCopy() {
   log.refresh();
   companion.refresh();
   rename.refresh();
+  memoryUi.refresh();
   renderSpeaker();
 }
 
@@ -318,3 +340,4 @@ langButtons.forEach((b) => b.addEventListener('click', () => {
 applyCopy();
 input.focus();
 watch.start();
+memoryUi.start();

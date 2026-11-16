@@ -1,0 +1,140 @@
+/* R1 (docs/frontend/r1-memory/01-ux.md): stage buttons, first-run notice, drawer with two tabs, diary curve, settings.
+   Scaffold styling from the existing tokens only; fe-ui's frames replace the look, structure and hooks stay. */
+
+/* ---------- stage buttons: 清空 · 日记 · 关于你 ---------- */
+.stage-actions { position: absolute; top: 8px; left: 8px; z-index: 1; display: flex; gap: 8px; }
+.stage-actions .stage-clear { position: static; }
+.stage-btn {
+  height: 36px; padding: 0 12px; background: none; cursor: pointer; white-space: nowrap;
+  border: 1px solid var(--color-border-control); border-radius: var(--radius-control);
+  font: 400 13px/20px var(--font-ui); color: var(--color-text-muted);
+}
+.stage-btn:hover, .stage-btn:active { background: var(--color-turn-you-bg); color: var(--color-text-primary); }
+.stage-btn[aria-pressed="true"] { background: var(--color-turn-you-bg); color: var(--color-text-primary); font-weight: 600; }
+.stage-btn:focus-visible { outline: 3px solid var(--color-focus-ring); outline-offset: 2px; }
+@media (min-width: 960px) { .stage-actions { top: 24px; left: 24px; } }
+
+/* ---------- first-run notice: first item of the empty log ---------- */
+.notice {
+  display: flex; flex-direction: column; gap: 6px; margin-bottom: var(--space-16);
+  padding: 12px 16px 16px; border: 1px solid var(--color-border-control); border-radius: var(--radius-control);
+  font: 400 14px/22px var(--font-ui);
+}
+.notice__title { font: 600 16px/26px var(--font-ui); }
+.notice__kept { margin: 0; padding-left: 18px; }
+.notice__never, .notice__where, .notice__later { color: var(--color-text-muted); }
+.notice__actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+.notice__btn {
+  height: 36px; padding: 0 14px; cursor: pointer; background: none; color: var(--color-text-primary);
+  border: 1px solid var(--color-border-control); border-radius: var(--radius-control); font: 400 14px/20px var(--font-ui);
+}
+.notice__btn--main { background: var(--color-action-primary); border-color: var(--color-action-primary); color: var(--color-text-on-action); }
+.notice__btn--main:hover { background: var(--color-action-pressed); }
+.notice__btn:not(.notice__btn--main):hover { background: var(--color-turn-you-bg); }
+.notice__btn:focus-visible { outline: 3px solid var(--color-focus-ring); outline-offset: 2px; }
+@media (min-width: 960px) { .notice { font-size: 15px; padding: 16px 20px 20px; gap: 8px; } }
+
+/* ---------- drawer ---------- */
+.drawer {
+  position: fixed; inset: 0; z-index: 20; display: flex; flex-direction: column;
+  background: var(--color-surface-page); color: var(--color-text-primary);
+}
+.drawer[hidden] { display: none; }
+@media (min-width: 960px) {
+  .drawer { left: auto; width: 640px; border-left: 1px solid var(--color-border-default); }
+}
+.drawer__bar {
+  display: flex; align-items: flex-end; justify-content: space-between; gap: 8px; flex: none;
+  padding: 8px 12px 0 16px; border-bottom: 1px solid var(--color-border-default);
+}
+.drawer__tabs { display: flex; gap: 2px; min-width: 0; flex: 0 1 auto; }
+.drawer__tab {
+  min-height: 44px; min-width: 0; padding: 0 8px; background: none; border: 0; border-bottom: 3px solid transparent; cursor: pointer;
+  font: 400 14px/18px var(--font-ui); color: var(--color-text-muted); text-align: center; /* a narrow phone wraps the label, never overlaps 关闭 */
+}
+.drawer__tab[aria-selected="true"] { color: var(--color-text-primary); font-weight: 600; border-bottom-color: var(--color-action-primary); }
+.drawer__close, .btn {
+  height: 36px; padding: 0 14px; cursor: pointer; background: none; color: var(--color-text-primary);
+  border: 1px solid var(--color-border-control); border-radius: var(--radius-control); font: 400 14px/20px var(--font-ui);
+}
+.drawer__close { margin-bottom: 4px; flex: none; }
+.drawer__close:hover, .btn:hover { background: var(--color-turn-you-bg); }
+.btn:disabled { opacity: 0.5; cursor: default; }
+.btn--danger { border-color: var(--color-action-primary); color: var(--color-action-primary); }
+.drawer button:focus-visible, .drawer select:focus-visible, .drawer input:focus-visible { outline: 3px solid var(--color-focus-ring); outline-offset: 2px; }
+.drawer__scroll { flex: 1; min-height: 0; overflow-y: auto; padding: 16px 20px 32px; }
+.drawer__sub { color: var(--color-text-muted); font-size: 14px; line-height: 22px; margin-bottom: 16px; }
+@media (min-width: 960px) { .drawer__bar { padding: 24px 24px 0 32px; } .drawer__scroll { padding: 24px 40px 40px; } .drawer__tab { font-size: 16px; line-height: 24px; padding: 0 14px; } }
+.panel[hidden] { display: none; }
+.panel__msg { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; }
+.skeleton { height: 160px; border-radius: var(--radius-control); background: var(--color-turn-you-bg); opacity: 0.6; }
+.field-msg { font-size: 13px; line-height: 20px; color: var(--color-text-muted); margin-top: 4px; }
+.field-msg:empty { display: none; }
+.off-line { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; margin-bottom: 16px; padding: 12px 16px; border: 1px solid var(--color-border-default); border-radius: var(--radius-control); }
+
+/* ---------- PAGE-002 curve and days ---------- */
+.curve { margin-bottom: 24px; }
+.curve__h { margin: 0 0 8px; font: 600 16px/26px var(--font-ui); }
+.curve__fig { display: grid; grid-template-columns: 56px minmax(0, 1fr); grid-template-rows: 132px auto; column-gap: 4px; }
+.curve__axis { position: relative; font-size: 12px; line-height: 16px; color: var(--color-text-muted); }
+.curve__tick { position: absolute; right: 4px; transform: translateY(-50%); white-space: nowrap; }
+.curve__tick--up { top: 12px; } .curve__tick--mid { top: 50%; } .curve__tick--down { top: calc(100% - 12px); }
+.curve__plot { position: relative; border-left: 1px solid var(--color-border-default); }
+.curve__area { position: absolute; inset: 12px 0; }
+.curve__lines { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.curve__mid { stroke: var(--color-border-control); stroke-width: 1; stroke-dasharray: 4 4; vector-effect: non-scaling-stroke; }
+.curve__line { fill: none; stroke: var(--color-action-primary); stroke-width: 2; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.curve__dot {
+  position: absolute; width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 50%;
+  background: var(--color-action-primary); border: 2px solid var(--color-surface-page);
+}
+.curve__none { padding: 0 2px; background: var(--color-surface-page); position: absolute; top: 50%; transform: translate(-50%, -50%); font-size: 11px; line-height: 14px; color: var(--color-text-muted); white-space: nowrap; }
+.curve__labels { grid-column: 1 / -1; display: grid; grid-template-columns: 61px repeat(7, minmax(0, 1fr)); margin-top: 6px; }
+.curve__day { display: flex; flex-direction: column; align-items: center; font-size: 12px; line-height: 16px; color: var(--color-text-muted); }
+.days { display: flex; flex-direction: column; gap: 16px; }
+.day__head { margin: 0 0 4px; font: 600 15px/24px var(--font-ui); }
+.day__rows, .md__list { list-style: none; margin: 0; padding: 0; }
+.day__row { display: flex; justify-content: space-between; gap: 16px; padding: 4px 0; border-bottom: 1px solid var(--color-border-default); font: 400 16px/24px var(--font-voice); }
+.day__mood { flex: none; color: var(--color-text-muted); font-family: var(--font-ui); font-size: 14px; }
+.days__today-empty { color: var(--color-text-muted); }
+.panel__note { margin-top: 24px; font-size: 13px; line-height: 20px; color: var(--color-text-muted); }
+
+/* ---------- PAGE-003 settings ---------- */
+.about__paused { margin-bottom: 8px; color: var(--color-text-muted); }
+.about__box { padding: 12px 16px; border: 1px solid var(--color-border-control); border-radius: var(--radius-control); font: 400 16px/26px var(--font-voice); overflow-wrap: anywhere; }
+.about__empty { padding: 12px 16px; border: 1px dashed var(--color-border-control); border-radius: var(--radius-control); color: var(--color-text-muted); }
+.md__h { margin: 12px 0 2px; font: 600 15px/24px var(--font-ui); } .md__h:first-child { margin-top: 0; }
+.md__list li::before { content: "- "; } .md__p { margin: 2px 0; }
+.about__where { margin-top: 12px; font-size: 13px; line-height: 20px; color: var(--color-text-muted); overflow-wrap: anywhere; }
+.about__edit { font-size: 13px; line-height: 20px; color: var(--color-text-muted); }
+.set { margin-top: 20px; display: flex; flex-wrap: wrap; align-items: center; column-gap: 12px; row-gap: 4px; }
+.set__label { flex: 0 0 100%; font: 600 15px/24px var(--font-ui); }
+.set__note, .set__aside { font-size: 13px; line-height: 20px; color: var(--color-text-muted); }
+.set__note { flex: 0 0 100%; } .set .field-msg { flex: 0 0 100%; margin: 0; }
+.input, .select {
+  height: 44px; padding: 0 12px; background: var(--color-surface-page); color: var(--color-text-primary);
+  border: 1px solid var(--color-border-control); border-radius: var(--radius-control); font: 400 16px/26px var(--font-ui);
+}
+.input { width: min(100%, 240px); }
+.select-wrap { position: relative; display: inline-flex; }
+.select { appearance: none; -webkit-appearance: none; padding-right: 36px; min-width: 160px; }
+.select-wrap__chev { position: absolute; right: 12px; top: 15px; pointer-events: none; }
+.switch {
+  display: inline-flex; align-items: center; justify-content: space-between; gap: 10px; min-width: 76px; height: 36px; padding: 0 6px 0 14px; cursor: pointer;
+  border: 1px solid var(--color-border-control); border-radius: 18px; background: var(--color-surface-page); color: var(--color-text-primary); font: 400 14px/20px var(--font-ui);
+}
+.switch[aria-checked="true"] { background: var(--color-turn-you-bg); }
+.switch__knob { width: 22px; height: 22px; border-radius: 50%; background: var(--color-text-muted); }
+.switch[aria-checked="true"] .switch__knob { background: var(--color-action-primary); }
+.switch:disabled { opacity: 0.5; cursor: default; }
+.forget { margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--color-border-default); display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
+.forget__actions { display: flex; gap: 8px; }
+.forget__result { color: var(--color-text-primary); }
+
+@media (prefers-reduced-motion: reduce) { .drawer * { animation: none !important; transition: none !important; } }
+
+/* narrow phones (320 px): three stage buttons share the top row with the language switch (98 px) */
+@media (max-width: 359px) {
+  .stage-actions { gap: 4px; }
+  .stage-actions .stage-clear, .stage-btn { padding: 0 8px; }
+}
