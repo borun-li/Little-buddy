@@ -5,6 +5,13 @@ import { execFileSync } from 'node:child_process';
 
 // Regions with their own help lines; any other region gets the international lines (null).
 export const REGIONS = ['CN', 'US'];
+// R1 profile choices (03 DES-037): 'other' = REQ-048 未知, the international lines; null in profile.json = never chosen.
+export const PROFILE_REGIONS = [...REGIONS, 'other'];
+
+// The help-line region of a turn: the profile's CN/US wins, 'other' gives the international lines (null), never chosen -> the system region.
+export function helpRegion(chosen, system) {
+  return REGIONS.includes(chosen) ? chosen : chosen === 'other' ? null : system;
+}
 
 const CN_ZONES = new Set(['Asia/Shanghai', 'Asia/Chongqing', 'Asia/Chungking', 'Asia/Harbin', 'Asia/Urumqi', 'Asia/Kashgar', 'PRC']);
 const US_ZONES = new Set(['America/New_York', 'America/Chicago', 'America/Denver', 'America/Phoenix', 'America/Los_Angeles',

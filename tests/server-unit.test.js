@@ -56,9 +56,9 @@ test('TC-004 pcmFromWav stays inside the buffer and returns an even byte count; 
 });
 
 // ---------- errors.js (DES-003)
-test('TC-005 CODES and ApiError carry the six codes with their HTTP statuses (03 §3)', async () => {
+test('TC-005 CODES and ApiError carry the nine codes with their HTTP statuses (03 §3; DES-037 adds forbidden 403, unreadable 409, not_saved 500)', async () => {
   const { CODES, ApiError } = await imp('server/errors.js');
-  assert.deepEqual({ ...CODES }, { not_ready: 503, unavailable: 503, timeout: 504, failed: 502, bad_request: 400, too_large: 413 });
+  assert.deepEqual({ ...CODES }, { not_ready: 503, unavailable: 503, timeout: 504, failed: 502, bad_request: 400, too_large: 413, forbidden: 403, unreadable: 409, not_saved: 500 });
   const e = new ApiError('timeout', 'stt');
   assert.ok(e instanceof Error);
   assert.equal(e.code, 'timeout'); assert.equal(e.status, 504); assert.equal(e.stage, 'stt');
@@ -222,9 +222,10 @@ test('TC-014 prompts: the 5 mood ids, mood schema enum, sampling parameters, lan
 test('TC-015 CONFIG: loopback host, limits, deadlines, restarts, defaults', async () => {
   const { CONFIG } = await imp('server/config.js');
   assert.equal(CONFIG.host, '127.0.0.1');
-  assert.deepEqual({ ...CONFIG.limits }, { lineChars: 1500, historyEntries: 40, historyTextChars: 1500, historyBudget: 2000, jsonBytes: 262144, wavBytes: 2000000, speakChars: 200, speakJsonBytes: 4096, speakQueue: 4 }); // increment 2: + speak limits (DES-023); speakQueue FND-013
-  assert.deepEqual({ ...CONFIG.deadlines }, { respondMs: 15000, transcribeMs: 12000, sttBootMs: 600000, bonsaiBootMs: 300000, speakMs: 10000, ttsBootMs: 300000, ttsOverdueMs: 30000 }); // increment 2: + speakMs, ttsBootMs (DES-023); ttsOverdueMs FND-015
+  assert.deepEqual({ ...CONFIG.limits }, { lineChars: 1500, historyEntries: 40, historyTextChars: 1500, historyBudget: 2000, jsonBytes: 262144, wavBytes: 2000000, speakChars: 200, speakJsonBytes: 4096, speakQueue: 4, profileJsonBytes: 4096, forgetJsonBytes: 64 }); // increment 2: + speak limits (DES-023); speakQueue FND-013; R1 profileJsonBytes, forgetJsonBytes (DES-037)
+  assert.deepEqual({ ...CONFIG.deadlines }, { respondMs: 15000, transcribeMs: 12000, sttBootMs: 600000, bonsaiBootMs: 300000, speakMs: 10000, ttsBootMs: 300000, ttsOverdueMs: 30000, rememberMs: 14000 }); // increment 2: + speakMs, ttsBootMs (DES-023); ttsOverdueMs FND-015; R1 rememberMs (DES-037)
   assert.ok(CONFIG.deadlines.respondMs + CONFIG.deadlines.transcribeMs < 30000, 'voice turn < 30 s (A11)');
+  { const { dir, displayPath, ...rest } = CONFIG.memory; assert.deepEqual(rest, { notesBudget: 1200, lineChars: 80, pointChars: 80, queueMax: 8, lockWaitMs: 1000 }); assert.ok(typeof dir === 'string' && dir.startsWith('/') && typeof displayPath === 'string'); } // R1 memory keys (DES-037)
   assert.deepEqual({ ...CONFIG.restarts }, { max: 5, delayMs: 2000 });
   if (!process.env.PORT) assert.equal(CONFIG.port, 4317);
   if (!process.env.BONSAI_PORT) assert.equal(CONFIG.bonsai.port, 4318);

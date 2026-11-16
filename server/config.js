@@ -1,7 +1,7 @@
 // Ports, paths, limits and deadlines (03 DES-002). Reads environment variables only; never downloads.
 import { existsSync } from 'node:fs';
 import { homedir } from 'node:os';
-import { join } from 'node:path';
+import { isAbsolute, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const REPO = fileURLToPath(new URL('..', import.meta.url));
@@ -31,6 +31,22 @@ function envVoice() {
   return raw;
 }
 
+// R1 memory folder (03 DES-037): LITTLEBUDDY_DATA_DIR (absolute) or the user's Application Support folder. Tests, bench and demo set it.
+function envDataDir() {
+  const raw = process.env.LITTLEBUDDY_DATA_DIR;
+  if (raw === undefined || raw === '') return join(homedir(), 'Library', 'Application Support', 'LittleBuddy');
+  if (!isAbsolute(raw)) throw new Error(`LITTLEBUDDY_DATA_DIR must be an absolute path, got "${raw}"`);
+  return resolve(raw);
+}
+
+// The folder as the user reads it: '~/…/' under the home folder, else the absolute path with a trailing '/'.
+export function displayPath(dir) {
+  const home = homedir();
+  return dir === home || dir.startsWith(`${home}/`) ? `~${dir.slice(home.length)}/` : `${dir}/`;
+}
+
+const DATA_DIR = envDataDir();
+
 export const CONFIG = Object.freeze({
   repo: REPO,
   host: '127.0.0.1',
@@ -51,10 +67,13 @@ export const CONFIG = Object.freeze({
   limits: {
     lineChars: 1500, historyEntries: 40, historyTextChars: 1500, historyBudget: 2000, jsonBytes: 262144, wavBytes: 2000000,
     speakChars: 200, speakJsonBytes: 4096, speakQueue: 4, // speakQueue: FND-013 (review round 1)
+    profileJsonBytes: 4096, forgetJsonBytes: 64, // R1 (03 DES-037)
   },
-  deadlines: { respondMs: 15000, transcribeMs: 12000, sttBootMs: 600000, bonsaiBootMs: 300000, speakMs: 10000, ttsBootMs: 300000, ttsOverdueMs: 30000 },
+  deadlines: { respondMs: 15000, transcribeMs: 12000, sttBootMs: 600000, bonsaiBootMs: 300000, speakMs: 10000, ttsBootMs: 300000, ttsOverdueMs: 30000, rememberMs: 14000 },
   // ttsOverdueMs (FND-015): from the write to the helper's answer; ≥ 9.6 s audio × RTF 2.7 under load (03 DES-017)
   restarts: { max: 5, delayMs: 2000 },
+  // notesBudget: weight of 关于你 that prompts read (≈ 550 Han); lineChars/pointChars in code points (03 DES-037, §6).
+  memory: { dir: DATA_DIR, displayPath: displayPath(DATA_DIR), notesBudget: 1200, lineChars: 80, pointChars: 80, queueMax: 8, lockWaitMs: 1000 },
 });
 
 export function bonsaiFiles(cfg = CONFIG) {

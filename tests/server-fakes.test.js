@@ -266,7 +266,7 @@ test('TC-035 bonsai warm-up sends respond("Hello", []) -- both the reply call an
   } finally { b.stop(); }
 });
 
-test('TC-036 bonsai llama-server arguments: loopback only, own port, -c 32768 -np 2, no web UI', async () => {
+test('TC-036 bonsai llama-server arguments: loopback only, own port, -c 32768 -np 3 (DES-035), no web UI', async () => {
   const { b, log, port, ready, size } = await makeBonsai();
   try {
     await ready();
@@ -275,7 +275,7 @@ test('TC-036 bonsai llama-server arguments: loopback only, own port, -c 32768 -n
     assert.ok(at('-m').endsWith(`Ternary-Bonsai-2-${size}-PQ2_0.gguf`), at('-m'));
     assert.equal(at('--host'), '127.0.0.1');
     assert.equal(at('--port'), String(port));
-    assert.equal(at('-c'), '32768'); assert.equal(at('-np'), '2'); assert.equal(at('-ngl'), '99'); assert.equal(at('-fa'), 'on');
+    assert.equal(at('-c'), '32768'); assert.equal(at('-np'), '3'); // DES-035: was 2 assert.equal(at('-ngl'), '99'); assert.equal(at('-fa'), 'on');
     assert.ok(argv.includes('--no-webui'));
   } finally { b.stop(); }
 });
@@ -386,7 +386,7 @@ const sysOf = (c) => c.messages[0].content;
 const repOf = (calls) => calls.find((x) => !x.response_format);
 const moodOf = (calls) => calls.find((x) => x.response_format);
 
-test('TC-113 REQ-005/REQ-014 bonsai.respond returns {reply, mood, lang, crisis}: lang is the language of the line, crisis false with no CRISIS_RULE or NAME_RULE in the prompt', async () => {
+test('TC-113 [DES-034/035] REQ-005/REQ-014 bonsai.respond returns {reply, mood, lang, crisis}: lang is the language of the line, crisis false with no CRISIS_RULE or NAME_RULE in the prompt', async () => {
   const P = await imp('server/prompts.js');
   const { b, log, ready } = await makeBonsai();
   try {
@@ -397,7 +397,7 @@ test('TC-113 REQ-005/REQ-014 bonsai.respond returns {reply, mood, lang, crisis}:
       assert.deepEqual(Object.keys(r).sort(), ['crisis', 'lang', 'mood', 'reply']);
       assert.equal(r.lang, lang, line); assert.equal(r.crisis, false); assert.ok(MOODS.includes(r.mood));
       const rep = repOf(bodies(log).slice(n));
-      assert.equal(sysOf(rep), P.replySystem(null) + '\n' + P.LANG_RULE[lang], line);
+      assert.equal(sysOf(rep), P.replySystem(null) + '\n' + P.NO_NOTES + '\n' + P.LANG_RULE[lang], line); // DES-034/035: NO_NOTES with no notes
       assert.ok(!sysOf(rep).includes(P.CRISIS_RULE[lang]) && !sysOf(rep).includes('Your name is'));
     }
   } finally { b.stop(); }
@@ -467,7 +467,7 @@ test('TC-115 [FX-009] REQ-024/REQ-025 UD-1 (a): on a crisis turn a failed, empty
   } finally { die.b.stop(); }
 });
 
-test('TC-116 [FX-012 FX-011] REQ-030/REQ-031 name -> Bonsai: system message = replySystem(cleaned name) + LANG_RULE; null -> the unchanged default text with no NAME_RULE; the mood call never sees the name', async () => {
+test('TC-116 [FX-012 FX-011 DES-034/035] REQ-030/REQ-031 name -> Bonsai: system message = replySystem(cleaned name) + LANG_RULE; null -> the unchanged default text with no NAME_RULE; the mood call never sees the name', async () => {
   const P = await imp('server/prompts.js');
   const { parseTurn } = await imp('server/main.js');
   const f = fx('FX-012');
@@ -481,7 +481,7 @@ test('TC-116 [FX-012 FX-011] REQ-030/REQ-031 name -> Bonsai: system message = re
       const n = bodies(log).length;
       await b.respond(turn.line, turn.history, turn.name);
       const calls = bodies(log).slice(n);
-      assert.equal(sysOf(repOf(calls)), P.replySystem(want) + '\n' + P.LANG_RULE.en, c.id);
+      assert.equal(sysOf(repOf(calls)), P.replySystem(want) + '\n' + P.NO_NOTES + '\n' + P.LANG_RULE.en, c.id); // DES-035: NO_NOTES
       if (want === null) assert.ok(!sysOf(repOf(calls)).includes('Your name is'), `${c.id}: no NAME_RULE`);
       else { assert.ok(sysOf(repOf(calls)).includes(`Your name is "${want}"`), c.id); assert.ok(!sysOf(repOf(calls)).includes('小伙伴 (Little Buddy)'), c.id); assert.ok(!JSON.stringify(moodOf(calls).messages).includes(want), `${c.id}: mood call`); }
     }
@@ -491,7 +491,7 @@ test('TC-116 [FX-012 FX-011] REQ-030/REQ-031 name -> Bonsai: system message = re
     assert.ok(sysOf(repOf(calls)).includes('"团子"') && sysOf(repOf(calls)).includes(P.LANG_RULE.zh));
     const n2 = bodies(log).length;
     await b.respond('你叫什么名字？', []);
-    assert.equal(sysOf(repOf(bodies(log).slice(n2))), P.replySystem(null) + '\n' + P.LANG_RULE.zh, 'name omitted -> default text (FX-011-03 shape)');
+    assert.equal(sysOf(repOf(bodies(log).slice(n2))), P.replySystem(null) + '\n' + P.NO_NOTES + '\n' + P.LANG_RULE.zh, 'name omitted -> default text (FX-011-03 shape)');
   } finally { b.stop(); }
 });
 

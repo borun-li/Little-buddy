@@ -1,13 +1,15 @@
-// llama-server child and the reply + mood calls to Bonsai (03 DES-007, DES-008); name and crisis turn (DES-020, DES-021).
+// llama-server child and the reply + mood calls to Bonsai (03 DES-007, DES-008); name and crisis turn (DES-020, DES-021);
+// R1: memory block and per-turn region in the reply, the background update call remember() (DES-035).
 import { randomBytes } from 'node:crypto';
 import { bonsaiFiles, CONFIG } from './config.js';
 import { isCrisis, isStrongCrisis } from './crisis.js';
 import { ApiError } from './errors.js';
-import { hanCount, languageOf } from './lang.js';
+import { languageOf, weight } from './lang.js';
 import { log } from './log.js';
 import { systemRegion } from './region.js';
 import {
-  CRISIS_FALLBACK, CRISIS_RULE, crisisLineOf, LANG_RULE, MOOD_SAMPLING, MOOD_SCHEMA, MOOD_SYSTEM, MOODS, RECALL, REPLY_SAMPLING, replySystem,
+  CRISIS_FALLBACK, CRISIS_RULE, crisisLineOf, LANG_RULE, MEMORY_RULE, MOOD_SAMPLING, MOOD_SCHEMA, MOOD_SYSTEM, MOODS, NO_NOTES, RECALL,
+  REPLY_SAMPLING, replySystem, UPDATE_SAMPLING, UPDATE_SCHEMA, UPDATE_SYSTEM, updateUser,
 } from './prompts.js';
 import { supervise } from './supervisor.js';
 
@@ -17,9 +19,6 @@ const CAPS = { zh: 120, en: 40 };
 // A sentence ends after a run of 。！？!?.… ; emoji (and closing quotes/brackets) right after it stay with it.
 export const SENTENCE = /[\s\S]*?(?:[。！？!?.…]+(?:\p{Extended_Pictographic}|\p{Emoji_Modifier}|️|‍|[”’"'）)」』])*|$)/gu;
 
-// Prompt cost of a history text, ≈ 4 × tokens: Han counts 2.5, everything else 1 (03 DES-007).
-const weight = (text) => text.length + 1.5 * hanCount(text);
-
 export function windowOf(history, cfg = CONFIG) {
   const win = history.slice(-cfg.limits.historyEntries);
   let total = win.reduce((n, h) => n + weight(h.text), 0);
@@ -28,10 +27,12 @@ export function windowOf(history, cfg = CONFIG) {
 }
 
 // The last message carries a reminder of the newest earlier user line (03 DES-008); it is never stored, logged or counted by windowOf.
-// System message = replySystem(name) + LANG_RULE (+ CRISIS_RULE on a crisis turn) (03 DES-020, DES-021).
-export function toMessages(line, history, lang, name = null, crisis = false) {
+// System message = replySystem(name) + (MEMORY_RULE(notes) or NO_NOTES) + LANG_RULE, or on a strong crisis turn
+// replySystem(name) + LANG_RULE + CRISIS_RULE with no memory at all (03 DES-020, DES-021, DES-035 step 2).
+export function toMessages(line, history, lang, name = null, crisis = false, notes = null) {
   const prev = history.findLast((h) => h.role === 'user')?.text;
-  const system = `${replySystem(name)}\n${LANG_RULE[lang]}${crisis ? `\n${CRISIS_RULE[lang]}` : ''}`;
+  const memory = crisis ? '' : `${notes ? MEMORY_RULE(notes) : NO_NOTES}\n`;
+  const system = `${replySystem(name)}\n${memory}${LANG_RULE[lang]}${crisis ? `\n${CRISIS_RULE[lang]}` : ''}`;
   return [
     { role: 'system', content: system },
     ...history.map((h) => ({ role: h.role === 'companion' ? 'assistant' : 'user', content: h.text })),
@@ -56,6 +57,25 @@ function moodOf(content) {
     throw err;
   }
   return { mood: o?.mood ?? null, risk: typeof o?.risk === 'boolean' ? o.risk : null };
+}
+
+const isLines = (v) => Array.isArray(v) && v.every((t) => typeof t === 'string');
+
+// The update call's JSON content -> { point, add }; anything else is failed (03 DES-035 step 4).
+function notesOf(content) {
+  let o;
+  try {
+    o = JSON.parse(content);
+  } catch (err) {
+    if (err instanceof SyntaxError) throw new ApiError('failed', 'bonsai');
+    throw err;
+  }
+  const add = o?.add;
+  if (o === null || typeof o !== 'object' || (o.point !== null && typeof o.point !== 'string') || add === null || typeof add !== 'object'
+    || !isLines(add.busy) || !isLines(add.people) || !isLines(add.likes)) {
+    throw new ApiError('failed', 'bonsai');
+  }
+  return { point: o.point, add: { busy: add.busy, people: add.people, likes: add.likes } };
 }
 
 const size = (s, lang) => (lang === 'zh' ? [...s].length : s.split(/\s+/).filter(Boolean).length);
@@ -99,7 +119,7 @@ export function crisisReply(shaped, lang, region) {
   return `${first}${sep}${help.line}`;
 }
 
-// region: the help-line region for crisis turns (server/region.js); main.js passes the one it logged at start.
+// region: the default help-line region for crisis turns (server/region.js); respond's ctx.region overrides it per turn (R1).
 export function createBonsai(cfg = CONFIG, region = systemRegion()) {
   const base = `http://127.0.0.1:${cfg.bonsai.port}`;
   // Per-run key for llama-server (FND-003): passed by env, not argv, so it is not in `ps`; never logged, printed, stored or configurable.
@@ -133,14 +153,14 @@ export function createBonsai(cfg = CONFIG, region = systemRegion()) {
 
   // The mood call never carries the name (03 DES-021 step 3). FND-026: strong = isStrongCrisis(line) (gets CRISIS_RULE); the verdict is
   // strong || the mood call's risk, or strong || isCrisis(line) when risk is unknown (call failed, not JSON, risk missing).
-  async function chat(line, history, name = null, strong = false) {
+  async function chat(line, history, name = null, strong = false, notes = null, turnRegion = region) {
     const started = Date.now();
     const lang = languageOf(line);
     const win = windowOf(history, cfg);
     const signal = AbortSignal.timeout(cfg.deadlines.respondMs);
     const timed = (p) => p.then((v) => ({ v, ms: Date.now() - started }));
     const [reply, mood] = await Promise.allSettled([
-      timed(post({ messages: toMessages(line, win, lang, name, strong), ...REPLY_SAMPLING }, signal)),
+      timed(post({ messages: toMessages(line, win, lang, name, strong, notes), ...REPLY_SAMPLING }, signal)),
       timed(post({ messages: [{ role: 'system', content: MOOD_SYSTEM }, { role: 'user', content: line }], ...MOOD_SAMPLING, response_format: MOOD_SCHEMA }, signal)),
     ]);
     const shaped = reply.status === 'fulfilled' ? shapeReply(reply.value.v, lang) : '';
@@ -157,7 +177,7 @@ export function createBonsai(cfg = CONFIG, region = systemRegion()) {
       ms: Date.now() - started, reply_ms: shaped ? reply.value.ms : null, mood_ms: mood.status === 'fulfilled' ? mood.value.ms : null,
       lang, mood_fallback: fallback, history_n: win.length, crisis_by: crisisBy,
     });
-    return { reply: crisis ? crisisReply(shaped, lang, region) : shaped, mood: fallback ? 'neutral' : value, lang, crisis };
+    return { reply: crisis ? crisisReply(shaped, lang, turnRegion) : shaped, mood: fallback ? 'neutral' : value, lang, crisis };
   }
 
   async function warm(child) {
@@ -183,8 +203,9 @@ export function createBonsai(cfg = CONFIG, region = systemRegion()) {
       proc = supervise({
         name: 'bonsai',
         cmd: bin,
+        // -np 3: reply, mood and the memory update each keep their own slot and prompt cache (03 DES-035).
         // 'none' is echoed as Access-Control-Allow-Origin: none, which no page origin equals (FND-003).
-        args: ['-m', model, '-ngl', '99', '-fa', 'on', '-c', '32768', '-np', '2', '--host', '127.0.0.1', '--port', String(cfg.bonsai.port), '--no-webui',
+        args: ['-m', model, '-ngl', '99', '-fa', 'on', '-c', '32768', '-np', '3', '--host', '127.0.0.1', '--port', String(cfg.bonsai.port), '--no-webui',
           '--cors-origins', 'none', '--no-cors-credentials', '--no-slots'],
         // llama-server logs only on stderr; the supervisor keeps its tail for the operator line (DES-004 step 6).
         stdio: ['ignore', 'ignore', 'pipe'],
@@ -202,15 +223,25 @@ export function createBonsai(cfg = CONFIG, region = systemRegion()) {
     get pid() {
       return proc?.pid ?? null;
     },
-    respond(line, history, name = null) {
+    // ctx.region: the turn's help-line region (undefined -> the createBonsai region); ctx.notes: the 关于你 part the reply reads.
+    respond(line, history, name = null, ctx = {}) {
+      const turnRegion = ctx.region === undefined ? region : ctx.region;
       const state = proc?.state ?? 'down';
       if (state !== 'ready' && isCrisis(line)) {
         const lang = languageOf(line); // Bonsai starting or down: no call made, mood neutral (03 DES-020 step 3)
-        return Promise.resolve({ reply: crisisReply('', lang, region), mood: 'neutral', lang, crisis: true });
+        return Promise.resolve({ reply: crisisReply('', lang, turnRegion), mood: 'neutral', lang, crisis: true });
       }
       if (state === 'starting') return Promise.reject(new ApiError('not_ready', 'bonsai'));
       if (state !== 'ready') return Promise.reject(new ApiError('unavailable', 'bonsai'));
-      return chat(line, history, name, isStrongCrisis(line));
+      return chat(line, history, name, isStrongCrisis(line), ctx.notes ?? null, turnRegion);
+    },
+    // The background update (03 DES-035 step 3): page = the budget-cut 关于你, line = the user's line; signal = abort ∪ rememberMs.
+    async remember(page, line, lang, signal) {
+      const state = proc?.state ?? 'down';
+      if (state === 'starting') throw new ApiError('not_ready', 'bonsai');
+      if (state !== 'ready') throw new ApiError('unavailable', 'bonsai');
+      const messages = [{ role: 'system', content: UPDATE_SYSTEM }, { role: 'user', content: updateUser(page, line, lang) }];
+      return notesOf(await post({ messages, ...UPDATE_SAMPLING, response_format: UPDATE_SCHEMA }, signal));
     },
   };
 }
