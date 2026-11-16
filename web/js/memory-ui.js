@@ -7,6 +7,8 @@ import { t, tf, getMemoryPath, setMemoryPath, errorWords, MEMORY_FILE } from './
 import { cleanName, typingFilter, MAX_NAME } from './name.js';
 
 const REGIONS = [['CN', 'regionCN', 'regionLineCN'], ['US', 'regionUS', 'regionLineUS'], ['other', 'regionOther', 'regionLineOther']];
+// the two hints a failed notice choice leaves on the shared hint line; the next success clears them (clearHint)
+const NOTICE_FAILS = ['noticeFailed', 'memoryOffFailed'];
 const NS = 'http://www.w3.org/2000/svg';
 const FOCUSABLE = 'button:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex="0"]';
 
@@ -42,7 +44,7 @@ export function renderMarkdown(text) {
   return box;
 }
 
-export function createMemoryUi({ client, drawer, main, openers, noticeHost, privacyEl, showHint, onNameSaved, onForgotten, onStartChat, onProfile }) {
+export function createMemoryUi({ client, drawer, main, openers, noticeHost, privacyEl, showHint, clearHint, onNameSaved, onForgotten, onStartChat, onProfile }) {
   const tabs = {
     diary: drawer.querySelector('[data-tab="diary"]'),
     about: drawer.querySelector('[data-tab="about"]'),
@@ -69,6 +71,9 @@ export function createMemoryUi({ client, drawer, main, openers, noticeHost, priv
   const api = {
     get kept() { return Boolean(profile?.kept); },
     get isOpen() { return current !== null; },
+    // a reply came back while memory is on: the service has recorded the turn, so something is kept now (the profile
+    // read at open predates it); clearedKept needs this, or a first chat's 清空 would say nothing is remembered
+    noteTurn() { if (profile && profile.readable !== false && memoryOn()) profile = { ...profile, kept: true }; },
   };
 
   // ---------- privacy line + notice (PAGE-001) ----------
@@ -122,7 +127,7 @@ export function createMemoryUi({ client, drawer, main, openers, noticeHost, priv
     let busy = false;
     ok.addEventListener('click', async () => {
       if (busy) return; busy = true;
-      try { await client.acknowledgeNotice(); profile = { ...profile, noticeSeen: true }; removeNotice(); }
+      try { await client.acknowledgeNotice(); profile = { ...profile, noticeSeen: true }; clearHint?.(...NOTICE_FAILS); removeNotice(); }
       catch (err) { showHint(failed('notice', err).key); } // the notice stays
       busy = false;
     });
@@ -131,7 +136,7 @@ export function createMemoryUi({ client, drawer, main, openers, noticeHost, priv
       try {
         await client.setMemory(false);
         profile = { ...profile, memoryOn: false, noticeSeen: true };
-        removeNotice(); renderPrivacy(); showHint('memoryOffNow');
+        removeNotice(); renderPrivacy(); showHint('memoryOffNow'); // replaces a failure hint on the line
       } catch (err) { showHint(failed('memoryOff', err).key); }
       busy = false;
     });
@@ -537,7 +542,8 @@ export function createMemoryUi({ client, drawer, main, openers, noticeHost, priv
     return s;
   }
 
-  // forget me: asks once, in place; 不了 has focus; Esc is 不了 (handled by the drawer's keydown)
+  // forget me (FLOW-020, FRAME-030 / 037): asks once, in place; 不了 has focus; Esc is 不了 (drawer keydown). The block is
+  // replaced in place by the result: success = the line alone, failure = the line and 删掉 again (everything is still there).
   let forgetHost = null;
   function cancelAsk() {
     asking = false;
@@ -549,37 +555,37 @@ export function createMemoryUi({ client, drawer, main, openers, noticeHost, priv
     renderForget();
     return forgetHost;
   }
-  function renderForget(result = null) {
+  async function doForget(yes, no) {
+    yes.disabled = true; if (no) no.disabled = true;
+    try {
+      const r = await client.forget();
+      profile = { ...profile, about: '', aboutEmpty: true, kept: false, memoryOn: r?.memoryOn ?? memoryOn() };
+      asking = false;
+      onForgotten?.(); // the chat on screen goes too
+      renderAbout(panels.about); // 关于你 now reads empty; the new forget block is replaced by the result
+      forgetHost.removeAttribute('role'); forgetHost.removeAttribute('aria-labelledby');
+      forgetHost.replaceChildren(h('p', 'forget__result', t(memoryOn() ? 'forgotten' : 'forgottenOff'), { role: 'status', 'data-testid': 'forget-result' }));
+      closeBtn.focus();
+    } catch (err) {
+      renderForget(failed('forget', err).key); // the line replaces the question, 删掉 stays for another try
+    }
+  }
+  function renderForget(failKey = null) {
     forgetHost.replaceChildren();
     if (asking) {
-      const q = h('p', 'forget__ask', t('forgetAsk'), { id: 'forget-q' });
-      const no = button('btn', t('forgetNo'), 'forget-no');
+      const q = h('p', 'forget__ask', t(failKey ?? 'forgetAsk'), { id: 'forget-q' });
+      if (failKey) q.setAttribute('role', 'alert');
       const yes = button('btn btn--danger', t('forgetYes'), 'forget-yes');
+      const no = failKey ? null : button('btn', t('forgetNo'), 'forget-no');
       forgetHost.setAttribute('role', 'group');
       forgetHost.setAttribute('aria-labelledby', 'forget-q');
       const row = h('div', 'forget__actions');
-      row.append(no, yes);
+      if (no) row.append(no);
+      row.append(yes);
       forgetHost.append(q, row);
-      no.addEventListener('click', cancelAsk);
-      yes.addEventListener('click', async () => {
-        yes.disabled = no.disabled = true;
-        try {
-          const r = await client.forget();
-          profile = { ...profile, about: '', aboutEmpty: true, kept: false, memoryOn: r?.memoryOn ?? memoryOn() };
-          asking = false;
-          onForgotten?.();
-          renderAbout(panels.about);
-          const host = forgetHost;
-          host.prepend(h('p', 'forget__result', t(memoryOn() ? 'forgotten' : 'forgottenOff'), { role: 'status', 'data-testid': 'forget-result' }));
-          closeBtn.focus();
-        } catch (err) {
-          yes.disabled = no.disabled = false;
-          forgetHost.append(h('p', 'field-msg', t(failed('forget', err).key), { role: 'alert' }));
-          yes.focus();
-        }
-      });
-      requestAnimationFrame(() => no.focus());
-      no.focus();
+      no?.addEventListener('click', cancelAsk);
+      yes.addEventListener('click', () => doForget(yes, no));
+      (no ?? yes).focus();
       return;
     }
     forgetHost.removeAttribute('role');
@@ -587,7 +593,6 @@ export function createMemoryUi({ client, drawer, main, openers, noticeHost, priv
     const b = button('btn', t('forget'), 'forget');
     b.addEventListener('click', () => { asking = true; renderForget(); });
     forgetHost.append(b, h('p', 'set__note', t('forgetNote')));
-    void result;
   }
 
   // a language switch: the notice, the privacy line and the stage-button names follow; the drawer cannot be open then

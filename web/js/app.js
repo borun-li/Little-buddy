@@ -252,6 +252,7 @@ async function send(raw, { voice = false, turn: standing = null } = {}) {
   history.push({ role: 'user', text: line }, { role: 'companion', text: reply });
   breath.stop('reply'); // Q-029: a new reply ends the guide first, so its mood applies at once
   log.addReply(reply);
+  memoryUi.noteTurn(); // R1: the turn is recorded now, so a later 清空 says what stays
   companion.setMood(mood); // the mood changes with the reply, never at send
   // Q-028 / DES-028: the offer only after an unpleasant-high reply that is not a crisis turn (A21).
   if (shouldOfferBreath(mood, crisis)) log.showOffer((chip) => breathStart?.({ chip, mood }));
@@ -295,6 +296,7 @@ const memoryUi = createMemoryUi({
   noticeHost: $('.log__empty'),
   privacyEl: $('.log__privacy-text'),
   showHint,
+  clearHint: (...keys) => { if (keys.includes(hint.key)) hint.clear(); }, // only the named failure hints; any other line stays
   onNameSaved: applyName,
   onForgotten: () => { clearChat(); },
   onStartChat: () => input.focus(),
