@@ -125,7 +125,11 @@
 .curve__labels { grid-column: 1 / -1; display: grid; grid-template-columns: 60px repeat(7, minmax(0, 1fr)); margin-top: 4px; }
 .curve__day { display: flex; flex-direction: column; align-items: center; font-size: 13px; line-height: 20px; color: var(--color-text-muted); }
 .curve__day--today { font-weight: 600; color: var(--color-text-primary); }
-@media (max-width: 400px) { .curve__fig { grid-template-columns: 40px minmax(0, 1fr); } .curve__labels { grid-template-columns: 44px repeat(7, minmax(0, 1fr)); } .curve__tick { right: 2px; } }
+@media (max-width: 400px) { .curve__fig { grid-template-columns: 40px minmax(0, 1fr); } .curve__labels { grid-template-columns: 44px repeat(7, minmax(0, 1fr)); } .curve__tick { right: 2px; }
+  /* the phone's day column (34-45 px) is narrower than a 13 px "No entries": each label gets exactly one column, smaller, wrapped, so
+     neighbouring empty days never touch (DFB-R1-D) */
+  .curve__none { width: calc(100% / 7); padding: 0; box-sizing: border-box; white-space: normal; text-align: center; font-size: 12px; line-height: 14px; } }
+@media (max-width: 359px) { .curve__none { font-size: 11px; line-height: 13px; } }
 
 .days { display: flex; flex-direction: column; gap: 24px; }
 .day__head { margin: 0 0 4px; font: 600 16px/26px var(--font-ui); }

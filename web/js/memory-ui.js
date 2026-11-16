@@ -304,17 +304,18 @@ export function createMemoryUi({ client, drawer, main, openers, noticeHost, priv
     const row = h('div', 'off-line');
     row.append(h('p', null, t('diaryOff')));
     const on = button('btn', t('memoryTurnOn'), 'diary-turn-on');
+    const fail = h('p', 'field-msg', '', { role: 'alert' }); // one line, rewritten by every failed try (never stacked)
     on.addEventListener('click', async () => {
-      on.disabled = true;
+      on.disabled = true; fail.textContent = '';
       try {
         await client.setMemory(true);
         profile = { ...profile, memoryOn: true };
         renderPrivacy();
         renderDiary(panel, { ...data, memoryOn: true });
         tabs.diary.focus();
-      } catch (err) { on.disabled = false; row.append(h('p', 'field-msg', t(failed('setting', err).key), { role: 'alert' })); }
+      } catch (err) { on.disabled = false; fail.textContent = t(failed('setting', err).key); }
     });
-    row.append(on);
+    row.append(on, fail);
     return row;
   }
 
