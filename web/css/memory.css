@@ -97,12 +97,19 @@
 .off-line { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; margin-bottom: 24px; font-size: 16px; line-height: 26px; }
 .off-line p { margin: 0; }
 
-/* loading: static Linen blocks, no shimmer (CMP skeleton) */
-.skeleton { display: flex; flex-direction: column; gap: 12px; }
-.skeleton i { display: block; border-radius: var(--radius-control); background: var(--color-turn-you-bg); height: 20px; }
-.skeleton .sk-head { width: 72px; height: 20px; }
-.skeleton .sk-big { height: 188px; }
-.skeleton .sk-row:nth-of-type(3) { width: 60%; } .skeleton .sk-row:nth-of-type(4) { width: 80%; } .skeleton .sk-row:nth-of-type(5) { width: 45%; }
+/* loading: static Linen blocks, no shimmer (FRAME-037: PAGE-002 head, curve block, three lines with a tag; PAGE-003 file block, three label + field rows) */
+.skeleton { display: flex; flex-direction: column; gap: 8px; }
+.skeleton i { display: block; border-radius: var(--radius-control); background: var(--color-turn-you-bg); }
+.skeleton .sk-head { width: 72px; height: 16px; }
+.skeleton .sk-big { height: 150px; }
+.sk-line { display: flex; justify-content: space-between; gap: 16px; margin-top: 2px; }
+.sk-line .sk-text { height: 18px; width: 52%; } .sk-line:nth-of-type(2) .sk-text { width: 42%; } .sk-line:nth-of-type(3) .sk-text { width: 31%; }
+.sk-line .sk-tag { height: 18px; width: 56px; flex: none; }
+.skeleton .sk-file { height: 160px; margin-bottom: 8px; }
+.sk-set { display: grid; grid-template-columns: minmax(0, 1fr); row-gap: 8px; margin-top: 16px; }
+.sk-set .sk-label { width: 100px; max-width: 100%; height: 18px; }
+.sk-set .sk-field { width: min(100%, 240px); height: 40px; }
+@media (min-width: 960px) { .sk-set { grid-template-columns: 120px minmax(0, 1fr); column-gap: 16px; margin-top: 8px; } }
 
 /* ---------- PAGE-002 curve (CMP-022) and days (CMP-019) ---------- */
 .curve { margin: 24px 0; }
@@ -197,3 +204,11 @@ h3.md__h { margin-top: 0; font-size: 18px; line-height: 28px; }
   .stage-actions { gap: 4px; }
   .stage-actions .stage-clear, .stage-btn { padding: 0 8px; }
 }
+
+/* English "United States (from this Mac's settings)" is 297 px at 16 px, and the content column is 343 px at 375 and 288 px at 320
+   (less the select's padding): a smaller type size keeps the whole option in view (a select cannot wrap its text). */
+@media (max-width: 389px) {
+  .select { font-size: 14px; padding-left: 10px; padding-right: 30px; }
+  .select-wrap__chev { right: 10px; }
+}
+@media (max-width: 359px) { .select { font-size: 13px; } }

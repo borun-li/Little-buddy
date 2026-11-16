@@ -229,9 +229,16 @@ export function createMemoryUi({ client, drawer, main, openers, noticeHost, priv
   });
 
   // ---------- PAGE-002 mood diary ----------
-  function loading(panel, key) {
-    const sk = h('div', 'skeleton', null, { 'aria-hidden': 'true' });
-    for (const c of ['sk-head', 'sk-big', 'sk-row', 'sk-row', 'sk-row']) sk.append(h('i', c));
+  // loading (FRAME-037): static Linen blocks shaped like the tab they stand in for; screen readers hear the words, nothing is focusable
+  function loading(panel, key, kind) {
+    const sk = h('div', `skeleton skeleton--${kind}`, null, { 'aria-hidden': 'true' });
+    if (kind === 'about') {
+      sk.append(h('i', 'sk-file'));
+      for (let i = 0; i < 3; i += 1) { const row = h('div', 'sk-set'); row.append(h('i', 'sk-label'), h('i', 'sk-field')); sk.append(row); }
+    } else {
+      sk.append(h('i', 'sk-head'), h('i', 'sk-big'));
+      for (let i = 0; i < 3; i += 1) { const row = h('div', 'sk-line'); row.append(h('i', 'sk-text'), h('i', 'sk-tag')); sk.append(row); }
+    }
     panel.replaceChildren(sk, sr(t(key)));
     panel.setAttribute('aria-busy', 'true');
   }
@@ -249,7 +256,7 @@ export function createMemoryUi({ client, drawer, main, openers, noticeHost, priv
   async function loadDiary() {
     const mine = ++token;
     const panel = panels.diary;
-    loading(panel, 'diaryLoading');
+    loading(panel, 'diaryLoading', 'diary');
     let data;
     try { data = await client.getDiary(); } catch (err) {
       if (mine !== token) return;
@@ -380,7 +387,7 @@ export function createMemoryUi({ client, drawer, main, openers, noticeHost, priv
   async function loadAbout() {
     const mine = ++token;
     const panel = panels.about;
-    loading(panel, 'profileLoading');
+    loading(panel, 'profileLoading', 'about');
     let p;
     try { p = await client.getProfile(); } catch (err) {
       if (mine !== token) return;
@@ -399,11 +406,17 @@ export function createMemoryUi({ client, drawer, main, openers, noticeHost, priv
   // unreadable: the controls show but cannot change anything (FRAME-037, error · read)
   function deadControls() {
     const box = h('div', 'dead');
-    box.append(h('input', 'input', null, { disabled: '', 'aria-label': t('nameHeading'), value: getName() }));
-    const sel = h('select', 'select', null, { disabled: '', 'aria-label': t('regionHeading') });
+    box.append(h('input', 'input', null, { disabled: '', 'aria-label': t('nameHeading'), value: getName(), 'data-testid': 'about-name' }));
+    const sel = h('select', 'select', null, { disabled: '', 'aria-label': t('regionHeading'), 'data-testid': 'about-region' });
     sel.append(h('option', null, t('regionCN')));
-    box.append(sel, h('span', 'switch', null, { 'aria-hidden': 'true', 'aria-checked': 'false', disabled: '' }));
-    box.lastChild.append(h('span', 'switch__knob'));
+    // a real disabled switch (named, off), so assistive tech finds what cannot be changed (CMP-015 disabled)
+    const sw = button('switch', null, 'memory-switch');
+    sw.disabled = true;
+    sw.setAttribute('role', 'switch');
+    sw.setAttribute('aria-checked', 'false');
+    sw.setAttribute('aria-label', t('memorySwitch'));
+    sw.append(h('span', 'switch__knob', null, { 'aria-hidden': 'true' }));
+    box.append(sel, sw);
     return box;
   }
 
@@ -466,7 +479,8 @@ export function createMemoryUi({ client, drawer, main, openers, noticeHost, priv
     sel.dataset.testid = 'about-region';
     const chosen = p.region ?? p.systemRegion ?? 'other';
     for (const [value, key] of REGIONS) {
-      const o = h('option', null, t(key) + (p.region == null && value === chosen ? ` ${t('regionSystem')}` : ''), { value });
+      const sys = p.region == null && value === chosen ? t('regionSystem') : ''; // zh: （…）joins its option with no space (FRAME-037)
+      const o = h('option', null, t(key) + (sys && !sys.startsWith('（') ? ' ' : '') + sys, { value });
       if (value === chosen) o.selected = true;
       sel.append(o);
     }
