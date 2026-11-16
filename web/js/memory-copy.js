@@ -5,6 +5,7 @@
 // lines and the four hints live in copy.js (they ride data-copy and the shared hint line).
 import { getLang, getName } from './copy.js';
 
+export const MEMORY_FILE = '关于你.md'; // a file name, never translated
 export const MEMORY_PATH = '~/Library/Application Support/LittleBuddy/';
 
 export const MEMORY_COPY = {

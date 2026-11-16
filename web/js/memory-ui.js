@@ -3,7 +3,7 @@
 // client (memory-client.js); every user-visible word is t() from memory-copy.js or copy.js. All text goes in
 // with textContent, so the user's own file is never read as markup. Focus rules: FLOW-015..020, 01-ux.md §2.
 import { copy, getName } from './copy.js';
-import { t, tf, MEMORY_PATH } from './memory-copy.js';
+import { t, tf, MEMORY_PATH, MEMORY_FILE } from './memory-copy.js';
 import { cleanName, typingFilter, MAX_NAME } from './name.js';
 
 const VALENCE = { 'pleasant-high': 1, 'pleasant-low': 0.5, neutral: 0, 'unpleasant-high': -0.5, 'unpleasant-low': -1 };
@@ -79,15 +79,29 @@ export function createMemoryUi({ client, drawer, main, openers, noticeHost, priv
     if (!noticeEl) return;
     noticeEl.setAttribute('aria-label', t('noticeLabel'));
     noticeEl.querySelector('.notice__title').textContent = t('noticeTitle');
-    ['noticeSummary', 'noticeMoods', 'noticeProfile'].forEach((k, i) => { noticeEl.querySelectorAll('.notice__kept li')[i].textContent = t(k); });
+    ['noticeSummary', 'noticeMoods', 'noticeProfile'].forEach((k, i) => {
+      const li = noticeEl.querySelectorAll('.notice__kept li')[i];
+      const text = t(k);
+      const cut = text.search(/[：:]/); // the word up to the colon is the label (600)
+      li.replaceChildren();
+      if (cut < 0) { li.textContent = text; return; }
+      li.append(h('strong', null, text.slice(0, cut + 1)), document.createTextNode(text.slice(cut + 1)));
+    });
     noticeEl.querySelector('.notice__never').textContent = t('noticeNever');
-    noticeEl.querySelector('.notice__where').textContent = `${t('noticeWhere')} ${MEMORY_PATH}`;
+    noticeEl.querySelector('.notice__where').replaceChildren(document.createTextNode(t('noticeWhere')), h('span', 'notice__path', MEMORY_PATH));
     noticeEl.querySelector('.notice__later').textContent = t('noticeLater');
     noticeEl.querySelector('[data-testid="notice-ok"]').textContent = t('noticeOk');
     noticeEl.querySelector('[data-testid="notice-off"]').textContent = t('noticeOff');
   }
 
-  function removeNotice() { noticeEl?.remove(); noticeEl = null; }
+  // fades out in 150 ms (removed at once under reduced motion), then focus goes to the input (FLOW-015)
+  function removeNotice() {
+    const el = noticeEl; noticeEl = null;
+    if (!el) return;
+    const calm = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (calm) el.remove(); else { el.classList.add('is-leaving'); setTimeout(() => el.remove(), 150); }
+    onStartChat?.();
+  }
 
   function showNotice() {
     if (noticeEl || !noticeHost) return;
@@ -95,8 +109,8 @@ export function createMemoryUi({ client, drawer, main, openers, noticeHost, priv
     noticeEl.dataset.testid = 'memory-notice';
     const kept = h('ul', 'notice__kept');
     kept.append(h('li'), h('li'), h('li'));
-    const ok = button('notice__btn notice__btn--main', '', 'notice-ok');
-    const off = button('notice__btn', '', 'notice-off');
+    const ok = button('btn btn--soft', '', 'notice-ok');
+    const off = button('btn', '', 'notice-off');
     noticeEl.append(h('p', 'notice__title'), kept, h('p', 'notice__never'), h('p', 'notice__where'), h('p', 'notice__later'),
       h('div', 'notice__actions'));
     noticeEl.querySelector('.notice__actions').append(ok, off);
@@ -206,7 +220,9 @@ export function createMemoryUi({ client, drawer, main, openers, noticeHost, priv
 
   // ---------- PAGE-002 mood diary ----------
   function loading(panel, key) {
-    panel.replaceChildren(h('div', 'skeleton', null, { 'aria-hidden': 'true' }), sr(t(key)));
+    const sk = h('div', 'skeleton', null, { 'aria-hidden': 'true' });
+    for (const c of ['sk-head', 'sk-big', 'sk-row', 'sk-row', 'sk-row']) sk.append(h('i', c));
+    panel.replaceChildren(sk, sr(t(key)));
     panel.setAttribute('aria-busy', 'true');
   }
   function errorBlock(panel, key, retry) {
@@ -262,7 +278,9 @@ export function createMemoryUi({ client, drawer, main, openers, noticeHost, priv
       const ul = h('ul', 'day__rows');
       for (const e of day.entries) {
         const li = h('li', 'day__row');
-        li.append(h('span', 'day__point', e.point ?? ''), h('span', 'day__mood', tf('mood')[e.mood] ?? ''));
+        const tag = h('span', 'mood');
+        tag.append(h('i', `dot dot--${e.mood}`, null, { 'aria-hidden': 'true' }), document.createTextNode(tf('mood')[e.mood] ?? ''));
+        li.append(h('span', 'day__point', e.point ?? ''), tag);
         ul.append(li);
       }
       sec.append(ul);
@@ -301,10 +319,12 @@ export function createMemoryUi({ client, drawer, main, openers, noticeHost, priv
     svg.setAttribute('viewBox', '0 0 7 2');
     svg.setAttribute('preserveAspectRatio', 'none');
     svg.classList.add('curve__lines');
-    const mid = document.createElementNS(NS, 'line');
-    mid.setAttribute('x1', '0'); mid.setAttribute('x2', '7'); mid.setAttribute('y1', '1'); mid.setAttribute('y2', '1');
-    mid.setAttribute('class', 'curve__mid');
-    svg.append(mid);
+    for (const gy of [0, 1, 2]) { // grid at +1, 0, -1
+      const g = document.createElementNS(NS, 'line');
+      g.setAttribute('x1', '0'); g.setAttribute('x2', '7'); g.setAttribute('y1', String(gy)); g.setAttribute('y2', String(gy));
+      g.setAttribute('class', 'curve__mid');
+      svg.append(g);
+    }
     let run = [];
     const flush = () => {
       if (run.length > 1) {
@@ -321,7 +341,7 @@ export function createMemoryUi({ client, drawer, main, openers, noticeHost, priv
       const [, m, d] = day.date.split('-').map(Number);
       const isToday = i === data.days.length - 1;
       const dt = new Date(`${day.date}T12:00:00`);
-      const lab = h('span', 'curve__day');
+      const lab = h('span', isToday ? 'curve__day curve__day--today' : 'curve__day');
       lab.append(h('span', 'curve__wd', isToday ? t('dayToday') : tf('weekday')(dt.getDay())));
       lab.append(h('span', 'curve__md', `${m}/${d}`));
       labels.append(lab);
@@ -333,7 +353,8 @@ export function createMemoryUi({ client, drawer, main, openers, noticeHost, priv
       const v = day.entries.reduce((s, e) => s + (VALENCE[e.mood] ?? 0), 0) / day.entries.length;
       const y = 1 - v;
       run.push([i + 0.5, y]);
-      area.append(Object.assign(h('span', 'curve__dot'), { style: `left:${((i + 0.5) / 7) * 100}%;top:${(y / 2) * 100}%` }));
+      const tone = v >= 0.2 ? 'up' : v <= -0.2 ? 'down' : 'mid';
+      area.append(Object.assign(h('span', `curve__dot curve__dot--${tone}`), { style: `left:${((i + 0.5) / 7) * 100}%;top:${(y / 2) * 100}%` }));
     });
     flush();
     area.prepend(svg);
@@ -353,18 +374,32 @@ export function createMemoryUi({ client, drawer, main, openers, noticeHost, priv
       if (mine !== token) return;
       profileFailed = true; profile = null; renderPrivacy();
       errorBlock(panel, 'profileError', loadAbout).focus();
+      panel.append(deadControls());
       return;
     }
     if (mine !== token) return;
     profile = p; profileFailed = false; renderPrivacy();
     panel.removeAttribute('aria-busy');
-    if (!p.readable) { errorBlock(panel, 'profileError', loadAbout); return; }
+    if (!p.readable) { errorBlock(panel, 'profileError', loadAbout); panel.append(deadControls()); return; }
     renderAbout(panel);
+  }
+
+  // unreadable: the controls show but cannot change anything (FRAME-037, error · read)
+  function deadControls() {
+    const box = h('div', 'dead');
+    box.append(h('input', 'input', null, { disabled: '', 'aria-label': t('nameHeading'), value: getName() }));
+    const sel = h('select', 'select', null, { disabled: '', 'aria-label': t('regionHeading') });
+    sel.append(h('option', null, t('regionCN')));
+    box.append(sel, h('span', 'switch', null, { 'aria-hidden': 'true', 'aria-checked': 'false', disabled: '' }));
+    box.lastChild.append(h('span', 'switch__knob'));
+    return box;
   }
 
   function field(label, id) { // a settings row: label, control slot, message line
     const row = h('div', 'set');
     row.append(h('label', 'set__label', label, { for: id }));
+    row.body = h('div', 'set__body');
+    row.append(row.body);
     return row;
   }
   const msg = () => h('p', 'field-msg', '', { role: 'status' });
@@ -378,7 +413,7 @@ export function createMemoryUi({ client, drawer, main, openers, noticeHost, priv
     else {
       const box = h('div', 'about__box');
       box.dataset.testid = 'about-box';
-      box.append(renderMarkdown(p.about));
+      box.append(h('p', 'about__file', MEMORY_FILE), renderMarkdown(p.about));
       panel.append(box);
     }
     panel.append(h('p', 'about__where', t('memoryWhere')), h('p', 'about__edit', t('aboutEdit')));
@@ -411,7 +446,7 @@ export function createMemoryUi({ client, drawer, main, openers, noticeHost, priv
     });
     nameIn.addEventListener('blur', saveNameField);
     nameIn.maxLength = MAX_NAME * 2;
-    nameRow.append(nameIn, nameMsg);
+    nameRow.body.append(nameIn, nameMsg);
 
     // region
     const regionRow = field(t('regionHeading'), 'about-region');
@@ -442,17 +477,21 @@ export function createMemoryUi({ client, drawer, main, openers, noticeHost, priv
         say(regionMsg, t('regionSaved'));
       } catch { sel.value = regionShown; say(regionMsg, t('saveFailed')); }
     });
-    regionRow.append(wrapSel, lineEl, regionNote, regionMsg);
+    const line = h('div', 'set__line');
+    line.append(wrapSel, lineEl);
+    regionRow.body.append(line, regionNote, regionMsg);
 
     // memory switch
     const memRow = h('div', 'set');
     memRow.append(h('span', 'set__label', t('memoryHeading'), { id: 'mem-h' }));
+    memRow.body = h('div', 'set__body');
+    memRow.append(memRow.body);
     const sw = button('switch', null, 'memory-switch');
     sw.setAttribute('role', 'switch');
     sw.setAttribute('aria-labelledby', 'mem-h mem-name');
     const swName = h('span', 'sr-only', t('memorySwitch'), { id: 'mem-name' });
     const swWord = h('span', 'switch__word');
-    sw.append(swWord, h('span', 'switch__knob', null, { 'aria-hidden': 'true' }));
+    sw.append(h('span', 'switch__knob', null, { 'aria-hidden': 'true' }));
     const memNote = h('p', 'set__note');
     const memMsg = msg();
     const paintSwitch = () => {
@@ -475,7 +514,9 @@ export function createMemoryUi({ client, drawer, main, openers, noticeHost, priv
       } catch { say(memMsg, t('saveFailed')); }
       sw.disabled = false; sw.focus();
     });
-    memRow.append(sw, swName, memNote, memMsg);
+    const swLine = h('div', 'set__line');
+    swLine.append(sw, swWord);
+    memRow.body.append(swLine, swName, memNote, memMsg);
 
     panel.append(nameRow, regionRow, memRow, forgetBlock(panel));
   }
@@ -537,7 +578,7 @@ export function createMemoryUi({ client, drawer, main, openers, noticeHost, priv
     }
     forgetHost.removeAttribute('role');
     forgetHost.removeAttribute('aria-labelledby');
-    const b = button('btn btn--danger', t('forget'), 'forget');
+    const b = button('btn', t('forget'), 'forget');
     b.addEventListener('click', () => { asking = true; renderForget(); });
     forgetHost.append(b, h('p', 'set__note', t('forgetNote')));
     void result;
