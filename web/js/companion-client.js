@@ -1,7 +1,7 @@
 // The one replaceable data layer (REQ-007), real since Q-010. Seam: contracts/FRONTEND_BACKEND_CONTRACT.md
 // "Seam for run companion-full-dev", docs/backend/03-detailed-design.md DES-013.
 //   respond(line, history, name) -> Promise<{ reply, mood, lang, crisis, region, speech }>   POST /api/respond, aborted at 16 s (Q-020; name null/absent is left out)
-//   speak(text, lang, signal) -> Promise<Blob audio/wav>   POST /api/speak, aborted at 11 s -> timeout; a caller's abort stays the AbortError
+//   speak(text, lang, signal, voice) -> Promise<Blob audio/wav>   POST /api/speak {text, lang, voice?} (R2 Q-060: the chosen voice id rides along; the gateway ignores it until C-013), aborted at 11 s -> timeout; a caller's abort stays the AbortError
 
 //   transcribe(audio)      -> Promise<{ text }>          POST /api/transcribe, aborted at 13 s (Q-014 sends audio)
 //   health()               -> Promise<{ ready, stt, bonsai, tts }>   GET /api/health (Q-012 polls it)
@@ -76,11 +76,11 @@ export function createClient({ fetch: fetchImpl, timers = { setTimeout: (fn, ms)
         speech: Array.isArray(body.speech) ? body.speech.filter((t) => typeof t === 'string') : [],
       };
     },
-    async speak(text, lang, signal) {
+    async speak(text, lang, signal, voice) {
       const blob = await call('/api/speak', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text, lang }),
+        body: JSON.stringify(typeof voice === 'string' && voice ? { text, lang, voice } : { text, lang }),
       }, SPEAK_TIMEOUT_MS, { parse: 'blob', callerSignal: signal });
       if (!blob || typeof blob.size !== 'number' || blob.size === 0) throw codeError('failed');
       return blob;
@@ -103,6 +103,6 @@ export function createClient({ fetch: fetchImpl, timers = { setTimeout: (fn, ms)
 
 const client = createClient();
 export const respond = (line, history, name, signal) => client.respond(line, history, name, signal);
-export const speak = (text, lang, signal) => client.speak(text, lang, signal);
+export const speak = (text, lang, signal, voice) => client.speak(text, lang, signal, voice);
 export const transcribe = (audio) => client.transcribe(audio);
 export const health = () => client.health();

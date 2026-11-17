@@ -1,25 +1,125 @@
-/* R2 prototype: neutral placeholder styling for the 形象和声音 tab (structure only; fe-ui styles it from 02-ui.md). */
-.drawer__lang { display: flex; gap: 4px; flex: none; margin-bottom: 8px; }
-.drawer__lang button {
-  min-height: 44px; min-width: 44px; padding: 0 8px; background: none; border: 0; cursor: pointer;
-  font: 400 14px/20px var(--font-ui); color: var(--color-text-muted);
+/* R2 (docs/frontend/r2-personalise/02-ui.md CMP-024..029, FRAME-038..046): the 形象和声音 tab and the drawer's 中文 | EN group.
+   Tokens only; art hues live in the SVG files. Tab order and DOM order stay tabs, switch, 关闭 (UX §2). */
+
+/* ---------- CMP-024 drawer header: one row when it fits, else switch + 关闭 go up to their own right-aligned row ---------- */
+.drawer__bar { flex-wrap: wrap-reverse; align-items: flex-end; column-gap: 8px; }
+.drawer__tabs { flex: 0 1 auto; max-width: 100%; }
+.drawer__lang {
+  display: flex; gap: 2px; padding: 1px; flex: none;
+  border: 1px solid var(--color-border-control); border-radius: var(--radius-control);
 }
-.drawer__lang button[aria-pressed="true"] { color: var(--color-text-primary); font-weight: 600; }
+.drawer__lang button {
+  height: 32px; min-width: 44px; padding: 0 12px; border: 0; border-radius: 4px; background: none; cursor: pointer;
+  font: 400 13px/20px var(--font-ui); color: var(--color-text-muted);
+}
+.drawer__lang button:hover { color: var(--color-text-primary); }
+.drawer__lang button[aria-pressed="true"] { background: var(--color-turn-you-bg); color: var(--color-text-primary); font-weight: 600; cursor: default; }
 .drawer__lang button:focus-visible { outline: 3px solid var(--color-focus-ring); outline-offset: 2px; }
-.look__group { border: 0; margin: 0 0 16px; padding: 0; min-width: 0; }
-.look__legend, .look__h { font: 600 15px/22px var(--font-ui); margin: 0 0 6px; padding: 0; }
-.look__section { margin: 0 0 20px; }
-.look__section .look__group { margin-bottom: 8px; }
-.look__section .look__legend { font-weight: 400; color: var(--color-text-muted); }
-.look__row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; min-height: 44px; }
-.look__opt { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; flex: 1 1 auto; cursor: pointer; }
-.look__opt input { width: 20px; height: 20px; margin: 0; }
-.look__desc { color: var(--color-text-muted); font-size: 13px; }
+.drawer__end { display: flex; align-items: center; gap: 8px; flex: none; margin: 0 0 8px auto; } /* switch + 关闭 wrap together (CMP-024) */
+.drawer__end .drawer__close { margin: 0; }
+
+/* ---------- body ---------- */
+.look__group { border: 0; margin: 0; padding: 0; min-width: 0; }
+.look__legend, .look__h { font: 600 16px/26px var(--font-ui); margin: 0; padding: 0; }
+.look__section { margin: 32px 0 0; }
+.look__head { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 12px; margin-bottom: 8px; }
+.look__note { font-size: 13px; line-height: 20px; color: var(--color-text-muted); }
+.look__chars { margin-top: 16px; }
+.look__chars .look__legend { margin-bottom: 12px; }
+.look__rows { display: flex; flex-wrap: wrap; }
+.look__radio { position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; }
+.look__opt { position: relative; cursor: pointer; }
+@media (max-width: 959px) { .look__section { margin-top: 24px; } }
+
+/* CMP-025 character option: 100 px ring around an 88 px disc, name under it */
+.look__chars .look__rows { gap: 16px; }
+.look__chars .look__opt { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 100px; }
+.disc { position: relative; display: grid; place-items: center; width: 100px; height: 100px; border-radius: 50%; border: 0 solid transparent; box-sizing: border-box; }
+.disc__art { display: block; width: 88px; height: 88px; border-radius: 50%; }
+.look__opt:hover .disc { box-shadow: inset 0 0 0 1px var(--color-border-control); }
+.look__radio:checked + .disc { box-shadow: inset 0 0 0 2px var(--color-cocoa); }
+.look__radio:focus-visible + .disc { box-shadow: inset 0 0 0 3px var(--color-focus-ring); }
+.disc__name { display: inline-flex; align-items: center; gap: 4px; font: 400 16px/26px var(--font-ui); }
+.look__radio:checked ~ .disc__name { font-weight: 600; }
+.disc__check { display: none; width: 16px; height: 16px; }
+.look__radio:checked ~ .disc__name .disc__check { display: inline-block; }
+
+/* CMP-026 item tile: 64 box, 48 art, name under it, check badge when selected */
+.look__slot { margin-top: 12px; }
+.look__slot .look__legend { font-weight: 600; margin: 8px 0 4px; }
+.look__slot .look__rows { gap: 12px; }
+.look__slot .look__opt { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 72px; padding: 4px 0 0; }
+.tile {
+  position: relative; display: grid; place-items: center; width: 64px; height: 64px; box-sizing: border-box;
+  border: 1px solid var(--color-border-control); border-radius: var(--radius-control); background: var(--color-oat);
+}
+.tile__art { width: 48px; height: 48px; display: block; border-radius: 3px; }
+.tile__none { width: 28px; height: 28px; opacity: 0.72; }
+.tile__check { display: none; position: absolute; top: -6px; right: -6px; width: 20px; height: 20px; padding: 3px; box-sizing: border-box; border-radius: 50%; background: var(--color-cocoa); color: var(--color-oat); }
+.look__opt:hover .tile { background: var(--color-turn-you-bg); }
+.look__radio:checked + .tile { border: 2px solid var(--color-cocoa); background: var(--color-turn-you-bg); }
+.look__radio:checked + .tile .tile__check { display: block; }
+.look__radio:focus-visible + .tile { outline: 3px solid var(--color-focus-ring); outline-offset: 3px; border-radius: 6px; }
+.tile__name { font-size: 13px; line-height: 20px; text-align: center; overflow-wrap: anywhere; }
+.look__radio:checked ~ .tile__name { font-weight: 600; }
+/* laptop: the slot label (64 px column) stands beside its row */
+@media (min-width: 960px) {
+  .look__slot { position: relative; }
+  .look__slot .look__legend { position: absolute; left: 0; top: 36px; margin: 0; }
+  .look__slot .look__rows { padding-left: 64px; }
+  :lang(en) .look__slot .look__rows { padding-left: 96px; }
+}
+
+/* CMP-027 voice row: 20 px radio, name, description, 试听 */
+.look__voicelist .look__rows { display: block; }
+.look__voicelist .look__row { display: flex; align-items: center; gap: 12px; min-height: 52px; border-radius: 6px; }
+.look__voicelist .look__row:has(.look__radio:focus-visible) { outline: 3px solid var(--color-focus-ring); outline-offset: -1px; }
+.look__voicelist .look__opt { display: flex; align-items: center; gap: 12px; flex: 1 1 auto; min-width: 0; padding-left: 8px; min-height: 52px; }
+.look__voicelist .look__radio {
+  position: static; opacity: 1; flex: none; width: 20px; height: 20px; appearance: none; -webkit-appearance: none; box-sizing: border-box;
+  border: 2px solid var(--color-border-control); border-radius: 50%; background: transparent;
+}
+.look__voicelist .look__radio:checked { border-color: var(--color-cocoa); background: radial-gradient(circle, var(--color-cocoa) 0 5px, transparent 5.5px); }
+.voice__text { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 8px; min-width: 0; }
+.look__name { font: 600 16px/26px var(--font-ui); }
+.look__desc { color: var(--color-text-muted); font-size: 13px; line-height: 20px; }
+.look__desc.is-missing { color: var(--color-text-primary); }
 .look__preview { flex: none; }
-.growth__line { margin: 0 0 8px; }
-.growth__bar { height: 8px; border-radius: 4px; background: var(--color-turn-you-bg); overflow: hidden; }
-.growth__fill { display: block; height: 100%; background: var(--color-text-primary); }
-.growth__next { margin: 6px 0 0; color: var(--color-text-muted); font-size: 13px; }
-.growth__demo { margin-top: 16px; padding: 12px; border: 1px dashed var(--color-border-default); display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
-.growth__demo input { width: 6em; }
-@media (prefers-reduced-motion: no-preference) { .growth__fill { transition: width 300ms ease-out; } }
+.look__preview.is-missing { opacity: 0.5; cursor: default; }
+@media (max-width: 959px) { .look__desc { flex-basis: 100%; } .look__voicelist .look__row { min-height: 68px; } }
+.look__voicelist .field-msg { margin-left: 8px; }
+
+/* CMP-028 growth block */
+/* DFB-005: plant · words · spark, one row, 8 px apart, bottom-aligned */
+.growth__top { display: flex; align-items: flex-end; gap: 8px; margin-top: 12px; }
+/* CMP-033 spark: a 24 px box that never resizes between bands, so the line never jumps; still at rest, decorative */
+.growth__spark { flex: none; display: inline-flex; width: 24px; height: 24px; margin-bottom: 1px; }
+.growth__spark .spark { display: block; overflow: visible; transform-origin: 50% 90.6%; } /* the flame's base (16, 29) on its 32 grid */
+.growth__plant { flex: none; width: 28px; height: 40px; }
+.growth__line { margin: 0; font: 600 16px/26px var(--font-ui); }
+.growth__bar { display: flex; gap: 4px; width: 320px; max-width: 100%; height: 12px; margin-top: 4px; }
+.growth__seg { flex: 1 1 0; display: block; box-sizing: border-box; height: 12px; border-radius: 6px; background: var(--color-linen); }
+.growth__seg.is-on { background: var(--color-honey); border: 1.5px solid var(--color-cocoa); }
+.growth__next { margin: 8px 0 0; font: 400 16px/26px var(--font-ui); }
+.growth__next[hidden] { display: none; }
+
+/* CMP-029 demo days: dashed = prototype only */
+.growth__demo-wrap { margin-top: 16px; }
+.growth__demo { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 12px; border: 1px dashed var(--color-border-control); border-radius: 6px; max-width: 100%; box-sizing: border-box; }
+.growth__demo-label { font-size: 13px; line-height: 20px; }
+.growth__demo-note { font-size: 13px; line-height: 20px; color: var(--color-text-muted); }
+.growth__demo input { width: 72px; height: 36px; box-sizing: border-box; padding: 0 12px; font: 400 16px/26px var(--font-ui); background: var(--color-oat); color: var(--color-text-primary); border: 1px solid var(--color-border-control); border-radius: 6px; }
+.growth__demo input:focus-visible, .growth__demo input.is-error { outline: 0; border: 2px solid var(--color-cocoa); padding: 0 11px; box-shadow: none; }
+.growth__demo-wrap .field-msg { margin-top: 4px; }
+
+/* ---------- phone preview (CMP-001 mirror): 358 x 150, stays while the body scrolls; none on laptop ---------- */
+.look__preview-box {
+  display: none; position: sticky; top: -12px; z-index: 2; height: 150px; box-sizing: border-box; margin: 0 0 16px;
+  align-items: center; justify-content: center; background: var(--color-surface-page);
+  border: 1px solid var(--color-border-default); border-radius: var(--radius-control);
+}
+@media (max-width: 959px) { .look__preview-box { display: flex; } }
+@media (prefers-reduced-motion: no-preference) {
+  .growth__seg { transition: background-color 300ms ease-out; }
+  .growth__bar.is-filling .growth__seg { transition-duration: 400ms; } /* CMP-028 stage-up: this stage's bar fills in 400 ms */
+}

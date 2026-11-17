@@ -5,9 +5,13 @@
 //   setLook(patch)       -> the new look; patch = { character } and/or { outfit: { <slot>: value } }; rejects .code 'not_saved' (old look kept)
 //   getVoice()           -> voice id (default 'serena');  setVoice(id) -> id, rejects 'not_saved'
 //   preview(id, {text, lang, signal}) -> resolves when the sample has played; abort -> AbortError; a missing sample rejects .code 'missing'
-//                          (prototype: no sound, a 1.4 s pretend play)
+//                          (R2 Q-058: plays audio/voices/<id>-<zh|en>.wav, made by tools/make-voice-samples.mjs; without an Audio
+//                          element (node) it is a 1.4 s pretend play)
 //   getGrowth()          -> { days, stage, into, span, left }   stage 1 = 0-2 days, 2 = 3-6, 3 = 7+ (A4); left = days to the next stage (0 at stage 3)
 //   setDemoDays(n)       -> growth of n days (demo only, whole 0-365, removed with C-015); rejects 'bad_request' or 'not_saved'
+//   claimStageUp(stage)  -> the stage whose moment was last shown (null = never asked before) and remembers `stage` from now on.
+//                          Q-062: the page plays the stage-up only when the result is a lower stage (once per stage, not on refresh).
+//                          A refused write is silent (the moment may then show again at the next open).
 // Every failure rejects with an Error whose .code is one of CODES.
 export const SLOTS = ['head', 'clothes', 'shoes', 'accessory'];
 export const CHARACTERS = [1, 2, 3];
@@ -18,7 +22,9 @@ export const CODES = ['not_saved', 'bad_request', 'missing'];
 export const LOOK_KEY = 'companion.look';
 export const VOICE_KEY = 'companion.voice';
 export const DAYS_KEY = 'companion.demoDays';
+export const SEEN_KEY = 'companion.stageSeen';
 export const PREVIEW_MS = 1400;
+export const sampleUrl = (id, lang) => `audio/voices/${id}-${String(lang).toLowerCase().startsWith('zh') ? 'zh' : 'en'}.wav`;
 
 const codeError = (code) => Object.assign(new Error(code), { code });
 const DEFAULT_LOOK = () => ({ character: 1, outfit: { head: 'none', clothes: 'none', shoes: 'none', accessory: 'none' } });
@@ -39,7 +45,7 @@ function cleanLook(raw) {
   return out;
 }
 
-export function createLookClient({ storage, timers = { setTimeout: (fn, ms) => setTimeout(fn, ms), clearTimeout: (id) => clearTimeout(id) } } = {}) {
+export function createLookClient({ storage, createAudio = typeof Audio === 'function' ? () => new Audio() : null, timers = { setTimeout: (fn, ms) => setTimeout(fn, ms), clearTimeout: (id) => clearTimeout(id) } } = {}) {
   const read = (key) => { try { return storage?.getItem(key) ?? null; } catch { return null; } };
   const write = (key, value) => { try { storage.setItem(key, value); } catch { throw codeError('not_saved'); } }; // missing storage throws too
 
@@ -68,10 +74,23 @@ export function createLookClient({ storage, timers = { setTimeout: (fn, ms) => s
       voice = id;
       return voice;
     },
-    preview(id, { signal } = {}) {
+    preview(id, { lang, signal } = {}) {
       return new Promise((resolve, reject) => {
         if (!VOICES.includes(id)) { reject(codeError('missing')); return; }
-        const abort = () => { timers.clearTimeout(timer); reject(Object.assign(new Error('aborted'), { name: 'AbortError' })); };
+        const aborted = () => Object.assign(new Error('aborted'), { name: 'AbortError' });
+        if (createAudio) {
+          const audio = createAudio();
+          const done = (fn, arg) => { signal?.removeEventListener('abort', abort); audio.onended = audio.onerror = null; fn(arg); };
+          const abort = () => { audio.pause(); done(reject, aborted()); };
+          if (signal?.aborted) { reject(aborted()); return; }
+          signal?.addEventListener('abort', abort, { once: true });
+          audio.onended = () => done(resolve);
+          audio.onerror = () => done(reject, codeError('missing')); // 404 or an unreadable file
+          audio.src = sampleUrl(id, lang);
+          audio.play().catch((err) => done(reject, err?.name === 'AbortError' ? err : codeError('missing')));
+          return;
+        }
+        const abort = () => { timers.clearTimeout(timer); reject(aborted()); };
         const timer = timers.setTimeout(() => { signal?.removeEventListener('abort', abort); resolve(); }, PREVIEW_MS);
         if (signal?.aborted) { abort(); return; }
         signal?.addEventListener('abort', abort, { once: true });
@@ -82,8 +101,20 @@ export function createLookClient({ storage, timers = { setTimeout: (fn, ms) => s
       load();
       if (!Number.isInteger(n) || n < 0 || n > DEMO_MAX) throw codeError('bad_request');
       write(DAYS_KEY, String(n));
+      // DFB-004 (user, UI stop: prototype only): a fall in days forgets the remembered stage above the new one, so raising them
+      // again replays the stage-up moment. Real days never go down; this leaves with the demo field (C-015).
+      if (n < days) {
+        const seen = Number(read(SEEN_KEY));
+        if (Number.isInteger(seen) && seen > growthOf(n).stage) { try { storage.setItem(SEEN_KEY, String(growthOf(n).stage)); } catch { /* silent */ } }
+      }
       days = n;
       return growthOf(days);
+    },
+    async claimStageUp(stage) {
+      const n = Number(read(SEEN_KEY));
+      const seen = read(SEEN_KEY) !== null && [1, 2, 3].includes(n) ? n : null;
+      if (seen === null || stage > seen) { try { storage.setItem(SEEN_KEY, String(stage)); } catch { /* silent */ } }
+      return seen;
     },
   };
 }

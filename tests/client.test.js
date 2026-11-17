@@ -116,6 +116,15 @@ test('Q-020 speak posts {text, lang} and returns the WAV Blob', async () => {
   assert.equal(seen.init.headers['Content-Type'], 'application/json');
 });
 
+test('Q-060 speak with a chosen voice posts {text, lang, voice}; without one (or an empty one) the body stays {text, lang}', async () => {
+  const bodies = [];
+  const c = createClient({ fetch: async (_u, init) => { bodies.push(JSON.parse(init.body)); return audioRes(wav()); } });
+  await c.speak('你好', 'zh', undefined, 'uncle-fu');
+  await c.speak('hi', 'en', undefined, '');
+  await c.speak('hi', 'en');
+  assert.deepEqual(bodies, [{ text: '你好', lang: 'zh', voice: 'uncle-fu' }, { text: 'hi', lang: 'en' }, { text: 'hi', lang: 'en' }]);
+});
+
 test('Q-020 speak stops at 11 s with timeout, also while the body is still arriving', async () => {
   assert.equal(SPEAK_TIMEOUT_MS, 11000);
   const timers = fakeTimers();

@@ -41,11 +41,11 @@
 .companion__art [id$="--sparkles"] path { transform-box: fill-box; transform-origin: 50% 50%; }
 
 /* ---------- neutral: here, listening ---------- */
-#neutral--body { animation: breathe 4s ease-in-out infinite; }
-#neutral--eyes { animation: blink-4-6 10s linear infinite; }       /* 120 ms blink, 4 s then 6 s apart */
-#neutral--ear-left { transform-origin: 52.1% 87.2%; animation: twitch-left 8s ease-in-out infinite; }
-#neutral--ear-right { transform-origin: 47.9% 87.2%; animation: twitch-right 8s ease-in-out infinite; }
-#neutral--tail { transform-origin: 0% 100%; animation: sway-8 3s ease-in-out infinite; }
+.companion__art [id$="-neutral--body"] { animation: breathe 4s ease-in-out infinite; }
+.companion__art [id$="-neutral--eyes"] { animation: blink-4-6 10s linear infinite; }       /* 120 ms blink, 4 s then 6 s apart */
+.companion__art [id$="-neutral--ear-left"] { transform-origin: 52.1% 87.2%; animation: twitch-left 8s ease-in-out infinite; }
+.companion__art [id$="-neutral--ear-right"] { transform-origin: 47.9% 87.2%; animation: twitch-right 8s ease-in-out infinite; }
+.companion__art [id$="-neutral--tail"] { transform-origin: 0% 100%; animation: sway-8 3s ease-in-out infinite; }
 @keyframes breathe { 50% { transform: scale(1.02); } }
 @keyframes blink-4-6 {
   0%, 38.8%, 40%, 98.8%, 100% { transform: scaleY(1); }
@@ -56,15 +56,15 @@
 @keyframes sway-8 { 25% { transform: rotate(8deg); } 75% { transform: rotate(-8deg); } }
 
 /* ---------- pleasant-high: jumps for joy ---------- */
-#pleasant-high--character { animation: hop 360ms ease-out 2, bounce 1.2s ease-in-out 720ms infinite; }
-#pleasant-high--arm-left { transform-origin: 100% 100%; animation: wave 600ms ease-in-out infinite; }
-#pleasant-high--arm-right { transform-origin: 0% 100%; animation: wave 600ms ease-in-out -300ms infinite; }
-#pleasant-high--tail { transform-origin: 0% 100%; animation: wag 400ms ease-in-out infinite; }
-#pleasant-high--sparkles path { animation: twinkle 900ms ease-in-out infinite; }
-#pleasant-high--sparkles #pleasant-high--sparkle-2 { animation-delay: -180ms; }
-#pleasant-high--sparkles #pleasant-high--sparkle-3 { animation-delay: -360ms; }
-#pleasant-high--sparkles #pleasant-high--sparkle-4 { animation-delay: -540ms; }
-#pleasant-high--sparkles #pleasant-high--sparkle-5 { animation-delay: -720ms; }
+.companion__art [id$="-pleasant-high--character"] { animation: hop 360ms ease-out 2, bounce 1.2s ease-in-out 720ms infinite; }
+.companion__art [id$="-pleasant-high--arm-left"] { transform-origin: 100% 100%; animation: wave 600ms ease-in-out infinite; }
+.companion__art [id$="-pleasant-high--arm-right"] { transform-origin: 0% 100%; animation: wave 600ms ease-in-out -300ms infinite; }
+.companion__art [id$="-pleasant-high--tail"] { transform-origin: 0% 100%; animation: wag 400ms ease-in-out infinite; }
+.companion__art [id$="-pleasant-high--sparkles"] path { animation: twinkle 900ms ease-in-out infinite; }
+.companion__art [id$="-pleasant-high--sparkles"] [id$="-pleasant-high--sparkle-2"] { animation-delay: -180ms; }
+.companion__art [id$="-pleasant-high--sparkles"] [id$="-pleasant-high--sparkle-3"] { animation-delay: -360ms; }
+.companion__art [id$="-pleasant-high--sparkles"] [id$="-pleasant-high--sparkle-4"] { animation-delay: -540ms; }
+.companion__art [id$="-pleasant-high--sparkles"] [id$="-pleasant-high--sparkle-5"] { animation-delay: -720ms; }
 @keyframes hop { 50% { transform: translateY(-20px); } }
 @keyframes bounce { 15% { transform: translateY(-8px); } 30%, 100% { transform: translateY(0); } }
 @keyframes wave { 0%, 100% { transform: rotate(-12deg); } 50% { transform: rotate(12deg); } }
@@ -72,10 +72,10 @@
 @keyframes twinkle { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(0.6); opacity: 0.35; } }
 
 /* ---------- pleasant-low: content, leaning on you ---------- */
-#pleasant-low--character { animation: sway-3 3.2s ease-in-out infinite; }
-#pleasant-low--tail { transform-origin: 0% 82.3%; animation: flick 2.5s ease-in-out infinite; }
-#pleasant-low--heart { animation: heart-rise 4s ease-in-out infinite; }
-#pleasant-low--blush path { animation: blush 3.2s ease-in-out infinite; }
+.companion__art [id$="-pleasant-low--character"] { animation: sway-3 3.2s ease-in-out infinite; }
+.companion__art [id$="-pleasant-low--tail"] { transform-origin: 0% 82.3%; animation: flick 2.5s ease-in-out infinite; }
+.companion__art [id$="-pleasant-low--heart"] { animation: heart-rise 4s ease-in-out infinite; }
+.companion__art [id$="-pleasant-low--blush"] path { animation: blush 3.2s ease-in-out infinite; }
 @keyframes sway-3 { 25% { transform: rotate(3deg); } 75% { transform: rotate(-3deg); } }
 @keyframes flick { 0%, 24%, 100% { transform: rotate(0); } 8% { transform: rotate(10deg); } 16% { transform: rotate(-10deg); } }
 @keyframes heart-rise {
@@ -87,13 +87,13 @@
 @keyframes blush { 0%, 100% { fill-opacity: 0.5; } 50% { fill-opacity: 0.7; } }
 
 /* ---------- unpleasant-high: worried with you (never angry) ---------- */
-#unpleasant-high--character { animation: fidget 1.6s linear infinite; }
-#unpleasant-high--tremble { animation: tremble 1.6s linear infinite; }  /* same clock as the fidget bursts */
-#unpleasant-high--sweat-1 { animation: sweat 2s ease-in infinite; }
-#unpleasant-high--sweat-2 { animation: sweat 2s ease-in 1s infinite; }
-#unpleasant-high--eye-left-pupil, #unpleasant-high--eye-right-pupil { animation: glance 2.4s ease-in-out infinite; }
-#unpleasant-high--paw-left { animation: rub 600ms ease-in-out infinite; }
-#unpleasant-high--paw-right { animation: rub 600ms ease-in-out -300ms infinite; }
+.companion__art [id$="-unpleasant-high--character"] { animation: fidget 1.6s linear infinite; }
+.companion__art [id$="-unpleasant-high--tremble"] { animation: tremble 1.6s linear infinite; }  /* same clock as the fidget bursts */
+.companion__art [id$="-unpleasant-high--sweat-1"] { animation: sweat 2s ease-in infinite; }
+.companion__art [id$="-unpleasant-high--sweat-2"] { animation: sweat 2s ease-in 1s infinite; }
+.companion__art [id$="-unpleasant-high--eye-left-pupil"], .companion__art [id$="-unpleasant-high--eye-right-pupil"] { animation: glance 2.4s ease-in-out infinite; }
+.companion__art [id$="-unpleasant-high--paw-left"] { animation: rub 600ms ease-in-out infinite; }
+.companion__art [id$="-unpleasant-high--paw-right"] { animation: rub 600ms ease-in-out -300ms infinite; }
 @keyframes fidget {
   0%, 33.75%, 100% { transform: translateX(0); }
   5.6%, 16.9%, 28.1% { transform: translateX(-2px); }
@@ -111,11 +111,11 @@
 @keyframes rub { 0%, 100% { transform: translateX(-1.5px); } 50% { transform: translateX(1.5px); } }
 
 /* ---------- unpleasant-low: sad with you ---------- */
-#unpleasant-low--character { animation: sink 600ms ease-out forwards, slow-breath 5s ease-in-out 600ms infinite; }
-#unpleasant-low--tear-drop { animation: tear 3s ease-in infinite; }
-#unpleasant-low--ear-left { transform-origin: 71.4% 30.7%; animation: droop-left 5s ease-in-out infinite; }
-#unpleasant-low--ear-right { transform-origin: 28.6% 30.7%; animation: droop-right 5s ease-in-out infinite; }
-#unpleasant-low--eyes { animation: blink-slow 6s linear infinite; }
+.companion__art [id$="-unpleasant-low--character"] { animation: sink 600ms ease-out forwards, slow-breath 5s ease-in-out 600ms infinite; }
+.companion__art [id$="-unpleasant-low--tear-drop"] { animation: tear 3s ease-in infinite; }
+.companion__art [id$="-unpleasant-low--ear-left"] { transform-origin: 71.4% 30.7%; animation: droop-left 5s ease-in-out infinite; }
+.companion__art [id$="-unpleasant-low--ear-right"] { transform-origin: 28.6% 30.7%; animation: droop-right 5s ease-in-out infinite; }
+.companion__art [id$="-unpleasant-low--eyes"] { animation: blink-slow 6s linear infinite; }
 @keyframes sink { to { transform: translateY(8px) scaleY(0.97); } }
 @keyframes slow-breath {
   0%, 100% { transform: translateY(8px) scaleY(0.97); }
@@ -175,3 +175,25 @@
   .companion.is-poke-here .companion__layers { animation: none !important; }
   .companion.is-poke-oops .companion__ticks { opacity: 1; animation: none !important; } /* the ticks stay, still */
 }
+
+/* ---------- R2 (02-ui CMP-001, CMP-030, CMP-031): stage size, outfit slots, the phone preview ---------- */
+/* Growth size: #growth scales from the ground line (200, 318) so the feet stay put: 0.72 / 0.86 / 1 (stage 1 / 2 / 3). */
+.companion[data-stage="1"] { --g: 0.72; }
+.companion[data-stage="2"] { --g: 0.86; }
+.companion[data-stage="3"] { --g: 1; }
+.companion__art [id$="--growth"] { transform-box: view-box; transform-origin: 200px 318px; transform: scale(var(--g, 1)); }
+/* Item layers carry their own transform attributes (translate, rotate, scale): plain SVG user space, no fill-box pivot. */
+.companion__art .attr-tf, .companion__art .slot-item, .companion__art .slot-item g { transform-box: view-box; transform-origin: 0 0; }
+.companion__art .slot-in { animation: item-in 200ms ease-out; }   /* item put on: fades in, 0.9 -> 1 */
+.companion__art .slot-out { animation: item-out 150ms ease-in forwards; } /* item taken off: fades out */
+@keyframes item-in { from { opacity: 0; transform: scale(0.9); } }
+@keyframes item-out { to { opacity: 0; } }
+/* Phone preview (CMP-001 mirror): the same art, no caption, no poke, no ring. */
+.companion--preview { width: 140px; cursor: default; pointer-events: none; --breath-scale: 1; }
+/* Q-062 (CMP-032): confetti + sparkles overlay above the layers, the same box and stage coordinates as the art. */
+.companion__burst { position: absolute; inset: 0; display: block; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+/* Q-062 (CMP-033): the stage-up spark rides the caption, 20 px after the words, in a 24 px box; the 64 px flare overflows it
+   (box centre = flare point 32, 35), so nothing here clips. Decorative; motion is Web Animations (stage-up.js). */
+.caption__spark { position: relative; flex: none; display: inline-flex; width: 24px; height: 24px; margin-left: 20px; pointer-events: none; }
+.caption__spark .spark { display: block; overflow: visible; transform-origin: 50% 90.6%; }
+.caption__spark .spark-flare { position: absolute; left: -20px; top: -23px; overflow: visible; }
