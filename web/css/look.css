@@ -1,0 +1,25 @@
+/* R2 prototype: neutral placeholder styling for the 形象和声音 tab (structure only; fe-ui styles it from 02-ui.md). */
+.drawer__lang { display: flex; gap: 4px; flex: none; margin-bottom: 8px; }
+.drawer__lang button {
+  min-height: 44px; min-width: 44px; padding: 0 8px; background: none; border: 0; cursor: pointer;
+  font: 400 14px/20px var(--font-ui); color: var(--color-text-muted);
+}
+.drawer__lang button[aria-pressed="true"] { color: var(--color-text-primary); font-weight: 600; }
+.drawer__lang button:focus-visible { outline: 3px solid var(--color-focus-ring); outline-offset: 2px; }
+.look__group { border: 0; margin: 0 0 16px; padding: 0; min-width: 0; }
+.look__legend, .look__h { font: 600 15px/22px var(--font-ui); margin: 0 0 6px; padding: 0; }
+.look__section { margin: 0 0 20px; }
+.look__section .look__group { margin-bottom: 8px; }
+.look__section .look__legend { font-weight: 400; color: var(--color-text-muted); }
+.look__row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; min-height: 44px; }
+.look__opt { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; flex: 1 1 auto; cursor: pointer; }
+.look__opt input { width: 20px; height: 20px; margin: 0; }
+.look__desc { color: var(--color-text-muted); font-size: 13px; }
+.look__preview { flex: none; }
+.growth__line { margin: 0 0 8px; }
+.growth__bar { height: 8px; border-radius: 4px; background: var(--color-turn-you-bg); overflow: hidden; }
+.growth__fill { display: block; height: 100%; background: var(--color-text-primary); }
+.growth__next { margin: 6px 0 0; color: var(--color-text-muted); font-size: 13px; }
+.growth__demo { margin-top: 16px; padding: 12px; border: 1px dashed var(--color-border-default); display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.growth__demo input { width: 6em; }
+@media (prefers-reduced-motion: no-preference) { .growth__fill { transition: width 300ms ease-out; } }

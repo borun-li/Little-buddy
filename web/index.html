@@ -10,6 +10,7 @@
 <link rel="stylesheet" href="css/page.css">
 <link rel="stylesheet" href="css/companion.css">
 <link rel="stylesheet" href="css/memory.css">
+<link rel="stylesheet" href="css/look.css">
 <script type="module" src="js/app.js"></script>
 </head>
 <body>
@@ -400,6 +401,7 @@
       <button type="button" class="stage-clear" data-testid="clear" data-copy="clear">清空</button>
       <button type="button" class="stage-btn stage-diary" data-testid="open-diary" data-copy="diary" aria-pressed="false" aria-haspopup="dialog">日记</button>
       <button type="button" class="stage-btn stage-about" data-testid="open-about" data-copy="about" aria-pressed="false" aria-haspopup="dialog">关于你</button>
+      <button type="button" class="stage-btn stage-look" data-testid="open-look" data-copy="look" aria-pressed="false" aria-haspopup="dialog">形象</button>
     </div>
     <div class="lang-switch" role="group" aria-label="界面语言">
       <button type="button" data-lang="zh" lang="zh-Hans" aria-label="中文" aria-pressed="true">中文</button>
@@ -444,6 +446,11 @@
     <div class="drawer__tabs" role="tablist">
       <button type="button" class="drawer__tab" role="tab" id="tab-diary" data-tab="diary" data-testid="tab-diary" aria-controls="panel-diary" aria-selected="false" tabindex="-1">心情日记</button>
       <button type="button" class="drawer__tab" role="tab" id="tab-about" data-tab="about" data-testid="tab-about" aria-controls="panel-about" aria-selected="false" tabindex="-1">小伙伴记得的你</button>
+      <button type="button" class="drawer__tab" role="tab" id="tab-look" data-tab="look" data-testid="tab-look" aria-controls="panel-look" aria-selected="false" tabindex="-1">形象和声音</button>
+    </div>
+    <div class="drawer__lang" role="group" aria-label="界面语言" data-testid="drawer-lang">
+      <button type="button" data-lang="zh" lang="zh-Hans" aria-label="中文" aria-pressed="true">中文</button>
+      <button type="button" data-lang="en" lang="en" aria-label="English" aria-pressed="false">EN</button>
     </div>
     <button type="button" class="drawer__close" data-testid="drawer-close">关闭</button>
   </div>
@@ -451,6 +458,7 @@
     <p class="drawer__sub"></p>
     <section class="panel" id="panel-diary" data-panel="diary" data-testid="panel-diary" role="tabpanel" aria-labelledby="tab-diary" hidden></section>
     <section class="panel" id="panel-about" data-panel="about" data-testid="panel-about" role="tabpanel" aria-labelledby="tab-about" hidden></section>
+    <section class="panel" id="panel-look" data-panel="look" data-testid="panel-look" role="tabpanel" aria-labelledby="tab-look" hidden></section>
   </div>
 </div>
 </body>

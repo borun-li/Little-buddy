@@ -2,6 +2,8 @@
 import { respond, transcribe, health, speak } from './companion-client.js';
 import { memory } from './memory-client.js';
 import { createMemoryUi } from './memory-ui.js';
+import { look as lookClient } from './look-client.js';
+import { createLookUi } from './look-ui.js';
 import { copy, voiceHintKey, MAX_VOICE_CHARS, setLang, getLang, resolveLang, setName } from './copy.js';
 import { loadName, saveName, createRename } from './name.js';
 import { createLog } from './log.js';
@@ -299,11 +301,21 @@ async function onProfile(p) {
   try { await memory.setName(old); } catch { return; }
   saveName(storage, null); // saved: the key goes (removeItem)
 }
+// R2: the saved look and stage ride on the companion as data attributes (data-mood stays the 5 ids). Art comes from fe-ui;
+// until then they are the hook the stage reads. Applied at open before anything is typed, so there is no flash of the default.
+function applyLook(l) {
+  companionEl.dataset.character = String(l.character);
+  for (const [slot, v] of Object.entries(l.outfit)) companionEl.dataset[slot] = String(v);
+}
+function applyStage(g) { companionEl.dataset.stage = String(g.stage); }
+Promise.all([lookClient.getLook(), lookClient.getGrowth()]).then(([l, g]) => { applyLook(l); applyStage(g); }).catch(() => { /* unreadable: the default look stays (A14) */ });
+const lookUi = createLookUi({ client: lookClient, onLook: applyLook, onGrowth: applyStage });
 const memoryUi = createMemoryUi({
   client: memory,
+  look: lookUi,
   drawer: $('.drawer'),
   main: $('main.page'),
-  openers: { diary: $('.stage-diary'), about: $('.stage-about') },
+  openers: { diary: $('.stage-diary'), about: $('.stage-about'), look: $('.stage-look') },
   noticeHost: $('.log__empty'),
   privacyEl: $('.log__privacy-text'),
   showHint,
@@ -340,7 +352,7 @@ function applyCopy() {
   input.setAttribute('aria-label', copy.inputLabel);
   note.textContent = copy.pausedNote;
   $('.log__turns').setAttribute('aria-label', copy.logLabel);
-  langGroup.setAttribute('aria-label', copy.langLabel);
+  document.querySelectorAll('.lang-switch, .drawer__lang').forEach((g) => g.setAttribute('aria-label', copy.langLabel));
   $('.stage-clear').setAttribute('aria-label', copy.clearName);
   langButtons.forEach((b) => {
     b.setAttribute('aria-label', copy[b.dataset.lang === 'zh' ? 'langZh' : 'langEn']);
@@ -355,8 +367,7 @@ function applyCopy() {
   renderSpeaker();
 }
 
-const langGroup = $('.lang-switch');
-const langButtons = [...langGroup.querySelectorAll('button')];
+const langButtons = [...document.querySelectorAll('[data-lang]')]; // the stage group and (R2, REQ-065) the drawer bar's
 langButtons.forEach((b) => b.addEventListener('click', () => {
   if (b.dataset.lang === getLang()) return; // the current option does nothing
   setLang(b.dataset.lang);

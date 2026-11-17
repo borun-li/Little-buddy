@@ -94,6 +94,7 @@ export const COPY = {
     // R1: stage buttons and the privacy lines (the rest of the R1 words are in memory-copy.js)
     diary: '日记',
     about: '关于你',
+    look: '形象',
     diaryName: '心情日记',
     aboutName: '小伙伴记得的你',
     privacyOn: '聊天刷新就清空；关于你和每天的心情记在这台 Mac 上。',
@@ -188,6 +189,7 @@ export const COPY = {
     nameNote: 'The name is saved on this computer, up to 12 characters.',
     diary: 'Diary',
     about: 'About you',
+    look: 'Look',
     diaryName: 'Mood diary',
     aboutName: 'What Buddy remembers',
     privacyOn: "The chat clears when you reload; what's about you and your daily moods stay on this Mac.",
