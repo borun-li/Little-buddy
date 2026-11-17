@@ -119,6 +119,8 @@
   border: 1px solid var(--color-border-default); border-radius: var(--radius-control);
 }
 @media (max-width: 959px) { .look__preview-box { display: flex; } }
+/* The 140 px mirror is the 400 px art scaled down; cotton's ear outlines are non-scaling-stroke (6 px at 400), which at 140 px floods the ears black. */
+.companion--preview .companion__art [vector-effect] { vector-effect: none; }
 @media (prefers-reduced-motion: no-preference) {
   .growth__seg { transition: background-color 300ms ease-out; }
   .growth__bar.is-filling .growth__seg { transition-duration: 400ms; } /* CMP-028 stage-up: this stage's bar fills in 400 ms */

@@ -150,5 +150,7 @@ export function discArt(char) {
   svg.classList.add('disc__art');
   svg.setAttribute('width', '88'); svg.setAttribute('height', '88');
   reprefix(svg, `disc${++discCount}-`);
+  // cotton's ears use vector-effect non-scaling-stroke (a 6 px outline at the 400 px stage); at 88 px that stays 6 px and floods the ear black
+  for (const el of svg.querySelectorAll('[vector-effect]')) el.removeAttribute('vector-effect');
   return svg;
 }
