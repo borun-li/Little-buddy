@@ -183,9 +183,6 @@ export function createMemoryUi({ client, look, drawer, main, openers, noticeHost
     for (const k of ORDER) panels[k].hidden = current !== k;
     scrollEl.scrollTop = 0;
     scrollEl.setAttribute('aria-labelledby', `tab-${current}`); // FND-044: the keyboard-scrollable body is named by its tab
-    openers.diary.setAttribute('aria-pressed', String(current === 'diary'));
-    openers.about.setAttribute('aria-pressed', String(current === 'about'));
-    openers.look.setAttribute('aria-pressed', String(current === 'look'));
   }
 
   function select(which, { focus = false } = {}) {
@@ -198,6 +195,9 @@ export function createMemoryUi({ client, look, drawer, main, openers, noticeHost
     if (focus) tabs[which].focus();
   }
 
+  // FLOW-028: while the drawer is open the stage top bar (清空 · 日记 · 关于你 · 形象, stage 中文 | EN) is hidden: body.has-drawer
+  // (memory.css, visibility: hidden, so the bar keeps its box and the companion never moves). On close the bar comes back first,
+  // then focus goes to the opener (the stage-button pressed state is retired: its button is hidden while its tab is open).
   function open(which, from) {
     if (current) { select(which, { focus: true }); return; }
     opener = from ?? openers[which];
@@ -214,10 +214,7 @@ export function createMemoryUi({ client, look, drawer, main, openers, noticeHost
     look.stop();
     drawer.hidden = true;
     main.inert = false;
-    document.body.classList.remove('has-drawer');
-    openers.diary.setAttribute('aria-pressed', 'false');
-    openers.about.setAttribute('aria-pressed', 'false');
-    openers.look.setAttribute('aria-pressed', 'false');
+    document.body.classList.remove('has-drawer'); // bar back before focus moves (FLOW-028 step 3)
     if (toInput) onStartChat?.(); else opener?.focus();
     opener = null;
   }

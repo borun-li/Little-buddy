@@ -14,7 +14,7 @@ export const characterId = (n) => CHARACTER_IDS[(Number(n) || 1) - 1] ?? 'honey'
 const itemId = (slot, v) => (v === 'none' || v == null ? null : ITEM_IDS[slot][Number(v) - 1] ?? null);
 
 // A paint reference to an element of the same SVG (kept out of one literal: tests/offline.test.js reads every CSS-like fragment as a file).
-const fragRef = (id) => ['url(', '#', id, ')'].join('');
+export const fragRef = (id) => ['url(', '#', id, ')'].join('');
 const NS = 'http://www.w3.org/2000/svg';
 const LINE = '#2F2724';
 

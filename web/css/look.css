@@ -1,7 +1,9 @@
 /* R2 (docs/frontend/r2-personalise/02-ui.md CMP-024..029, FRAME-038..046): the 形象和声音 tab and the drawer's 中文 | EN group.
    Tokens only; art hues live in the SVG files. Tab order and DOM order stay tabs, switch, 关闭 (UX §2). */
 
-/* ---------- CMP-024 drawer header: one row when it fits, else switch + 关闭 go up to their own right-aligned row ---------- */
+/* ---------- CMP-024 drawer header: one row when it fits, else switch + 关闭 go up to their own right-aligned row.
+   Increment 2: with the short EN tabs (Diary · About you · Look & voice) the laptop bar is one row in both languages and the
+   phone bar two rows in both; the row count never depends on language. ---------- */
 .drawer__bar { flex-wrap: wrap-reverse; align-items: flex-end; column-gap: 8px; }
 .drawer__tabs { flex: 0 1 auto; max-width: 100%; }
 .drawer__lang {
@@ -47,8 +49,10 @@
 /* CMP-026 item tile: 64 box, 48 art, name under it, check badge when selected */
 .look__slot { margin-top: 12px; }
 .look__slot .look__legend { font-weight: 600; margin: 8px 0 4px; }
-.look__slot .look__rows { gap: 12px; }
-.look__slot .look__opt { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 72px; padding: 4px 0 0; }
+/* Increment 2 (CMP-026, FRAME-050/051): the grid never moves on a language switch: tiles 80 wide, 4 apart (pitch 84), 118 tall
+   = 4 + 64 box + 10 + an 80 x 40 name box (two lines even for a one-line name) */
+.look__slot .look__rows { gap: 4px; }
+.look__slot .look__opt { display: flex; flex-direction: column; align-items: center; gap: 10px; width: 80px; height: 118px; box-sizing: border-box; padding: 4px 0 0; }
 .tile {
   position: relative; display: grid; place-items: center; width: 64px; height: 64px; box-sizing: border-box;
   border: 1px solid var(--color-border-control); border-radius: var(--radius-control); background: var(--color-oat);
@@ -60,14 +64,24 @@
 .look__radio:checked + .tile { border: 2px solid var(--color-cocoa); background: var(--color-turn-you-bg); }
 .look__radio:checked + .tile .tile__check { display: block; }
 .look__radio:focus-visible + .tile { outline: 3px solid var(--color-focus-ring); outline-offset: 3px; border-radius: 6px; }
-.tile__name { font-size: 13px; line-height: 20px; text-align: center; overflow-wrap: anywhere; }
+/* a third line is a copy defect (01-ux); guard only: line 2 ends in "…", the box keeps its height, the full name stays in the text */
+.tile__name {
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden;
+  flex: none; width: 80px; height: 40px; font-size: 13px; line-height: 20px; text-align: center; overflow-wrap: break-word;
+}
 .look__radio:checked ~ .tile__name { font-weight: 600; }
-/* laptop: the slot label (64 px column) stands beside its row */
+/* laptop: the slot label stands beside its row in one fixed 96 px column in both languages (one line, centred on the 64 px box:
+   4 + 32 - 13), then 12 px to the first tile (FRAME-050/051: content x + 108) */
 @media (min-width: 960px) {
   .look__slot { position: relative; }
-  .look__slot .look__legend { position: absolute; left: 0; top: 36px; margin: 0; }
-  .look__slot .look__rows { padding-left: 64px; }
-  :lang(en) .look__slot .look__rows { padding-left: 96px; }
+  .look__slot .look__legend { position: absolute; left: 0; top: 23px; width: 96px; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .look__slot .look__rows { padding-left: 108px; }
+}
+/* phone: the subtitle and each group note sit on their own line under the title in a two-line (40 px) box in both languages,
+   so a longer English note never changes the row count above the grid (02-ui § Phone group notes) */
+@media (max-width: 959px) {
+  .look__head .look__note { flex: 0 0 100%; min-height: 40px; }
+  .drawer:has(#panel-look:not([hidden])) .drawer__sub { min-height: 40px; }
 }
 
 /* CMP-027 voice row: 20 px radio, name, description, 试听 */

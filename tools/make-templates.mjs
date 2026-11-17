@@ -43,7 +43,11 @@ for (const n of [1, 2, 3]) plants[n] = strip(core(readFileSync(path.join(SRC, 'g
 const bodyD = readFileSync(path.join(SRC, 'characters/honey-neutral.svg'), 'utf8').match(/id="body-fur" d="([^"]+)"/)[1];
 // Q-062 / DFB-005: the spark bands, the stage-up flare and the confetti + sparkles burst, ids turned into classes (several copies
 // can share the page: 成长, the caption, the phone preview); the root <svg> stays with the code (stage-up.js keeps its width/height).
-const art = (f) => inner(readFileSync(path.join(SRC, f), 'utf8')).replace(/<!--[\s\S]*?-->/g, '').trim().replace(/\bid="([^"]+)"/g, 'class="$1"');
+// Increment 2: a paint server (spark-3's radialGradient spark-glow-fill) keeps no id here and its user carries data-paint="<class>"
+// instead of a fragment reference (the offline scan reads every url() in web/ as a file); stage-up.js gives each copy its own id.
+const art = (f) => inner(readFileSync(path.join(SRC, f), 'utf8')).replace(/<!--[\s\S]*?-->/g, '').trim()
+  .replace(/\s(fill|stroke)="url\(#([^)]+)\)"/g, ' data-paint="$1:$2"')
+  .replace(/\bid="([^"]+)"/g, 'class="$1"');
 const sparks = {};
 for (const n of [1, 2, 3]) sparks[n] = art(`spark/spark-${n}.svg`);
 writeFileSync(path.join(root, 'web/js/look-art-data.js'),
