@@ -1,0 +1,26 @@
+{
+  "cases": [
+    {
+      "id": "FX-017-01",
+      "language": "zh",
+      "forbidden_absent": true
+    },
+    {
+      "id": "FX-017-02",
+      "language": "en",
+      "forbidden_absent": true
+    },
+    {
+      "id": "FX-017-03",
+      "language": "en",
+      "not_french": true,
+      "has_keywords": true
+    },
+    {
+      "id": "FX-017-04",
+      "language": "zh",
+      "forbidden_absent": true,
+      "has_keywords": true
+    }
+  ]
+}

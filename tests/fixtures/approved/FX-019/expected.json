@@ -1,0 +1,171 @@
+{
+  "cases": [
+    {
+      "id": "FX-019-01",
+      "readable": true,
+      "memoryOn": true,
+      "hasAny": true,
+      "days": [
+        {
+          "date": "2026-11-09",
+          "value": -0.667,
+          "entries": [
+            {
+              "mood": "unpleasant-low",
+              "point": "论文被导师打回"
+            },
+            {
+              "mood": "unpleasant-low",
+              "point": "一夜没睡好"
+            },
+            {
+              "mood": "neutral",
+              "point": null
+            }
+          ]
+        },
+        {
+          "date": "2026-11-10",
+          "value": null,
+          "entries": []
+        },
+        {
+          "date": "2026-11-11",
+          "value": 0.5,
+          "entries": [
+            {
+              "mood": "pleasant-low",
+              "point": "和室友吃了火锅"
+            }
+          ]
+        },
+        {
+          "date": "2026-11-12",
+          "value": 0.25,
+          "entries": [
+            {
+              "mood": "pleasant-high",
+              "point": "猫豆豆又肯吃饭了"
+            },
+            {
+              "mood": "unpleasant-high",
+              "point": "和朋友吵架"
+            }
+          ]
+        },
+        {
+          "date": "2026-11-13",
+          "value": null,
+          "entries": []
+        },
+        {
+          "date": "2026-11-14",
+          "value": -0.5,
+          "entries": [
+            {
+              "mood": "unpleasant-high",
+              "point": "面试前很焦虑"
+            }
+          ]
+        },
+        {
+          "date": "2026-11-15",
+          "value": 0.25,
+          "entries": [
+            {
+              "mood": "pleasant-high",
+              "point": "模拟面试顺利"
+            },
+            {
+              "mood": "unpleasant-low",
+              "point": "下雨鞋湿了"
+            },
+            {
+              "mood": "neutral",
+              "point": null
+            },
+            {
+              "mood": "pleasant-high",
+              "point": "妹妹周末要来"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "FX-019-02",
+      "entries_by_date": {
+        "2026-11-14": 1,
+        "2026-11-15": 0
+      },
+      "entry_mood_equals_reply_mood": true,
+      "value_2026-11-14_equals_mood_value": true
+    },
+    {
+      "id": "FX-019-03",
+      "readable": true,
+      "memoryOn": true,
+      "hasAny": false,
+      "days": [
+        {
+          "date": "2026-11-09",
+          "value": null,
+          "entries": []
+        },
+        {
+          "date": "2026-11-10",
+          "value": null,
+          "entries": []
+        },
+        {
+          "date": "2026-11-11",
+          "value": null,
+          "entries": []
+        },
+        {
+          "date": "2026-11-12",
+          "value": null,
+          "entries": []
+        },
+        {
+          "date": "2026-11-13",
+          "value": null,
+          "entries": []
+        },
+        {
+          "date": "2026-11-14",
+          "value": null,
+          "entries": []
+        },
+        {
+          "date": "2026-11-15",
+          "value": null,
+          "entries": []
+        }
+      ]
+    },
+    {
+      "id": "FX-019-04",
+      "api_ms_le_1000": true,
+      "page_ms_le_1000": true,
+      "values": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "entries_per_day": [
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100
+      ]
+    }
+  ]
+}

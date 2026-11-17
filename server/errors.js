@@ -1,7 +1,7 @@
-// The 6 API error codes and the one place that writes an error response (03 DES-003, §3).
+// The API error codes (6 + R1's forbidden, unreadable, not_saved) and the one place that writes an error response (03 DES-003, §3).
 import { log } from './log.js';
 
-export const CODES = Object.freeze({ not_ready: 503, unavailable: 503, timeout: 504, failed: 502, bad_request: 400, too_large: 413 });
+export const CODES = Object.freeze({ not_ready: 503, unavailable: 503, timeout: 504, failed: 502, bad_request: 400, too_large: 413, forbidden: 403, unreadable: 409, not_saved: 500 });
 
 export class ApiError extends Error {
   constructor(code, stage = 'request') {

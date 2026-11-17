@@ -1,0 +1,19 @@
+{
+  "req": "REQ-043",
+  "reqs": [
+    "REQ-043",
+    "REQ-050"
+  ],
+  "source": "inputs: 01 §7 FX-022 (facts from FX-014-01/-02; profile from FX-021), files written in the DES-031 formats. Expected: REQ-043 Accept (shown text = 关于你.md word for word, not editable; empty state after forget me) and REQ-050 Accept (<= 1 s, 关于你 three sections empty, 日志 without entries, still empty after restart and reload, the in-flight turn writes nothing back) with A36 (headings stay; profile.json untouched).",
+  "compare": "exact",
+  "compare_note": "One page run per case. Rules in `rules`. about_headings = the '## ' heading texts of 关于你.md in order. profile = GET /api/profile name, region, memoryOn. about_empty_state / diary_empty_state = the page shows that tab's empty state. forget_ms_le_1000 = click on the confirm to the page's result <= 1000 ms.",
+  "rules": {
+    "about_text_matches_file": "the text shown in the 小伙伴记得的你 box (textContent) with all whitespace removed equals 关于你.md with, per line, leading markdown markers ('#'s, '-', '*', '>') removed and then all whitespace removed (REQ-043 '渲染后的文字与关于你.md 逐字相同')",
+    "about_editable": "true when the box or any element inside it is an input, a textarea, contenteditable, or accepts typed text",
+    "about_empty": "关于你.md absent, or no line that is non-blank and does not start with '#'",
+    "diary_entries": "entry lines under '## YYYY-MM-DD' headings of 日志.md (absent file = 0)",
+    "files_unchanged": "bytes (and mode) of 关于你.md, 日志.md, profile.json equal to the copy taken just before the action"
+  },
+  "runs": 1,
+  "pass": "REQ-043: 01 and 02 about_empty_state exact. REQ-050: 02 and 03 exact (03 in 3/3 runs: timing of the in-flight turn varies)."
+}

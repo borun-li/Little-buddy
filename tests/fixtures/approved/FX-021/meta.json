@@ -1,0 +1,19 @@
+{
+  "req": "REQ-036",
+  "reqs": [
+    "REQ-036",
+    "REQ-047"
+  ],
+  "source": "inputs: 01 §7 FX-021 (web/js/name.js:5 = the key the earlier version wrote; 团子 from approved FX-011). Expected: REQ-036 Accept (notice with items and place before the first line, a turn-off action, gone once dismissed; A40: shown once per computer, also to earlier-version users) and REQ-047 Accept (shows 团子; after renaming to Mochi the caption and the name reply use it; kept over restart and reload). Default name in a zh page = 小伙伴 (REQ-028, A26). Shape: GET /api/profile .name and .path (contract § R1 seam).",
+  "compare": "exact",
+  "compare_note": "One page run per case (headless browser, real server). notice_before_first_send: the first-run notice is visible before any line is sent; notice_shows_path: its text contains GET /api/profile .path; notice_has_turn_off_action: it offers one control that turns memory off; notice_after_*: visible again or not. name_shown: the companion name on the page; profile_name: GET /api/profile .name after the page has loaded. after_rename: caption_has_name = caption contains 'Mochi'; reply_has_name / reply_no_default_name as approved FX-011 rules on the reply; name_shown_after_restart.",
+  "rules": {
+    "reply_has_name": "normalised reply contains 'mochi'",
+    "reply_no_default_name": "normalised reply contains neither '小伙伴' nor 'little buddy'"
+  },
+  "runs": 1,
+  "pass": "REQ-036 and REQ-047: whole object exact for both cases; the reply fields of 01 exact in 3/3 sends (FX-011 standard).",
+  "manual": [
+    "REQ-036 (A40): a human reads the notice: it says what each of the three files holds (关于你: facts in the companion's words; 日志: each day's moods and points; profile.json: name, region, switch), names the folder, and does not say that nothing is kept"
+  ]
+}

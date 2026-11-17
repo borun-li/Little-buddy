@@ -1,0 +1,16 @@
+{
+  "req": "REQ-046",
+  "reqs": [
+    "REQ-044",
+    "REQ-045",
+    "REQ-046"
+  ],
+  "source": "inputs: 01 §7 FX-019 (be-analyst #3; 5 mood ids from REQ-006); 04 generated to the A42 scale. Values: REQ-046 + A37 as amended 2026-11-16 (user, Prototype stop, run-log seq 20: 开心 +1, 平静 +0.5, 平常 0, 紧张 -0.5, 难过 -1, daily mean, no entry = empty): 11-09 (-1 -1 + 0)/3 = -0.667; 11-11 0.5/1 = 0.5; 11-12 (1 - 0.5)/2 = 0.25; 11-14 -0.5/1 = -0.5; 11-15 (1 - 1 + 0 + 1)/4 = 0.25; 11-10, 11-13 empty; 11-07 is outside today + 6 days and not counted. 04: each day 20 of each mood -> (20 x (1 + 0.5 + 0 - 0.5 - 1))/100 = 0. Lists: REQ-045 + A52 (7 days, file order within a day). 02: A38 (the day the line was sent). 03: REQ-045 empty state. Shape: contract § R1 seam getDiary (7 days oldest first, value null = no entries, point null = mood only).",
+  "compare": "exact",
+  "compare_note": "Per case: 01 and 03 compare GET /api/diary 200 body exactly after rounding every non-null value to 3 decimals (Math.round(v * 1000) / 1000). 02: entries_by_date counts entries in the returned days; entry_mood_equals_reply_mood = that entry's mood = the respond body mood; value_2026-11-14_equals_mood_value = that day's value = the five-level value of that mood (A37). 04: api_ms_le_1000 = GET /api/diary answered in <= 1000 ms; page_ms_le_1000 = tab open to curve and list shown <= 1000 ms (A42); values and entries_per_day from the body.",
+  "runs": 1,
+  "pass": "REQ-046: 01 days[].value and 03 exact; 04 values exact and both timings true. REQ-045: 01 days[].entries and hasAny exact (5 days with entries, file order), 03 exact (empty), 04 entries_per_day and timings. REQ-044: 02 exact in 3/3 runs (A38).",
+  "manual": [
+    "REQ-045/046 [interface]: on the page the curve shows 7 points with gaps at 11-10 and 11-13 and the list shows the 5 days with their points and moods as in 01; 03 shows the empty state; reload and restart keep 01 as is"
+  ]
+}

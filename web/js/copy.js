@@ -42,7 +42,13 @@ export const COPY = {
       sendTimeout: '小伙伴想得太久，这次没回上。文字放回输入框了，按 Enter 再发。',
       sendFailed: '这次没回上来。文字放回输入框了，按 Enter 再发。',
       cleared: '聊天清空了，重新开始吧。',
+      nameSaveFailed: '没存上，还是原来的。再试一次。',
       sendDefect: '这句没发出去。文字放回输入框了，再试一次；还不行就刷新页面（聊天会清空）。',
+      // R1 (docs/frontend/r1-memory/01-ux.md §5)
+      memoryOffNow: '记忆关了，接下来聊的不会被记下。',
+      noticeFailed: '没存上，下次打开还会看到这段说明。',
+      memoryOffFailed: '记忆没关成，还开着。再点一次“关掉记忆”。',
+      clearedKept: '聊天清空了。记住的事还在，要删请到“关于你”点“忘掉我”。',
     },
     // Mood caption after "小伙伴 · " and the word in the accessible name "小伙伴，<word>".
     moods: {
@@ -85,6 +91,14 @@ export const COPY = {
     renameName: (name) => `改名字，现在叫${name}`,
     nameLabel: '名字',
     nameNote: '名字记在这台电脑上，最多 12 个字。',
+    // R1: stage buttons and the privacy lines (the rest of the R1 words are in memory-copy.js)
+    diary: '日记',
+    about: '关于你',
+    diaryName: '心情日记',
+    aboutName: '小伙伴记得的你',
+    privacyOn: '聊天刷新就清空；关于你和每天的心情记在这台 Mac 上。',
+    privacyOff: '记忆关着：不记新的东西，聊天刷新就清空。',
+    privacyUnreadable: '存着的记忆暂时读不出来，这次先当第一次见面。文件没有删。',
   },
   en: {
     title: 'Little Buddy',
@@ -126,7 +140,13 @@ export const COPY = {
       sendTimeout: 'Little Buddy took too long this time. Your words are back in the box; press Enter to send again.',
       sendFailed: "That reply didn't come through. Your words are back in the box; press Enter to send again.",
       cleared: 'Chat cleared. Start fresh any time.',
+      nameSaveFailed: "That didn't save, so nothing changed. Try again.",
       sendDefect: "This didn't send. Your words are back in the box; try again, and if it still fails, reload the page (the chat will clear).",
+      // R1 (docs/frontend/r1-memory/01-ux.md §5)
+      memoryOffNow: 'Memory is off. Nothing from now on will be kept.',
+      noticeFailed: "That didn't save, so you'll see this note again next time.",
+      memoryOffFailed: "Memory didn't turn off and is still on. Choose Turn memory off again.",
+      clearedKept: "Chat cleared. What's remembered stays; to delete it, choose Forget me under About you.",
     },
     moods: {
       neutral: { caption: 'listening', name: 'listening' },
@@ -166,6 +186,13 @@ export const COPY = {
     renameName: (name) => `Rename, now called ${name}`,
     nameLabel: 'Name',
     nameNote: 'The name is saved on this computer, up to 12 characters.',
+    diary: 'Diary',
+    about: 'About you',
+    diaryName: 'Mood diary',
+    aboutName: 'What Buddy remembers',
+    privacyOn: "The chat clears when you reload; what's about you and your daily moods stay on this Mac.",
+    privacyOff: 'Memory is off: nothing new is kept, and the chat clears when you reload.',
+    privacyUnreadable: "Your saved memory can't be read right now, so this chat starts fresh. Nothing was deleted.",
   },
 };
 

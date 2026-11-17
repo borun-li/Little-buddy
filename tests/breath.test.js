@@ -242,5 +242,5 @@ test('Q-029 page wiring: app.js, css, html, package.json', () => {
   const block = css.match(/@media \(prefers-reduced-motion: reduce\)\s*{([\s\S]*?)\n}/)?.[1] ?? '';
   assert.match(block, /\.companion\.is-breathing \{ animation: none !important/);
   assert.match(read('web/index.html'), /<symbol id="i-square"/);
-  assert.match(JSON.parse(read('package.json')).scripts.test, /tests\/breath\.test\.js tests\/server-unit\.test\.js/);
+  assert.match(JSON.parse(read('package.json')).scripts.test, /(^| )tests\/breath\.test\.js( |$)/); // Q-051: presence, not order
 });

@@ -1,0 +1,42 @@
+{
+  "endpoint": "page + POST /api/respond + GET/POST /api/profile, GET /api/diary, POST /api/forget",
+  "setup": "Every case starts from its own empty data folder (LITTLEBUDDY_DATA_DIR = a new temp dir, absent profile.json = memory on, A40/REQ-036), real Bonsai, Wi-Fi off. 'say' = the lines are sent in one chat as the page sends them (POST /api/respond {line, history}, history = the earlier lines and replies of that chat). 'wait' = 30 s after the last reply, no line sent in that time (chat quiet, A32; 01 §1). 'restart' = stop the server, npm start again, new chat (history []). Base: say FX-014-01 lines, wait (关于你 holds 面试), set the profile name to 团子; stop; copy the three files aside.",
+  "cases": [
+    {
+      "id": "FX-024-01",
+      "break": "chmod 0000 关于你.md"
+    },
+    {
+      "id": "FX-024-02",
+      "break": "truncate profile.json to floor(byte length / 2) bytes (no longer valid JSON)"
+    }
+  ],
+  "steps": [
+    "start, open the page, read the page and GET /api/profile, GET /api/diary",
+    {
+      "say": [
+        "我最近在准备实习面试，有点紧张。",
+        "不过今天模拟面试表现得还不错，好开心！"
+      ]
+    },
+    "reload (new chat, history [])",
+    {
+      "ask": {
+        "line": "还记得我最近在忙什么吗？",
+        "forbidden": [
+          "面试"
+        ]
+      }
+    },
+    "compare the three files with the copies; POST /api/profile {\"name\": \"Mochi\"}; POST /api/forget {}",
+    "stop, put the copies back (mode 0600), start, reload",
+    {
+      "ask_after_restore": {
+        "line": "还记得我最近在忙什么吗？",
+        "keywords": [
+          "面试"
+        ]
+      }
+    }
+  ]
+}

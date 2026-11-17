@@ -1,10 +1,14 @@
-// Entry: file check, port checks, HTTP routes, request checks, start and stop (03 DES-001, DES-022).
+// Entry: file check, port checks, HTTP routes, request checks, start and stop (03 DES-001, DES-022);
+// R1: local-origin check, /api/profile, /api/diary, /api/forget, per-turn mood record, update queue and help region (DES-036).
 // node server/main.js [--warm-only]
 import { createServer } from 'node:http';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createBonsai } from './bonsai.js';
 import { CONFIG, missingFiles, missingHints, missingTtsFiles, TTS_HINT } from './config.js';
+import { createMemory } from './memory.js';
+import { localDay } from './memory-files.js';
+import { createStore, FILES, FolderInUse } from './memory-store.js';
 import { ApiError, sendError } from './errors.js';
 import { log } from './log.js';
 import { cleanName } from './name.js';
@@ -13,13 +17,31 @@ import { createStt } from './stt.js';
 import { isReady } from './supervisor.js';
 import { createTts, speechParts } from './tts.js';
 import { pcmFromWav } from './wav.js';
-import { systemRegion } from './region.js';
+import { helpRegion, PROFILE_REGIONS, systemRegion } from './region.js';
 
 const WEB = join(CONFIG.repo, 'web');
 // R0: the help-line region, decided once at start on this Mac (macOS region, then time zone; COMPANION_REGION overrides).
-const REGION = systemRegion();
-const children = { stt: createStt(), bonsai: createBonsai(CONFIG, REGION), tts: createTts() };
+// R1: the profile's choice overrides it per turn (helpRegion).
+const SYSTEM_REGION = systemRegion();
+const children = { stt: createStt(), bonsai: createBonsai(CONFIG, SYSTEM_REGION), tts: createTts() };
 let ttsStarted = false;
+// Memory: set by main() (never under --warm-only); attachMemory also lets a test drive route() with its own temp-dir store.
+let store = null;
+let memory = null;
+let replyNotes = null; // per run: the notes one chat keeps, so the reply's prompt prefix stays cached
+
+export function attachMemory(s, m) {
+  store = s;
+  memory = m;
+  replyNotes = null;
+}
+
+// A new chat (history []), memory off, forgotten or unreadable takes the live notes; otherwise the chat keeps its snapshot.
+export function notesFor(history) {
+  const live = store.notes();
+  if (live === null || history.length === 0 || replyNotes === null) replyNotes = live;
+  return replyNotes;
+}
 
 // Human-readable lines go to stderr; stdout carries only the JSON log (03 §6).
 const say = (text) => process.stderr.write(`${text}\n`);
@@ -35,6 +57,16 @@ export async function readBody(req, limit) {
     chunks.push(chunk);
   }
   return Buffer.concat(chunks, total);
+}
+
+// DNS rebinding / other sites (03 DES-036, BD-014): Host must name this machine; an Origin, when sent, must be http:// + that raw Host.
+export function isLocal(req) {
+  const h = req.headers.host;
+  if (!h) return false;
+  const name = h.replace(/:\d*$/, '').toLowerCase();
+  if (name !== '127.0.0.1' && name !== 'localhost') return false;
+  const origin = req.headers.origin;
+  return origin === undefined || origin.toLowerCase() === `http://${h.toLowerCase()}`;
 }
 
 const isText = (v, max) => typeof v === 'string' && v.length >= 1 && v.length <= max;
@@ -65,6 +97,33 @@ export function parseTurn(body, limits = CONFIG.limits) {
   return { line, history, name: cleanName(data.name) };
 }
 
+const isObject = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
+const PATCH_KEYS = ['noticeSeen', 'memoryOn', 'name', 'region'];
+
+// POST /api/profile body: 1-4 known keys; booleans; region one of PROFILE_REGIONS (null refused); name string|null, cleaned.
+export function parseProfilePatch(body) {
+  const data = parseJson(body);
+  if (!isObject(data)) throw new ApiError('bad_request');
+  const keys = Object.keys(data);
+  if (!keys.length || keys.some((k) => !PATCH_KEYS.includes(k))) throw new ApiError('bad_request');
+  const patch = {};
+  for (const k of ['noticeSeen', 'memoryOn']) {
+    if (k in data) {
+      if (typeof data[k] !== 'boolean') throw new ApiError('bad_request');
+      patch[k] = data[k];
+    }
+  }
+  if ('region' in data) {
+    if (!PROFILE_REGIONS.includes(data.region)) throw new ApiError('bad_request');
+    patch.region = data.region;
+  }
+  if ('name' in data) {
+    if (data.name !== null && typeof data.name !== 'string') throw new ApiError('bad_request');
+    patch.name = cleanName(data.name);
+  }
+  return patch;
+}
+
 export function parseSpeak(body, limits = CONFIG.limits) {
   const data = parseJson(body);
   if (data === null || typeof data !== 'object' || typeof data.text !== 'string' || (data.lang !== 'zh' && data.lang !== 'en')) {
@@ -90,13 +149,60 @@ function health() {
   return { ready: isReady(stt) && isReady(bonsai), stt, bonsai, tts: children.tts.state }; // ready does not wait for tts (A18)
 }
 
+// After a 200 reply (03 DES-036 step 4, DES-033 step 1): record the mood unless the page gave up, send, then queue the update.
+async function recordTurn(turn, at) {
+  if (at.gone()) return { ref: null, skip: 'gone' };
+  const ref = await store.recordMood(at.day, turn.mood, at.gen);
+  const skip = !store.readable ? 'unreadable' : !store.writable ? 'read_only' : !store.profile().memoryOn ? 'off'
+    : at.gen !== store.generation ? 'forgotten' : null;
+  return { ref, skip };
+}
+
 async function handleApi(req, res, path) {
+  if (!isLocal(req)) throw new ApiError('forbidden');
   if (req.method === 'GET' && path === '/api/health') return sendJson(res, 200, health());
   if (req.method === 'POST' && path === '/api/respond') {
     if (mediaType(req) !== 'application/json') throw new ApiError('bad_request');
     const { line, history, name } = parseTurn(await readBody(req, CONFIG.limits.jsonBytes));
-    const turn = await children.bonsai.respond(line, history, name);
-    return sendJson(res, 200, { ...turn, region: REGION, speech: speechParts(turn.reply, turn.lang) }); // region: the page's crisis card picks its numbers
+    // A32 idle update (03 DES-036): a turn makes the memory update wait (and aborts one in flight, 'busy'); every path after the
+    // parse, 200 or thrown ApiError, ends the turn exactly once.
+    memory.turnStarted();
+    try {
+      let left = false;
+      res.on('close', () => {
+        if (!res.writableFinished) left = true;
+      });
+      const at = { day: localDay(new Date()), gen: store.generation, gone: () => left };
+      const region = helpRegion(store.profile().region, SYSTEM_REGION);
+      const turn = await children.bonsai.respond(line, history, name, { region, notes: notesFor(history) });
+      const { ref, skip } = await recordTurn(turn, at);
+      // region: the turn's effective help-line region; the page's crisis card picks its numbers from it.
+      sendJson(res, 200, { ...turn, region, speech: speechParts(turn.reply, turn.lang) });
+      const queued = skip === null && !turn.crisis;
+      if (queued) memory.enqueue({ gen: at.gen, ref, line, lang: turn.lang });
+      log('info', 'memory_turn', { mood_written: ref !== null, queued, skip });
+      return;
+    } finally {
+      memory.turnEnded();
+    }
+  }
+  if (req.method === 'GET' && path === '/api/profile') {
+    return sendJson(res, 200, { ...store.view(), systemRegion: SYSTEM_REGION, path: CONFIG.memory.displayPath });
+  }
+  if (req.method === 'GET' && path === '/api/diary') return sendJson(res, 200, store.diary(new Date()));
+  if (req.method === 'POST' && path === '/api/profile') {
+    if (mediaType(req) !== 'application/json') throw new ApiError('bad_request');
+    const patch = parseProfilePatch(await readBody(req, CONFIG.limits.profileJsonBytes));
+    const out = await store.setProfile(patch);
+    if (patch.memoryOn === false) memory.drop('off'); // waiting lines are not sent once memory is off (03 DES-036)
+    return sendJson(res, 200, out);
+  }
+  if (req.method === 'POST' && path === '/api/forget') {
+    if (mediaType(req) !== 'application/json') throw new ApiError('bad_request');
+    if (!isObject(parseJson(await readBody(req, CONFIG.limits.forgetJsonBytes)))) throw new ApiError('bad_request');
+    const out = await store.forget();
+    memory.drop('forgotten');
+    return sendJson(res, 200, out);
   }
   if (req.method === 'POST' && path === '/api/speak') {
     if (mediaType(req) !== 'application/json') throw new ApiError('bad_request');
@@ -187,6 +293,21 @@ export async function main(argv) {
   }
   let server = null;
   if (!warmOnly) {
+    // Memory before listen (03 DES-036 step 6): lock, then load. Only FolderInUse stops the start; read-only still serves.
+    const s = createStore({ dir: CONFIG.memory.dir, say });
+    try {
+      await s.lock();
+    } catch (err) {
+      if (!(err instanceof FolderInUse)) throw err;
+      say(`记忆文件夹正被另一个小伙伴使用 Memory folder in use by another Little Buddy (PID ${err.pid}): ${CONFIG.memory.displayPath} — 先关掉它，或设 LITTLEBUDDY_DATA_DIR  Stop it first, or set LITTLEBUDDY_DATA_DIR`);
+      process.exit(1);
+    }
+    await s.load();
+    attachMemory(s, createMemory({ store: s, bonsai: children.bonsai }));
+    say(`记忆文件夹 Memory folder: ${CONFIG.memory.displayPath}`);
+    for (const key of s.unreadable) {
+      say(`读不出 Cannot read: ${CONFIG.memory.displayPath}${FILES[key]} — 这次按全新开始、不写入；修好后重启  Starting fresh and writing nothing this run; fix it and restart`);
+    }
     server = createServer(route);
     try {
       await listen(server);
@@ -200,6 +321,9 @@ export async function main(argv) {
   process.on('exit', stopChildren);
   for (const sig of ['SIGINT', 'SIGTERM']) {
     process.on(sig, () => {
+      // Waiting update lines die with the process (03 DES-036): one line says how many, before the children stop.
+      const n = memory?.drop('shutdown') ?? 0;
+      log('info', 'memory_dropped', { reason: 'shutdown', n });
       stopChildren();
       server?.close();
       process.exit(0);
@@ -220,7 +344,7 @@ export async function main(argv) {
     ttsStarted = true;
   }
   const url = `http://${CONFIG.host}:${CONFIG.port}`;
-  say(`求助电话地区 Help-line region: ${REGION ?? 'international'}（改 Change: COMPANION_REGION=CN|US|OTHER）`);
+  say(`求助电话地区 Help-line region: ${SYSTEM_REGION ?? 'international'}（改 Change: COMPANION_REGION=CN|US|OTHER）`);
   say(`启动中 Starting (stt pid ${children.stt.pid}, bonsai pid ${children.bonsai.pid}, tts pid ${children.tts.pid})…`);
   const poll = setInterval(() => {
     const h = health();

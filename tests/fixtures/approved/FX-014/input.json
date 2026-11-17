@@ -1,0 +1,189 @@
+{
+  "endpoint": "POST /api/respond (+ restart; 关于你.md read from the data folder)",
+  "setup": "Every case starts from its own empty data folder (LITTLEBUDDY_DATA_DIR = a new temp dir, absent profile.json = memory on, A40/REQ-036), real Bonsai, Wi-Fi off. 'say' = the lines are sent in one chat as the page sends them (POST /api/respond {line, history}, history = the earlier lines and replies of that chat). 'wait' = 30 s after the last reply, no line sent in that time (chat quiet, A32; 01 §1). 'restart' = stop the server, npm start again, new chat (history []).",
+  "cases": [
+    {
+      "id": "FX-014-01",
+      "sessions": [
+        [
+          "我最近在准备实习面试，有点紧张。",
+          "不过今天模拟面试表现得还不错，好开心！"
+        ]
+      ],
+      "wait": true,
+      "restart": true,
+      "about_keywords": {
+        "最近在忙": [
+          "面试"
+        ]
+      },
+      "ask": [
+        {
+          "line": "还记得我最近在忙什么吗？",
+          "keywords": [
+            "面试"
+          ],
+          "lang": "zh"
+        }
+      ],
+      "names": []
+    },
+    {
+      "id": "FX-014-02",
+      "sessions": [
+        [
+          "我家猫叫豆豆，这两天它不太爱吃饭，我有点担心。"
+        ]
+      ],
+      "wait": true,
+      "restart": true,
+      "about_keywords": {
+        "在意的人和事": [
+          "豆豆"
+        ]
+      },
+      "ask": [
+        {
+          "line": "你还记得我家猫叫什么吗？",
+          "keywords": [
+            "豆豆"
+          ],
+          "lang": "zh"
+        }
+      ],
+      "names": []
+    },
+    {
+      "id": "FX-014-03",
+      "sessions": [
+        [
+          "I'm training for a half marathon next month and my knees are sore."
+        ]
+      ],
+      "wait": true,
+      "restart": true,
+      "about_keywords": {
+        "最近在忙": [
+          "marathon"
+        ]
+      },
+      "ask": [
+        {
+          "line": "Do you remember what I'm training for?",
+          "keywords": [
+            "marathon"
+          ],
+          "lang": "en"
+        }
+      ],
+      "names": []
+    },
+    {
+      "id": "FX-014-04",
+      "sessions": [
+        [
+          "My sister Lily is coming to visit this weekend, I'm so excited!"
+        ]
+      ],
+      "wait": true,
+      "restart": true,
+      "about_keywords": {
+        "在意的人和事": [
+          "lily"
+        ]
+      },
+      "ask": [
+        {
+          "line": "Who's coming to visit me this weekend?",
+          "keywords": [
+            "lily"
+          ],
+          "lang": "en"
+        }
+      ],
+      "names": [
+        "Lily"
+      ]
+    },
+    {
+      "id": "FX-014-05",
+      "sessions": [
+        [
+          "我最近在准备实习面试，有点紧张。",
+          "不过今天模拟面试表现得还不错，好开心！"
+        ]
+      ],
+      "wait": true,
+      "restart": true,
+      "about_keywords": {
+        "最近在忙": [
+          "面试"
+        ]
+      },
+      "ask": [
+        {
+          "line": "Do you remember what I've been busy with?",
+          "keywords": [
+            "interview"
+          ],
+          "lang": "en"
+        }
+      ],
+      "names": []
+    },
+    {
+      "id": "FX-014-06",
+      "sessions": [
+        [
+          "我最近在准备实习面试，有点紧张。",
+          "不过今天模拟面试表现得还不错，好开心！"
+        ],
+        [
+          "我家猫叫豆豆，这两天它不太爱吃饭，我有点担心。"
+        ]
+      ],
+      "wait": true,
+      "restart": true,
+      "note": "two sessions: say L01, wait, restart, say L02, wait, restart, then both asks in one new chat",
+      "about_keywords": {
+        "最近在忙": [
+          "面试"
+        ],
+        "在意的人和事": [
+          "豆豆"
+        ]
+      },
+      "ask": [
+        {
+          "line": "还记得我最近在忙什么吗？",
+          "keywords": [
+            "面试"
+          ],
+          "lang": "zh"
+        },
+        {
+          "line": "你还记得我家猫叫什么吗？",
+          "keywords": [
+            "豆豆"
+          ],
+          "lang": "zh"
+        }
+      ],
+      "names": []
+    },
+    {
+      "id": "FX-014-07",
+      "sessions": [
+        [
+          "我最近在准备实习面试，有点紧张。",
+          "不过今天模拟面试表现得还不错，好开心！",
+          "哈哈"
+        ]
+      ],
+      "wait": true,
+      "restart": false,
+      "note": "REQ-044 Accept: the two FX-014-01 lines and 哈哈 in one chat; read today's section of 日志.md (no restart)",
+      "diary_check": true
+    }
+  ]
+}

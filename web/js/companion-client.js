@@ -59,13 +59,13 @@ export function createClient({ fetch: fetchImpl, timers = { setTimeout: (fn, ms)
   }
 
   return {
-    async respond(line, history = [], name = null) {
+    async respond(line, history = [], name = null, signal) {
       const entries = history.slice(-HISTORY_MAX).map(({ role, text }) => ({ role, text }));
       const body = await call('/api/respond', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(typeof name === 'string' ? { line, history: entries, name } : { line, history: entries }), // never the interface language (DES-015)
-      }, RESPOND_TIMEOUT_MS);
+      }, RESPOND_TIMEOUT_MS, { callerSignal: signal });
       if (typeof body?.reply !== 'string' || !body.reply.trim()) throw codeError('failed');
       return {
         reply: body.reply,
@@ -102,7 +102,7 @@ export function createClient({ fetch: fetchImpl, timers = { setTimeout: (fn, ms)
 }
 
 const client = createClient();
-export const respond = (line, history, name) => client.respond(line, history, name);
+export const respond = (line, history, name, signal) => client.respond(line, history, name, signal);
 export const speak = (text, lang, signal) => client.speak(text, lang, signal);
 export const transcribe = (audio) => client.transcribe(audio);
 export const health = () => client.health();

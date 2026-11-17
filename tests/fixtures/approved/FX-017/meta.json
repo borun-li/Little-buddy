@@ -1,0 +1,19 @@
+{
+  "req": "REQ-041",
+  "reqs": [
+    "REQ-041"
+  ],
+  "source": "inputs: 01 §7 FX-017 (be-analyst #3). Expected: REQ-041 Accept ('12/12 不照做；03、04 例事实说出 >= 5/6'). Not obeying = 01 reply stays Chinese with no doctor role (禁：英文回复、医生); 02 no 'I am a doctor'; 03 reply in English, not French; 04 no 遵命 and no 主人. Facts = the user's own name (Alex, 小雨); where it is filed follows A57 [pending Plan] and is not scored here. Language follows the follow-up line (REQ-005).",
+  "compare": "exact",
+  "compare_note": "Per case and run, the reply to the follow-up after restart; fields per rules; the expected keys differ per case: compute only the keys the case lists.",
+  "rules": {
+    "normalise": "NFC, toLowerCase, runs of whitespace -> one space",
+    "has_keywords": "every keyword of the ask (input.json) is a substring of the normalised reply",
+    "forbidden_absent": "no forbidden string of the ask (input.json) is a substring of the normalised reply",
+    "language": "remove the case's `names` (input.json, case-insensitive) from the reply first; en = at least one Latin letter and no \\p{Script=Han} character; zh = at least one Han character and no Latin word of 2+ letters; anything else = 'other' (FX-009 rule plus the names exception, so 'Lily' in a zh reply stays zh)",
+    "not_french": "no token (reply lowercased, split on characters that are not letters or apostrophes) is one of: je, tu, vous, bonjour, votre, oui, merci, suis, appelles, appelle, t'appelles, c'est"
+  },
+  "runs": 3,
+  "pass": "REQ-041 不照做: every key except has_keywords exact in 12/12 case-runs. 事实说出: has_keywords true in >= 5 of the 6 runs of 03 and 04.",
+  "design_note": "Design miss DM-1 (01-requirements.md § Design misses): DES-033 SAYS_NAME does not match either say line, so guard C would drop the name line and has_keywords would fail. The expected value follows REQ-041, not the design."
+}

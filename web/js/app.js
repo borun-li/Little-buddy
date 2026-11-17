@@ -1,5 +1,7 @@
 // Entry: turn flow idle -> pending -> idle (FLOW-001, FLOW-002). Data comes only from companion-client.js.
 import { respond, transcribe, health, speak } from './companion-client.js';
+import { memory } from './memory-client.js';
+import { createMemoryUi } from './memory-ui.js';
 import { copy, voiceHintKey, MAX_VOICE_CHARS, setLang, getLang, resolveLang, setName } from './copy.js';
 import { loadName, saveName, createRename } from './name.js';
 import { createLog } from './log.js';
@@ -36,6 +38,7 @@ const history = []; // page memory only (A5)
 let pending = false;
 // Q-022: bumped by every clear; a reply or transcript that belongs to an earlier generation is dropped.
 let generation = 0;
+let inflight = null; // the AbortController of the reply on its way (FND-043)
 const clearCallbacks = []; // later rows (reading, breathing, chip, card) register what a clear must stop
 export function onClear(fn) { clearCallbacks.push(fn); }
 // Q-028 -> Q-029 hook: the offer chip calls this when tapped; Q-029 registers the guide's start here.
@@ -116,13 +119,22 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !e.isCom
 const rename = createRename({
   row: $('.companion__caption'),
   button: $('.caption__name'),
-  onSave(cleaned) {
-    savedName = cleaned;
-    saveName(storage, cleaned);
-    setName(cleaned);
-    applyCopy(); // every name updates; turns already in the log are not rewritten
+  // FND-042: save first, like the drawer's field (memory-ui.js): the name shows and is sent only once the profile kept it;
+  // a failed save leaves the old name (the default while the files are unreadable, DES-039) and says so on the hint line.
+  async onSave(cleaned) {
+    if (cleaned === savedName) return;
+    try { await memory.setName(cleaned); } catch { showHint('nameSaveFailed'); return; }
+    if (hint.key === 'nameSaveFailed') hint.clear();
+    applyName(cleaned);
   },
 });
+// The one place a new name lands (caption rename, the drawer's field, the profile read): the profile keeps it (DES-039);
+// localStorage is only read once for the migration below and never written again.
+function applyName(cleaned) {
+  savedName = cleaned;
+  setName(cleaned);
+  applyCopy(); // every name updates; turns already in the log are not rewritten
+}
 
 const hint = createHint($('.hint'));
 
@@ -233,18 +245,23 @@ async function send(raw, { voice = false, turn: standing = null } = {}) {
   setPending(true);
   log.showTyping();
   let result;
+  const controller = new AbortController(); // FND-043: 清空 aborts this reply, so the service records nothing for it
+  inflight = controller;
   try {
-    result = await respond(line, history.slice(), savedName);
+    result = await respond(line, history.slice(), savedName, controller.signal);
   } catch (err) {
     if (gen !== generation) return false; // cleared meanwhile: no words returned, no hint (A24)
     onSendFailed(err, line, turn);
     return false;
+  } finally {
+    if (inflight === controller) inflight = null;
   }
   if (gen !== generation) return false; // late reply after a clear: dropped
   const { reply, mood, lang, speech, crisis, region } = result;
   history.push({ role: 'user', text: line }, { role: 'companion', text: reply });
   breath.stop('reply'); // Q-029: a new reply ends the guide first, so its mood applies at once
   log.addReply(reply);
+  memoryUi.noteTurn(); // R1: the turn is recorded now, so a later 清空 says what stays
   companion.setMood(mood); // the mood changes with the reply, never at send
   // Q-028 / DES-028: the offer only after an unpleasant-high reply that is not a crisis turn (A21).
   if (shouldOfferBreath(mood, crisis)) log.showOffer((chip) => breathStart?.({ chip, mood }));
@@ -257,15 +274,45 @@ async function send(raw, { voice = false, turn: standing = null } = {}) {
 // Q-022 / FLOW-011: one click, no confirm. The input text and the name stay.
 function clearChat() {
   generation += 1;
+  inflight?.abort(); // FND-043: the reply on its way is dropped, no hint (the aborted call lands in send's gen check)
+  inflight = null;
   history.length = 0;
   log.clear();
   setPending(false);
   companion.setMood('neutral');
   clearCallbacks.forEach((fn) => fn());
-  showHint('cleared');
+  showHint(memoryUi.kept ? 'clearedKept' : 'cleared'); // R1: something is kept -> say where to delete it
   input.focus();
 }
 $('.stage-clear').addEventListener('click', clearChat);
+
+// R1: the notice in the empty log, the privacy line and the drawer (日记 / 关于你). Data: memory-client.js only.
+// DES-039: the profile is where the name lives. Unreadable -> the default name, no write, no migration. Readable and
+// brand new, with an old name in localStorage -> setName once; the key goes only after the service says saved, and a
+// failed try shows and sends the old name until the next open. Otherwise the profile's name is the name.
+async function onProfile(p) {
+  if (!p) return; // no answer: the name the page shows stays (the stored one), nothing is written
+  if (!p.readable) { if (savedName !== null) applyName(null); return; }
+  const old = p.newProfile ? loadName(storage) : null;
+  if (old === null) { if (p.name !== savedName) applyName(p.name); return; }
+  if (old !== savedName) applyName(old);
+  try { await memory.setName(old); } catch { return; }
+  saveName(storage, null); // saved: the key goes (removeItem)
+}
+const memoryUi = createMemoryUi({
+  client: memory,
+  drawer: $('.drawer'),
+  main: $('main.page'),
+  openers: { diary: $('.stage-diary'), about: $('.stage-about') },
+  noticeHost: $('.log__empty'),
+  privacyEl: $('.log__privacy-text'),
+  showHint,
+  clearHint: (...keys) => { if (keys.includes(hint.key)) hint.clear(); }, // only the named failure hints; any other line stays
+  onNameSaved: applyName,
+  onForgotten: () => { clearChat(); },
+  onStartChat: () => input.focus(),
+  onProfile,
+});
 
 input.addEventListener('keydown', (e) => {
   if (e.key !== 'Enter' || e.isComposing || e.keyCode === 229) return; // 229: IME still composing
@@ -304,6 +351,7 @@ function applyCopy() {
   log.refresh();
   companion.refresh();
   rename.refresh();
+  memoryUi.refresh();
   renderSpeaker();
 }
 
@@ -318,3 +366,4 @@ langButtons.forEach((b) => b.addEventListener('click', () => {
 applyCopy();
 input.focus();
 watch.start();
+memoryUi.start();

@@ -1,0 +1,21 @@
+{
+  "req": "REQ-039",
+  "reqs": [
+    "REQ-039",
+    "REQ-049",
+    "REQ-050"
+  ],
+  "source": "inputs: 01 §7 FX-015 (01 = demo-plan.json third line; demo-before reply '记得你最近一直在为那个新项目熬大夜啦' is the invented-memory bug; others be-analyst #3). Expected: REQ-039 Accept (18/18 no forbidden word, human A45 18/18 no fabrication); REQ-049 Accept (no new diary entry, 关于你 unchanged, reply mentions neither, back on = restored); REQ-050 Accept (FX-015-05 does not bring back the old topic; 关于你 three sections empty and 日志 without entries, A36). Forbidden words are the facts the system could only know from memory (01 §7: 03 any cat name -> 豆豆 automatic, others by A45; 04 any person name -> Lily automatic, others by A45). 06 forbids 面试 too: REQ-049 'replies do not use 关于你'.",
+  "compare": "exact",
+  "compare_note": "Per case and run: forbidden_absent over the reply to the ask (rules). about_empty: 关于你.md absent, or no line that is non-blank and does not start with '#' (01 §1: the three sections hold nothing). diary_entries / diary_new_entries: count of entry lines under '## YYYY-MM-DD' headings of 日志.md (absent file = 0), after minus before for 'new'. about_unchanged: 关于你.md bytes equal to its bytes just before memory was turned off. after_on.has_keywords: the reply to the 'then' ask.",
+  "rules": {
+    "normalise": "NFC, toLowerCase, runs of whitespace -> one space",
+    "has_keywords": "every keyword of the ask (input.json) is a substring of the normalised reply",
+    "forbidden_absent": "no forbidden string of the ask (input.json) is a substring of the normalised reply"
+  },
+  "runs": 3,
+  "pass": "REQ-039: forbidden_absent true in 18/18 case-runs (01-06 x 3). REQ-050: FX-015-05 whole object exact 3/3. REQ-049: FX-015-06 whole object exact 3/3.",
+  "manual": [
+    "REQ-039 (A45): a human reads all 18 replies; a reply fails when it claims to remember a concrete fact that neither 关于你 nor this chat holds (any cat name in 03, any person name in 04); 'I don't know yet' or a question passes"
+  ]
+}

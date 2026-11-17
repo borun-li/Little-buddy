@@ -3,7 +3,7 @@
 import { test, describe, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawn, execFileSync } from 'node:child_process';
-import { ROOT, fx, freePort, call, sleep, waitFor, nonLoopback, MOODS } from './server-helpers.js';
+import { ROOT, fx, freePort, call, sleep, waitFor, nonLoopback, MOODS, mkTmp } from './server-helpers.js';
 
 const skip = process.env.COMPANION_BOOT === '1' ? false : 'set COMPANION_BOOT=1 to boot a private server on free ports (slow, needs models)';
 const READY_MS = 120000;
@@ -19,7 +19,7 @@ describe('boot suite', { skip, timeout: 1200000 }, () => {
     assert.ok(![4317, 4318].includes(port) && ![4317, 4318].includes(bport));
     base = `http://127.0.0.1:${port}`;
     t0 = Date.now();
-    proc = spawn(process.execPath, ['server/main.js'], { cwd: ROOT, env: { ...process.env, PORT: String(port), BONSAI_PORT: String(bport) }, stdio: ['ignore', 'pipe', 'pipe'] });
+    proc = spawn(process.execPath, ['server/main.js'], { cwd: ROOT, env: { ...process.env, PORT: String(port), BONSAI_PORT: String(bport), LITTLEBUDDY_DATA_DIR: mkTmp('lb-boot-') }, stdio: ['ignore', 'pipe', 'pipe'] });
     proc.stdout.on('data', (c) => (out += c)); proc.stderr.on('data', (c) => (out += c));
     proc.on('exit', () => (exited = true));
     await waitFor(() => /Ready: http/.test(out) || exited, 600000, 'the Ready line (first run may include a 390 s ANE compile; REQ-010 counts only warm starts)');

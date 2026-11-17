@@ -346,7 +346,8 @@ T('TC-123 [FX-009] REQ-014/REQ-025 respond fields: lang = language of the line, 
     const want = hanOnly.test(line) ? 'zh' : 'en';
     assert.equal(r.json.lang, want, id); assert.ok(MOODS.includes(r.json.mood), id);
     assert.ok(Array.isArray(r.json.speech) && r.json.speech.length >= 1 && r.json.speech.every((p) => typeof p === 'string' && p.trim().length > 0 && p.length <= 200), `${id}: ${JSON.stringify(r.json.speech)}`);
-    assert.ok(r.json.speech.join(want === 'zh' ? '' : ' ').includes(want === 'en' ? 'nine eight eight' : '988'), `${id}: 988 is spoken: ${JSON.stringify(r.json.speech)}`);
+    // R0 (commit de6c3b2, `server/tts` speechParts): zh reads 988 in Chinese numerals 九八八, tests/server-unit.test.js:596 and crisis-region.test.js:193 say the same; this live assertion was still the pre-R0 '988'
+    assert.ok(r.json.speech.join(want === 'zh' ? '' : ' ').includes(want === 'en' ? 'nine eight eight' : '九八八'), `${id}: 988 is spoken: ${JSON.stringify(r.json.speech)}`);
   }
   const n = await respond(fx('FX-001').input.body);
   assert.equal(n.status, 200); assert.equal(n.json.crisis, false); assert.equal(n.json.lang, 'en');

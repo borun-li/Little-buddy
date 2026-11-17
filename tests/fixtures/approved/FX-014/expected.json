@@ -1,0 +1,83 @@
+{
+  "cases": [
+    {
+      "id": "FX-014-01",
+      "about_keywords_in_section": true,
+      "recall": [
+        {
+          "has_keywords": true,
+          "language": "zh"
+        }
+      ]
+    },
+    {
+      "id": "FX-014-02",
+      "about_keywords_in_section": true,
+      "recall": [
+        {
+          "has_keywords": true,
+          "language": "zh"
+        }
+      ]
+    },
+    {
+      "id": "FX-014-03",
+      "about_keywords_in_section": true,
+      "recall": [
+        {
+          "has_keywords": true,
+          "language": "en"
+        }
+      ]
+    },
+    {
+      "id": "FX-014-04",
+      "about_keywords_in_section": true,
+      "recall": [
+        {
+          "has_keywords": true,
+          "language": "en"
+        }
+      ]
+    },
+    {
+      "id": "FX-014-05",
+      "about_keywords_in_section": true,
+      "recall": [
+        {
+          "has_keywords": true,
+          "language": "en"
+        }
+      ]
+    },
+    {
+      "id": "FX-014-06",
+      "about_keywords_in_section": true,
+      "recall": [
+        {
+          "has_keywords": true,
+          "language": "zh"
+        },
+        {
+          "has_keywords": true,
+          "language": "zh"
+        }
+      ]
+    },
+    {
+      "id": "FX-014-07",
+      "diary_today": {
+        "added": 3,
+        "section_is_send_date": true,
+        "moods_match_replies": true,
+        "has_point": [
+          true,
+          true,
+          false
+        ],
+        "mood_within_1s": true,
+        "points_within_30s": true
+      }
+    }
+  ]
+}

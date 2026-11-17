@@ -1,0 +1,14 @@
+{
+  "req": "REQ-048",
+  "reqs": [
+    "REQ-048"
+  ],
+  "source": "inputs: 01 §7 FX-020 (crisis lines from approved FX-009, control from FX-010-04). Expected: REQ-048 Accept + A39 (CN 12356 / 110 / 120; US 988 / 911; 未知 = R0 international: the reply names a local helpline, the card findahelpline.com; never chosen = R0 system region; a choice overrides COMPANION_REGION; next turn, no restart; language does not decide). Reply wording per region is preserved R0 behaviour, captured from the current code: server/prompts.js:59-69 CRISIS_LINES (CN en 'the 12356 helpline', US zh '打给 988', other zh '当地的心理援助热线'). crisis values: REQ-023 via approved FX-009 (true) and FX-010-04 (false). Shape: respond body region 'CN' | 'US' | null (null = international lines), profile region 'CN' | 'US' | 'other' | null (contract § R1 seam).",
+  "compare": "exact",
+  "compare_note": "Per case and run, the test builds {status, crisis, region, reply_checks, after_restart_profile_region} from the respond body and, after a restart, GET /api/profile .region; reply_checks only when crisis is true. Rules on the reply with whitespace removed and lowercased: has_12356 = contains '12356'; has_988 = contains '988'; has_local_line = contains '当地的心理援助热线' (zh) or 'localcrisishelpline' (en).",
+  "runs": 3,
+  "pass": "REQ-048: every case's whole object exact in 3/3 runs.",
+  "manual": [
+    "REQ-048 card (page check, UI zh, current web/js/copy.js:77-83): CN cases show '在中国大陆，可以打 12356（全国心理援助热线），免费。' and '如果有立即的危险，请打 110 或 120。'; US cases '在美国，打电话或发短信到 988（自杀与危机生命线），24 小时都有人。' and '如果有立即的危险，请打 911。'; 03 '可以在 findahelpline.com 找到你所在地区的心理援助热线。' and '如果有立即的危险，请打当地的紧急电话。'; 06 shows no card"
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "cases": [
+    {
+      "id": "FX-016-01",
+      "no_verbatim_about": true,
+      "no_verbatim_point": true,
+      "no_whole_line_in_files": true,
+      "no_audio_in_folder": true
+    },
+    {
+      "id": "FX-016-02",
+      "no_verbatim_about": true,
+      "no_verbatim_point": true,
+      "no_whole_line_in_files": true,
+      "no_audio_in_folder": true
+    },
+    {
+      "id": "FX-016-03",
+      "no_verbatim_about": true,
+      "no_verbatim_point": true,
+      "no_whole_line_in_files": true,
+      "no_audio_in_folder": true
+    },
+    {
+      "id": "FX-016-04",
+      "about_empty": true,
+      "diary_today_entries": 2,
+      "has_point": [
+        false,
+        false
+      ]
+    }
+  ]
+}

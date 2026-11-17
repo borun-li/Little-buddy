@@ -1,0 +1,41 @@
+{
+  "endpoint": "POST /api/respond (03: POST /api/transcribe first, as the page's voice turn)",
+  "setup": "Every case starts from its own empty data folder (LITTLEBUDDY_DATA_DIR = a new temp dir, absent profile.json = memory on, A40/REQ-036), real Bonsai, Wi-Fi off. 'say' = the lines are sent in one chat as the page sends them (POST /api/respond {line, history}, history = the earlier lines and replies of that chat). 'wait' = 30 s after the last reply, no line sent in that time (chat quiet, A32; 01 §1). 'restart' = stop the server, npm start again, new chat (history []).",
+  "cases": [
+    {
+      "id": "FX-016-01",
+      "sessions": [
+        [
+          "我昨天晚上十一点才下班，回家路上下大雨，鞋全湿了，室友还把我的外卖吃了。"
+        ]
+      ],
+      "wait": true
+    },
+    {
+      "id": "FX-016-02",
+      "sessions": [
+        [
+          "I've been feeling stuck at work because my manager keeps rejecting every design I make for the new app."
+        ]
+      ],
+      "wait": true
+    },
+    {
+      "id": "FX-016-03",
+      "voice": "tests/fixtures/approved/FX-007/input.wav",
+      "voice_reference": "可是晚上和朋友吵架了，有点难过。",
+      "note": "transcribe the WAV, send the transcript as the line (voice turn), wait",
+      "wait": true
+    },
+    {
+      "id": "FX-016-04",
+      "sessions": [
+        [
+          "哈哈",
+          "ok"
+        ]
+      ],
+      "wait": true
+    }
+  ]
+}

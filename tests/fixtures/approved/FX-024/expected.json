@@ -1,0 +1,62 @@
+{
+  "cases": [
+    {
+      "id": "FX-024-01",
+      "page_says_unreadable": true,
+      "profile_view": {
+        "readable": false,
+        "memoryOn": false,
+        "name": null,
+        "region": null,
+        "aboutEmpty": true
+      },
+      "name_shown": "小伙伴",
+      "diary_view": {
+        "readable": false,
+        "hasAny": false
+      },
+      "forbidden_absent": true,
+      "files_unchanged": true,
+      "settings_refused": {
+        "status": 409,
+        "error": "unreadable"
+      },
+      "forget_refused": {
+        "status": 409,
+        "error": "unreadable"
+      },
+      "after_restore": {
+        "has_keywords": true
+      }
+    },
+    {
+      "id": "FX-024-02",
+      "page_says_unreadable": true,
+      "profile_view": {
+        "readable": false,
+        "memoryOn": false,
+        "name": null,
+        "region": null,
+        "aboutEmpty": true
+      },
+      "name_shown": "小伙伴",
+      "diary_view": {
+        "readable": false,
+        "hasAny": false
+      },
+      "forbidden_absent": true,
+      "files_unchanged": true,
+      "settings_refused": {
+        "status": 409,
+        "error": "unreadable"
+      },
+      "forget_refused": {
+        "status": 409,
+        "error": "unreadable"
+      },
+      "after_restore": {
+        "has_keywords": true
+      }
+    }
+  ]
+}

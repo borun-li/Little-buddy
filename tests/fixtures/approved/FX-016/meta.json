@@ -1,0 +1,12 @@
+{
+  "req": "REQ-040",
+  "reqs": [
+    "REQ-037",
+    "REQ-040"
+  ],
+  "source": "inputs: 01 §7 FX-016 (03 = approved FX-007 recording; others be-analyst #3). Expected: REQ-040 Accept (关于你 and 日志 never copy the line per A33; no whole line and no audio in the files), REQ-037 Accept 'FX-016-04 后仍空', A54 (哈哈 / ok: mood only). Shape: DES-031 file formats.",
+  "compare": "exact",
+  "compare_note": "Per case and run, after 'wait'. user line = the sent line; for 03 both the transcript the server returned and voice_reference. no_verbatim_about / no_verbatim_point: no line of 关于你.md (outside headings) and no point in 日志.md shares with a user line >= 12 consecutive identical Han characters or >= 8 consecutive identical English words, punctuation removed, case ignored (A33). no_whole_line_in_files: the user line with punctuation and whitespace removed is not a substring of any file in the data folder with punctuation and whitespace removed. no_audio_in_folder: every file in the data folder decodes as UTF-8 and none starts with the bytes 'RIFF'. FX-016-04: about_empty as FX-015; diary_today_entries = entries in today's section; has_point[i] = entry i carries a point.",
+  "runs": 3,
+  "pass": "REQ-040: 01-03 whole object exact in 9/9 case-runs. REQ-037 ('FX-016-04 后仍空') and A54 (no point for 哈哈 / ok): 04 exact 3/3."
+}

@@ -74,7 +74,8 @@ test('Q-023 the saved name shows in both languages through copy (same custom nam
 test('Q-023 app.js sends the saved name on every respond call and keeps it out of history', () => {
   const src = readFileSync(new URL('../web/js/app.js', import.meta.url), 'utf8');
   assert.equal((src.match(/respond\(/g) ?? []).length, 1);
-  assert.match(src, /respond\(line, history\.slice\(\), savedName\)/);
+  // FND-043: respond takes the reply's abort signal as its 4th argument (the name is still the 3rd, and only the saved one)
+  assert.match(src, /respond\(line, history\.slice\(\), savedName, controller\.signal\)/);
   assert.match(src, /setName\(savedName\)/);
   assert.doesNotMatch(src, /history\.push\([^)]*savedName/);
   const clear = src.slice(src.indexOf('function clearChat'), src.indexOf("$('.stage-clear')"));

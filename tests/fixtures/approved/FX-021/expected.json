@@ -1,0 +1,28 @@
+{
+  "cases": [
+    {
+      "id": "FX-021-01",
+      "notice_before_first_send": true,
+      "notice_shows_path": true,
+      "notice_has_turn_off_action": true,
+      "notice_after_ack_reload": false,
+      "notice_after_restart": false,
+      "name_shown": "团子",
+      "profile_name": "团子",
+      "after_rename": {
+        "caption_has_name": true,
+        "reply_has_name": true,
+        "reply_no_default_name": true,
+        "name_shown_after_restart": "Mochi"
+      }
+    },
+    {
+      "id": "FX-021-02",
+      "notice_before_first_send": true,
+      "notice_shows_path": true,
+      "notice_has_turn_off_action": true,
+      "name_shown": "小伙伴",
+      "profile_name": null
+    }
+  ]
+}

@@ -56,9 +56,9 @@ test('TC-004 pcmFromWav stays inside the buffer and returns an even byte count; 
 });
 
 // ---------- errors.js (DES-003)
-test('TC-005 CODES and ApiError carry the six codes with their HTTP statuses (03 §3)', async () => {
+test('TC-005 CODES and ApiError carry the nine codes with their HTTP statuses (03 §3; DES-037 adds forbidden 403, unreadable 409, not_saved 500)', async () => {
   const { CODES, ApiError } = await imp('server/errors.js');
-  assert.deepEqual({ ...CODES }, { not_ready: 503, unavailable: 503, timeout: 504, failed: 502, bad_request: 400, too_large: 413 });
+  assert.deepEqual({ ...CODES }, { not_ready: 503, unavailable: 503, timeout: 504, failed: 502, bad_request: 400, too_large: 413, forbidden: 403, unreadable: 409, not_saved: 500 });
   const e = new ApiError('timeout', 'stt');
   assert.ok(e instanceof Error);
   assert.equal(e.code, 'timeout'); assert.equal(e.status, 504); assert.equal(e.stage, 'stt');
@@ -163,46 +163,120 @@ test('TC-011 shapeReply length caps: zh <= 120 code points, en <= 40 words; firs
   assert.equal(shapeReply(at120, 'zh'), at120, 'exactly 120 is not cut');
 });
 
-test('TC-012 toMessages = system(REPLY_SYSTEM + LANG_RULE last) + history (companion -> assistant) + user line', async () => {
+test('TC-012 toMessages = system(REPLY_SYSTEM + NO_NOTES + LANG_TAG last) + history (companion -> assistant) + user line + <lang:xx> tag', async () => {
+  // FND-029 round 2 / DES-034 / DES-035 (03 §9 10.6): the language rule moved from the user's message to the system message end (LANG_TAG);
+  // the last user message ends with the app tag. A design change, not a relaxation: the same facts are asserted at their new place.
   const { toMessages } = await imp('server/bonsai.js');
-  const { REPLY_SYSTEM, LANG_RULE, RECALL } = await imp('server/prompts.js');
+  const { REPLY_SYSTEM, LANG_TAG, NO_NOTES, RECALL } = await imp('server/prompts.js');
   const hist = [{ role: 'user', text: 'I just got the internship!' }, { role: 'companion', text: 'Great!' }];
   const m = toMessages('But I will move.', hist, 'en');
   assert.equal(m.length, 4);
   assert.equal(m[0].role, 'system');
   assert.ok(m[0].content.startsWith(REPLY_SYSTEM));
-  assert.ok(m[0].content.endsWith(LANG_RULE.en), 'LANG_RULE is the last line (prefix caching)');
-  assert.deepEqual(m.slice(1), [{ role: 'user', content: 'I just got the internship!' }, { role: 'assistant', content: 'Great!' }, { role: 'user', content: 'But I will move.\n' + RECALL.en('I just got the internship!') }]);
-  assert.equal(m.at(-1).content, 'But I will move.\n(Connect your reply to what I told you before: "I just got the internship!")', 'DES-008 fires example');
+  assert.equal(m[0].content, REPLY_SYSTEM + '\n' + NO_NOTES + '\n' + LANG_TAG, 'system = REPLY_SYSTEM + NO_NOTES + LANG_TAG (DES-035)');
+  assert.equal(toMessages('今天好累', hist, 'zh')[0].content, m[0].content, 'the zh and en system messages are byte-identical (FND-029)');
+  assert.ok(m[0].content.endsWith(LANG_TAG), 'LANG_TAG is the last line (prefix caching)');
+  assert.deepEqual(m.slice(1), [{ role: 'user', content: 'I just got the internship!' }, { role: 'assistant', content: 'Great!' }, { role: 'user', content: 'But I will move.\n' + RECALL.en('I just got the internship!') + '\n<lang:en>' }]);
+  assert.equal(m.at(-1).content, 'But I will move.\n(Connect your reply to what I told you before: "I just got the internship!")\n<lang:en>', 'DES-008 fires example + tag');
   // not fired: only companion entries in the window, or no history -> the line alone
-  assert.equal(toMessages('Thanks', [{ role: 'companion', text: 'Hi!' }], 'en').at(-1).content, 'Thanks');
-  assert.equal(toMessages('Thanks', [], 'en').at(-1).content, 'Thanks');
+  assert.equal(toMessages('Thanks', [{ role: 'companion', text: 'Hi!' }], 'en').at(-1).content, 'Thanks\n<lang:en>');
+  assert.equal(toMessages('Thanks', [], 'en').at(-1).content, 'Thanks\n<lang:en>');
   // prev is the NEWEST user entry; key is the language of the line, not of prev
   const two = [{ role: 'user', text: 'old' }, { role: 'companion', text: 'a' }, { role: 'user', text: '今天开心' }, { role: 'companion', text: 'b' }];
-  assert.equal(toMessages('But sad', two, 'en').at(-1).content, 'But sad\n' + RECALL.en('今天开心'));
-  assert.equal(toMessages('可是难过', two, 'zh').at(-1).content, '可是难过\n' + RECALL.zh('今天开心'));
-  assert.ok(toMessages('嗯', [], 'zh')[0].content.endsWith(LANG_RULE.zh));
+  assert.equal(toMessages('But sad', two, 'en').at(-1).content, 'But sad\n' + RECALL.en('今天开心') + '\n<lang:en>');
+  assert.equal(toMessages('可是难过', two, 'zh').at(-1).content, '可是难过\n' + RECALL.zh('今天开心') + '\n<lang:zh>');
+  assert.equal(toMessages('嗯', [], 'zh').at(-1).content, '嗯\n<lang:zh>');
   assert.equal(toMessages('嗯', [], 'zh').length, 2);
 });
 
-test('TC-013 windowOf: last 40 entries, then drop oldest until total weight (length + 1.5 per Han) <= 2000', async () => {
+test('TC-013 windowOf: last 40 entries; whole while weight (length + 1.5 per Han) <= 2000, else drop oldest until <= historyLow 1000 (DES-035, step 8.5)', async () => {
   const { windowOf } = await imp('server/bonsai.js');
   const e = (n, len, ch = null) => Array.from({ length: n }, (_, i) => ({ role: i % 2 ? 'companion' : 'user', text: ch ? ch.repeat(len) : String(i % 10).repeat(len) }));
   assert.equal(windowOf(e(45, 10)).length, 40);
   assert.deepEqual(windowOf(e(45, 10)), e(45, 10).slice(5));
-  const w = windowOf(e(40, 200)); // 8000 -> newest 10 (2000)
-  assert.equal(w.length, 10); assert.deepEqual(w, e(40, 200).slice(30));
-  assert.equal(windowOf(e(10, 200)).length, 10, 'exactly 2000 stays');
-  assert.equal(windowOf(e(11, 200)).length, 10);
+  // DES-035 rule 3 (design change, was "cut to <= 2000"): past 2000 the window is cut to <= historyLow 1000, so the start moves rarely
+  const w = windowOf(e(40, 200)); // 8000 > 2000 -> newest 5 (1000)
+  assert.equal(w.length, 5); assert.deepEqual(w, e(40, 200).slice(35));
+  assert.equal(windowOf(e(10, 200)).length, 10, 'exactly 2000 stays whole (rule 2)');
+  assert.equal(windowOf(e(11, 200)).length, 5, '2200 > 2000 -> cut to 1000, not to 2000 (rule 3)');
   assert.equal(windowOf(e(40, 35)).length, 40, 'a 20-turn English chat of ~1400 chars stays whole');
   assert.equal(windowOf(e(20, 49)).length, 20);
-  const han = windowOf(e(21, 40, '好')); // each weight 40 + 60 = 100; 21 x 100 = 2100 -> 20
-  assert.equal(han.length, 20); assert.deepEqual(han, e(21, 40, '好').slice(1));
-  assert.equal(windowOf(e(5, 1500)).length, 1);
+  const han = windowOf(e(21, 40, '好')); // each weight 40 + 60 = 100; 21 x 100 = 2100 > 2000 -> newest 10 (1000)
+  assert.equal(han.length, 10); assert.deepEqual(han, e(21, 40, '好').slice(11));
+  assert.deepEqual(windowOf(e(5, 1500)), [], 'rule 3 may end empty: 1500 > historyLow');
   assert.deepEqual(windowOf(e(1, 2001)), [], 'one entry heavier than the budget -> []');
   assert.deepEqual(windowOf(e(1, 801, '好')), [], 'Han weight 2.5 each: 801 chars = 2002.5');
   assert.equal(windowOf(e(1, 800, '好')).length, 1, '800 Han = 2000');
   assert.deepEqual(windowOf([]), []);
+});
+
+test('TC-224 windowOf position anchor {prev, start} (DES-035 rules 1-3, FND-028): anchor confirmed by position keeps the start, cleared or past 2000 falls to rules 2/3', async () => {
+  // FND-028 / DES-035 / 03 §9 10.6: the anchor is { prev: last call's history, start: index of that window's first entry }, found again by
+  // position (shiftOf), not by text. A design change: the "newest match" text assertion is gone (it jumped to a later identical entry).
+  const { windowOf } = await imp('server/bonsai.js');
+  const { CONFIG } = await imp('server/config.js');
+  const u = (n, len) => Array.from({ length: n }, (_, i) => ({ role: i % 2 ? 'companion' : 'user', text: String(i).padStart(len, 'x') })); // unique, weight len each
+  const prevOf = (h, i) => ({ prev: h.slice(0, h.length - 2), start: i }); // last turn had two entries fewer (page only appends)
+  // present: 12 x 200 = 2400 would be cut to the last 5 (1000) without the anchor; from entry 4 the window is 8 x 200 = 1600 <= 2000 -> same start
+  let h = u(12, 200);
+  assert.deepEqual(windowOf(h, CONFIG), h.slice(7), 'no anchor: rule 3');
+  assert.deepEqual(windowOf(h, CONFIG, null), h.slice(7), 'anchor null: rule 3');
+  assert.deepEqual(windowOf(h, CONFIG, prevOf(h, 4)), h.slice(4), 'anchor present: window starts at it again (rule 1)');
+  assert.deepEqual(windowOf(h, CONFIG, prevOf(h, 2)), h.slice(2), 'from entry 2: 10 x 200 = 2000 is still within the budget (boundary)');
+  assert.deepEqual(windowOf(h, CONFIG, prevOf(h, 1)), h.slice(7), 'from entry 1: 2200 > 2000 -> rule 1 does not fire, rule 3');
+  // cleared / another chat: shiftOf = prev.length, so the position is gone -> rule 3 (was "role differs" and "text not found")
+  const other = u(12, 200).map((e) => ({ ...e, text: 'y' + e.text.slice(1) }));
+  assert.deepEqual(windowOf(other, CONFIG, { prev: h, start: 4 }), other.slice(7), 'cleared: another chat -> rule 3');
+  const short = u(8, 200); // 1600 <= 2000
+  const shortOther = short.map((e) => ({ ...e, text: 'y' + e.text.slice(1) }));
+  assert.deepEqual(windowOf(shortOther, CONFIG, { prev: short, start: 3 }), shortOther, 'cleared, within 2000 -> the whole window (rule 2)');
+  const long = u(45, 10); // 450; the anchor is entry 2, outside the last 40
+  assert.deepEqual(windowOf(long, CONFIG, { prev: long.slice(0, 43), start: 2 }), long.slice(5), 'anchor older than 40 entries (index < 0) -> whole last 40');
+  // past 2000: anchor present but the window from it is heavier than historyBudget
+  h = u(14, 200); // 2800
+  assert.deepEqual(windowOf(h, CONFIG, prevOf(h, 1)), h.slice(9), 'from entry 1: 13 x 200 = 2600 > 2000 -> cut to <= 1000 (5 entries)');
+  assert.deepEqual(windowOf(h, CONFIG, prevOf(h, 9)), h.slice(9), 'anchor already at the cut start stays');
+  // repeated text (FND-028): the anchor is confirmed by position, so the earlier copy is kept, not the newest one
+  const rep = [{ role: 'user', text: 'a'.repeat(300) }, { role: 'companion', text: 'b' }, { role: 'user', text: 'a'.repeat(300) }, { role: 'companion', text: 'c' }];
+  assert.deepEqual(windowOf(rep, CONFIG, { prev: rep.slice(0, 2), start: 0 }), rep, 'whole 4 entries, not rep.slice(2)');
+  assert.deepEqual(windowOf([], CONFIG, { prev: [{ role: 'user', text: 'x' }], start: 0 }), []);
+  // the 40-entry cap shifts the history by 2: the same entry starts the window, index - 2 (DES-035 "fires")
+  const cap = u(42, 10);
+  assert.deepEqual(windowOf(cap.slice(2), CONFIG, { prev: cap.slice(0, 40), start: 5 }).at(0), cap[5], 'cap shift 2: same entry (index 5 of prev is index 3 of next)');
+});
+
+test('TC-230 shiftOf (DES-035, FND-028): append 0, cap shift 2, cleared prev.length, unchanged 0, smallest d with repeats', async () => {
+  const { shiftOf } = await imp('server/bonsai.js');
+  const u = (n) => Array.from({ length: n }, (_, i) => ({ role: i % 2 ? 'companion' : 'user', text: `line ${i}` }));
+  const h = u(10);
+  assert.equal(shiftOf(h, u(12)), 0, 'two entries appended');
+  assert.equal(shiftOf(h, h), 0, 'unchanged (the last turn failed and added nothing)');
+  const big = u(42);
+  assert.equal(shiftOf(big.slice(0, 40), big.slice(2)), 2, 'the 40-entry cap dropped two from the front');
+  assert.equal(shiftOf(h, u(10).map((e) => ({ ...e, text: 'z' + e.text }))), h.length, 'cleared / another chat -> prev.length');
+  assert.equal(shiftOf(h, []), h.length, 'empty next -> prev.length');
+  assert.equal(shiftOf([], u(3)), 0, 'empty prev: the loop does not run, prev.length is 0');
+  // role is part of the match
+  assert.equal(shiftOf([{ role: 'user', text: 'a' }], [{ role: 'companion', text: 'a' }]), 1);
+  // repeated text: the smallest d wins (longest window), never a later identical copy
+  const a = (r, t) => ({ role: r, text: t });
+  const rep = [a('user', 'x'), a('companion', 'y'), a('user', 'x'), a('companion', 'y')];
+  assert.equal(shiftOf(rep.slice(0, 2), rep), 0);
+});
+
+test('TC-231 [FX-004] 嗯 / 面试 / 嗯 chat: windowOf keeps the interview line in the 4th window (HEAD kept 2 entries, FND-028)', async () => {
+  const { windowOf } = await imp('server/bonsai.js');
+  const { CONFIG } = await imp('server/config.js');
+  const lines = ['嗯', '我在准备实习面试，有点紧张', '嗯', '你觉得我能过吗'];
+  let history = []; let anchor = null; const sizes = [];
+  for (const line of lines) {
+    const win = windowOf(history, CONFIG, anchor);
+    anchor = win.length ? { prev: history, start: history.length - win.length } : null;
+    sizes.push(win.length);
+    if (line === lines[3]) assert.ok(win.some((e) => e.text === '我在准备实习面试，有点紧张'), 'the 4th window holds the interview line');
+    history = [...history, { role: 'user', text: line }, { role: 'companion', text: `回复${history.length}` }];
+  }
+  assert.deepEqual(sizes, [0, 2, 4, 6]);
 });
 
 // ---------- prompts.js (DES-010)
@@ -222,9 +296,10 @@ test('TC-014 prompts: the 5 mood ids, mood schema enum, sampling parameters, lan
 test('TC-015 CONFIG: loopback host, limits, deadlines, restarts, defaults', async () => {
   const { CONFIG } = await imp('server/config.js');
   assert.equal(CONFIG.host, '127.0.0.1');
-  assert.deepEqual({ ...CONFIG.limits }, { lineChars: 1500, historyEntries: 40, historyTextChars: 1500, historyBudget: 2000, jsonBytes: 262144, wavBytes: 2000000, speakChars: 200, speakJsonBytes: 4096, speakQueue: 4 }); // increment 2: + speak limits (DES-023); speakQueue FND-013
-  assert.deepEqual({ ...CONFIG.deadlines }, { respondMs: 15000, transcribeMs: 12000, sttBootMs: 600000, bonsaiBootMs: 300000, speakMs: 10000, ttsBootMs: 300000, ttsOverdueMs: 30000 }); // increment 2: + speakMs, ttsBootMs (DES-023); ttsOverdueMs FND-015
+  assert.deepEqual({ ...CONFIG.limits }, { lineChars: 1500, historyEntries: 40, historyTextChars: 1500, historyBudget: 2000, jsonBytes: 262144, wavBytes: 2000000, speakChars: 200, speakJsonBytes: 4096, speakQueue: 4, profileJsonBytes: 4096, forgetJsonBytes: 64, historyLow: 1000 }); // step 8.1 DES-035 historyLow; increment 2: + speak limits (DES-023); speakQueue FND-013; R1 profileJsonBytes, forgetJsonBytes (DES-037)
+  assert.deepEqual({ ...CONFIG.deadlines }, { respondMs: 15000, transcribeMs: 12000, sttBootMs: 600000, bonsaiBootMs: 300000, speakMs: 10000, ttsBootMs: 300000, ttsOverdueMs: 30000, rememberMs: 14000 }); // increment 2: + speakMs, ttsBootMs (DES-023); ttsOverdueMs FND-015; R1 rememberMs (DES-037)
   assert.ok(CONFIG.deadlines.respondMs + CONFIG.deadlines.transcribeMs < 30000, 'voice turn < 30 s (A11)');
+  { const { dir, displayPath, ...rest } = CONFIG.memory; assert.deepEqual(rest, { notesBudget: 1200, lineChars: 80, pointChars: 80, pendingMax: 20, quietMs: 8000, lockWaitMs: 1000 }); assert.ok(typeof dir === 'string' && dir.startsWith('/') && typeof displayPath === 'string'); } // R1 memory keys (DES-037); step 8.1 (A32): queueMax -> pendingMax 20 + quietMs 8000
   assert.deepEqual({ ...CONFIG.restarts }, { max: 5, delayMs: 2000 });
   if (!process.env.PORT) assert.equal(CONFIG.port, 4317);
   if (!process.env.BONSAI_PORT) assert.equal(CONFIG.bonsai.port, 4318);
