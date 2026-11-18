@@ -5,6 +5,9 @@
 import { copy, getName } from './copy.js';
 import { t, tf, getMemoryPath, setMemoryPath, errorWords, MEMORY_FILE } from './memory-copy.js';
 import { cleanName, typingFilter, MAX_NAME } from './name.js';
+import { lt, aboutHeading } from './look-copy.js';
+
+const ORDER = ['diary', 'about', 'look']; // tab order, ←/→ cycle it
 
 const REGIONS = [['CN', 'regionCN', 'regionLineCN'], ['US', 'regionUS', 'regionLineUS'], ['other', 'regionOther', 'regionLineOther']];
 // the two hints a failed notice choice leaves on the shared hint line; the next success clears them (clearHint)
@@ -26,8 +29,9 @@ const button = (cls, text, testid) => {
 };
 const sr = (text) => h('span', 'sr-only', text, { role: 'status' });
 
-// 关于你.md as headings, lists and paragraphs, word for word (REQ-043); the page never translates it.
-export function renderMarkdown(text) {
+// 关于你.md as headings, lists and paragraphs, word for word (REQ-043); the page never translates it. REQ-066: `headings`
+// may add an English half to a known ## title (display only; the file keeps its Chinese titles).
+export function renderMarkdown(text, headings = (s) => s) {
   const box = document.createDocumentFragment();
   let list = null;
   for (const raw of String(text).split('\n')) {
@@ -35,7 +39,7 @@ export function renderMarkdown(text) {
     if (!line.trim()) { list = null; continue; }
     const head = /^(#{1,6})\s+(.*)$/.exec(line);
     const item = /^\s*[-*]\s+(.*)$/.exec(line);
-    if (head) { list = null; box.append(h(head[1].length === 1 ? 'h3' : 'h4', 'md__h', head[2])); }
+    if (head) { list = null; box.append(h(head[1].length === 1 ? 'h3' : 'h4', 'md__h', head[1].length === 1 ? head[2] : headings(head[2]))); }
     else if (item) {
       if (!list) { list = h('ul', 'md__list'); box.append(list); }
       list.append(h('li', null, item[1]));
@@ -44,10 +48,12 @@ export function renderMarkdown(text) {
   return box;
 }
 
-export function createMemoryUi({ client, drawer, main, openers, noticeHost, privacyEl, showHint, clearHint, onNameSaved, onForgotten, onStartChat, onProfile }) {
+// look = the R2 tab's body (look-ui.js): { render(panel), stop() }.
+export function createMemoryUi({ client, look, drawer, main, openers, noticeHost, privacyEl, showHint, clearHint, onNameSaved, onForgotten, onStartChat, onProfile }) {
   const tabs = {
     diary: drawer.querySelector('[data-tab="diary"]'),
     about: drawer.querySelector('[data-tab="about"]'),
+    look: drawer.querySelector('[data-tab="look"]'),
   };
   const closeBtn = drawer.querySelector('.drawer__close');
   const sub = drawer.querySelector('.drawer__sub');
@@ -57,15 +63,19 @@ export function createMemoryUi({ client, drawer, main, openers, noticeHost, priv
   const announcer = sr('');
   announcer.dataset.testid = 'drawer-announce';
   drawer.append(announcer);
-  const panels = { diary: drawer.querySelector('[data-panel="diary"]'), about: drawer.querySelector('[data-panel="about"]') };
+  const panels = { diary: drawer.querySelector('[data-panel="diary"]'), about: drawer.querySelector('[data-panel="about"]'), look: drawer.querySelector('[data-panel="look"]') };
 
   let profile = null;      // last read of the profile; null until read
   let profileFailed = false;
-  let current = null;      // 'diary' | 'about' while open
+  let current = null;      // 'diary' | 'about' | 'look' while open
   let opener = null;
   let token = 0;           // a late answer for a tab that is gone is dropped
   let noticeEl = null;
   let asking = false;      // forget me: asked in place
+  let diaryData = null;    // last diary read, so a language switch redraws without asking again
+  // the drawer's own 中文 | EN keeps focus while the words change (FLOW-024): a late error block must not take it
+  const keepsLangFocus = () => document.activeElement?.closest?.('.drawer__lang');
+  const focusIf = (el) => { if (!keepsLangFocus()) el.focus(); };
 
   const memoryOn = () => profile?.memoryOn !== false;
   // A failed call says its row's words (01-ux.md §6); 'unreadable' also marks the files unreadable (privacy line).
@@ -164,30 +174,30 @@ export function createMemoryUi({ client, drawer, main, openers, noticeHost, priv
   function renderShell() {
     tabs.diary.textContent = t('tabDiary');
     tabs.about.textContent = t('tabAbout');
+    tabs.look.textContent = lt('tabLook');
     closeBtn.textContent = t('drawerClose');
-    tabs.diary.setAttribute('aria-selected', String(current === 'diary'));
-    tabs.about.setAttribute('aria-selected', String(current === 'about'));
-    tabs.diary.tabIndex = current === 'diary' ? 0 : -1;
-    tabs.about.tabIndex = current === 'about' ? 0 : -1;
+    for (const k of ORDER) { tabs[k].setAttribute('aria-selected', String(current === k)); tabs[k].tabIndex = current === k ? 0 : -1; }
     drawer.querySelector('[role="tablist"]').setAttribute('aria-label', t('drawerTabs'));
-    drawer.setAttribute('aria-label', t(current === 'about' ? 'tabAbout' : 'tabDiary'));
-    sub.textContent = t(current === 'about' ? 'aboutSub' : 'diarySub');
-    panels.diary.hidden = current !== 'diary';
-    panels.about.hidden = current !== 'about';
+    drawer.setAttribute('aria-label', current === 'look' ? lt('tabLook') : t(current === 'about' ? 'tabAbout' : 'tabDiary'));
+    sub.textContent = current === 'look' ? lt('lookSub') : t(current === 'about' ? 'aboutSub' : 'diarySub');
+    for (const k of ORDER) panels[k].hidden = current !== k;
     scrollEl.scrollTop = 0;
-    scrollEl.setAttribute('aria-labelledby', current === 'about' ? 'tab-about' : 'tab-diary'); // FND-044: the keyboard-scrollable body is named by its tab
-    openers.diary.setAttribute('aria-pressed', String(current === 'diary'));
-    openers.about.setAttribute('aria-pressed', String(current === 'about'));
+    scrollEl.setAttribute('aria-labelledby', `tab-${current}`); // FND-044: the keyboard-scrollable body is named by its tab
   }
 
   function select(which, { focus = false } = {}) {
     current = which;
     asking = false;
+    token += 1; // a late answer for the tab just left is dropped
+    look.stop(); // a 试听 never plays on into another tab
     renderShell();
-    if (which === 'diary') loadDiary(); else loadAbout();
+    if (which === 'diary') loadDiary(); else if (which === 'about') loadAbout(); else look.render(panels.look);
     if (focus) tabs[which].focus();
   }
 
+  // FLOW-028: while the drawer is open the stage top bar (清空 · 日记 · 关于你 · 形象, stage 中文 | EN) is hidden: body.has-drawer
+  // (memory.css, visibility: hidden, so the bar keeps its box and the companion never moves). On close the bar comes back first,
+  // then focus goes to the opener (the stage-button pressed state is retired: its button is hidden while its tab is open).
   function open(which, from) {
     if (current) { select(which, { focus: true }); return; }
     opener = from ?? openers[which];
@@ -201,11 +211,10 @@ export function createMemoryUi({ client, drawer, main, openers, noticeHost, priv
     if (!current) return;
     current = null;
     token += 1;
+    look.stop();
     drawer.hidden = true;
     main.inert = false;
-    document.body.classList.remove('has-drawer');
-    openers.diary.setAttribute('aria-pressed', 'false');
-    openers.about.setAttribute('aria-pressed', 'false');
+    document.body.classList.remove('has-drawer'); // bar back before focus moves (FLOW-028 step 3)
     if (toInput) onStartChat?.(); else opener?.focus();
     opener = null;
   }
@@ -213,8 +222,8 @@ export function createMemoryUi({ client, drawer, main, openers, noticeHost, priv
   openers.diary.addEventListener('click', () => (current === 'diary' ? close() : open('diary', openers.diary)));
   openers.about.addEventListener('click', () => (current === 'about' ? close() : open('about', openers.about)));
   closeBtn.addEventListener('click', () => close());
-  tabs.diary.addEventListener('click', () => select('diary'));
-  tabs.about.addEventListener('click', () => select('about'));
+  openers.look.addEventListener('click', () => (current === 'look' ? close() : open('look', openers.look)));
+  for (const k of ORDER) tabs[k].addEventListener('click', () => select(k));
   drawer.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && !e.isComposing) {
       e.preventDefault();
@@ -224,7 +233,8 @@ export function createMemoryUi({ client, drawer, main, openers, noticeHost, priv
     }
     if ((e.key === 'ArrowLeft' || e.key === 'ArrowRight') && e.target.getAttribute('role') === 'tab') {
       e.preventDefault();
-      select(e.target.dataset.tab === 'diary' ? 'about' : 'diary', { focus: true });
+      const i = ORDER.indexOf(e.target.dataset.tab) + (e.key === 'ArrowRight' ? 1 : -1);
+      select(ORDER[(i + ORDER.length) % ORDER.length], { focus: true });
       return;
     }
     if (e.key === 'Tab') { // modal: focus never leaves the drawer
@@ -268,12 +278,13 @@ export function createMemoryUi({ client, drawer, main, openers, noticeHost, priv
     let data;
     try { data = await client.getDiary(); } catch (err) {
       if (mine !== token) return;
-      errorBlock(panel, failed('diary', err).key, loadDiary).focus();
+      focusIf(errorBlock(panel, failed('diary', err).key, loadDiary));
       return;
     }
     if (mine !== token) return;
     panel.removeAttribute('aria-busy');
-    if (data.readable === false) { errorBlock(panel, errorWords('diary').key, loadDiary).focus(); return; } // no retry loop: the button is the user's
+    if (data.readable === false) { focusIf(errorBlock(panel, errorWords('diary').key, loadDiary)); return; } // no retry loop: the button is the user's
+    diaryData = data;
     renderDiary(panel, data);
   }
 
@@ -400,7 +411,7 @@ export function createMemoryUi({ client, drawer, main, openers, noticeHost, priv
     try { p = await client.getProfile(); } catch (err) {
       if (mine !== token) return;
       profileFailed = true; profile = null; renderPrivacy();
-      errorBlock(panel, failed('profile', err).key, loadAbout).focus();
+      focusIf(errorBlock(panel, failed('profile', err).key, loadAbout));
       panel.append(deadControls());
       return;
     }
@@ -448,7 +459,7 @@ export function createMemoryUi({ client, drawer, main, openers, noticeHost, priv
     else {
       const box = h('div', 'about__box');
       box.dataset.testid = 'about-box';
-      box.append(h('p', 'about__file', MEMORY_FILE), renderMarkdown(p.about));
+      box.append(h('p', 'about__file', MEMORY_FILE), renderMarkdown(p.about, aboutHeading));
       panel.append(box);
     }
     panel.append(h('p', 'about__where', t('memoryWhere')), h('p', 'about__edit', t('aboutEdit')));
@@ -626,12 +637,23 @@ export function createMemoryUi({ client, drawer, main, openers, noticeHost, priv
     forgetHost.append(b, h('p', 'set__note', t('forgetNote')));
   }
 
-  // a language switch: the notice, the privacy line and the stage-button names follow; the drawer cannot be open then
+  // a language switch: the notice, the privacy line, the stage-button names and (R2) the open drawer follow
   function refresh() {
+    const scrollTop = scrollEl.scrollTop;
     renderPrivacy();
     noticeText();
     openers.diary.setAttribute('aria-label', t('tabDiary'));
     openers.about.setAttribute('aria-label', t('tabAbout'));
+    openers.look.setAttribute('aria-label', lt('tabLook'));
+    if (!current) return;
+    // FLOW-024: the drawer's own 中文 | EN is pressed with the drawer open: same tab, new words, focus stays on that button
+    asking = false;
+    renderShell();
+    scrollEl.scrollTop = scrollTop;
+    if (current === 'look') look.render(panels.look);
+    else if (current === 'diary' && diaryData && !panels.diary.hasAttribute('aria-busy') && !panels.diary.querySelector('.panel__msg [role="alert"]')) renderDiary(panels.diary, diaryData);
+    else if (current === 'about' && profile?.readable && !panels.about.hasAttribute('aria-busy') && panels.about.querySelector('.about__where')) renderAbout(panels.about);
+    else select(current); // loading or failed: ask again, in the new words
   }
 
   Object.assign(api, { start, refresh, open, close, select });

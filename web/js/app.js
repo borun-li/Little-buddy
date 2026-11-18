@@ -2,6 +2,9 @@
 import { respond, transcribe, health, speak } from './companion-client.js';
 import { memory } from './memory-client.js';
 import { createMemoryUi } from './memory-ui.js';
+import { look as lookClient } from './look-client.js';
+import { createLookUi } from './look-ui.js';
+import { lt } from './look-copy.js';
 import { copy, voiceHintKey, MAX_VOICE_CHARS, setLang, getLang, resolveLang, setName } from './copy.js';
 import { loadName, saveName, createRename } from './name.js';
 import { createLog } from './log.js';
@@ -53,6 +56,8 @@ onClear(() => log.removeCard()); // Q-030: and the help card
 // Q-026 / DES-025: the toggle is on at every open (not remembered); a reading needs it on AND tts ready. A
 // speak that fails with not_ready / unavailable tells the watch (checks resume); the failure itself stays silent.
 let speakerOn = true;
+let voiceId = 'serena'; // R2 Q-060: the chosen voice id rides on every /api/speak (the sound stays serena until C-013)
+lookClient.getVoice().then((v) => { voiceId = v; }).catch(() => {});
 const speakerBtn = $('.speaker-toggle');
 const speakerTip = $('.speaker-tip');
 function renderSpeaker() {
@@ -68,7 +73,7 @@ function renderSpeaker() {
   speakerTip.textContent = copy[key];
 }
 const speaker = createSpeaker({
-  speak: (text, lang, signal) => speak(text, lang, signal).catch((err) => { watch.ttsFailed(err?.code); throw err; }),
+  speak: (text, lang, signal) => speak(text, lang, signal, voiceId).catch((err) => { watch.ttsFailed(err?.code); throw err; }),
   isEnabled: () => speakerOn && watch.ttsReady,
   onActive: () => renderSpeaker(),
 });
@@ -110,6 +115,7 @@ const breath = createBreath({
     companion.setBreathing(false);
     companion.showFace(null, null);
     log.setOfferStop(false);
+    if (waitingUp) { const to = waitingUp; waitingUp = null; stageUp(to, { captionOnly: true }); } // Q-062: the caption waited
   },
 });
 onBreathStart(() => { if (breath.active) breath.stop('chip'); else breath.start(); });
@@ -299,11 +305,57 @@ async function onProfile(p) {
   try { await memory.setName(old); } catch { return; }
   saveName(storage, null); // saved: the key goes (removeItem)
 }
+// R2: the saved look and stage are painted on the companion (companion.setLook / setStage, which also keep the data attributes
+// data-character, data-head ... data-stage; data-mood stays the 5 ids). Applied at open before anything is typed: no flash of the default.
+let shownStage = null;
+let stageSeq = 0;
+let waitingUp = null; // Q-062: a stage-up reached while breathing; its caption plays when the guide ends
+const stageHooks = [];
+// fn({ from, to, growth }) runs when the stage on screen rises or falls after open (Q-062 plays its moment in applyStage itself).
+export function onStageChange(fn) { stageHooks.push(fn); }
+function applyLook(l, { animate = true } = {}) { companion.setLook(l, { animate }); }
+// Q-062 / FLOW-027: the first time days reach 3 or 7 the stage-up plays once (look-client remembers the stage; DFB-004: a lower
+// demo value forgets it). At open it plays only when the remembered stage is lower than today's (days grew while closed), never
+// on a refresh. Several stages at once: one moment. While breathing the look changes at once and the caption waits.
+async function applyStage(g) {
+  const from = shownStage;
+  shownStage = g.stage;
+  const seq = ++stageSeq;
+  let seen = null;
+  if (from === null || g.stage > from) seen = await lookClient.claimStageUp(g.stage).catch(() => null);
+  if (seq !== stageSeq) return; // a newer value won meanwhile
+  const play = seen !== null && g.stage > seen;
+  if (!play) { companion.setStage(g.stage); waitingUp = null; } else {
+    if (from === null) companion.setStage(seen); // at open: start from the remembered look
+    if (breath.active) { companion.setStage(g.stage); waitingUp = g.stage; } else stageUp(g.stage);
+  }
+  if (from !== null && from !== g.stage) stageHooks.forEach((fn) => fn({ from, to: g.stage, growth: g }));
+}
+function stageUp(to, { captionOnly = false } = {}) {
+  companion.stageUp(to, { thanks: () => lt('thanks'), band: to, captionOnly });
+  // growth.upSaid once: the drawer makes the page inert, so then the drawer's own status says it (lookUi.say)
+  const said = lt('upSaid')(lt('stage')[to]);
+  if ($('main.page').inert) lookUi.say(said); else companion.announce(said);
+}
+Promise.all([lookClient.getLook(), lookClient.getGrowth()]).then(([l, g]) => { applyLook(l, { animate: false }); applyStage(g); }).catch(() => { /* unreadable: the default look stays (A14) */ });
+// Q-064: the phone sheet's preview is a second companion that mirrors the stage one (no caption, ids prefixed pv-).
+function createPreview(host) {
+  const el = document.createElement('div');
+  el.className = 'companion companion--preview';
+  el.setAttribute('aria-hidden', 'true');
+  el.innerHTML = '<div class="companion__layers"></div>';
+  host.append(el);
+  const mirror = createCompanion(el, null, { preview: true, idPrefix: 'pv-' });
+  companion.addMirror(mirror);
+  return { destroy() { companion.removeMirror(mirror); el.remove(); } };
+}
+const lookUi = createLookUi({ client: lookClient, onLook: (l) => applyLook(l), onGrowth: applyStage, onVoice: (v) => { voiceId = v; }, createPreview });
 const memoryUi = createMemoryUi({
   client: memory,
+  look: lookUi,
   drawer: $('.drawer'),
   main: $('main.page'),
-  openers: { diary: $('.stage-diary'), about: $('.stage-about') },
+  openers: { diary: $('.stage-diary'), about: $('.stage-about'), look: $('.stage-look') },
   noticeHost: $('.log__empty'),
   privacyEl: $('.log__privacy-text'),
   showHint,
@@ -340,7 +392,7 @@ function applyCopy() {
   input.setAttribute('aria-label', copy.inputLabel);
   note.textContent = copy.pausedNote;
   $('.log__turns').setAttribute('aria-label', copy.logLabel);
-  langGroup.setAttribute('aria-label', copy.langLabel);
+  document.querySelectorAll('.lang-switch, .drawer__lang').forEach((g) => g.setAttribute('aria-label', copy.langLabel));
   $('.stage-clear').setAttribute('aria-label', copy.clearName);
   langButtons.forEach((b) => {
     b.setAttribute('aria-label', copy[b.dataset.lang === 'zh' ? 'langZh' : 'langEn']);
@@ -355,8 +407,7 @@ function applyCopy() {
   renderSpeaker();
 }
 
-const langGroup = $('.lang-switch');
-const langButtons = [...langGroup.querySelectorAll('button')];
+const langButtons = [...document.querySelectorAll('[data-lang]')]; // the stage group and (R2, REQ-065) the drawer bar's
 langButtons.forEach((b) => b.addEventListener('click', () => {
   if (b.dataset.lang === getLang()) return; // the current option does nothing
   setLang(b.dataset.lang);

@@ -19,9 +19,11 @@
   font: 400 13px/20px var(--font-ui); color: var(--color-text-muted);
 }
 .stage-btn:hover, .stage-btn:active { background: var(--color-turn-you-bg); color: var(--color-text-primary); }
-.stage-btn[aria-pressed="true"] { background: var(--color-turn-you-bg); color: var(--color-text-primary); font-weight: 600; }
 .stage-btn:focus-visible { outline: 3px solid var(--color-focus-ring); outline-offset: 2px; }
 @media (min-width: 960px) { .stage-actions { top: 24px; left: 24px; } }
+/* FLOW-028 (R2 increment 2): while the drawer is open the stage top bar is not drawn, not in the Tab order, not heard; visibility
+   keeps the boxes, so nothing on the stage moves. Back with the drawer's close (instant, so also under reduced motion). */
+body.has-drawer .stage-actions, body.has-drawer .lang-switch { visibility: hidden; }
 
 /* ---------- text buttons (CMP-013): outline, soft (the default choice), filled (删掉 only) ---------- */
 .drawer__close, .btn {

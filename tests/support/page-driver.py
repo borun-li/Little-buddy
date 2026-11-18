@@ -322,9 +322,9 @@ def s_sweep(a, pw):
     pg.page.click('.lang-switch [data-lang=en]'); pg.settle(300)
     title_en = pg.text('.notice__title')
     ck('language switch re-says the notice in English', title_en != title_zh and 'will remember' in title_en, [title_zh, title_en])
-    ck('stage buttons follow the language', pg.page.get_attribute('[data-testid=open-diary]', 'aria-label') == 'Mood diary', pg.page.get_attribute('[data-testid=open-diary]', 'aria-label'))
+    ck('stage buttons follow the language', pg.page.get_attribute('[data-testid=open-diary]', 'aria-label') == 'Diary', pg.page.get_attribute('[data-testid=open-diary]', 'aria-label'))
     pg.open_drawer('diary')
-    ck('drawer tab words in English', pg.text('[data-testid=tab-diary]') == 'Mood diary' and pg.text('[data-testid=tab-about]') == 'What Buddy remembers', [pg.text('[data-testid=tab-diary]'), pg.text('[data-testid=tab-about]')])
+    ck('drawer tab words in English', pg.text('[data-testid=tab-diary]') == 'Diary' and pg.text('[data-testid=tab-about]') == 'About you', [pg.text('[data-testid=tab-diary]'), pg.text('[data-testid=tab-about]')])
     pg.page.click('[data-testid=drawer-close]')
     pg.page.click('.lang-switch [data-lang=zh]'); pg.settle(300)
     ck('back to Chinese', '会记住' in pg.text('.notice__title'), pg.text('.notice__title'))
@@ -714,6 +714,235 @@ def s_region_a11y(a, pw):  # FND-052 / FND-061: what the region select is descri
     }""")
     pg.close()
     return out
+
+
+# ---- R2 prototype (fe-tester #1, Q-066 / Q-067, tests/look-page.test.js) ----
+
+def dismiss_notice(pg):
+    if pg.visible('[data-testid=notice-ok]'):
+        pg.page.click('[data-testid=notice-ok]')
+        pg.page.wait_for_selector('[data-testid=memory-notice]', state='detached', timeout=3000)
+
+
+FOCUS = "(() => { const e = document.activeElement; return e ? (e.dataset.testid || (e.dataset.lang ? 'lang-' + e.dataset.lang : e.tagName)) : null; })()"
+
+
+def s_r2_drawer(a, pw):  # Q-056: ←/→ cycle the three tabs; Tab from the selected tab goes switch (中文, EN) then 关闭, inside .drawer__end
+    pg = Page(pw, a['base'], a.get('lang', 'zh'), width=a.get('width', 1440), height=900).goto()
+    dismiss_notice(pg)
+    pg.open_drawer('diary')
+    pg.settle(300)
+    pg.page.focus('[data-testid=tab-diary]')
+    sel = "[...document.querySelectorAll('[role=tab]')].filter((t) => t.getAttribute('aria-selected') === 'true').map((t) => t.dataset.testid).join(',')"
+    keys = []
+    for k in a.get('keys', ['ArrowRight', 'ArrowRight', 'ArrowRight', 'ArrowLeft']):
+        pg.page.keyboard.press(k)
+        pg.settle(250)
+        keys.append({'key': k, 'focus': pg.page.evaluate(FOCUS), 'selected': pg.page.evaluate(sel)})
+    pg.page.focus('[data-testid=tab-diary]')
+    pg.page.keyboard.press('Enter')
+    pg.settle(250)
+    order = [pg.page.evaluate(FOCUS)]
+    for _ in range(3):
+        pg.page.keyboard.press('Tab')
+        order.append(pg.page.evaluate(FOCUS))
+    end = pg.page.evaluate("""() => { const end = document.querySelector('.drawer__bar > .drawer__end');
+      return { inEnd: end ? [...end.querySelectorAll('button')].map((b) => b.dataset.testid || 'lang-' + b.dataset.lang) : null,
+               barChildren: [...document.querySelector('.drawer__bar').children].map((c) => c.className) }; }""")
+    pg.close()
+    return {'keys': keys, 'order': order, **end}
+
+
+def s_r2_art(a, pw):  # Q-054 / Q-055: what look-art.js puts in each slot of each template; the growth transform per data-stage
+    pg = Page(pw, a['base'], width=1440, height=900).goto()
+    dismiss_notice(pg)
+    out = pg.page.evaluate("""async ({ chars, moods, slots, item }) => {
+      const art = await import('/js/look-art.js');
+      const host = document.createElement('div'); host.style.cssText = 'position:absolute;left:-9999px'; document.body.append(host);
+      const rows = [];
+      for (const c of chars) for (const m of moods) {
+        const svg = document.getElementById(`mood-${c}-${m}`).content.querySelector('svg').cloneNode(true);
+        host.append(svg);
+        for (const s of slots) {
+          art.fillSlot(svg, s, item, m);
+          const slot = svg.querySelector(`[id="${c}-${m}--slot-${s}"]`);
+          const outer = (e) => { const up = e.parentElement.closest('[transform]'); return !up || !slot.contains(up); }; // outermost transformed groups = the placements
+          const clip = slot.querySelector('[clip-path]')?.getAttribute('clip-path') ?? null;
+          const outline = [...slot.querySelectorAll(':scope > g > path')].map((p) => ({ d: p.getAttribute('d'), sw: p.getAttribute('stroke-width'), fill: p.getAttribute('fill') }));
+          rows.push({ c, m, s, n: slot.children.length, tf: [...slot.querySelectorAll('[transform]')].filter(outer).map((e) => e.getAttribute('transform')), clip,
+                      clipIds: [...svg.querySelectorAll('clipPath')].map((e) => e.id), bodyD: svg.querySelector(`[id="${c}-${m}--body-fur"]`)?.getAttribute('d') ?? null, outline });
+          art.fillSlot(svg, s, 'none', m);
+          rows[rows.length - 1].afterNone = slot.children.length;
+        }
+        svg.remove();
+      }
+      host.remove();
+      return rows;
+    }""", {'chars': a['chars'], 'moods': a['moods'], 'slots': a['slots'], 'item': a.get('item', 1)})
+    stages = pg.page.evaluate("""async (stages) => {
+      const root = document.querySelector('[data-testid=companion]');
+      const out = [];
+      for (const n of stages) {
+        root.dataset.stage = String(n);
+        await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+        const svg = root.querySelector('.companion__layers > .companion__layer:last-child svg');
+        const g = svg.querySelector('[id$="--growth"]');
+        const m = svg.getScreenCTM().inverse().multiply(g.getScreenCTM());
+        out.push({ stage: n, g: getComputedStyle(root).getPropertyValue('--g').trim(), m: [m.a, m.b, m.c, m.d, m.e, m.f] });
+      }
+      return out;
+    }""", a.get('stages', [1, 2, 3]))
+    pg.close()
+    return {'rows': out, 'stages': stages}
+
+
+def s_r2_growth(a, pw):  # Q-061: the 成长 block look-ui.js draws for each days value (stub client; the page's own client untouched)
+    pg = Page(pw, a['base'], a.get('lang', 'zh'), width=1440, height=900).goto()
+    dismiss_notice(pg)
+    out = pg.page.evaluate("""async (days) => {
+      const { createLookUi } = await import('/js/look-ui.js');
+      const { growthOf } = await import('/js/look-client.js');
+      const rows = [];
+      for (const d of days) {
+        const client = { getLook: async () => ({ character: 1, outfit: { head: 'none', clothes: 'none', shoes: 'none', accessory: 'none' } }),
+          getVoice: async () => 'serena', getGrowth: async () => growthOf(d), setLook: async () => { throw new Error('x'); }, setVoice: async () => 'serena',
+          setDemoDays: async (n) => growthOf(n), preview: async () => {} };
+        const panel = document.createElement('section'); document.body.append(panel);
+        await createLookUi({ client }).render(panel);
+        const next = panel.querySelector('[data-testid=growth-next]'); const bar = panel.querySelector('[data-testid=growth-bar]');
+        rows.push({ days: d, next: next.hidden ? null : next.textContent, nextVisible: !!(next.offsetWidth || next.offsetHeight),
+                    line: panel.querySelector('[data-testid=growth-line]').textContent,
+                    segs: bar.querySelectorAll('.growth__seg').length, on: bar.querySelectorAll('.growth__seg.is-on').length,
+                    valuetext: bar.getAttribute('aria-valuetext') });
+        panel.remove();
+      }
+      return rows;
+    }""", a['days'])
+    pg.close()
+    return {'rows': out}
+
+
+def s_r2_fit(a, pw):  # Q-067: no sideways scroll at one width and language, chat and the look and about tabs, wearing a full look; every request local
+    pg = Page(pw, a['base'], a.get('lang', 'zh'), width=a['width'], height=a.get('height', 844), storage=a.get('storage')).goto()
+    pg.page.wait_for_timeout(300)
+    probes = []
+    if pg.visible('[data-testid=memory-notice]'):
+        probes.append(fit_probe(pg, 'notice'))
+        dismiss_notice(pg)
+        pg.settle(300)
+    probes.append(fit_probe(pg, 'chat'))
+    pg.open_drawer('look')
+    pg.page.wait_for_selector('[data-testid=growth-bar]', timeout=8000); pg.settle(400)
+    probes.append(fit_probe(pg, 'look top'))
+    pg.page.click('[data-testid=preview-serena]'); pg.settle(500)
+    pg.page.evaluate("document.querySelector('.drawer__scroll').scrollTop = 1e6"); pg.settle(200)
+    probes.append(fit_probe(pg, 'look bottom'))
+    pg.page.click('[data-testid=tab-about]')
+    pg.page.wait_for_selector('[data-testid=about-box], [data-testid=about-empty]', timeout=8000); pg.settle(300)
+    probes.append(fit_probe(pg, 'about'))
+    worn = pg.page.evaluate("(() => { const r = document.querySelector('[data-testid=companion]'); return { character: r.dataset.character, stage: r.dataset.stage, items: r.querySelectorAll('.companion__layer:last-child .slot-item').length }; })()")
+    reqs = [r['url'] for r in pg.requests]
+    pg.close()
+    return {'probes': probes, 'requests': reqs, 'worn': worn}
+
+
+# Q-062 / Q-063 / Q-064 / CMP-033 (fe-tester #2): a recorder installed before the page's scripts. Every 40 ms it samples the
+# stage, caption, burst, preview, 成长 line and spark and the duplicate ids; a MutationObserver logs every text written to a
+# status span and every burst / caption spark added. t = ms since window.__rec.reset() (or since navigation start).
+RECORDER = r"""(() => {
+  if (window.top !== window) return;
+  const R = window.__rec = { t0: 0, samples: [], said: [], added: [], anims: new Set() };
+  const now = () => Math.round(performance.now() - R.t0);
+  R.reset = () => { R.t0 = performance.now(); R.samples = []; R.said = []; R.added = []; R.anims = new Set(); };
+  const txt = (sel) => { const e = document.querySelector(sel); return e ? e.textContent : null; };
+  const box = (e) => { if (!e) return null; const r = e.getBoundingClientRect(); return [Math.round(r.width * 10) / 10, Math.round(r.height * 10) / 10]; };
+  const cls = (e) => (e ? (typeof e.className === 'string' ? e.className : e.getAttribute('class')) : null);
+  R.animSigs = () => [...R.anims].map((a) => {
+    const kf = a.effect && a.effect.getKeyframes ? a.effect.getKeyframes() : [];
+    const props = [...new Set(kf.flatMap((k) => Object.keys(k)).filter((k) => !['offset', 'computedOffset', 'easing', 'composite'].includes(k)))].sort();
+    const t = a.effect ? a.effect.target : null;
+    return { kind: a.constructor.name, target: cls(t), props, duration: a.effect ? a.effect.getTiming().duration : null };
+  });
+  function sample() {
+    const root = document.querySelector('[data-testid=companion]');
+    if (!root) return;
+    for (const a of document.getAnimations()) R.anims.add(a);
+    const pv = document.querySelector('.companion--preview');
+    const ids = [...document.querySelectorAll('[id]')].map((e) => e.id);
+    const seen = new Set(); const dup = [];
+    for (const id of ids) { if (seen.has(id)) dup.push(id); seen.add(id); }
+    const gs = document.querySelector('[data-testid=growth-spark]');
+    const st = root.nextElementSibling && root.nextElementSibling.getAttribute('role') === 'status' ? root.nextElementSibling : null;
+    R.samples.push({
+      t: now(), mood: root.dataset.mood, stage: root.dataset.stage,
+      face: (root.querySelector('.companion__layers > .companion__layer:last-child') || { dataset: {} }).dataset.moodLayer || null,
+      name: txt('.companion__caption .caption__name'), phrase: txt('.companion__caption .caption__phrase'),
+      sparks: [...document.querySelectorAll('.caption__spark')].map((b) => ({ prev: cls(b.previousElementSibling), inPv: !!b.closest('.companion--preview'),
+        svg: cls(b.querySelector('svg.spark')), flare: !!b.querySelector('.spark-flare') })),
+      burst: root.querySelectorAll('.companion__burst').length,
+      pv: pv ? { burst: pv.querySelectorAll('.companion__burst').length, stage: pv.dataset.stage, face: (pv.querySelector('.companion__layer:last-child') || { dataset: {} }).dataset.moodLayer || null,
+        caption: pv.querySelectorAll('.caption__spark, .caption__phrase, .caption__name').length } : null,
+      line: txt('[data-testid=growth-line]'), said: txt('[data-testid=growth-said]'), status: st ? st.textContent : null,
+      gspark: gs ? { band: gs.dataset.band, box: box(gs), svg: box(gs.querySelector('svg')), svgCls: cls(gs.querySelector('svg')) } : null,
+      ids: ids.length, dup: dup.slice(0, 5), ndup: dup.length,
+    });
+  }
+  function watch(records) {
+    for (const m of records) {
+      const el = m.target.nodeType === 3 ? m.target.parentElement : m.target;
+      if (el && el.matches && el.matches('[role=status]')) {
+        const text = [...m.addedNodes].map((n) => n.textContent).join('');
+        if (text) R.said.push({ t: now(), who: el.dataset.testid || (el.previousElementSibling && el.previousElementSibling.dataset.testid === 'companion' ? 'companion' : 'other'), text });
+      }
+      for (const n of m.addedNodes) {
+        if (n.nodeType !== 1) continue;
+        const c = cls(n) || '';
+        if (/\bcompanion__burst\b|\bcaption__spark\b/.test(c)) R.added.push({ t: now(), what: /burst/.test(c) ? 'burst' : 'spark', pv: !!n.closest('.companion--preview') });
+      }
+    }
+  }
+  setInterval(sample, 40); // from the first script on: an open-time moment can run before DOMContentLoaded
+  new MutationObserver(watch).observe(document, { childList: true, subtree: true, characterData: true });
+})()"""
+
+REC_READ = "(() => { const R = window.__rec; return { samples: R.samples, said: R.said, added: R.added, anims: R.animSigs(), seen: localStorage.getItem('companion.stageSeen') }; })()"
+
+
+def s_r2_stageup(a, pw):  # Q-062/063/064, CMP-033, DFB-004: steps = [{open} | {days: n} | {reload, set: {key: value}}, each with ms]; one recording per step
+    pg = Page(pw, a['base'], a.get('lang', 'zh'), width=a.get('width', 1440), height=a.get('height', 900), storage=a.get('storage'), once=True)
+    if a.get('reduce'):
+        pg.page.emulate_media(reduced_motion='reduce')
+    pg.ctx.add_init_script(RECORDER)
+    errors = []
+    pg.page.on('pageerror', lambda e: errors.append(str(e)))
+    pg.goto()
+    steps = []
+    drawer = False
+    for st in a['steps']:
+        if st.get('open'):  # the first open itself (t from navigation start)
+            pass
+        elif st.get('reload'):
+            for k, v in (st.get('set') or {}).items():
+                pg.page.evaluate('([k, v]) => localStorage.setItem(k, v)', [k, v])
+            pg.page.reload()
+            pg.page.wait_for_function(READY, timeout=10000)
+            drawer = False
+        else:
+            if pg.visible('[data-testid=memory-notice]'):
+                dismiss_notice(pg)
+            if not drawer:
+                pg.open_drawer('look')
+                pg.page.wait_for_selector('[data-testid=demo-days]', timeout=8000)
+                pg.settle(st.get('before', 2600))  # any open-time moment and the drawer's own motion are over
+                drawer = True
+            pg.page.fill('[data-testid=demo-days]', str(st['days']))
+            pre = pg.page.evaluate("[document.querySelector('.companion__caption .caption__name').textContent, document.querySelector('.companion__caption .caption__phrase').textContent]")
+            pg.page.evaluate('window.__rec.reset()')
+            pg.page.press('[data-testid=demo-days]', 'Enter')
+        pg.settle(st.get('ms', 3800))
+        steps.append({**pg.page.evaluate(REC_READ), 'pre': pre if 'days' in st else None})
+    pg.close()
+    return {'steps': steps, 'errors': errors}
 
 
 SCEN = {k[2:]: v for k, v in globals().items() if k.startswith('s_')}

@@ -93,8 +93,8 @@ export const MEMORY_COPY = {
     noticeOk: 'Got it',
     noticeOff: 'Turn memory off',
     noticeLabel: 'What is kept',
-    tabDiary: 'Mood diary',
-    tabAbout: 'What Buddy remembers',
+    tabDiary: 'Diary', // R2 increment 2: the stage-button words, so the laptop drawer bar is one row in English too
+    tabAbout: 'About you',
     drawerClose: 'Close',
     drawerTabs: 'Memory',
     diarySub: 'What you talked about each day, and how it felt',
