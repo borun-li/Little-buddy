@@ -2,6 +2,17 @@
   "cases": [
     {
       "id": "FX-027-01",
+      "voice_used": {
+        "ryan": "serena",
+        "aiden": "aiden",
+        "ono-anna": "ono-anna",
+        "sohee": "sohee",
+        "eric": "serena",
+        "dylan": "dylan",
+        "serena": "serena",
+        "vivian": "vivian",
+        "uncle-fu": "uncle-fu"
+      },
       "number_heard": {
         "ryan": {
           "zh-US": true,

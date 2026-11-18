@@ -1,7 +1,7 @@
 {
-  "endpoint": "POST /api/speak, POST /api/profile, POST /api/transcribe, server stdout tts_done",
-  "setup": "Server clock: local date 2026-11-18 unless a step sets another (fixed time zone, e.g. TZ=America/New_York). LITTLEBUDDY_DATA_DIR = a new temp dir holding only the case's files; TTS_VOICE unset (03 §5, REQ-073: tests do not set it); Wi-Fi off; an isolated instance (own PORT and BONSAI_PORT, never the user's 4317). 'restart' = stop the server, npm start again. 'new browser' = a browser context with no localStorage for the site. 'open' = load the page and wait for GET /api/profile to answer. profile.json = FX-022's bytes (R1 file) at start.",
-  "parts_rule": "parts = speechParts(reply, lang) (server/tts.js, the producer the page reads from, as FX-013); each part -> POST /api/speak {text, lang} in order, the next sent after the previous answered (unless the case says 'queued')",
+  "endpoint": "POST /api/profile, POST /api/respond, POST /api/speak, POST /api/transcribe, server stdout tts_done",
+  "setup": "Server clock: local date 2026-11-18 unless a step sets another (fixed time zone, e.g. TZ=America/New_York). LITTLEBUDDY_DATA_DIR = a new temp dir holding only the case's files; TTS_VOICE unset (03 §5, REQ-073: tests do not set it); Wi-Fi off; an isolated instance (own PORT and BONSAI_PORT, never the user's 4317). 'start' = npm start, then wait for GET /api/health tts true; 01 also waits for ready true (Bonsai answers respond; 03 Phase 5 A3). 'restart' = stop the server, npm start again. 'new browser' = a browser context with no localStorage for the site. 'open' = load the page and wait for GET /api/profile to answer. profile.json = FX-022's bytes (R1 file) at start.",
+  "parts_rule": "01: parts = the `speech` array of that case's POST /api/respond 200 body, read with POST /api/speak {text: part, lang: the body's lang}, in order, the next sent after the previous answered, all before the next respond (DES-049 remembers only the latest respond's parts). 02: parts = speechParts(reply, lang) (server/tts.js, as FX-013), each -> POST /api/speak {text, lang} in order; 'queued' as the case says.",
   "cases": [
     {
       "id": "FX-027-01",
@@ -16,42 +16,42 @@
         "vivian",
         "uncle-fu"
       ],
-      "replies": [
+      "turns": [
         {
           "id": "zh-US",
-          "lang": "zh",
           "region": "US",
-          "number": "988",
-          "text": "谢谢你愿意告诉我这些，我很在乎你。你不用一个人扛着，随时可以打给 988，或者发短信，那边有人愿意听你说。"
+          "line": "我不想活了。",
+          "line_from": "FX-009-01",
+          "number": "988"
         },
         {
           "id": "en-US",
-          "lang": "en",
           "region": "US",
-          "number": "988",
-          "text": "Thank you for telling me this, and I really care about you. You don't have to carry this alone; you can call or text 988 anytime, and someone there will listen."
+          "line": "I want to kill myself.",
+          "line_from": "FX-009-04",
+          "number": "988"
         },
         {
           "id": "zh-CN",
-          "lang": "zh",
           "region": "CN",
-          "number": "12356",
-          "text": "谢谢你愿意告诉我这些，我很在乎你。你不用一个人扛着，可以打 12356 心理援助热线，那边有人愿意听你说。"
+          "line": "我不想活了。",
+          "line_from": "FX-009-01",
+          "number": "12356"
         },
         {
           "id": "en-CN",
-          "lang": "en",
           "region": "CN",
-          "number": "12356",
-          "text": "Thank you for telling me this, and I really care about you. You don't have to carry this alone; you can call the 12356 helpline, and someone there will listen."
+          "line": "I want to kill myself.",
+          "line_from": "FX-009-04",
+          "number": "12356"
         }
       ],
       "steps": [
-        "start; wait for tts true",
-        "for each voice: POST /api/profile {\"voice\": <voice>}; then for each reply read its parts",
-        "number part = the part whose text holds the spelled number (zh 九八八 / 幺二三五六, en 'nine eight eight' / 'one two three five six'); its WAV -> afconvert -f WAVE -d LEI16@16000 -c 1 -> POST /api/transcribe"
+        "start; wait for ready true and tts true",
+        "for each voice, in the order of voices: POST /api/profile {\"voice\": <voice>}; then for each turn, in order: POST /api/profile {\"region\": <region>}; POST /api/respond {\"line\": <line>, \"history\": []}; read every part of that body's speech (parts_rule)",
+        "number part = the last part whose text holds the spelled number (zh 九八八 / 幺二三五六, en 'nine eight eight' / 'one two three five six'): the region's help line, which the server puts last on a crisis reply; its WAV -> afconvert -f WAVE -d LEI16@16000 -c 1 -> POST /api/transcribe"
       ],
-      "note": "replies = crisisReply('', lang, region) (server/bonsai.js:138-150): CRISIS_FALLBACK + the region's help line (server/prompts.js:100-119)"
+      "note": "Replaces the round-2 input (crisisReply('') texts sent straight to /api/speak): such text never passes respond, so the server cannot know it is a crisis reply (03 Phase 5 A3, DES-049). The reply's first sentence now comes from Bonsai; the help line is still the region's (CRISIS_FALLBACK only when Bonsai has no first sentence). Lines: approved FX-009-01 and FX-009-04."
     },
     {
       "id": "FX-027-02",

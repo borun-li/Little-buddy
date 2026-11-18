@@ -404,29 +404,51 @@
     },
     "FX-026": {
       "req": "REQ-073",
-      "source": "inputs: 01 §7 FX-026 (be-analyst #1; replies = approved FX-013, verbatim; profile base = FX-022 profile.json bytes; voice ids server/config.js:11). Expected: REQ-073 as amended round 2 (the voice in the profile when the part starts being read; absent or invalid -> default serena, TTS_VOICE unset in tests, 03 §9 B-5) and its Accept (helper gets uncle-fu, pitch median below serena on the same sentence; 02/03 serena); A60 (uncle-fu male, serena female, Qwen3Models.swift:126-137). REQ-074 Accept (3/3 dylan, no timeout, first <= 8 s, the other two <= 3 s; A59 [unverified], Q32 default). 05: every VOICES id is accepted and read in that voice (contract § R2 seam voice row). Shape: contract § R2 seam (GET /api/profile .voice; POST /api/profile {voice}); voice_used from tts_done.voice (03 DES-041 step 4).",
+      "source": "Round 4 (be-analyst #4): Q33, user 2026-11-18 (docs/backend/run-log.jsonl seq 46: REQ-074 '之后 <= 3 s' is judged by the median of 3 runs per reply; sound and code unchanged), a newer decision replacing the one-run, every-reply <= 3000 check of 04; reason: dylan's sampled silences put 2 of 16 quiet first parts of replies 2-3 over 3 s (03 Phase 5 A2; docs/backend/logs/be-architect-3-tc271-tc272.log § Reading). Test control from 03 Phase 5 A2. Only 04's compare rule, case_runs and control changed; input.json, expected.json and cases 01, 02, 03, 05 are byte-identical to approved. Round 1-2: inputs: 01 §7 FX-026 (be-analyst #1; replies = approved FX-013, verbatim; profile base = FX-022 profile.json bytes; voice ids server/config.js:11). Expected: REQ-073 as amended round 2 (the voice in the profile when the part starts being read; absent or invalid -> default serena, TTS_VOICE unset in tests, 03 §9 B-5) and its Accept (helper gets uncle-fu, pitch median below serena on the same sentence; 02/03 serena); A60 (uncle-fu male, serena female, Qwen3Models.swift:126-137). REQ-074 Accept (3/3 dylan, no timeout, first <= 8 s, the other two <= 3 s; A59 [unverified], Q32 default). 05: every VOICES id is accepted and read in that voice (contract § R2 seam voice row). Shape: contract § R2 seam (GET /api/profile .voice; POST /api/profile {voice}); voice_used from tts_done.voice (03 DES-041 step 4).",
       "compare": "exact",
-      "approved_by": "borun_li",
+      "approved_by": "orchestrator",
       "date": "2026-11-18",
       "files": {
         "expected.json": "dab436aeff64f5cec9f5aa324c1794f102963b3a4c7511739dcc1e443ac50001",
         "input.json": "5f3f0da2ddfb181a1148ecfd759192418d7b016af54d23e86f1eb27344eadad8",
-        "meta.json": "1d9e31a0558f0888443e93ab7fb91a7df1107e3e8e3c33a399000146cb84bfdd"
+        "meta.json": "178bd507de4b75335538a16437c85e1930faa77283e1f25280dc8b7f5575a40f"
       },
-      "history": []
+      "because": "user borun_li 2026-11-18: FX-027 by Q31 at Plan (run-log seq 24; serena reads crisis replies for voices that failed FX-027: ryan, eric per TC-272); FX-026-04 by Q33 (run-log seq 46; later replies judged by the median of 3 runs)",
+      "history": [
+        {
+          "date": "2026-11-18",
+          "approved_by": "borun_li",
+          "files": {
+            "expected.json": "dab436aeff64f5cec9f5aa324c1794f102963b3a4c7511739dcc1e443ac50001",
+            "input.json": "5f3f0da2ddfb181a1148ecfd759192418d7b016af54d23e86f1eb27344eadad8",
+            "meta.json": "1d9e31a0558f0888443e93ab7fb91a7df1107e3e8e3c33a399000146cb84bfdd"
+          }
+        }
+      ]
     },
     "FX-027": {
       "req": "REQ-075",
-      "source": "inputs: 01 §7 FX-027 as amended round 2 by be-analyst #2 (CN replies are crisisReply output with the server/prompts.js:106-107 CN lines, not the US words with the number swapped; 02 has 4 parts: FX-013-01's 3 + FX-013-02's first). Expected: REQ-075 Accept (36/36 transcripts hold the number; 02's 4 parts each answered once, in order), 024 / R1 048 (crisis reply read aloud with the help number). 02 voices: REQ-074 + 01 §2 non-goal (the part being read finishes in the old voice) + REQ-073 round 2 (the voice when the part starts being read). Q31 (what a crisis turn does if a voice fails) is open for the user at Plan: this fixture scores only whether each voice makes the number heard, not which voice a crisis turn uses. Risk: docs/backend/logs/be-architect-2-crisis-voices.log § Reading (ryan hit the 9.6 s cap on the en 12356 part once).",
+      "source": "Q31, user 2026-11-18 (Plan stop, docs/backend/run-log.jsonl seq 24: keep the chosen voice; serena reads crisis parts only for a voice that fails FX-027), a newer decision replacing round 2's 'FX-027 does not preset Q31' and 'every part's voice_used equals the voice set for it'. Voices that fail: TC-272 evidence test-results/r2-live/TC-272.json (2026-11-18T19:05:36Z, 33/36: ryan zh-CN heard 1235, ryan en-CN no digits, eric zh-US heard 酒吧吧), the set CRISIS_VOICE_FOR = ryan, eric (03 Phase 5 DES-050). 01 rewritten per 03 Phase 5 amendment A3 by be-analyst #3: each case is a real crisis turn (POST /api/profile {region}, POST /api/respond with approved FX-009-01 / FX-009-04, read the body's speech), because text sent straight to /api/speak never reaches DES-049. Whole crisis reply in one voice: A69 [unverified] (03 Phase 5 assumption, recommended). Expected: REQ-075 Accept as amended (number heard 36/36; ryan and eric read by serena, the other 7 in their own voice). 02 unchanged from the approved fixture (be-analyst #2 round 2): its 4 parts never pass respond, so DES-049 marks none crisis and vivian is not in the set.",
       "compare": "exact",
-      "approved_by": "borun_li",
+      "approved_by": "orchestrator",
       "date": "2026-11-18",
       "files": {
-        "expected.json": "896d41c94c93e09ccd2abde504417bb33e49f02082e2b47d71542d6260bf2da3",
-        "input.json": "b504e3988d64cb7c3a760d896def17cf963dfb694d33463ebefe79851dbcd988",
-        "meta.json": "6c05874c46c06bbdfe6fd61dcfdd9a39080f6a4536b86e7665c38f6556f15e91"
+        "expected.json": "c81d9044e9cebe6a2dc2150f0a1510590f677f7a034a7be1c298b7de7fe87ac3",
+        "input.json": "4c339fe9002591a86cea3aca932c50b731e7087670a53d86d816b321cca28f23",
+        "meta.json": "c2e8a143557b4c28162666bfeef55f523c5a32d6edd031292b191bf531cc2902"
       },
-      "history": []
+      "because": "user borun_li 2026-11-18: FX-027 by Q31 at Plan (run-log seq 24; serena reads crisis replies for voices that failed FX-027: ryan, eric per TC-272); FX-026-04 by Q33 (run-log seq 46; later replies judged by the median of 3 runs)",
+      "history": [
+        {
+          "date": "2026-11-18",
+          "approved_by": "borun_li",
+          "files": {
+            "expected.json": "896d41c94c93e09ccd2abde504417bb33e49f02082e2b47d71542d6260bf2da3",
+            "input.json": "b504e3988d64cb7c3a760d896def17cf963dfb694d33463ebefe79851dbcd988",
+            "meta.json": "6c05874c46c06bbdfe6fd61dcfdd9a39080f6a4536b86e7665c38f6556f15e91"
+          }
+        }
+      ]
     },
     "FX-028": {
       "req": "REQ-076",

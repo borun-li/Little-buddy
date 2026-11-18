@@ -3,7 +3,7 @@
 // Env: R2_ONLY=TC-272,TC-273 (default all)   R2_OUT=test-results/r2-live (evidence: one JSON per TC, the 36 number WAVs of TC-272 under r2-fx027/)
 // Every gateway has its own mkdtemp data dir and its own free PORT and BONSAI_PORT >= 4450 (never 4317, never 4400, never the user's folder); only the
 // PIDs started here (the gateway and its children) are stopped. Rules are the fixtures' own compare notes. The F0 estimator and the number normaliser
-// are written here (not imported from server/). Q31: this file asserts only that the number is heard; it asserts nothing about which voice a crisis turn uses.
+// are written here (not imported from server/). be-tester #2 (Phase 5): TC-271 follows FX-026-04 as re-locked under Q33 (3 counted runs, median for replies 2-3, load rule); TC-272 follows FX-027-01 as re-locked under Q31 (real crisis turns through /api/respond, voice_used scored, number heard 36/36).
 import assert from 'node:assert/strict';
 import { execFileSync, spawn } from 'node:child_process';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -31,7 +31,7 @@ const kidsOf = (pid) => {
 const record = (tc, o) => { mkdirSync(OUT, { recursive: true }); writeFileSync(join(OUT, `${tc}.json`), JSON.stringify({ tc, t: new Date().toISOString(), ...o }, null, 2)); };
 const T = (name, fn) => { const tc = /^TC-\d+/.exec(name)[0]; if (ON && (!ONLY || ONLY.includes(tc))) test(name, { timeout: 40 * 60000 }, fn); };
 
-async function boot(files) {
+async function boot(files, { needReady = false } = {}) {
   const dir = tmpDir('lb-r2live-');
   seed(dir, files);
   const port = await port4450(), bport = await port4450();
@@ -59,8 +59,8 @@ async function boot(files) {
     if (gw.exited) throw new Error(`gateway exited: ${JSON.stringify(gw.exited)}\n${gw.err.slice(-600)}`);
     gw.snap();
     const h = await api(gw.base, '/api/health').then((r) => r.json, () => null);
-    return h?.tts === 'ready' && h?.stt === 'ready';
-  }, 10 * 60000, 'real tts and stt ready');
+    return h?.tts === 'ready' && h?.stt === 'ready' && (!needReady || h?.ready === true);
+  }, 10 * 60000, needReady ? 'ready true, tts and stt ready' : 'real tts and stt ready');
   return gw;
 }
 const speak = async (gw, text, lang) => {
@@ -78,7 +78,8 @@ async function readReply(gw, reply) { // parts one after another; voice_used = t
     const n = gw.done().length;
     const r = await speak(gw, text, reply.lang);
     await waitFor(() => gw.done().length > n || r.status !== 200, 3000, 'tts_done line');
-    out.push({ text, status: r.status, type: r.type, wav: r.body, ms: r.ms, voice_used: gw.done()[n]?.voice ?? null });
+    const d = gw.done()[n];
+    out.push({ text, status: r.status, type: r.type, wav: r.body, ms: r.ms, voice_used: d?.voice ?? null, done: d ? { ms: d.ms, queued_ms: d.queued_ms, audio_ms: d.audio_ms, crisis: d.crisis } : null });
   }
   return out;
 }
@@ -190,59 +191,88 @@ T('TC-270 [FX-026-02 FX-026-03 FX-026-05] REQ-073/074: the real helper reads ser
 });
 
 // ---------------------------------------------------------------- TC-271
-T('TC-271 [FX-026-04] REQ-074: after serena was warmed, saving dylan: 3 replies in dylan, 0 timeouts, first sound <= 8000 ms for reply 1 and <= 3000 ms for replies 2 and 3', async () => {
+// FX-026-04 as re-locked under Q33 (meta.json case_runs 3, control): every run = a new data dir and a new start; ready true before the serena warm-up;
+// a run is void (load) when a reply is over its limit and that reply's first part has tts_done ms > audio_ms; 3 voided runs = blocked, never pass.
+T('TC-271 [FX-026-04] REQ-074 (Q33): after serena was warmed, saving dylan, 3 counted runs of 3 replies: dylan every part, 0 timeouts, reply 1 first sound <= 8000 ms in every run, replies 2 and 3 median of 3 runs <= 3000 ms', async () => {
   const { input, expected } = fcase('FX-026', 'FX-026-04');
-  const gw = await boot(input.files);
-  try {
-    assert.equal((await speak(gw, '你好。', 'zh')).status, 200, 'serena warm-up');
-    const save = await setVoice(gw, 'dylan');
-    assert.deepEqual([save.status, save.json.voice], [expected.save.status, expected.save.voice]);
-    const rows = [];
-    for (const [i, reply] of [REPLIES.zh, REPLIES.en, REPLIES.zh].entries()) {
-      const parts = await readReply(gw, reply);
-      const firstMs = parts[0].ms;
-      rows.push({ reply: i + 1, first_sound_ms: Math.round(firstMs), voices: parts.map((p) => p.voice_used), statuses: parts.map((p) => p.status) });
-    }
-    record('TC-271', { rows });
-    console.log('TC-271 first sound ms', JSON.stringify(rows.map((r) => r.first_sound_ms)));
-    assert.equal(rows.flatMap((r) => r.statuses).filter((s) => s !== 200).length, expected.timeouts, `non-200 parts: ${JSON.stringify(rows)}`);
-    for (const [i, r] of rows.entries()) {
-      assert.ok(r.voices.every((v) => v === expected.replies[i].voice_used_all), `reply ${i + 1} voices ${r.voices}`);
-      assert.ok(r.first_sound_ms <= (i === 0 ? 8000 : 3000), `reply ${i + 1} first sound ${r.first_sound_ms} ms (limit ${i === 0 ? 8000 : 3000})`);
-    }
-  } finally { await gw.stop(); }
+  const meta = fx('FX-026').meta;
+  const want = meta.case_runs['FX-026-04'];
+  const counted = [], voided = [];
+  while (counted.length < want && voided.length < 3) {
+    const gw = await boot(input.files, { needReady: true });
+    try {
+      assert.equal((await speak(gw, '你好。', 'zh')).status, 200, 'serena warm-up');
+      const save = await setVoice(gw, 'dylan');
+      assert.deepEqual([save.status, save.json.voice], [expected.save.status, expected.save.voice]);
+      const rows = [];
+      for (const [i, reply] of [REPLIES.zh, REPLIES.en, REPLIES.zh].entries()) {
+        const parts = await readReply(gw, reply);
+        rows.push({ reply: i + 1, first_sound_ms: Math.round(parts[0].ms), first_done: parts[0].done, voices: parts.map((p) => p.voice_used), statuses: parts.map((p) => p.status), done: parts.map((p) => p.done) });
+      }
+      const load = rows.some((r, i) => r.first_sound_ms > (i === 0 ? 8000 : 3000) && r.first_done && r.first_done.ms > r.first_done.audio_ms);
+      (load ? voided : counted).push({ run: counted.length + voided.length + 1, load, rows });
+    } finally { await gw.stop(); }
+  }
+  const med = [1, 2].map((i) => median(counted.map((r) => r.rows[i].first_sound_ms)));
+  record('TC-271', { want_counted_runs: want, counted, voided, median_first_sound_ms_replies_2_3: med, load_at_start: `uptime ${execFileSync('uptime', { encoding: 'utf8' }).trim()}` });
+  console.log('TC-271 first sound ms per counted run', JSON.stringify(counted.map((r) => r.rows.map((x) => x.first_sound_ms))), 'medians 2-3', JSON.stringify(med), 'voided runs', voided.length);
+  assert.equal(counted.length, want, `blocked: ${voided.length} voided runs (load), only ${counted.length} counted`);
+  assert.equal(counted.flatMap((r) => r.rows.flatMap((x) => x.statuses)).filter((c) => c !== 200).length, expected.timeouts, 'non-200 parts');
+  for (const [i, e] of expected.replies.entries()) assert.ok(counted.every((r) => r.rows[i].voices.every((v) => v === e.voice_used_all)), `reply ${i + 1} voices in all runs`);
+  assert.ok(counted.every((r) => r.rows[0].first_sound_ms <= 8000), `reply 1 first sound per run ${counted.map((r) => r.rows[0].first_sound_ms)} (limit 8000)`);
+  for (const [k, i] of [[0, 2], [1, 3]]) assert.ok(med[k] <= 3000, `reply ${i} median first sound ${med[k]} ms of ${counted.map((r) => r.rows[k + 1].first_sound_ms)} (limit 3000)`);
 });
 
 // ---------------------------------------------------------------- TC-272
-T('TC-272 [FX-027-01] REQ-075: crisis replies (zh/en x US/CN) read in each of the 9 voices; the number part transcribed by WhisperKit holds the number, 36 of 36 (Q31: nothing asserted about the voice a crisis turn uses)', async () => {
+// FX-027-01 as re-locked under Q31: per voice, per turn: POST /api/profile {region}, POST /api/respond (FX-009-01 / -04), read the body's speech with lang;
+// voice_used = the one voice of every part's tts_done (else the sorted distinct list); the number part = the LAST part holding the spelled number.
+T('TC-272 [FX-027-01] REQ-075 (Q31): real crisis turns in 9 voices (zh/en x US/CN): voice_used ryan and eric -> serena, the other 7 themselves; the number part transcribed by WhisperKit holds the number, 36 of 36', async () => {
   const { input: cs, expected } = fcase('FX-027', 'FX-027-01');
-  const spec = cs.replies;
-  const gw = await boot({ 'profile.json': R1_PROFILE });
+  const gw = await boot({ 'profile.json': R1_PROFILE }, { needReady: true });
   const rows = [];
   try {
     mkdirSync(join(OUT, 'r2-fx027'), { recursive: true });
     for (const voice of cs.voices) {
       assert.equal((await setVoice(gw, voice)).status, 200, voice);
-      for (const reply of spec) {
-        const parts = await readReply(gw, reply);
-        const bad = parts.filter((p) => p.status !== 200 || p.voice_used !== voice);
-        const num = parts.find((p) => (reply.lang === 'zh' ? /九八八|幺二三五六/ : /nine eight eight|one two three five six/).test(p.text));
-        assert.ok(num, `${voice} ${reply.id}: number part found`);
-        const wavFile = join(OUT, 'r2-fx027', `${voice}-${reply.id}.wav`);
-        writeFileSync(wavFile, num.wav);
-        const t = await transcribe(gw, to16k(num.wav, `${voice}-${reply.id}`));
-        const digits = digitsOf(t.json?.text ?? '');
-        rows.push({ voice, reply: reply.id, valid_run: bad.length === 0, transcript: t.json?.text, digits, number: reply.number, heard: digits.includes(reply.number), part_ms: Math.round(num.ms), wav: wavFile });
+      for (const turn of cs.turns) {
+        assert.equal((await api(gw.base, '/api/profile', { method: 'POST', body: { region: turn.region } })).status, 200);
+        const t = await api(gw.base, '/api/respond', { method: 'POST', body: { line: turn.line, history: [] } });
+        const body = t.json ?? {};
+        const row = { voice, turn: turn.id, respond_status: t.status, crisis: body.crisis, region: body.region, lang: body.lang, parts: [], voices: [], number: turn.number, heard: false };
+        if (t.status === 200 && Array.isArray(body.speech)) {
+          const re = body.lang === 'zh' ? /九八八|幺二三五六/ : /nine eight eight|one two three five six/;
+          const read = [];
+          for (const text of body.speech) {
+            const n = gw.done().length;
+            const r = await speak(gw, text, body.lang);
+            await waitFor(() => gw.done().length > n || r.status !== 200, 3000, 'tts_done line');
+            read.push({ text, status: r.status, wav: r.body, ms: r.ms, voice: gw.done()[n]?.voice ?? null, crisis: gw.done()[n]?.crisis ?? null });
+          }
+          row.parts = read.map((p) => ({ text: p.text, status: p.status, voice: p.voice, tts_done_crisis: p.crisis, ms: Math.round(p.ms) }));
+          row.voices = [...new Set(read.map((p) => p.voice))].sort();
+          const num = read.findLast((p) => re.test(p.text));
+          if (num && num.status === 200 && body.crisis === true && body.region === turn.region) {
+            const wavFile = join(OUT, 'r2-fx027', `${voice}-${turn.id}.wav`);
+            writeFileSync(wavFile, num.wav);
+            const tr = await transcribe(gw, to16k(num.wav, `${voice}-${turn.id}`));
+            row.transcript = tr.json?.text; row.digits = digitsOf(tr.json?.text ?? ''); row.heard = row.digits.includes(turn.number); row.wav = wavFile; row.number_part = num.text;
+          }
+        }
+        rows.push(row);
       }
     }
   } finally { await gw.stop(); record('TC-272', { rows }); }
   const heard = rows.filter((r) => r.heard).length;
-  console.log(`TC-272 number heard ${heard}/${rows.length}; missed: ${JSON.stringify(rows.filter((r) => !r.heard).map((r) => [r.voice, r.reply, r.transcript]))}`);
-  assert.ok(rows.every((r) => r.valid_run), `a run is valid only if every part's voice_used is the set voice: ${JSON.stringify(rows.filter((r) => !r.valid_run).map((r) => [r.voice, r.reply]))}`);
+  const voiceUsed = Object.fromEntries(cs.voices.map((v) => { const u = [...new Set(rows.filter((r) => r.voice === v).flatMap((r) => r.voices))].sort(); return [v, u.length === 1 ? u[0] : u]; }));
+  console.log(`TC-272 number heard ${heard}/${rows.length}; missed: ${JSON.stringify(rows.filter((r) => !r.heard).map((r) => [r.voice, r.turn, r.transcript ?? `respond ${r.respond_status}`]))}; voice_used ${JSON.stringify(voiceUsed)}`);
+  assert.deepEqual(voiceUsed, expected.voice_used, 'voice_used per voice (Q31)');
+  const heardMap = {};
+  for (const r of rows) (heardMap[r.voice] ??= {})[r.turn] = r.heard;
   for (const v of Object.keys(expected.number_heard)) for (const [rid, want] of Object.entries(expected.number_heard[v])) {
-    const row = rows.find((r) => r.voice === v && r.reply === rid);
-    assert.equal(row.heard, want, `${v} ${rid}: number ${row.number} not heard in ${JSON.stringify(row.transcript)} (digits ${row.digits})`);
+    const row = rows.find((r) => r.voice === v && r.turn === rid);
+    assert.equal(row.heard, want, `${v} ${rid}: number ${row.number} not heard in ${JSON.stringify(row.transcript)} (digits ${row.digits}; respond ${row.respond_status} crisis ${row.crisis} region ${row.region}; voices ${row.voices})`);
   }
+  assert.deepEqual(heardMap, expected.number_heard);
   assert.equal(heard, 36);
 });
 

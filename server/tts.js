@@ -1,13 +1,17 @@
 // Client of the resident companion-tts helper over stdio JSON lines, and the reply → spoken parts split (03 DES-017, DES-018).
 // R2 (DES-041): each line carries the voice voiceOf() gives when the line is written; the helper echoes the voice it used.
+// Phase 5 (DES-050): a crisis part in a CRISIS_VOICE_FOR voice is read by CRISIS_VOICE (voiceFor), still decided at the write.
 import { createInterface } from 'node:readline';
 import { SENTENCE } from './bonsai.js';
-import { CONFIG } from './config.js';
+import { CONFIG, CRISIS_VOICE, CRISIS_VOICE_FOR } from './config.js';
 import { ApiError } from './errors.js';
 import { log } from './log.js';
 import { supervise } from './supervisor.js';
 
 /** @typedef {'ryan'|'aiden'|'ono-anna'|'sohee'|'eric'|'dylan'|'serena'|'vivian'|'uncle-fu'} Voice */
+// The voice a part is read in: the chosen voice, except a crisis part in a voice that missed the number (Q31).
+export const voiceFor = (voice, crisis) => (crisis && CRISIS_VOICE_FOR.includes(voice) ? CRISIS_VOICE : voice);
+
 // voiceOf: the voice to read with, asked when a part is handed to the helper (queued parts follow a change). say: one human line.
 export function createTts(cfg = CONFIG, { voiceOf = () => cfg.tts.voice, say = (t) => process.stderr.write(`${t}\n`) } = {}) {
   let proc = null;
@@ -43,7 +47,7 @@ export function createTts(cfg = CONFIG, { voiceOf = () => cfg.tts.voice, say = (
     const item = queue.shift();
     slot = item;
     item.written = Date.now();
-    item.voice = voiceOf();
+    item.voice = voiceFor(voiceOf(), item.crisis);
     overdue = setTimeout(() => {
       overdue = null;
       // The supervisor logs child_exit and restarts; onExit then settles the slot and the queue `unavailable`.
@@ -87,7 +91,7 @@ export function createTts(cfg = CONFIG, { voiceOf = () => cfg.tts.voice, say = (
       } else if (typeof msg.wav === 'string') {
         log('info', 'tts_done', {
           ms: Date.now() - item.started, queued_ms: item.written - item.started, audio_ms: msg.audio_ms ?? null, chars: item.text.length, lang: item.lang,
-          voice: msg.voice ?? null,
+          voice: msg.voice ?? null, crisis: item.crisis,
         });
         // A helper built before R2 ignores the line's voice and echoes none: the audio still goes out, the user is told once.
         if (msg.voice !== item.voice && !staleSaid) {
@@ -149,13 +153,14 @@ export function createTts(cfg = CONFIG, { voiceOf = () => cfg.tts.voice, say = (
     get pid() {
       return proc?.pid ?? null;
     },
-    speak(text, lang, signal) {
+    // crisis: the part belongs to the latest crisis reply (main.js crisisSpeech); only changes the voice (voiceFor).
+    speak(text, lang, signal, crisis = false) {
       const state = proc?.state ?? 'down';
       if (state === 'starting') return Promise.reject(new ApiError('not_ready', 'tts'));
       if (state !== 'ready' || !proc.child) return Promise.reject(new ApiError('unavailable', 'tts'));
       if (signal.aborted) return Promise.reject(signal.reason);
       return new Promise((resolve, reject) => {
-        const item = { id: ++nextId, text, lang, signal, resolve, reject, started: Date.now(), written: null, done: false };
+        const item = { id: ++nextId, text, lang, crisis: crisis === true, signal, resolve, reject, started: Date.now(), written: null, done: false };
         item.onAbort = () => drop(item, signal.reason);
         // Deadline from the call: queue wait + generation.
         item.timer = setTimeout(() => drop(item, new ApiError('timeout', 'tts')), cfg.deadlines.speakMs);

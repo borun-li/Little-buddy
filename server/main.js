@@ -1,6 +1,7 @@
 // Entry: file check, port checks, HTTP routes, request checks, start and stop (03 DES-001, DES-022);
 // R1: local-origin check, /api/profile, /api/diary, /api/forget, per-turn mood record, update queue and help region (DES-036).
 // R2: look and voice on /api/profile (DES-044); read-aloud voice from the profile, growth with up on every respond 200 (DES-045).
+// Phase 5 (DES-049): the parts of the latest crisis reply are remembered so /api/speak can pass crisis to the reader (DES-050).
 // node server/main.js [--warm-only]
 import { createServer } from 'node:http';
 import { join, resolve } from 'node:path';
@@ -35,6 +36,10 @@ const children = {
 let ttsStarted = false;
 let memory = null;
 let replyNotes = null; // per run: the notes one chat keeps, so the reply's prompt prefix stays cached
+// Keys of the latest respond 200's speech parts when that turn was a crisis turn, else empty; memory only, never logged.
+// The page reads only the newest reply, so the latest one is enough (DES-049 step 4).
+const partKey = (text, lang) => `${lang}\n${text}`;
+let crisisSpeech = new Set();
 
 export function attachMemory(s, m) {
   store = s;
@@ -214,7 +219,10 @@ async function handleApi(req, res, path) {
       // region: the turn's effective help-line region; the page's crisis card picks its numbers from it.
       // growth: after this turn's mood is recorded (the day's first turn already counts); up only from this turn's record.
       const up = ref?.up ?? null;
-      sendJson(res, 200, { ...turn, region, speech: speechParts(turn.reply, turn.lang), growth: { ...store.growth(), up } });
+      const speech = speechParts(turn.reply, turn.lang);
+      // Every 200 replaces the set: a crisis turn's parts, or nothing (an older crisis reply's parts go back to the chosen voice).
+      crisisSpeech = new Set(turn.crisis ? speech.map((p) => partKey(p, turn.lang)) : []);
+      sendJson(res, 200, { ...turn, region, speech, growth: { ...store.growth(), up } });
       const queued = skip === null && !turn.crisis;
       if (queued) memory.enqueue({ gen: at.gen, ref, line, lang: turn.lang });
       log('info', 'memory_turn', { mood_written: ref !== null, queued, skip, up });
@@ -249,7 +257,8 @@ async function handleApi(req, res, path) {
     res.on('close', () => {
       if (!res.writableFinished) ac.abort();
     });
-    const wav = await children.tts.speak(text, lang, ac.signal);
+    // text is trimmed by parseSpeak, the same shape as a speechParts part.
+    const wav = await children.tts.speak(text, lang, ac.signal, crisisSpeech.has(partKey(text, lang)));
     res.writeHead(200, { 'Content-Type': 'audio/wav', 'Content-Length': wav.length, 'Cache-Control': 'no-store' });
     return res.end(wav);
   }
