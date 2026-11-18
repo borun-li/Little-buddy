@@ -801,12 +801,13 @@ def s_r2_growth(a, pw):  # Q-061: the 成长 block look-ui.js draws for each day
     dismiss_notice(pg)
     out = pg.page.evaluate("""async (days) => {
       const { createLookUi } = await import('/js/look-ui.js');
-      const { growthOf } = await import('/js/look-client.js');
+      // the 01-ux "Growth bar values" table, written here (look-client.js no longer computes growth: the service does)
+      const growthOf = (d) => (d < 3 ? { days: d, stage: 1, into: d, span: 3, left: 3 - d } : d < 7 ? { days: d, stage: 2, into: d - 3, span: 4, left: 7 - d } : { days: d, stage: 3, into: 1, span: 1, left: 0 });
       const rows = [];
       for (const d of days) {
         const client = { getLook: async () => ({ character: 1, outfit: { head: 'none', clothes: 'none', shoes: 'none', accessory: 'none' } }),
           getVoice: async () => 'serena', getGrowth: async () => growthOf(d), setLook: async () => { throw new Error('x'); }, setVoice: async () => 'serena',
-          setDemoDays: async (n) => growthOf(n), preview: async () => {} };
+          preview: async () => {} };
         const panel = document.createElement('section'); document.body.append(panel);
         await createLookUi({ client }).render(panel);
         const next = panel.querySelector('[data-testid=growth-next]'); const bar = panel.querySelector('[data-testid=growth-bar]');
@@ -851,7 +852,7 @@ def s_r2_fit(a, pw):  # Q-067: no sideways scroll at one width and language, cha
 # status span and every burst / caption spark added. t = ms since window.__rec.reset() (or since navigation start).
 RECORDER = r"""(() => {
   if (window.top !== window) return;
-  const R = window.__rec = { t0: 0, samples: [], said: [], added: [], anims: new Set() };
+  const R = window.__rec = { boot: Math.random(), t0: 0, samples: [], said: [], added: [], anims: new Set() };
   const now = () => Math.round(performance.now() - R.t0);
   R.reset = () => { R.t0 = performance.now(); R.samples = []; R.said = []; R.added = []; R.anims = new Set(); };
   const txt = (sel) => { const e = document.querySelector(sel); return e ? e.textContent : null; };
@@ -863,6 +864,8 @@ RECORDER = r"""(() => {
     const t = a.effect ? a.effect.target : null;
     return { kind: a.constructor.name, target: cls(t), props, duration: a.effect ? a.effect.getTiming().duration : null };
   });
+  const rids = new WeakMap(); let rn = 0;  // which reply element is the newest: a new one = this turn's reply has arrived
+  const rid = (e) => (e ? (rids.has(e) ? rids.get(e) : (rids.set(e, ++rn), rn)) : 0);
   function sample() {
     const root = document.querySelector('[data-testid=companion]');
     if (!root) return;
@@ -874,7 +877,7 @@ RECORDER = r"""(() => {
     const gs = document.querySelector('[data-testid=growth-spark]');
     const st = root.nextElementSibling && root.nextElementSibling.getAttribute('role') === 'status' ? root.nextElementSibling : null;
     R.samples.push({
-      t: now(), mood: root.dataset.mood, stage: root.dataset.stage,
+      t: now(), rid: rid(document.querySelector('[data-testid=reply]')), mood: root.dataset.mood, stage: root.dataset.stage,
       face: (root.querySelector('.companion__layers > .companion__layer:last-child') || { dataset: {} }).dataset.moodLayer || null,
       name: txt('.companion__caption .caption__name'), phrase: txt('.companion__caption .caption__phrase'),
       sparks: [...document.querySelectorAll('.caption__spark')].map((b) => ({ prev: cls(b.previousElementSibling), inPv: !!b.closest('.companion--preview'),
@@ -905,11 +908,14 @@ RECORDER = r"""(() => {
   new MutationObserver(watch).observe(document, { childList: true, subtree: true, characterData: true });
 })()"""
 
-REC_READ = "(() => { const R = window.__rec; return { samples: R.samples, said: R.said, added: R.added, anims: R.animSigs(), seen: localStorage.getItem('companion.stageSeen') }; })()"
+REC_READ = """(() => { const R = window.__rec; return { samples: R.samples, said: R.said, added: R.added, anims: R.animSigs(), stored: Object.keys(localStorage).sort(),
+  line: (document.querySelector('[data-testid=growth-line]') || {}).textContent ?? null, stage: document.querySelector('[data-testid=companion]').dataset.stage,
+  character: document.querySelector('[data-testid=companion]').dataset.character, boot: window.__rec.boot,
+  card: !!document.querySelector('.crisis-card'), bursts: document.querySelectorAll('.companion__burst').length }; })()"""
 
 
-def s_r2_stageup(a, pw):  # Q-062/063/064, CMP-033, DFB-004: steps = [{open} | {days: n} | {reload, set: {key: value}}, each with ms]; one recording per step
-    pg = Page(pw, a['base'], a.get('lang', 'zh'), width=a.get('width', 1440), height=a.get('height', 900), storage=a.get('storage'), once=True)
+def s_r2_stageup(a, pw):  # Q-062/063/064/074/075, CMP-033: steps = [{open} | {reload} | {send: line, drawer: bool} | {forget}, each with ms]; one recording per step
+    pg = Page(pw, a['base'], a.get('lang', 'zh'), width=a.get('width', 1440), height=a.get('height', 900))
     if a.get('reduce'):
         pg.page.emulate_media(reduced_motion='reduce')
     pg.ctx.add_init_script(RECORDER)
@@ -919,30 +925,133 @@ def s_r2_stageup(a, pw):  # Q-062/063/064, CMP-033, DFB-004: steps = [{open} | {
     steps = []
     drawer = False
     for st in a['steps']:
+        pre = None
+        before = None
         if st.get('open'):  # the first open itself (t from navigation start)
             pass
         elif st.get('reload'):
-            for k, v in (st.get('set') or {}).items():
-                pg.page.evaluate('([k, v]) => localStorage.setItem(k, v)', [k, v])
             pg.page.reload()
             pg.page.wait_for_function(READY, timeout=10000)
             drawer = False
-        else:
+        elif 'send' in st:
             if pg.visible('[data-testid=memory-notice]'):
                 dismiss_notice(pg)
-            if not drawer:
+            if st.get('drawer') and not drawer:
                 pg.open_drawer('look')
-                pg.page.wait_for_selector('[data-testid=demo-days]', timeout=8000)
-                pg.settle(st.get('before', 2600))  # any open-time moment and the drawer's own motion are over
+                pg.page.wait_for_selector('[data-testid=growth-bar]', timeout=8000)
+                pg.settle(st.get('before', 2600))  # the drawer's own motion is over
                 drawer = True
-            pg.page.fill('[data-testid=demo-days]', str(st['days']))
             pre = pg.page.evaluate("[document.querySelector('.companion__caption .caption__name').textContent, document.querySelector('.companion__caption .caption__phrase').textContent]")
+            before = pg.page.evaluate("(() => { const l = document.querySelector('[data-testid=growth-line]'); const g = document.querySelector('[data-testid=growth-spark]'); return { line: l ? l.textContent : null, band: g ? g.dataset.band : null, box: g ? [g.getBoundingClientRect().width, g.getBoundingClientRect().height] : null, demoField: !!document.querySelector('[data-testid=demo-days]') }; })()")
             pg.page.evaluate('window.__rec.reset()')
-            pg.page.press('[data-testid=demo-days]', 'Enter')
+            if drawer:  # the page behind the drawer is inert: the same Enter keydown the page listens for, sent by script
+                pg.page.evaluate("([sel, v]) => { const i = document.querySelector(sel); i.value = v; i.dispatchEvent(new Event('input', { bubbles: true })); i.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', keyCode: 13, bubbles: true })); }", [INPUT, st['send']])
+            else:
+                pg.page.fill(INPUT, st['send'])
+                pg.page.press(INPUT, 'Enter')
+        elif st.get('forget'):
+            boot = pg.page.evaluate('window.__rec.boot')  # 删掉 in the 关于你 tab, then back to the look tab when asked
+            if not drawer:
+                pg.open_drawer('about')
+                drawer = True
+            else:
+                pg.page.click('[data-testid=tab-about]')
+            pg.page.wait_for_selector('[data-testid=forget]', timeout=8000)
+            pg.page.click('[data-testid=forget]')
+            pg.page.wait_for_selector('[data-testid=forget-yes]', timeout=3000)
+            pg.page.evaluate('window.__rec.reset()')
+            pg.page.click('[data-testid=forget-yes]')
+            pg.page.wait_for_selector('[data-testid=forget-result]', timeout=5000)
+            pg.settle(300)
+            if st.get('look'):
+                pg.page.click('[data-testid=tab-look]')
+                pg.page.wait_for_selector('[data-testid=growth-bar]', timeout=8000)
         pg.settle(st.get('ms', 3800))
-        steps.append({**pg.page.evaluate(REC_READ), 'pre': pre if 'days' in st else None})
+        rec = pg.page.evaluate(REC_READ)
+        if 'send' in st:  # t = ms after this turn's reply appeared (the moment starts with it, not with Enter)
+            S = rec['samples']
+            at = next((x['t'] for x in S if x['rid'] != S[0]['rid']), None)
+            rec['replyAt'] = at
+            if at is not None:
+                for x in S: x['t'] -= at
+                for x in rec['said'] + rec['added']: x['t'] -= at
+        if st.get('forget'):
+            rec['sameBoot'] = rec['boot'] == boot
+        steps.append({**rec, 'pre': pre, 'before': before})
     pg.close()
     return {'steps': steps, 'errors': errors}
+
+
+MEASURE = r"""(sel) => {
+  const R = (e) => { if (!e) return null; const r = e.getBoundingClientRect(); return [r.left, r.top, r.width, r.height].map((v) => Math.round(v * 10) / 10); };
+  const lines = (e) => { const g = document.createRange(); g.selectNodeContents(e); return new Set([...g.getClientRects()].map((r) => Math.round(r.top))).size; };
+  const bar = [...document.querySelectorAll('.drawer__bar button')].filter((b) => b.offsetWidth);
+  const rows = []; // buttons whose boxes share vertical space are one row
+  for (const b of bar.map((x) => x.getBoundingClientRect()).sort((a, b) => a.top - b.top)) {
+    const row = rows.find((r) => b.top < r.bottom - 1 && b.bottom > r.top + 1);
+    if (row) { row.top = Math.min(row.top, b.top); row.bottom = Math.max(row.bottom, b.bottom); } else rows.push({ top: b.top, bottom: b.bottom });
+  }
+  const tabs = [...document.querySelectorAll('.drawer__tabs [role=tab]')].map((t) => ({ text: t.textContent.trim(), lines: lines(t), h: R(t)[3] }));
+  const slots = [...document.querySelectorAll('.look__slot')].map((g) => ({
+    legend: R(g.querySelector('.look__legend')), legendText: g.querySelector('.look__legend').textContent,
+    opts: [...g.querySelectorAll('.look__opt')].map((o) => ({ opt: R(o), tile: R(o.querySelector('.tile')), name: R(o.querySelector('.tile__name')), text: o.querySelector('.tile__name').textContent })),
+  }));
+  const vis = (q) => { const e = document.querySelector(q); return e ? getComputedStyle(e).visibility : null; };
+  return { rows: rows.length, tabs, slots, scrollW: [document.documentElement.scrollWidth, document.documentElement.clientWidth],
+           drawerW: (() => { const d = document.querySelector('.drawer__scroll') || document.querySelector('.drawer'); return [d.scrollWidth, d.clientWidth]; })(),
+           actions: vis('.stage-actions'), langs: vis('.stage .lang-switch') ?? vis('.lang-switch'), companion: R(document.querySelector('[data-testid=companion]')) };
+}"""
+
+
+def s_r2_bar(a, pw):  # Q-068/069/070: the stage top bar while the drawer is open and when it closes; the drawer bar rows; the outfit grid in both languages
+    pg = Page(pw, a['base'], a.get('lang', 'zh'), width=a['width'], height=a.get('height', 900)).goto()
+    dismiss_notice(pg)
+    pg.settle(300)
+    out = {'before': pg.page.evaluate(MEASURE, None)}
+    # at the moment the opener gets focus back, record how the stage bar is drawn (it must already be back)
+    pg.page.evaluate("""() => { window.__atFocus = null; document.querySelector('[data-testid=open-look]').addEventListener('focus', () => {
+      window.__atFocus = { actions: getComputedStyle(document.querySelector('.stage-actions')).visibility, langs: getComputedStyle(document.querySelector('.lang-switch')).visibility, hasDrawer: document.body.classList.contains('has-drawer') }; }); }""")
+    pg.open_drawer('look')
+    pg.page.wait_for_selector('[data-testid=growth-bar]', timeout=8000)
+    pg.settle(2700)  # the drawer's own motion is over
+    out['open'] = pg.page.evaluate(MEASURE, None)
+    tabbed = []  # Tab around the open drawer: focus must stay inside it, never reach the hidden bar
+    for _ in range(14):
+        pg.page.keyboard.press('Tab')
+        tabbed.append(pg.page.evaluate("(() => { const e = document.activeElement; return { inDrawer: !!e.closest('.drawer'), inBar: !!e.closest('.stage-actions, .stage .lang-switch') }; })()"))
+    out['tabbed'] = tabbed
+    out['inertMain'] = pg.page.evaluate("document.querySelector('main.page').inert")
+    other = 'en' if a.get('lang', 'zh') == 'zh' else 'zh'
+    pg.page.click('.drawer__end [data-lang=%s]' % other)
+    pg.settle(700)
+    out['switched'] = pg.page.evaluate(MEASURE, None)
+    out['switchedLang'] = other
+    pg.page.click('[data-testid=drawer-close]')
+    pg.settle(400)
+    out['closed'] = pg.page.evaluate(MEASURE, None)
+    out['atFocus'] = pg.page.evaluate('window.__atFocus')
+    out['focus'] = pg.page.evaluate(FOCUS)
+    pg.close()
+    return out
+
+
+def s_r2_spark(a, pw):  # Q-071: the three spark bands as the page builds them (several copies at once), as plain element lists
+    pg = Page(pw, a['base'], width=1440, height=900).goto()
+    out = pg.page.evaluate("""async (bands) => {
+      const { sparkSvg } = await import('/js/stage-up.js');
+      const host = document.createElement('div'); document.body.append(host);
+      const copies = bands.map((b) => { const s = sparkSvg(b); host.append(s); return s; });
+      const ids = [...document.querySelectorAll('[id]')].map((e) => e.id);
+      const els = (svg) => [...svg.querySelectorAll('*')].map((e) => ({ tag: e.localName,
+        attrs: Object.fromEntries([...e.attributes].filter((x) => x.name !== 'id' && x.name !== 'class' && x.name !== 'data-paint').map((x) => [x.name, x.value])),
+        id: e.id || null }));
+      const svgs = copies.map((s) => ({ attrs: Object.fromEntries([...s.attributes].map((x) => [x.name, x.value])), els: els(s), box: (() => { const r = s.getBoundingClientRect(); return [r.width, r.height]; })() }));
+      const dangling = [...document.querySelectorAll('[fill^="url("]')].map((e) => e.getAttribute('fill').slice(4, -1)).filter((r) => !r.startsWith('#') || !document.getElementById(r.slice(1)));
+      const seen = new Set(); const dups = ids.filter((i) => (seen.has(i) ? true : (seen.add(i), false)));
+      return { svgs, ids: ids.filter((i) => i.startsWith('spark')), dups, dangling };
+    }""", a['bands'])
+    pg.close()
+    return out
 
 
 SCEN = {k[2:]: v for k, v in globals().items() if k.startswith('s_')}

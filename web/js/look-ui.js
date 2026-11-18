@@ -1,10 +1,10 @@
 // R2 (docs/frontend/r2-personalise/01-ux.md PAGE-004, Increment 1; 02-ui.md CMP-024..029): the body of the third drawer tab 形象和声音.
 // Order top to bottom: 角色 (three discs) · 穿搭 (4 slots, 不穿 + 3 tiles) · 声音 (9 rows, 试听) · 成长 (plant, line, day segments,
-// 再聊 N 天长大, demo days). Data comes only through the injected client (look-client.js); every word is lt() from look-copy.js;
+// 再聊 N 天长大). Data comes only through the injected client (look-client.js); every word is lt() from look-copy.js;
 // all text goes in with textContent. Each group is native radios in a fieldset: Tab enters at the selected one, arrows move and
 // select (01-ux.md §2). Art: look-art.js (discs, tiles, plant icon), all from the inlined templates and look-art-data.js.
 import { lt, voiceName } from './look-copy.js';
-import { SLOTS, CHARACTERS, ITEMS, VOICES, DEMO_MAX } from './look-client.js';
+import { SLOTS, CHARACTERS, ITEMS, VOICES } from './look-client.js';
 import { CHARACTER_IDS, discArt, tileSvg, plantIcon } from './look-art.js';
 import { setSpark, bandOf } from './stage-up.js';
 
@@ -26,11 +26,12 @@ const icon = (id, cls) => {
   return svg;
 };
 
-export function createLookUi({ client, onLook, onGrowth, onVoice, createPreview }) {
+export function createLookUi({ client, onLook, onVoice, createPreview }) {
   let playing = null; // { id, ctrl, btn, reset } while a sample plays
   let pv = null;      // the phone preview (Q-064)
   let status = null;  // Q-062: the 成长 block's polite status (the page is inert while the drawer is open)
   let upTimer = null; // Q-062: the 成长 stage-up sequence
+  let paintGrowth = null; // Q-074: repaints the 成长 block on screen (null until the tab is drawn)
 
   function stop() {
     if (pv) { pv.destroy(); pv = null; }
@@ -180,12 +181,13 @@ export function createLookUi({ client, onLook, onGrowth, onVoice, createPreview 
     let painted = null;
     // A rise in stage (FLOW-027 step 3): the line reads growth.up, this stage's bar fills (400 ms), holds 1 s, then the new
     // stage's bar refills from empty; the spark steps up with the fill. Reduced motion: the bar and spark jump, the words stay.
-    function paint(g) {
+    // Q-074: only a reply carrying growth.up rises (rise); any other new value (a quiet crisis turn, forget me) is just drawn.
+    function paint(g, { rise = false } = {}) {
       clearTimeout(upTimer); upTimer = null;
       const prev = painted; painted = g;
       const band = bandOf(g.days);
-      const rose = prev && g.stage > prev.stage;
-      setSpark(spark, band, { grow: !!prev && band > Number(spark.dataset.band) && !reduceMotion() });
+      const rose = rise && prev && g.stage > prev.stage;
+      setSpark(spark, band, { grow: !!rose && band > Number(spark.dataset.band) && !reduceMotion() });
       if (rose) {
         line.textContent = lt('up');
         if (!reduceMotion()) {
@@ -221,36 +223,13 @@ export function createLookUi({ client, onLook, onGrowth, onVoice, createPreview 
     }
     top.append(line, spark);
     paint(first);
-
-    // demo field (REQ-064): dashed, 演示用; removed with C-015
-    const demoWrap = h('div', 'growth__demo-wrap');
-    const demo = h('div', 'growth__demo');
-    const id = 'demo-days';
-    const input = h('input', 'input', null, { id, type: 'text', inputmode: 'numeric', autocomplete: 'off', 'data-testid': 'demo-days' });
-    input.value = String(first.days);
-    const msg = h('p', 'field-msg', '', { role: 'alert', 'data-testid': 'demo-days-msg' });
-    let shown = first.days;
-    let busy = false;
-    async function commit() {
-      if (busy) return;
-      const raw = input.value.trim();
-      const n = /^\d+$/.test(raw) ? Number(raw) : NaN;
-      if (n === shown && raw !== '') { input.value = String(shown); msg.textContent = ''; input.classList.remove('is-error'); return; }
-      if (!Number.isInteger(n) || n > DEMO_MAX) { msg.textContent = lt('demoDaysRange'); input.classList.add('is-error'); return; } // old value kept
-      busy = true; msg.textContent = ''; input.classList.remove('is-error');
-      try { const g = await client.setDemoDays(n); shown = g.days; paint(g); onGrowth?.(g); } catch {
-        input.value = String(shown); msg.textContent = lt('lookSaveFailed');
-      }
-      busy = false;
-    }
-    input.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.isComposing && e.keyCode !== 229) { e.preventDefault(); commit(); } });
-    input.addEventListener('change', commit);
-    input.addEventListener('blur', () => { if (msg.textContent) { input.value = String(shown); input.classList.remove('is-error'); } else commit(); });
-    demo.append(h('label', 'growth__demo-label', lt('demoDays'), { for: id }), input, h('span', 'growth__demo-note', lt('demoNote')));
-    demoWrap.append(demo, msg);
-    sec.append(top, bar, next, demoWrap, status);
+    paintGrowth = (g, opts) => { if (sec.isConnected) paint(g, opts); };
+    sec.append(top, bar, next, status);
     return sec;
   }
+
+  // Q-074: a reply's growth (or the re-read after forget me) lands in the 成长 block when the tab is on screen; rise = growth.up
+  function showGrowth(g, { rise = false } = {}) { paintGrowth?.(g, { rise }); }
 
   // Q-062: growth.upSaid, once, when the stage rises while the drawer is open (app.js picks this or the companion's status)
   function say(text) {
@@ -259,5 +238,5 @@ export function createLookUi({ client, onLook, onGrowth, onVoice, createPreview 
     setTimeout(() => { if (status) status.textContent = text; }, 50); // written after the line is drawn, so it is spoken
   }
 
-  return { render, stop, say };
+  return { render, stop, say, showGrowth };
 }
