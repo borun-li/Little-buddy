@@ -4,14 +4,14 @@
       "id": "FX-027-01",
       "voice_used": {
         "ryan": "serena",
-        "aiden": "aiden",
-        "ono-anna": "ono-anna",
-        "sohee": "sohee",
+        "aiden": "serena",
+        "ono-anna": "serena",
+        "sohee": "serena",
         "eric": "serena",
-        "dylan": "dylan",
+        "dylan": "serena",
         "serena": "serena",
-        "vivian": "vivian",
-        "uncle-fu": "uncle-fu"
+        "vivian": "serena",
+        "uncle-fu": "serena"
       },
       "number_heard": {
         "ryan": {

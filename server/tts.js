@@ -1,16 +1,16 @@
 // Client of the resident companion-tts helper over stdio JSON lines, and the reply → spoken parts split (03 DES-017, DES-018).
 // R2 (DES-041): each line carries the voice voiceOf() gives when the line is written; the helper echoes the voice it used.
-// Phase 5 (DES-050): a crisis part in a CRISIS_VOICE_FOR voice is read by CRISIS_VOICE (voiceFor), still decided at the write.
+// Phase 5 (DES-050): Q35: a crisis part is read by CRISIS_VOICE whatever the chosen voice (voiceFor), still decided at the write.
 import { createInterface } from 'node:readline';
 import { SENTENCE } from './bonsai.js';
-import { CONFIG, CRISIS_VOICE, CRISIS_VOICE_FOR } from './config.js';
+import { CONFIG, CRISIS_VOICE } from './config.js';
 import { ApiError } from './errors.js';
 import { log } from './log.js';
 import { supervise } from './supervisor.js';
 
 /** @typedef {'ryan'|'aiden'|'ono-anna'|'sohee'|'eric'|'dylan'|'serena'|'vivian'|'uncle-fu'} Voice */
-// The voice a part is read in: the chosen voice, except a crisis part in a voice that missed the number (Q31).
-export const voiceFor = (voice, crisis) => (crisis && CRISIS_VOICE_FOR.includes(voice) ? CRISIS_VOICE : voice);
+// The voice a part is read in: the chosen voice, except a crisis part (Q35).
+export const voiceFor = (voice, crisis) => (crisis ? CRISIS_VOICE : voice);
 
 // voiceOf: the voice to read with, asked when a part is handed to the helper (queued parts follow a change). say: one human line.
 export function createTts(cfg = CONFIG, { voiceOf = () => cfg.tts.voice, say = (t) => process.stderr.write(`${t}\n`) } = {}) {

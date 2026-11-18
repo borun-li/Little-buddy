@@ -9,11 +9,9 @@ const HF = join(homedir(), 'Documents', 'huggingface');
 const SIZES = ['2B', '4B', '9B'];
 // Qwen3-TTS speakers (TTSKit Qwen3Models.swift:90-94).
 export const VOICES = ['ryan', 'aiden', 'ono-anna', 'sohee', 'eric', 'dylan', 'serena', 'vivian', 'uncle-fu'];
-// Q31 (user, Plan 2026-11-18; 03 DES-050): the latest crisis reply is read by CRISIS_VOICE when the chosen voice is in
-// CRISIS_VOICE_FOR. Add a voice when an FX-027-01 run misses the number in it (cite the evidence); removing one needs its own
-// TC-272 run (reading serena) and the user's yes. No environment variable.
+// Q35 (user, 2026-11-18, replaces Q31 and 03 DES-050's per-voice set): every crisis reply is read by CRISIS_VOICE,
+// whatever voice is chosen. No environment variable.
 export const CRISIS_VOICE = 'serena';
-export const CRISIS_VOICE_FOR = ['ryan', 'eric']; // missed the number in FX-027-01: TC-272, 2026-11-18 (ryan zh-CN, en-CN; eric zh-US), test-results/r2-live/TC-272.json
 
 function envPort(name, fallback) {
   const raw = process.env[name];

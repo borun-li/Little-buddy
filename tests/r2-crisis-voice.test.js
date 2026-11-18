@@ -1,4 +1,4 @@
-// R2 Full Phase 5 amendment A3 (fake helper): TC-277..TC-281, DES-049 (main.js crisisSpeech) and DES-050 (tts.js voiceFor, config CRISIS_VOICE_FOR).
+// R2 Full Phase 5 amendment A3 (fake helper): TC-277..TC-281, DES-049 (main.js crisisSpeech) and DES-050 (tts.js voiceFor). Round 3 (be-tester #4): repointed to Q35, every crisis part is serena whatever the voice.
 // be-tester #2. Plan: docs/backend/04-test-plan.md § G. Expected values come from 03 § Phase 5 amendment A3, 01 REQ-075 and Q31 (the code was
 // not read for the expectations). The real server/main.js and server/tts.js run; the TTS helper is tests/support/fake-tts.cjs (DES-040 protocol).
 // Two traps (be-developer #2): tts_done.crisis is true for ANY voice on a crisis part, so the voice read is asserted from tts_done.voice and from
@@ -41,8 +41,9 @@ const crisisTurn = async (gw, line, region) => {
 };
 
 // ---------------------------------------------------------------- TC-277
-test('TC-277 [FX-027-01] REQ-075 (A3, DES-049/050): ryan and eric crisis parts (zh and en, US and CN) are read by serena: helper line voice and tts_done.voice', async () => {
-  for (const voice of ['ryan', 'eric']) {
+test('TC-277 [FX-027-01] REQ-075 (Q35, DES-050): every one of the 9 chosen voices: crisis parts (zh and en, US and CN) are read by serena: helper line voice and tts_done.voice', async () => {
+  assert.equal(VOICES.length, 9);
+  for (const voice of VOICES) {
     const gw = await gateway(voice);
     try {
       for (const [line, region] of [[CRISIS_ZH, 'US'], [CRISIS_EN, 'US'], [CRISIS_ZH, 'CN'], [CRISIS_EN, 'CN']]) {
@@ -58,17 +59,20 @@ test('TC-277 [FX-027-01] REQ-075 (A3, DES-049/050): ryan and eric crisis parts (
 });
 
 // ---------------------------------------------------------------- TC-278
-test('TC-278 [FX-027-01] REQ-075 (A3): dylan keeps dylan on crisis parts (tts_done.crisis is true, the voice is not changed); the other 6 voices outside the set too', async () => {
-  const keep = VOICES.filter((v) => !['ryan', 'eric'].includes(v));
-  assert.ok(keep.includes('dylan') && keep.length === 7);
-  for (const voice of keep) {
+test('TC-278 [FX-027-01] REQ-075 (Q35): dylan (and every other voice) on a crisis reply is serena on all parts; the normal reply after it is read in the chosen voice again', async () => {
+  for (const voice of ['dylan', 'aiden', 'vivian', 'uncle-fu']) {
     const gw = await gateway(voice);
     try {
       const body = await crisisTurn(gw, CRISIS_ZH, 'CN');
-      const parts = await readParts(gw, body);
-      for (const p of parts) {
-        assert.deepEqual(p.line, [voice], `${voice}: helper line for ${p.text}`);
-        assert.deepEqual(p.done, [{ voice, crisis: true }], `${voice}: tts_done for ${p.text}`);
+      for (const p of await readParts(gw, body)) {
+        assert.deepEqual(p.line, ['serena'], `${voice}: helper line for ${p.text}`);
+        assert.deepEqual(p.done, [{ voice: 'serena', crisis: true }], `${voice}: tts_done for ${p.text}`);
+      }
+      const t = await say(gw, NORMAL);
+      assert.equal(t.json.crisis, false);
+      for (const p of await readParts(gw, t.json)) {
+        assert.deepEqual(p.line, [voice], `${voice}: normal part ${p.text}`);
+        assert.deepEqual(p.done, [{ voice, crisis: false }], `${voice}: normal tts_done ${p.text}`);
       }
     } finally { await gw.stop(); }
   }
@@ -95,7 +99,7 @@ test('TC-279 REQ-075 (A3): ryan on normal parts stays ryan (tts_done.crisis fals
 });
 
 // ---------------------------------------------------------------- TC-280
-test('TC-280 REQ-075 (A3, DES-049 step 3-4): an old crisis part spoken after a non-crisis reply keeps the chosen voice (ryan); a part of the latest crisis reply still reads serena; the same part in another language is not a crisis part', async () => {
+test('TC-280 REQ-075 (Q35, DES-049 step 3-4): an old crisis part spoken after a non-crisis reply keeps the chosen voice (ryan); a part of the latest crisis reply still reads serena; the same part in another language is not a crisis part', async () => {
   const gw = await gateway('ryan');
   try {
     const crisis = await crisisTurn(gw, CRISIS_ZH, 'CN');
@@ -114,27 +118,25 @@ test('TC-280 REQ-075 (A3, DES-049 step 3-4): an old crisis part spoken after a n
     assert.equal(asEn.status, 200);
     assert.equal(gw.lines().at(-1).voice, 'ryan', 'same text, lang en: not a crisis part');
     assert.deepEqual((await readParts(gw, { ...again, speech: [again.speech[0]] }))[0].line, ['serena']);
-    // a profile voice change between the turn and the reading is followed, as before (B-4): eric on a crisis part is serena, dylan is dylan
+    // a profile voice change between the turn and the reading is followed (B-4), but a crisis part is serena whatever the voice (Q35)
     assert.equal((await postProfile(gw, { voice: 'dylan' })).status, 200);
-    assert.deepEqual((await readParts(gw, { ...again, speech: [again.speech[0]] }))[0].line, ['dylan']);
+    assert.deepEqual((await readParts(gw, { ...again, speech: [again.speech[0]] }))[0].line, ['serena']);
     assert.equal((await postProfile(gw, { voice: 'eric' })).status, 200);
     assert.deepEqual((await readParts(gw, { ...again, speech: [again.speech[0]] }))[0].line, ['serena']);
   } finally { await gw.stop(); }
 });
 
 // ---------------------------------------------------------------- TC-281
-test('TC-281 REQ-075 (DES-050): CRISIS_VOICE_FOR is a subset of VOICES, excludes CRISIS_VOICE (serena), is not empty; voiceFor maps only crisis x member', async () => {
-  const { CRISIS_VOICE, CRISIS_VOICE_FOR, VOICES: ALL } = await imp('server/config.js');
+test('TC-281 REQ-075 (Q35, DES-050): voiceFor(v, true) is serena (CRISIS_VOICE, one of VOICES) for all 9 ids; voiceFor(v, false) and voiceFor(v) are v; no per-voice set is exported', async () => {
+  const cfg = await imp('server/config.js');
   const { voiceFor } = await imp('server/tts.js');
-  assert.ok(CRISIS_VOICE_FOR.length > 0);
-  assert.ok(CRISIS_VOICE_FOR.every((v) => ALL.includes(v)), `CRISIS_VOICE_FOR ${CRISIS_VOICE_FOR} within VOICES`);
-  assert.ok(!CRISIS_VOICE_FOR.includes(CRISIS_VOICE) && !CRISIS_VOICE_FOR.includes('serena'));
-  assert.ok(ALL.includes(CRISIS_VOICE) && CRISIS_VOICE === 'serena');
-  assert.deepEqual(ALL, VOICES, 'the test and the server agree on the 9 ids');
-  for (const v of ALL) {
-    assert.equal(voiceFor(v, true), CRISIS_VOICE_FOR.includes(v) ? CRISIS_VOICE : v, `${v} crisis`);
+  assert.equal(cfg.CRISIS_VOICE, 'serena');
+  assert.ok(cfg.VOICES.includes(cfg.CRISIS_VOICE));
+  assert.deepEqual(cfg.VOICES, VOICES, 'the test and the server agree on the 9 ids');
+  assert.equal(cfg.CRISIS_VOICE_FOR, undefined, 'Q35 retired the per-voice set');
+  for (const v of cfg.VOICES) {
+    assert.equal(voiceFor(v, true), 'serena', `${v} crisis`);
     assert.equal(voiceFor(v, false), v, `${v} normal`);
     assert.equal(voiceFor(v), v, `${v} default`);
   }
-  assert.deepEqual([...CRISIS_VOICE_FOR].sort(), ['eric', 'ryan'], 'the set is the one FX-027-01 (approved) scores: ryan and eric to serena, the other 7 themselves');
 });

@@ -10,6 +10,7 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { after, test } from 'node:test';
 import { CONFIG } from '../server/config.js';
+import { digitsOf, numberHeard, UNICODE_VERSION } from './support/number-heard.mjs';
 import { api, cleanupTmp, fcase, fx, imp, port4450, ROOT, seed, sleep, tmpDir, waitFor } from './r2-helpers.js';
 
 const ON = process.env.COMPANION_LIVE === '1';
@@ -106,15 +107,7 @@ function f0Frames(wav) {
 }
 const median = (a) => { const b = [...a].sort((x, y) => x - y); return b.length ? (b.length % 2 ? b[(b.length - 1) / 2] : (b[b.length / 2 - 1] + b[b.length / 2]) / 2) : NaN; };
 
-// ---- number_heard (FX-027 compare note)
-const LATIN = { zero: 0, oh: 0, one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9 };
-const HAN = { 零: 0, 〇: 0, 一: 1, 幺: 1, 二: 2, 两: 2, 三: 3, 四: 4, 五: 5, 六: 6, 七: 7, 八: 8, 九: 9 };
-function digitsOf(text) {
-  let t = text.normalize('NFKC').toLowerCase();
-  t = t.replace(/\b(zero|oh|one|two|three|four|five|six|seven|eight|nine)\b/g, (w) => ` ${LATIN[w]} `);
-  t = t.replace(/[零〇一幺二两三四五六七八九]/g, (c) => ` ${HAN[c]} `);
-  return t.replace(/[^0-9]/g, '');
-}
+// ---- number_heard (FX-027 compare note, Q34): the scorer is tests/support/number-heard.mjs (unit-tested in tests/number-heard.test.js; Unihan table offline)
 function to16k(wav, tag) {
   const dir = tmpDir('lb-r2wav-');
   const a = join(dir, `${tag}.wav`), b = join(dir, `${tag}-16k.wav`);
@@ -224,9 +217,9 @@ T('TC-271 [FX-026-04] REQ-074 (Q33): after serena was warmed, saving dylan, 3 co
 });
 
 // ---------------------------------------------------------------- TC-272
-// FX-027-01 as re-locked under Q31: per voice, per turn: POST /api/profile {region}, POST /api/respond (FX-009-01 / -04), read the body's speech with lang;
+// FX-027-01 as re-locked under Q35 (voice_used serena 9/9) and Q34 (number heard): per voice, per turn: POST /api/profile {region}, POST /api/respond (FX-009-01 / -04), read the body's speech with lang;
 // voice_used = the one voice of every part's tts_done (else the sorted distinct list); the number part = the LAST part holding the spelled number.
-T('TC-272 [FX-027-01] REQ-075 (Q31): real crisis turns in 9 voices (zh/en x US/CN): voice_used ryan and eric -> serena, the other 7 themselves; the number part transcribed by WhisperKit holds the number, 36 of 36', async () => {
+T('TC-272 [FX-027-01] REQ-075 (Q35): real crisis turns in 9 voices (zh/en x US/CN): voice_used serena for all 9 (expected.json); the number part transcribed by WhisperKit holds the number, 36 of 36', async () => {
   const { input: cs, expected } = fcase('FX-027', 'FX-027-01');
   const gw = await boot({ 'profile.json': R1_PROFILE }, { needReady: true });
   const rows = [];
@@ -255,22 +248,22 @@ T('TC-272 [FX-027-01] REQ-075 (Q31): real crisis turns in 9 voices (zh/en x US/C
             const wavFile = join(OUT, 'r2-fx027', `${voice}-${turn.id}.wav`);
             writeFileSync(wavFile, num.wav);
             const tr = await transcribe(gw, to16k(num.wav, `${voice}-${turn.id}`));
-            row.transcript = tr.json?.text; row.digits = digitsOf(tr.json?.text ?? ''); row.heard = row.digits.includes(turn.number); row.wav = wavFile; row.number_part = num.text;
+            row.transcript = tr.json?.text; row.digits = digitsOf(tr.json?.text ?? ''); row.heard = numberHeard(tr.json?.text ?? '', turn.number, body.lang); row.old_rule = row.digits.includes(turn.number); row.wav = wavFile; row.number_part = num.text;
           }
         }
         rows.push(row);
       }
     }
-  } finally { await gw.stop(); record('TC-272', { rows }); }
+  } finally { await gw.stop(); record('TC-272', { unicode_version: UNICODE_VERSION, rows }); }
   const heard = rows.filter((r) => r.heard).length;
   const voiceUsed = Object.fromEntries(cs.voices.map((v) => { const u = [...new Set(rows.filter((r) => r.voice === v).flatMap((r) => r.voices))].sort(); return [v, u.length === 1 ? u[0] : u]; }));
   console.log(`TC-272 number heard ${heard}/${rows.length}; missed: ${JSON.stringify(rows.filter((r) => !r.heard).map((r) => [r.voice, r.turn, r.transcript ?? `respond ${r.respond_status}`]))}; voice_used ${JSON.stringify(voiceUsed)}`);
-  assert.deepEqual(voiceUsed, expected.voice_used, 'voice_used per voice (Q31)');
+  assert.deepEqual(voiceUsed, expected.voice_used, 'voice_used per voice (Q35: serena for all 9)');
   const heardMap = {};
   for (const r of rows) (heardMap[r.voice] ??= {})[r.turn] = r.heard;
   for (const v of Object.keys(expected.number_heard)) for (const [rid, want] of Object.entries(expected.number_heard[v])) {
     const row = rows.find((r) => r.voice === v && r.turn === rid);
-    assert.equal(row.heard, want, `${v} ${rid}: number ${row.number} not heard in ${JSON.stringify(row.transcript)} (digits ${row.digits}; respond ${row.respond_status} crisis ${row.crisis} region ${row.region}; voices ${row.voices})`);
+    assert.equal(row.heard, want, `${v} ${rid}: number ${row.number} not heard in ${JSON.stringify(row.transcript)} (digits ${row.digits}, Unicode ${UNICODE_VERSION}; respond ${row.respond_status} crisis ${row.crisis} region ${row.region}; voices ${row.voices})`);
   }
   assert.deepEqual(heardMap, expected.number_heard);
   assert.equal(heard, 36);
