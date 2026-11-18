@@ -1,0 +1,60 @@
+{
+  "endpoint": "page (two browser contexts A and B) + GET /api/profile, POST /api/respond, POST /api/forget",
+  "setup": "Server clock: local date 2026-11-18 unless a step sets another (fixed time zone, e.g. TZ=America/New_York). LITTLEBUDDY_DATA_DIR = a new temp dir holding only the case's files; TTS_VOICE unset (03 §5, REQ-073: tests do not set it); Wi-Fi off; an isolated instance (own PORT and BONSAI_PORT, never the user's 4317). 'restart' = stop the server, npm start again. 'new browser' = a browser context with no localStorage for the site. 'open' = load the page and wait for GET /api/profile to answer. profile.json = FX-022's bytes unless the case says otherwise.",
+  "cases": [
+    {
+      "id": "FX-031-01",
+      "files": {
+        "日志.md": "# 日志\n\n## 2026-11-11\n- 平常\n\n## 2026-11-12\n- 平常\n\n## 2026-11-13\n- 平常\n\n## 2026-11-14\n- 平常\n\n## 2026-11-15\n- 平常\n\n## 2026-11-16\n- 平常\n\n## 2026-11-17\n- 平常\n"
+      },
+      "note": "7 days; round 2: no stored stage anywhere (03 §9 B-7)",
+      "steps": [
+        "start; open in A",
+        "open in B",
+        "reload A",
+        "restart; open in B"
+      ]
+    },
+    {
+      "id": "FX-031-02",
+      "files": {
+        "日志.md": "# 日志\n\n## 2026-11-11\n- 平常\n\n## 2026-11-12\n- 平常\n\n## 2026-11-13\n- 平常\n\n## 2026-11-14\n- 平常\n\n## 2026-11-15\n- 平常\n\n## 2026-11-16\n- 平常\n\n## 2026-11-17\n- 平常\n",
+        "profile.json": "{\n  \"version\": 1,\n  \"name\": \"团子\",\n  \"region\": \"CN\",\n  \"memoryOn\": true,\n  \"noticeSeen\": true\n}\n"
+      },
+      "note": "R1 profile, first open",
+      "steps": [
+        "start; open in A"
+      ]
+    },
+    {
+      "id": "FX-031-03",
+      "files": {
+        "日志.md": "# 日志\n\n## 2026-11-11\n- 平常\n\n## 2026-11-12\n- 平常\n\n## 2026-11-13\n- 平常\n\n## 2026-11-14\n- 平常\n\n## 2026-11-15\n- 平常\n\n## 2026-11-16\n- 平常\n\n## 2026-11-17\n- 平常\n",
+        "profile.json": "{\n  \"version\": 1,\n  \"name\": \"团子\",\n  \"region\": \"CN\",\n  \"memoryOn\": true,\n  \"noticeSeen\": true,\n  \"look\": {\n    \"character\": 2,\n    \"outfit\": {\n      \"head\": 3,\n      \"clothes\": \"none\",\n      \"shoes\": \"none\",\n      \"accessory\": \"none\"\n    }\n  },\n  \"voice\": \"dylan\"\n}\n"
+      },
+      "steps": [
+        "start; open in A",
+        "forget me (confirm once); GET /api/profile",
+        "restart; reload A; GET /api/profile",
+        "on local date 2026-11-18 say '今天天气不错。'",
+        "set local date 2026-11-19; reload A; say '今天天气不错。'",
+        "set local date 2026-11-20; reload A; say '今天天气不错。'"
+      ],
+      "note": "round 2: '已播阶段 3' removed from the profile (no such key, 03 §9 B-7)"
+    },
+    {
+      "id": "FX-031-04",
+      "files": {
+        "日志.md": "# 日志\n\n## 2026-11-16\n- 平常\n\n## 2026-11-17\n- 平常\n"
+      },
+      "note": "new round 2 (03 §9 design-miss row): one turn from 2 to 3 days, then no replay",
+      "steps": [
+        "start; open in A",
+        "say '今天天气不错。' in A; wait 5 s",
+        "open in B",
+        "reload A",
+        "restart; open in B"
+      ]
+    }
+  ]
+}

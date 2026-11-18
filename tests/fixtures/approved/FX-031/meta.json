@@ -1,0 +1,15 @@
+{
+  "req": "REQ-084",
+  "reqs": [
+    "REQ-084",
+    "REQ-085"
+  ],
+  "source": "inputs: 01 §7 FX-031 as amended round 2 by be-analyst #2 (03 §9 design-miss rows: no stored stage, 01 drops '档案已播阶段 2', 03 drops '已播阶段 3', new 04 = a 2 -> 3 turn). Expected: REQ-084 as amended round 2 (the moment plays only on the reply of the turn that first reaches 3 or 7 days; open, reload, restart, another browser never play it): 01 and 02 total 0, 04 one on the turn and 0 after. REQ-085 as amended round 2 (Q26 user 2026-11-18: forget me -> 0 days, stage 1; look, outfit, voice, name kept): growth 0 right after forget answers 200 (contract § R2 seam forget row) and after restart; the third new date's turn has up 2 and plays once. Growth values: 071 table. Shape: contract § R2 seam (growth, growth.up, forget).",
+  "compare": "exact",
+  "compare_note": "moments_total = times the stage-up moment begins (FLOW-027: caption growth.thanks shown) in A and B together over all steps, each open/turn watched for 5 s; moments_on_turn / moments_after_turn = the same split at the turn (04). stage_shown_each_open = data-stage of the companion after each open or reload, in step order (04: B, A reloaded, B after restart). after_forget / after_restart = those keys of GET /api/profile (.growth, .look, .voice, .name). turns[].growth / turn_growth = that turn's POST /api/respond 200 .growth. forget = the POST /api/forget response status.",
+  "runs": 1,
+  "pass": "REQ-084: 01, 02 and 04 exact. REQ-085: 03 exact.",
+  "manual": [
+    "REQ-084: on the page the stage-up moment is seen once on the turn that reaches 3 days and never on reload, restart or another browser (human check)"
+  ]
+}

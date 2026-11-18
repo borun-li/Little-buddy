@@ -1,0 +1,15 @@
+{
+  "req": "REQ-073",
+  "reqs": [
+    "REQ-073",
+    "REQ-074"
+  ],
+  "source": "inputs: 01 §7 FX-026 (be-analyst #1; replies = approved FX-013, verbatim; profile base = FX-022 profile.json bytes; voice ids server/config.js:11). Expected: REQ-073 as amended round 2 (the voice in the profile when the part starts being read; absent or invalid -> default serena, TTS_VOICE unset in tests, 03 §9 B-5) and its Accept (helper gets uncle-fu, pitch median below serena on the same sentence; 02/03 serena); A60 (uncle-fu male, serena female, Qwen3Models.swift:126-137). REQ-074 Accept (3/3 dylan, no timeout, first <= 8 s, the other two <= 3 s; A59 [unverified], Q32 default). 05: every VOICES id is accepted and read in that voice (contract § R2 seam voice row). Shape: contract § R2 seam (GET /api/profile .voice; POST /api/profile {voice}); voice_used from tts_done.voice (03 DES-041 step 4).",
+  "compare": "exact",
+  "compare_note": "parts = speechParts(reply, lang) (server/tts.js, the producer the page reads from, as FX-013); each part -> POST /api/speak {text, lang} in order, the next sent after the previous answered (unless the case says 'queued'). voice_used = the `voice` field of the server's tts_done log line for that part (03 DES-041 step 4: the voice the reader reports it used). all_parts_audio = every POST /api/speak of the case answered 200 audio/wav. voice_used_all = the one voice every part of the case (or reply) reported; any other or null value fails. profile_voice = GET /api/profile .voice. pitch_lower_than_serena[lang] = median F0 of the uncle-fu run < median F0 of the serena control run for that reply, F0 per 40 ms frame (10 ms hop) by normalised autocorrelation on the 24 kHz PCM, searched 60-400 Hz, a frame voiced when the peak >= 0.5, median over the voiced frames of all its parts. 04: timeouts = parts answered 504 timeout or not answered; first_sound_ok = first_sound_ms <= 8000 for reply 1 and <= 3000 for replies 2 and 3 (REQ-074). save = the POST /api/profile response status and body .voice.",
+  "runs": 1,
+  "pass": "REQ-073: 01, 02, 03, 05 whole object exact. REQ-074: 04 whole object exact.",
+  "manual": [
+    "REQ-073: on the page with the speaker on, a reply after choosing 大福 (uncle-fu) is heard in a low male voice, and after choosing serena in a female voice (human check)"
+  ]
+}

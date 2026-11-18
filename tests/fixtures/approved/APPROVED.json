@@ -401,6 +401,84 @@
           }
         }
       ]
+    },
+    "FX-026": {
+      "req": "REQ-073",
+      "source": "inputs: 01 §7 FX-026 (be-analyst #1; replies = approved FX-013, verbatim; profile base = FX-022 profile.json bytes; voice ids server/config.js:11). Expected: REQ-073 as amended round 2 (the voice in the profile when the part starts being read; absent or invalid -> default serena, TTS_VOICE unset in tests, 03 §9 B-5) and its Accept (helper gets uncle-fu, pitch median below serena on the same sentence; 02/03 serena); A60 (uncle-fu male, serena female, Qwen3Models.swift:126-137). REQ-074 Accept (3/3 dylan, no timeout, first <= 8 s, the other two <= 3 s; A59 [unverified], Q32 default). 05: every VOICES id is accepted and read in that voice (contract § R2 seam voice row). Shape: contract § R2 seam (GET /api/profile .voice; POST /api/profile {voice}); voice_used from tts_done.voice (03 DES-041 step 4).",
+      "compare": "exact",
+      "approved_by": "borun_li",
+      "date": "2026-11-18",
+      "files": {
+        "expected.json": "dab436aeff64f5cec9f5aa324c1794f102963b3a4c7511739dcc1e443ac50001",
+        "input.json": "5f3f0da2ddfb181a1148ecfd759192418d7b016af54d23e86f1eb27344eadad8",
+        "meta.json": "1d9e31a0558f0888443e93ab7fb91a7df1107e3e8e3c33a399000146cb84bfdd"
+      },
+      "history": []
+    },
+    "FX-027": {
+      "req": "REQ-075",
+      "source": "inputs: 01 §7 FX-027 as amended round 2 by be-analyst #2 (CN replies are crisisReply output with the server/prompts.js:106-107 CN lines, not the US words with the number swapped; 02 has 4 parts: FX-013-01's 3 + FX-013-02's first). Expected: REQ-075 Accept (36/36 transcripts hold the number; 02's 4 parts each answered once, in order), 024 / R1 048 (crisis reply read aloud with the help number). 02 voices: REQ-074 + 01 §2 non-goal (the part being read finishes in the old voice) + REQ-073 round 2 (the voice when the part starts being read). Q31 (what a crisis turn does if a voice fails) is open for the user at Plan: this fixture scores only whether each voice makes the number heard, not which voice a crisis turn uses. Risk: docs/backend/logs/be-architect-2-crisis-voices.log § Reading (ryan hit the 9.6 s cap on the en 12356 part once).",
+      "compare": "exact",
+      "approved_by": "borun_li",
+      "date": "2026-11-18",
+      "files": {
+        "expected.json": "896d41c94c93e09ccd2abde504417bb33e49f02082e2b47d71542d6260bf2da3",
+        "input.json": "b504e3988d64cb7c3a760d896def17cf963dfb694d33463ebefe79851dbcd988",
+        "meta.json": "6c05874c46c06bbdfe6fd61dcfdd9a39080f6a4536b86e7665c38f6556f15e91"
+      },
+      "history": []
+    },
+    "FX-028": {
+      "req": "REQ-076",
+      "source": "inputs: 01 §7 FX-028 as amended round 2 by be-analyst #2 (01 = the R1 read-then-save of REQ-078, 01a = the three saves of REQ-076; 07 gets 日志 = FX-030-02). 01 bytes = FX-022 profile.json (state written by R1, server/memory-files.js profileText); name 团子 from approved FX-021. Expected: REQ-078 (R1 file reads as default look + serena; after saving vivian name, region, switch and notice-seen equal the originals); REQ-076 (each save in profile.json <= 1 s; after restart and a new browser the same three values; name, region, switch unchanged); REQ-077 (02-05 and 07 bad_request, file unchanged; 06 field by field default: string \"2\" -> 1, head 3 kept, shoes 7 -> none, \"Serena\" -> serena (A65), theme kept after a save); REQ-083 (no days field, days refused, days still = the diary's 2). Defaults: contract § R2 seam (character 1, every slot 'none', serena; TTS_VOICE unset). Growth values: 071 table (contract § R2 seam growth). Shape: contract § R2 seam setLook/setVoice bodies and the 200 {memoryOn, noticeSeen, name, region, look, voice}.",
+      "compare": "exact",
+      "approved_by": "borun_li",
+      "date": "2026-11-18",
+      "files": {
+        "expected.json": "c4a243d2917964f1eba44c7c39ba0b9a9943475d16b830e5ff631e40d4036859",
+        "input.json": "1df2ee60804481c169eeeb9893fbcf3a8ee1675dbe350a8c237d10410550a3f3",
+        "meta.json": "62588b7df9c11639886994e827997d85f4452d4d6b6c9590837b395bd1e4be44"
+      },
+      "history": []
+    },
+    "FX-029": {
+      "req": "REQ-079",
+      "source": "inputs: 01 §7 FX-029 (be-analyst #1; read-only setup of approved FX-023, break of approved FX-024-02; base profile = FX-028-01). Expected: REQ-079 as amended round 2 (read-only: not_saved, value unchanged; unreadable: defaults, 0 days, nothing written, saving answers 409 unreadable as R1 054 and both design reviewers recommend, 03 §9 B-6). Defaults from contract § R2 seam (also when profile.json is unreadable). Read-only after restart: the server starts read-only when the folder is 0500 (R1 DM-2 fix, docs/codemap.md memory-store lock: any other failure -> read-only). Shape: 500 {\"error\":\"not_saved\"}, 409 {\"error\":\"unreadable\"} (R1 seam codes); respond 200 .growth with up (contract § R2 seam).",
+      "compare": "exact",
+      "approved_by": "borun_li",
+      "date": "2026-11-18",
+      "files": {
+        "expected.json": "2070504044a9da699dded566795336e594533d2d1b8d4bb9060cdfb89bf153a1",
+        "input.json": "c6dd9088b1d35ca8c04226270faa5c3107d0421db3f28dc71a334cf4d8cbe26e",
+        "meta.json": "b17a02220510cf69c9e66c0a813ada71b1a49ce10a98bef506542ae63bf8bf80"
+      },
+      "history": []
+    },
+    "FX-030": {
+      "req": "REQ-080",
+      "source": "inputs: 01 §7 FX-030 as amended round 2 by be-analyst #2 (07 layout made exact; 09 memory-off turn moved to 2026-11-19). 03 = demo seed; 06 = approved FX-019-01; 11 = approved FX-009-01. Values: days = distinct dates with >= 1 mood entry (01 §1; the R1 DIARY_RE entry rule, server/memory-files.js:17): 0, 2, 3, 6, 7, 6, 6, 365 (REQ-080 Accept); stage/into/span/left from the 071 table (0-2 stage 1 of 3, 3-6 stage 2 of 4, 7+ full; contract § R2 seam growth: stage 3 = into 1, span 1, left 0). 09: REQ-081 Accept (4 days after turn 1, still 4 after turns 2 and 3; memory off does not count, Q28 user 2026-11-18). 10: REQ-082 (3 days, stage 2, one moment, no reload; up 2 = days 2 -> 3, contract § R2 seam growth.up). 11: REQ-082 as amended round 2 (crisis turn: no moment on that turn, Q29 default, fe-ux decides any later replay); the day still counts (A63, R1 042), so up is 2. Shape: GET /api/profile .growth and POST /api/respond 200 .growth with up (contract § R2 seam).",
+      "compare": "exact",
+      "approved_by": "borun_li",
+      "date": "2026-11-18",
+      "files": {
+        "expected.json": "a36524d737a7434b10c4f7dcaab6229f22676a96b915ae460caea52162a2e3ac",
+        "input.json": "807a9eb3ec9c720761298d63f23237645bb2b6c6405cddfb7a9ef4662353791f",
+        "meta.json": "f3dcbb446782b190faa41f8b98c2f9e962e2dea225959273c89fbf620b38c635"
+      },
+      "history": []
+    },
+    "FX-031": {
+      "req": "REQ-084",
+      "source": "inputs: 01 §7 FX-031 as amended round 2 by be-analyst #2 (03 §9 design-miss rows: no stored stage, 01 drops '档案已播阶段 2', 03 drops '已播阶段 3', new 04 = a 2 -> 3 turn). Expected: REQ-084 as amended round 2 (the moment plays only on the reply of the turn that first reaches 3 or 7 days; open, reload, restart, another browser never play it): 01 and 02 total 0, 04 one on the turn and 0 after. REQ-085 as amended round 2 (Q26 user 2026-11-18: forget me -> 0 days, stage 1; look, outfit, voice, name kept): growth 0 right after forget answers 200 (contract § R2 seam forget row) and after restart; the third new date's turn has up 2 and plays once. Growth values: 071 table. Shape: contract § R2 seam (growth, growth.up, forget).",
+      "compare": "exact",
+      "approved_by": "borun_li",
+      "date": "2026-11-18",
+      "files": {
+        "expected.json": "996a2b98c963af42fac0f14ce1ddf5aa86ee66aa9e5e0ed5a8142137b9fbe43e",
+        "input.json": "f5f34762be1a9970e7220f91cec1cc2998658adcdc841241edc4d81bfafdb437",
+        "meta.json": "d420a9fae73338c777a06f5227e3334fe8919600a724068b3d08dbf619238ade"
+      },
+      "history": []
     }
   }
 }

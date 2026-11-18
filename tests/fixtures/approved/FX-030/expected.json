@@ -1,0 +1,165 @@
+{
+  "cases": [
+    {
+      "id": "FX-030-01",
+      "growth": {
+        "days": 0,
+        "stage": 1,
+        "into": 0,
+        "span": 3,
+        "left": 3
+      }
+    },
+    {
+      "id": "FX-030-02",
+      "growth": {
+        "days": 2,
+        "stage": 1,
+        "into": 2,
+        "span": 3,
+        "left": 1
+      }
+    },
+    {
+      "id": "FX-030-03",
+      "growth": {
+        "days": 3,
+        "stage": 2,
+        "into": 0,
+        "span": 4,
+        "left": 4
+      }
+    },
+    {
+      "id": "FX-030-04",
+      "growth": {
+        "days": 6,
+        "stage": 2,
+        "into": 3,
+        "span": 4,
+        "left": 1
+      }
+    },
+    {
+      "id": "FX-030-05",
+      "growth": {
+        "days": 7,
+        "stage": 3,
+        "into": 1,
+        "span": 1,
+        "left": 0
+      }
+    },
+    {
+      "id": "FX-030-06",
+      "growth": {
+        "days": 6,
+        "stage": 2,
+        "into": 3,
+        "span": 4,
+        "left": 1
+      }
+    },
+    {
+      "id": "FX-030-07",
+      "growth": {
+        "days": 6,
+        "stage": 2,
+        "into": 3,
+        "span": 4,
+        "left": 1
+      }
+    },
+    {
+      "id": "FX-030-08",
+      "growth": {
+        "days": 365,
+        "stage": 3,
+        "into": 1,
+        "span": 1,
+        "left": 0
+      },
+      "api_ms_le_1000": true
+    },
+    {
+      "id": "FX-030-09",
+      "turns": [
+        {
+          "turn": 1,
+          "growth": {
+            "days": 4,
+            "stage": 2,
+            "into": 1,
+            "span": 4,
+            "left": 3,
+            "up": null
+          },
+          "diary_dates": 4,
+          "profile_days_within_1000ms": 4
+        },
+        {
+          "turn": 2,
+          "growth": {
+            "days": 4,
+            "stage": 2,
+            "into": 1,
+            "span": 4,
+            "left": 3,
+            "up": null
+          },
+          "diary_dates": 4
+        },
+        {
+          "turn": 3,
+          "growth": {
+            "days": 4,
+            "stage": 2,
+            "into": 1,
+            "span": 4,
+            "left": 3,
+            "up": null
+          },
+          "diary_dates": 4,
+          "diary_has_2026-11-19": false
+        }
+      ]
+    },
+    {
+      "id": "FX-030-10",
+      "status": 200,
+      "growth": {
+        "days": 3,
+        "stage": 2,
+        "into": 0,
+        "span": 4,
+        "left": 4,
+        "up": 2
+      },
+      "page": {
+        "days_shown": 3,
+        "stage_shown": 2,
+        "moments": 1,
+        "reloads": 0
+      }
+    },
+    {
+      "id": "FX-030-11",
+      "status": 200,
+      "crisis": true,
+      "growth": {
+        "days": 3,
+        "stage": 2,
+        "into": 0,
+        "span": 4,
+        "left": 4,
+        "up": 2
+      },
+      "page": {
+        "days_shown": 3,
+        "stage_shown": 2,
+        "moments_on_turn": 0,
+        "reloads": 0
+      }
+    }
+  ]
+}

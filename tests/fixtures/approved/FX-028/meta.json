@@ -1,0 +1,14 @@
+{
+  "req": "REQ-076",
+  "reqs": [
+    "REQ-076",
+    "REQ-077",
+    "REQ-078",
+    "REQ-083"
+  ],
+  "source": "inputs: 01 §7 FX-028 as amended round 2 by be-analyst #2 (01 = the R1 read-then-save of REQ-078, 01a = the three saves of REQ-076; 07 gets 日志 = FX-030-02). 01 bytes = FX-022 profile.json (state written by R1, server/memory-files.js profileText); name 团子 from approved FX-021. Expected: REQ-078 (R1 file reads as default look + serena; after saving vivian name, region, switch and notice-seen equal the originals); REQ-076 (each save in profile.json <= 1 s; after restart and a new browser the same three values; name, region, switch unchanged); REQ-077 (02-05 and 07 bad_request, file unchanged; 06 field by field default: string \"2\" -> 1, head 3 kept, shoes 7 -> none, \"Serena\" -> serena (A65), theme kept after a save); REQ-083 (no days field, days refused, days still = the diary's 2). Defaults: contract § R2 seam (character 1, every slot 'none', serena; TTS_VOICE unset). Growth values: 071 table (contract § R2 seam growth). Shape: contract § R2 seam setLook/setVoice bodies and the 200 {memoryOn, noticeSeen, name, region, look, voice}.",
+  "compare": "exact",
+  "compare_note": "Per case. read / profile / profile_after / growth_after = those keys of GET /api/profile. save / saves = the POST /api/profile response: status, and the keys listed taken from its body (save.body = the whole body). in_file_within_1000ms = profile.json, read as soon as the 200 arrives, already holds the saved look/voice, and the 200 came <= 1000 ms after sending. file_after = those keys of JSON.parse(profile.json) after the save (the look a save writes into an R1 file is not scored here). file_unchanged = profile.json bytes and mode equal to the copy taken before the POST. page_selected = the checked radio of 角色, of each 穿搭 slot and of 声音 in the 形象和声音 tab. days_field_present = any input in that tab whose label or name mentions days / 天数 (the prototype's demo-days field).",
+  "runs": 1,
+  "pass": "REQ-078: 01 exact. REQ-076: 01a exact. REQ-077: 02-06 exact. REQ-083: 07 exact."
+}

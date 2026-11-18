@@ -1,0 +1,14 @@
+{
+  "req": "REQ-075",
+  "reqs": [
+    "REQ-075"
+  ],
+  "source": "inputs: 01 §7 FX-027 as amended round 2 by be-analyst #2 (CN replies are crisisReply output with the server/prompts.js:106-107 CN lines, not the US words with the number swapped; 02 has 4 parts: FX-013-01's 3 + FX-013-02's first). Expected: REQ-075 Accept (36/36 transcripts hold the number; 02's 4 parts each answered once, in order), 024 / R1 048 (crisis reply read aloud with the help number). 02 voices: REQ-074 + 01 §2 non-goal (the part being read finishes in the old voice) + REQ-073 round 2 (the voice when the part starts being read). Q31 (what a crisis turn does if a voice fails) is open for the user at Plan: this fixture scores only whether each voice makes the number heard, not which voice a crisis turn uses. Risk: docs/backend/logs/be-architect-2-crisis-voices.log § Reading (ryan hit the 9.6 s cap on the en 12356 part once).",
+  "compare": "exact",
+  "compare_note": "parts = speechParts(reply, lang) (server/tts.js, the producer the page reads from, as FX-013); each part -> POST /api/speak {text, lang} in order, the next sent after the previous answered (unless the case says 'queued'). voice_used = the `voice` field of the server's tts_done log line for that part (03 DES-041 step 4: the voice the reader reports it used). 01: a case-run is valid only if every part's voice_used equals the voice set for it (setup check, not scored: it decides nothing about Q31). number_heard = the number part's transcript, NFKC + lowercase, with Latin digit words replaced as whole words (zero/oh 0, one 1, two 2, three 3, four 4, five 5, six 6, seven 7, eight 8, nine 9) and the Han digits 零〇 0, 一幺 1, 二两 2, 三 3, 四 4, 五 5, 六 6, 七 7, 八 8, 九 9 replaced, then every non-digit removed: true when the digit string contains the reply's number (988 or 12356). 02: answers in order of n = status of each POST /api/speak and its voice_used; answered_once_each = exactly one tts_done line per part and one response per request; answered_in_order = tts_done lines and responses arrive in n order.",
+  "runs": 1,
+  "pass": "REQ-075: 01 number_heard 36/36 true in one run; 02 whole object exact.",
+  "manual": [
+    "REQ-075: a person listens to the 36 number parts of 01 and hears the whole number in each (human check, as R1 048)"
+  ]
+}
