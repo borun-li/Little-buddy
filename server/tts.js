@@ -1,4 +1,5 @@
 // Client of the resident companion-tts helper over stdio JSON lines, and the reply → spoken parts split (03 DES-017, DES-018).
+// R2 (DES-041): each line carries the voice voiceOf() gives when the line is written; the helper echoes the voice it used.
 import { createInterface } from 'node:readline';
 import { SENTENCE } from './bonsai.js';
 import { CONFIG } from './config.js';
@@ -6,7 +7,9 @@ import { ApiError } from './errors.js';
 import { log } from './log.js';
 import { supervise } from './supervisor.js';
 
-export function createTts(cfg = CONFIG) {
+/** @typedef {'ryan'|'aiden'|'ono-anna'|'sohee'|'eric'|'dylan'|'serena'|'vivian'|'uncle-fu'} Voice */
+// voiceOf: the voice to read with, asked when a part is handed to the helper (queued parts follow a change). say: one human line.
+export function createTts(cfg = CONFIG, { voiceOf = () => cfg.tts.voice, say = (t) => process.stderr.write(`${t}\n`) } = {}) {
   let proc = null;
   let nextId = 0;
   const queue = []; // waiting items, FIFO, memory only, at most cfg.limits.speakQueue
@@ -15,6 +18,7 @@ export function createTts(cfg = CONFIG) {
   let slot = null;
   let overdue = null; // kills a helper that has not answered the slot within ttsOverdueMs of the write (FND-015)
   let readyWaiter = null;
+  let staleSaid = false; // tts_helper_stale: once per run
 
   // Settle the caller once; a later answer, timeout or abort for it is ignored. Never frees the slot or writes.
   function settle(item, err, value) {
@@ -39,12 +43,13 @@ export function createTts(cfg = CONFIG) {
     const item = queue.shift();
     slot = item;
     item.written = Date.now();
+    item.voice = voiceOf();
     overdue = setTimeout(() => {
       overdue = null;
       // The supervisor logs child_exit and restarts; onExit then settles the slot and the queue `unavailable`.
       if (slot === item && proc?.child === child) child.kill('SIGKILL');
     }, cfg.deadlines.ttsOverdueMs);
-    child.stdin.write(`${JSON.stringify({ id: item.id, text: item.text, lang: item.lang })}\n`);
+    child.stdin.write(`${JSON.stringify({ id: item.id, text: item.text, lang: item.lang, voice: item.voice })}\n`);
   }
 
   function failAll(code) {
@@ -82,7 +87,14 @@ export function createTts(cfg = CONFIG) {
       } else if (typeof msg.wav === 'string') {
         log('info', 'tts_done', {
           ms: Date.now() - item.started, queued_ms: item.written - item.started, audio_ms: msg.audio_ms ?? null, chars: item.text.length, lang: item.lang,
+          voice: msg.voice ?? null,
         });
+        // A helper built before R2 ignores the line's voice and echoes none: the audio still goes out, the user is told once.
+        if (msg.voice !== item.voice && !staleSaid) {
+          staleSaid = true;
+          log('warn', 'tts_helper_stale', { asked: item.voice, got: msg.voice ?? null });
+          say('朗读助手是旧版，运行 npm run setup 再启动 The read-aloud helper is out of date: run npm run setup, then start again');
+        }
         settle(item, null, Buffer.from(msg.wav, 'base64'));
       } else {
         log('warn', 'tts_error', { error: null });
@@ -120,7 +132,8 @@ export function createTts(cfg = CONFIG) {
       proc = supervise({
         name: 'tts',
         cmd: cfg.tts.bin,
-        args: ['--model-folder', cfg.tts.modelDir, '--tokenizer-folder', cfg.tts.tokenizerDir, '--voice', cfg.tts.voice],
+        // Warms the profile's voice; a supervisor restart reuses these args (one extra cache build if the voice changed since).
+        args: ['--model-folder', cfg.tts.modelDir, '--tokenizer-folder', cfg.tts.tokenizerDir, '--voice', voiceOf()],
         stdio: ['pipe', 'pipe', 'inherit'],
         warm,
         restarts: cfg.restarts,

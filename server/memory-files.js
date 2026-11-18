@@ -1,4 +1,6 @@
 // The three memory files as plain text, no disk (03 DES-031): 关于你.md, 日志.md, profile.json.
+// R2 (DES-042): profile.json look and voice (parse, clean, merge) and growth from the diary's days.
+import { CONFIG, VOICES } from './config.js';
 import { hanCount, weight } from './lang.js';
 import { cleanName } from './name.js';
 import { PROFILE_REGIONS } from './region.js';
@@ -6,13 +8,21 @@ import { PROFILE_REGIONS } from './region.js';
 /** @typedef {'pleasant-high'|'pleasant-low'|'unpleasant-high'|'unpleasant-low'|'neutral'} Mood */
 /** @typedef {{date: string, mood: Mood, point: string|null, line: number}} Entry   // line = index in lines[] */
 /** @typedef {{add: {busy: string[], people: string[], likes: string[]}}} NotesUpdate   // add-only: the model never removes lines */
+/** @typedef {'none'|1|2|3} Item
+ *  @typedef {{character: 1|2|3, outfit: {head: Item, clothes: Item, shoes: Item, accessory: Item}}} Look
+ *  @typedef {{character?: 1|2|3, outfit?: Partial<Look['outfit']>}} LookPatch
+ *  @typedef {{days: number, stage: 1|2|3, into: number, span: number, left: number}} Growth */
 
 export const SECTIONS = [{ title: '最近在忙', key: 'busy' }, { title: '在意的人和事', key: 'people' }, { title: '喜欢·不喜欢', key: 'likes' }];
 export const ABOUT_TEMPLATE = `# 关于你\n\n${SECTIONS.map((s) => `## ${s.title}\n`).join('\n')}`;
 export const DIARY_HEADER = '# 日志';
 export const MOOD_WORD = { 'pleasant-high': '开心', 'pleasant-low': '平静', neutral: '平常', 'unpleasant-high': '紧张', 'unpleasant-low': '难过' };
 export const MOOD_VALUE = { 'pleasant-high': 1, 'pleasant-low': 0.5, neutral: 0, 'unpleasant-high': -0.5, 'unpleasant-low': -1 };
-export const PROFILE_DEFAULTS = Object.freeze({ name: null, region: null, memoryOn: true, noticeSeen: false });
+export const LOOK_SLOTS = ['head', 'clothes', 'shoes', 'accessory'];
+export const CHARACTERS = [1, 2, 3];
+export const ITEMS = [1, 2, 3];
+export const DEFAULT_LOOK = Object.freeze({ character: 1, outfit: Object.freeze(Object.fromEntries(LOOK_SLOTS.map((s) => [s, 'none']))) });
+export const PROFILE_DEFAULTS = Object.freeze({ name: null, region: null, memoryOn: true, noticeSeen: false, look: DEFAULT_LOOK, voice: CONFIG.tts.voice });
 export const PROFILE_VERSION = 1;
 export const DIARY_RE = { date: /^##\s+(\d{4}-\d{2}-\d{2})\s*$/, entry: /^-\s+(开心|平静|平常|紧张|难过)(?:\s+·\s+(.+?))?\s*$/ };
 
@@ -148,6 +158,25 @@ export function localDay(d) {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
+// Growth (contract § R2 seam): distinct dates with at least one mood entry; empty or repeated sections add nothing.
+export function diaryDays(entries) {
+  return new Set(entries.map((e) => e.date)).size;
+}
+
+// 0-2 days stage 1 (span 3), 3-6 stage 2 (span 4), 7+ stage 3 (full); a non-integer or negative count reads as 0.
+export function growthOf(days) {
+  const d = Number.isInteger(days) && days >= 0 ? days : 0;
+  if (d < 3) return { days: d, stage: 1, into: d, span: 3, left: 3 - d };
+  if (d < 7) return { days: d, stage: 2, into: d - 3, span: 4, left: 7 - d };
+  return { days: d, stage: 3, into: 1, span: 1, left: 0 };
+}
+
+// The stage the day count first reached when it went from before to after, else null.
+export function stageUp(before, after) {
+  const s = growthOf(after).stage;
+  return s > growthOf(before).stage ? s : null;
+}
+
 export function dayValue(moods) {
   if (!moods.length) return null;
   return moods.reduce((n, m) => n + MOOD_VALUE[m], 0) / moods.length;
@@ -170,8 +199,48 @@ export function weekOf(entries, today) {
 }
 
 const KNOWN = new Set(['version', ...Object.keys(PROFILE_DEFAULTS)]);
+const isObject = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
+
+// Field by field: a value that is there but invalid reads as its default and its name goes into defaulted; an absent key
+// (an R1 file) reads as its default silently.
+export function cleanLook(raw, defaulted) {
+  const look = { character: DEFAULT_LOOK.character, outfit: { ...DEFAULT_LOOK.outfit } };
+  if (raw === undefined) return look;
+  if (!isObject(raw)) {
+    defaulted.push('look');
+    return look;
+  }
+  if (raw.character !== undefined) {
+    if (CHARACTERS.includes(raw.character)) look.character = raw.character;
+    else defaulted.push('look.character');
+  }
+  if (raw.outfit === undefined) return look;
+  if (!isObject(raw.outfit)) {
+    defaulted.push('look.outfit');
+    return look;
+  }
+  for (const slot of LOOK_SLOTS) {
+    const v = raw.outfit[slot];
+    if (v === undefined) continue;
+    if (v === 'none' || ITEMS.includes(v)) look.outfit[slot] = v;
+    else defaulted.push(`look.outfit.${slot}`);
+  }
+  return look;
+}
+
+export function cleanVoice(raw, defaulted) {
+  if (VOICES.includes(raw)) return raw;
+  if (raw !== undefined) defaulted.push('voice');
+  return CONFIG.tts.voice;
+}
+
+// A checked patch (main.js parseLookPatch) onto a clean look; returns a new look.
+export function mergeLook(look, patch) {
+  return { character: patch.character ?? look.character, outfit: { ...look.outfit, ...patch.outfit } };
+}
 
 // Wrong types fall back to the defaults; unknown keys are kept in extra and written back (R-10).
+// defaulted: the look/voice fields whose stored value was invalid (R2 DES-042), for one load-time log line.
 export function parseProfile(text) {
   let data;
   try {
@@ -187,8 +256,11 @@ export function parseProfile(text) {
     memoryOn: typeof data.memoryOn === 'boolean' ? data.memoryOn : PROFILE_DEFAULTS.memoryOn,
     noticeSeen: typeof data.noticeSeen === 'boolean' ? data.noticeSeen : PROFILE_DEFAULTS.noticeSeen,
   };
+  const defaulted = [];
+  profile.look = cleanLook(data.look, defaulted);
+  profile.voice = cleanVoice(data.voice, defaulted);
   const extra = Object.fromEntries(Object.entries(data).filter(([k]) => !KNOWN.has(k)));
-  return { profile, extra };
+  return { profile, extra, defaulted };
 }
 
 export function profileText(p, extra) {

@@ -24,7 +24,8 @@ function envSize() {
   return raw;
 }
 
-// Default voice: serena, the user's choice at Plan (2026-11-15, Q6).
+// Default voice: serena, the user's choice at Plan (2026-11-15, Q6). R2 (DES-045): the read-aloud voice is the profile's; this is
+// only the default when the profile has no valid voice, and the voice --warm-only warms. Tests do not set TTS_VOICE.
 function envVoice() {
   const raw = process.env.TTS_VOICE || 'serena';
   if (!VOICES.includes(raw)) throw new Error(`TTS_VOICE must be one of ${VOICES.join(', ')}, got "${raw}"`);

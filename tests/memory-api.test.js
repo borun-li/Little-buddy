@@ -17,6 +17,9 @@ import {
 
 after(cleanupTmp);
 const post = (gw, path, body) => api(gw.base, path, { method: 'POST', body });
+// R2 (contract § R2 seam, 03 DES-043/044): GET /api/profile also carries look, voice, growth; the POST 200 body also look and voice. Written here, not from server code.
+const R2_GET_KEYS = ['growth', 'look', 'voice'];
+const R2_SETTINGS = { look: { character: 1, outfit: { head: 'none', clothes: 'none', shoes: 'none', accessory: 'none' } }, voice: 'serena' };
 const ABOUT_T = '# 关于你\n\n## 最近在忙\n\n## 在意的人和事\n\n## 喜欢·不喜欢\n';
 const NY = { tz: 'America/New_York' };
 const NOON = '2026-11-15T12:00:00-05:00';
@@ -42,7 +45,7 @@ test('TC-172 [FX-021, FX-022] REQ-036/043/045/047: seam shapes of GET /api/profi
   const base = tmpDir(); const dir1 = join(base, 'LittleBuddy');
   await withGateway({ dir: dir1 }, async (gw) => {
     const p = (await api(gw.base, '/api/profile')).json;
-    assert.deepEqual(sorted(p), pKeys);
+    assert.deepEqual(sorted(p), [...pKeys, ...R2_GET_KEYS].sort(), 'R1 keys from the contract row plus the R2 seam keys');
     assert.deepEqual([typeof p.readable, typeof p.memoryOn, typeof p.noticeSeen, typeof p.about, typeof p.aboutEmpty, typeof p.kept, typeof p.newProfile, typeof p.path], Array(8).fill(0).map((_, i) => (i === 3 || i === 7 ? 'string' : 'boolean')));
     assert.ok(['CN', 'US', null].includes(p.systemRegion));
     assert.deepEqual([p.name, p.region, p.noticeSeen, p.memoryOn, p.newProfile, p.aboutEmpty, p.kept, p.about], [null, null, false, true, true, true, false, ABOUT_T]);
@@ -151,7 +154,7 @@ test('TC-175 REQ-047/048/049/052: POST /api/profile validation, shapes and clean
       [{ name: null }, { memoryOn: false, noticeSeen: true, name: null, region: 'other' }],
       [{ name: '  小伙伴 ' }, { memoryOn: false, noticeSeen: true, name: null, region: 'other' }],
       [{ name: 'Mochi  🎉' }, { memoryOn: false, noticeSeen: true, name: 'Mochi', region: 'other' }]];
-    for (const [body, want] of ok) { const r = await post(gw, '/api/profile', body); assert.equal(r.status, 200, JSON.stringify(body)); assert.deepEqual(r.json, want, JSON.stringify(body)); }
+    for (const [body, want] of ok) { const r = await post(gw, '/api/profile', body); assert.equal(r.status, 200, JSON.stringify(body)); assert.deepEqual(r.json, { ...want, ...R2_SETTINGS }, JSON.stringify(body)); } // R2: the 200 body also holds look and voice (defaults here)
     assert.equal((await api(gw.base, '/api/profile')).json.region, 'other', 'other is stored and returned as other');
     assert.equal(JSON.parse(readFileSync(join(dir, 'profile.json'), 'utf8')).region, 'other');
   });
@@ -265,7 +268,7 @@ test('TC-179 REQ-044/042/049/054: every 200 turn records its mood before the res
     for (const l of lines) {
       const r = await respond(gw, l, history);
       assert.equal(r.status, 200);
-      assert.deepEqual(sorted(r.json), ['crisis', 'lang', 'mood', 'region', 'reply', 'speech']);
+      assert.deepEqual(sorted(r.json), ['crisis', 'growth', 'lang', 'mood', 'region', 'reply', 'speech']); // R2 adds growth (every 200)
       const es = diaryEntries(readDiary(dir));
       assert.equal(es.at(-1).word, MOOD_WORD[r.json.mood], `mood in the file when the response arrives: ${l}`);
       history.push({ role: 'user', text: l }, { role: 'companion', text: r.json.reply });
