@@ -36,10 +36,11 @@ const children = {
 let ttsStarted = false;
 let memory = null;
 let replyNotes = null; // per run: the notes one chat keeps, so the reply's prompt prefix stays cached
-// Keys of the latest respond 200's speech parts when that turn was a crisis turn, else empty; memory only, never logged.
-// The page reads only the newest reply, so the latest one is enough (DES-049 step 4).
+// The speech-part keys of the last CRISIS_KEEP crisis replies whose page was still there (DES-049, FND-075): their parts are
+// read by serena. Normal and abandoned 200s leave them alone; memory only, never logged.
 const partKey = (text, lang) => `${lang}\n${text}`;
-let crisisSpeech = new Set();
+const CRISIS_KEEP = 3; // FND-075: crisis replies whose parts stay serena; = Bonsai -np 3 (server/bonsai.js:240)
+let crisisSpeech = []; // one Set of partKeys per crisis reply, oldest first, length <= CRISIS_KEEP
 
 export function attachMemory(s, m) {
   store = s;
@@ -220,8 +221,11 @@ async function handleApi(req, res, path) {
       // growth: after this turn's mood is recorded (the day's first turn already counts); up only from this turn's record.
       const up = ref?.up ?? null;
       const speech = speechParts(turn.reply, turn.lang);
-      // Every 200 replaces the set: a crisis turn's parts, or nothing (an older crisis reply's parts go back to the chosen voice).
-      crisisSpeech = new Set(turn.crisis ? speech.map((p) => partKey(p, turn.lang)) : []);
+      // A crisis turn the page still waits for adds its parts; past CRISIS_KEEP the oldest crisis reply drops out.
+      if (turn.crisis && !at.gone()) {
+        crisisSpeech.push(new Set(speech.map((p) => partKey(p, turn.lang))));
+        if (crisisSpeech.length > CRISIS_KEEP) crisisSpeech.shift();
+      }
       sendJson(res, 200, { ...turn, region, speech, growth: { ...store.growth(), up } });
       const queued = skip === null && !turn.crisis;
       if (queued) memory.enqueue({ gen: at.gen, ref, line, lang: turn.lang });
@@ -258,7 +262,7 @@ async function handleApi(req, res, path) {
       if (!res.writableFinished) ac.abort();
     });
     // text is trimmed by parseSpeak, the same shape as a speechParts part.
-    const wav = await children.tts.speak(text, lang, ac.signal, crisisSpeech.has(partKey(text, lang)));
+    const wav = await children.tts.speak(text, lang, ac.signal, crisisSpeech.some((s) => s.has(partKey(text, lang))));
     res.writeHead(200, { 'Content-Type': 'audio/wav', 'Content-Length': wav.length, 'Cache-Control': 'no-store' });
     return res.end(wav);
   }

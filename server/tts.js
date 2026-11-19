@@ -153,7 +153,7 @@ export function createTts(cfg = CONFIG, { voiceOf = () => cfg.tts.voice, say = (
     get pid() {
       return proc?.pid ?? null;
     },
-    // crisis: the part belongs to the latest crisis reply (main.js crisisSpeech); only changes the voice (voiceFor).
+    // crisis: the part belongs to one of the last 3 crisis replies (main.js crisisSpeech); only changes the voice (voiceFor).
     speak(text, lang, signal, crisis = false) {
       const state = proc?.state ?? 'down';
       if (state === 'starting') return Promise.reject(new ApiError('not_ready', 'tts'));

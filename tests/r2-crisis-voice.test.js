@@ -99,19 +99,19 @@ test('TC-279 REQ-075 (A3): ryan on normal parts stays ryan (tts_done.crisis fals
 });
 
 // ---------------------------------------------------------------- TC-280
-test('TC-280 REQ-075 (Q35, DES-049 step 3-4): an old crisis part spoken after a non-crisis reply keeps the chosen voice (ryan); a part of the latest crisis reply still reads serena; the same part in another language is not a crisis part', async () => {
+test('TC-280 REQ-075 (Q35, DES-049 as changed 2026-11-19): an old crisis part spoken after a non-crisis reply is still serena (the set is not replaced by a normal 200); the same part in another language is not a crisis part', async () => {
   const gw = await gateway('ryan');
   try {
     const crisis = await crisisTurn(gw, CRISIS_ZH, 'CN');
     const old = crisis.speech[0];
     const fresh = await readParts(gw, { ...crisis, speech: [old] });
     assert.deepEqual(fresh[0].line, ['serena'], 'control: right after the crisis turn the part reads serena');
-    const t = await say(gw, NORMAL); // replaces the set (every respond 200)
+    const t = await say(gw, NORMAL); // a normal 200 must not touch the kept crisis parts (FND-075)
     assert.equal(t.json.crisis, false);
     assert.ok(!t.json.speech.includes(old), 'probe text is not a part of the normal reply');
     const after1 = await readParts(gw, { ...crisis, speech: [old] });
-    assert.deepEqual(after1[0].line, ['ryan'], 'old crisis part after a normal reply');
-    assert.deepEqual(after1[0].done, [{ voice: 'ryan', crisis: false }]);
+    assert.deepEqual(after1[0].line, ['serena'], 'old crisis part after a normal reply');
+    assert.deepEqual(after1[0].done, [{ voice: 'serena', crisis: true }]);
     // a new crisis turn brings it back, and the same text asked as the other language is not marked
     const again = await crisisTurn(gw, CRISIS_ZH, 'CN');
     const asEn = await speak(gw, again.speech[0], 'en');
@@ -139,4 +139,62 @@ test('TC-281 REQ-075 (Q35, DES-050): voiceFor(v, true) is serena (CRISIS_VOICE, 
     assert.equal(voiceFor(v, false), v, `${v} normal`);
     assert.equal(voiceFor(v), v, `${v} default`);
   }
+});
+
+// ---------------------------------------------------------------- TC-282..TC-284 (FND-075, DES-049 as changed 2026-11-19, 03 Review fix R4)
+const SLOW = '慢一点的一句话。';
+const slowScript = { replies: [...script.replies, { when: SLOW, reply: '我慢慢想好了。', delayMs: 4000 }] };
+const slowGateway = (voice) => ttsGateway({ dir: tmpDir(), files: { 'profile.json': R1_PROFILE.replace('\n}\n', `,\n  "voice": "${voice}"\n}\n`) }, script: slowScript });
+const key = (lang, text) => `${lang}\n${text}`;
+const serenaParts = (parts, who) => { for (const p of parts) { assert.deepEqual(p.line, ['serena'], `${who}: helper line for ${p.text}`); assert.deepEqual(p.done, [{ voice: 'serena', crisis: true }], `${who}: tts_done for ${p.text}`); } };
+
+test('TC-282 REQ-075 (Q35, FND-075): clear a slow normal turn, then send a crisis line: after the abandoned turn ends (memory_turn skip gone) every crisis part, number included, is still serena', async () => {
+  const gw = await slowGateway('ryan');
+  try {
+    const ac = new AbortController();
+    const slow = fetch(`${gw.base}/api/respond`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ line: SLOW, history: [] }), signal: ac.signal })
+      .then(() => 'finished', (e) => e.name);
+    await new Promise((r) => setTimeout(r, 500)); // the gateway's Bonsai call is under way
+    ac.abort(); // the page's 清空
+    assert.equal(await slow, 'AbortError');
+    const body = await crisisTurn(gw, CRISIS_ZH, 'CN');
+    assert.ok(body.speech.length >= 2);
+    const t0 = Date.now();
+    while (!gw.logs().some((l) => l.event === 'memory_turn' && l.skip === 'gone')) {
+      assert.ok(Date.now() - t0 < 15000, 'the abandoned turn never logged memory_turn skip gone');
+      await new Promise((r) => setTimeout(r, 100));
+    }
+    serenaParts(await readParts(gw, body), 'after the abandoned turn ended');
+  } finally { await gw.stop(); }
+});
+
+test('TC-283 REQ-075 (Q35, FND-075): second client: client A has a crisis reply, client B gets a normal 200; A\'s parts are all serena, B\'s normal parts keep the chosen voice', async () => {
+  const gw = await gateway('ryan');
+  try {
+    const a = await crisisTurn(gw, CRISIS_ZH, 'CN');
+    const b = await say(gw, NORMAL);
+    assert.equal(b.status, 200);
+    assert.equal(b.json.crisis, false);
+    serenaParts(await readParts(gw, a), 'client A after client B');
+    for (const p of await readParts(gw, b.json)) {
+      assert.deepEqual(p.line, ['ryan'], `B normal part ${p.text}`);
+      assert.deepEqual(p.done, [{ voice: 'ryan', crisis: false }], `B normal tts_done ${p.text}`);
+    }
+  } finally { await gw.stop(); }
+});
+
+test('TC-284 REQ-075 (Q35, DES-049 CRISIS_KEEP = 3): four crisis replies (zh-CN, zh-US, en-CN, en-US): parts only in the first read the chosen voice; parts of replies 2..4 are serena', async () => {
+  const gw = await gateway('ryan');
+  try {
+    const bodies = [];
+    for (const [line, region] of [[CRISIS_ZH, 'CN'], [CRISIS_ZH, 'US'], [CRISIS_EN, 'CN'], [CRISIS_EN, 'US']]) bodies.push(await crisisTurn(gw, line, region));
+    const later = new Set(bodies.slice(1).flatMap((r) => r.speech.map((t) => key(r.lang, t))));
+    const onlyFirst = bodies[0].speech.filter((t) => !later.has(key(bodies[0].lang, t)));
+    assert.ok(onlyFirst.length >= 1, `reply 1 has a part no later reply has: ${JSON.stringify(bodies.map((b) => b.speech))}`);
+    for (const p of await readParts(gw, { ...bodies[0], speech: onlyFirst })) {
+      assert.deepEqual(p.line, ['ryan'], `dropped crisis part ${p.text}`);
+      assert.deepEqual(p.done, [{ voice: 'ryan', crisis: false }], `dropped crisis part tts_done ${p.text}`);
+    }
+    for (const [i, b] of bodies.slice(1).entries()) serenaParts(await readParts(gw, b), `kept reply ${i + 2}`);
+  } finally { await gw.stop(); }
 });
