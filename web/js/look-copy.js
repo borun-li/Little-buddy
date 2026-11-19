@@ -32,7 +32,7 @@ export const LOOK_COPY = {
     outfit: '穿搭', outfitNone: '不穿',
     slot: { head: '头饰', clothes: '衣服', shoes: '鞋子', accessory: '配饰' },
     itemName: { head: ['小草帽', '毛线帽', '小雏菊'], clothes: ['条纹毛衣', '背带裤', '波点裙'], shoes: ['小雨靴', '帆布鞋', '毛绒拖鞋'], accessory: ['围巾', '领结', '小铃铛'] },
-    outfitNote: '每个部位穿一件，颜色跟着衣服来', voiceNote: '选中 = 以后朗读用它；试听不改选中', growthNote: '只增不减，不催', voiceDefault: '（默认）',
+    outfitNote: '每个部位穿一件，颜色跟着衣服来', voiceNote: '选中 = 以后朗读用它；试听不改选中', growthNote: '不催，也不会因为没来聊就变小', voiceDefault: '（默认）',
     voiceGroup: '声音', voice: VOICE.zh,
     preview: '试听', previewStop: '停下', previewMissing: '这个声音的试听没找到',
     previewLine: '你好呀，我在呢。', previewShort: '你好呀。',
@@ -43,6 +43,9 @@ export const LOOK_COPY = {
     next: (n) => (n === 1 ? '再聊 1 天长大' : `再聊 ${n} 天长大`),
     up: '长大了一点', thanks: '谢谢你陪我这么久', upSaid: (stage) => `长大了一点，现在${stage}`, // 01-ux Words: growth.up / .thanks / .upSaid
     lookSaveFailed: '没存上，还是原来的',
+    // 01-ux.md § Review fixes (FND-063, FND-065): the tab's read rows and the memory-off line under the bar
+    lookLoading: '正在打开形象和声音', lookReadError: '暂时读不出来，先不能换。{name}还是现在的样子。',
+    growthOff: '记忆关着，这段时间先不数天数',
     aboutHead: {},
   },
   en: {
@@ -53,7 +56,7 @@ export const LOOK_COPY = {
     outfit: 'Outfit', outfitNone: 'None',
     slot: { head: 'Headwear', clothes: 'Clothes', shoes: 'Shoes', accessory: 'Accessory' },
     itemName: { head: ['Straw hat', 'Beanie', 'Daisy'], clothes: ['Striped jumper', 'Overalls', 'Dotted dress'], shoes: ['Rain boots', 'Sneakers', 'Fluffy slippers'], accessory: ['Scarf', 'Bow tie', 'Bell collar'] },
-    outfitNote: 'Wear one per spot; colours come with the clothes', voiceNote: "The chosen voice will read aloud; Listen won't change it", growthNote: 'Only grows, never rushes you', voiceDefault: ' (default)',
+    outfitNote: 'Wear one per spot; colours come with the clothes', voiceNote: "The chosen voice will read aloud; Listen won't change it", growthNote: "No rush, and it won't shrink while you're away", voiceDefault: ' (default)',
     voiceGroup: 'Voice', voice: VOICE.en,
     preview: 'Listen', previewStop: 'Stop', previewMissing: "This voice's sample is missing",
     previewLine: "Hi, I'm here.", previewShort: 'Hi there.',
@@ -64,6 +67,8 @@ export const LOOK_COPY = {
     next: (n) => (n === 1 ? 'Chat on 1 more day to grow' : `Chat on ${n} more days to grow`),
     up: 'Grew up a little', thanks: 'Thanks for keeping me company', upSaid: (stage) => `Grew up a little: now ${stage}`,
     lookSaveFailed: 'Not saved; kept the old one',
+    lookLoading: 'Opening Look & voice', lookReadError: "This can't be read right now, so nothing can be changed yet. {name} stays as is.",
+    growthOff: "Memory is off, so days aren't being counted for now",
     // REQ-066: display only, 中文 title first. Keys are the titles 关于你.md keeps (server/memory-files.js).
     aboutHead: { '最近在忙': 'Lately', '在意的人和事': 'People and things you care about', '喜欢·不喜欢': 'Likes and dislikes' },
   },

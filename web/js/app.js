@@ -329,9 +329,10 @@ function applyStage(g, { up = null, crisis = false } = {}) {
 }
 function stageUp(to, { captionOnly = false } = {}) {
   companion.stageUp(to, { thanks: () => lt('thanks'), band: to, captionOnly });
-  // growth.upSaid once: the drawer makes the page inert, so then the drawer's own status says it (lookUi.say)
+  // growth.upSaid once: the drawer makes the page inert, so then 成长's status says it when 成长 is on screen, else the drawer's
+  // own live region (FND-066: 日记, 关于你, or the look tab loading or failed)
   const said = lt('upSaid')(lt('stage')[to]);
-  if ($('main.page').inert) lookUi.say(said); else companion.announce(said);
+  if (!$('main.page').inert) companion.announce(said); else if (!lookUi.say(said)) memoryUi.announce(said);
 }
 Promise.all([lookClient.getLook(), lookClient.getGrowth()]).then(([l, g]) => { applyLook(l, { animate: false }); applyStage(g); }).catch(() => { /* unreadable: the default look stays (A14) */ });
 // Q-064: the phone sheet's preview is a second companion that mirrors the stage one (no caption, ids prefixed pv-).

@@ -1054,6 +1054,204 @@ def s_r2_spark(a, pw):  # Q-071: the three spark bands as the page builds them (
     return out
 
 
+# ---- review fixes (Q-065, Q-077..Q-082; fe-tester #6, 2026-11-19) ----------------------------------------------------------------
+# HOOK wraps window.fetch for /api/profile only: every call is logged (window.__log), and window.__hook(method, body, n) -> null (pass
+# through) | { delay, status, body, patch }: delay waits first; status+body answers in the browser (the gateway never sees it); patch
+# merges into the real answer. Non-GET answers are always made here, so the gateway's data dir is never written.
+HOOK = r"""(() => {
+  const real = window.fetch.bind(window); window.__log = []; window.__hook = null; let n = 0;
+  window.fetch = async (u, init) => {
+    const url = String((u && u.url) || u); const method = ((init && init.method) || 'GET').toUpperCase();
+    if (new URL(url, location.href).pathname !== '/api/profile') return real(u, init);
+    n += 1; window.__log.push({ method, n });
+    const body = init && init.body ? JSON.parse(init.body) : null;
+    const r = window.__hook ? await window.__hook(method, body, n) : null;
+    if (r && r.delay) await new Promise((ok) => setTimeout(ok, r.delay));
+    if (r && r.status) return new Response(JSON.stringify(r.body), { status: r.status, headers: { 'content-type': 'application/json' } });
+    const res = await real(u, init);
+    if (r && r.patch) { const b = await res.json(); return new Response(JSON.stringify({ ...b, ...r.patch }), { status: res.status, headers: { 'content-type': 'application/json' } }); }
+    return res;
+  };
+})();"""
+DEFAULT_OUTFIT = {'head': 'none', 'clothes': 'none', 'shoes': 'none', 'accessory': 'none'}
+
+
+def hooked(a, pw, **kw):
+    pg = Page(pw, a['base'], a.get('lang', 'zh'), width=a.get('width', 1440), height=a.get('height', 900), **kw)
+    pg.ctx.add_init_script(HOOK)
+    pg.errors = []
+    pg.page.on('pageerror', lambda e: pg.errors.append(str(e)))
+    return pg.goto()
+
+
+def s_r2_fix_save(a, pw):  # Q-077 (FND-062): picks = [{value, status, ms}] answered in the browser; the group and the companion afterwards
+    out = []
+    for case in a['cases']:
+        pg = hooked(a, pw)
+        dismiss_notice(pg)
+        pg.open_drawer('look')
+        grp = a['group']
+        pg.page.wait_for_selector('[data-testid=%s-%s]' % (grp, case['picks'][0]['value']), state='attached', timeout=8000)
+        pg.page.evaluate("""([group, picks, outfit]) => { window.__hook = async (method, body) => {
+          if (method !== 'POST') return null;
+          const v = group === 'voice' ? body.voice : body.look.character;
+          const p = picks.find((x) => String(x.value) === String(v));
+          const ok = p.status === 200;
+          return { delay: p.ms, status: p.status, body: ok ? (group === 'voice' ? { voice: v } : { look: { character: v, outfit } }) : { error: 'unreadable' } };
+        }; }""", [grp, case['picks'], DEFAULT_OUTFIT])
+        for p in case['picks']:
+            pg.page.click('label.look__opt:has([data-testid=%s-%s])' % (grp, p['value']))
+            pg.settle(p.get('gap', 100))
+        pg.settle(a.get('settle', 2300))
+        out.append({'name': case['name'], **pg.page.evaluate("""(grp) => ({
+          checked: (document.querySelector('[data-testid=' + grp + '] input:checked') || {}).value || null,
+          msg: document.querySelector('[data-testid=' + grp + '-msg]').textContent,
+          companion: document.querySelector('[data-testid=companion]').dataset.character })""", grp), 'errors': pg.errors})
+        pg.close()
+    return {'cases': out}
+
+
+READ_STATE = """() => { const p = document.querySelector('[data-testid=panel-look]'); const st = p.querySelector('[role=status]'); const al = p.querySelector('[role=alert]');
+  const rt = p.querySelector('[data-testid=look-retry]');
+  return { busy: p.getAttribute('aria-busy'), skeleton: !!p.querySelector('.skeleton--look'), status: st ? st.textContent : null, alert: al ? al.textContent : null,
+    retry: rt ? rt.textContent : null, groups: p.querySelectorAll('fieldset.look__group').length, previewBox: p.querySelectorAll('.look__preview-box').length,
+    previews: document.querySelectorAll('.companion--preview').length, note: (p.querySelector('.look__growth .look__note') || {}).textContent || null,
+    gets: window.__log.filter((x) => x.method === 'GET').length }; }"""
+
+
+def s_r2_fix_read(a, pw):  # Q-078 (FND-063): loading, failed read + retry, language switch, late answers
+    kind = a['kind']
+    pg = hooked(a, pw)
+    dismiss_notice(pg)
+    out = {'kind': kind}
+    if kind == 'fail':  # GET 500 on tab open; then the read works and 再试一次 is pressed
+        pg.page.evaluate("window.__hook = async (m) => m === 'GET' ? { status: 500, body: { error: 'unreadable' } } : null")
+        pg.page.click('[data-testid=open-look]')
+        pg.page.wait_for_selector('[data-testid=look-error]', timeout=8000)
+        out['failed'] = pg.page.evaluate(READ_STATE)
+        out['focus'] = pg.page.evaluate(FOCUS)
+        pg.page.evaluate('window.__hook = null')
+        pg.page.click('[data-testid=look-retry]')
+        pg.page.wait_for_selector('fieldset.look__group', timeout=8000)
+        out['afterRetry'] = pg.page.evaluate(READ_STATE)
+    elif kind == 'fail-switch':  # failed, then the read works again, then EN: the switch reads again, all in English
+        pg.page.evaluate("window.__hook = async (m) => m === 'GET' ? { status: 500, body: { error: 'unreadable' } } : null")
+        pg.page.click('[data-testid=open-look]')
+        pg.page.wait_for_selector('[data-testid=look-error]', timeout=8000)
+        pg.page.evaluate('window.__hook = null')
+        out['before'] = pg.page.evaluate(READ_STATE)
+        pg.page.click('.drawer__end [data-lang=en]')
+        pg.page.wait_for_selector('fieldset.look__group', timeout=8000)
+        out['after'] = pg.page.evaluate(READ_STATE)
+    elif kind == 'slow':  # the read takes 2.5 s: look at 700 ms, then when it has landed
+        pg.page.evaluate("window.__hook = async (m) => m === 'GET' ? { delay: 2500 } : null")
+        pg.page.click('[data-testid=open-look]')
+        pg.settle(700)
+        out['loading'] = pg.page.evaluate(READ_STATE)
+        pg.page.wait_for_selector('fieldset.look__group', timeout=8000)
+        out['loaded'] = pg.page.evaluate(READ_STATE)
+    elif kind == 'switch':  # content shown: EN redraws with no read and nothing moves
+        pg.open_drawer('look')
+        pg.page.wait_for_selector('fieldset.look__group', timeout=8000)
+        pg.settle(2800)
+        rects = "() => [...document.querySelectorAll('[data-testid=panel-look] .look__opt .tile')].map((e) => { const r = e.getBoundingClientRect(); return [r.left, r.top, r.width, r.height]; })"
+        before = pg.page.evaluate(rects)
+        gets = pg.page.evaluate(READ_STATE)['gets']
+        pg.page.click('.drawer__end [data-lang=en]')
+        pg.settle(800)
+        after = pg.page.evaluate(rects)
+        out.update({'tiles': len(before), 'moved': sum(1 for x, y in zip(before, after) if max(abs(i - j) for i, j in zip(x, y)) > 1), 'state': pg.page.evaluate(READ_STATE), 'getsBefore': gets})
+    elif kind == 'late':  # the first read is slow; the tab is left and the look tab asked again; the slow answer must not draw a second time
+        pg.page.evaluate("""() => { window.__hook = async (m, b, n) => (m === 'GET' && window.__slowOnce === undefined ? ((window.__slowOnce = n), { delay: 2000 }) : null);
+          window.__drawn = 0; new MutationObserver((rs) => { for (const r of rs) for (const x of r.addedNodes) if (x.nodeType === 1 && x.matches('[data-testid=look-character]')) window.__drawn += 1; })
+            .observe(document.querySelector('[data-testid=panel-look]'), { childList: true, subtree: true }); }""")
+        pg.page.click('[data-testid=open-look]')
+        pg.settle(300)
+        pg.page.click('[data-testid=tab-about]')
+        pg.settle(300)
+        pg.page.click('[data-testid=tab-look]')
+        pg.page.wait_for_selector('fieldset.look__group', timeout=8000)
+        out['drawnFast'] = pg.page.evaluate('window.__drawn')
+        pg.settle(2600)  # the slow answer has landed by now
+        out['drawnLate'] = pg.page.evaluate('window.__drawn')
+        out['state'] = pg.page.evaluate(READ_STATE)
+        pg.page.click('[data-testid=drawer-close]')
+        pg.settle(300)
+        out['previewsAfterClose'] = pg.page.evaluate("document.querySelectorAll('.companion--preview').length")
+    out['errors'] = pg.errors
+    pg.close()
+    return out
+
+
+def s_r2_fix_words(a, pw):  # Q-079 (FND-064): the forget question and the 成长 note as drawn
+    pg = hooked(a, pw)
+    dismiss_notice(pg)
+    pg.open_drawer('about')
+    pg.page.wait_for_selector('[data-testid=forget]', timeout=8000)
+    pg.page.click('[data-testid=forget]')
+    pg.page.wait_for_selector('#forget-q', timeout=3000)
+    ask = pg.page.evaluate("document.querySelector('#forget-q').textContent")
+    pg.page.click('[data-testid=tab-look]')
+    pg.page.wait_for_selector('fieldset.look__group', timeout=8000)
+    note = pg.page.evaluate("document.querySelector('.look__growth .look__note').textContent")
+    pg.close()
+    return {'ask': ask, 'note': note, 'errors': pg.errors}
+
+
+def s_r2_fix_mem(a, pw):  # Q-080 (FND-065): the line under the bar for each patch of the profile answer ({memoryOn}, {readable})
+    out = []
+    for case in a['cases']:
+        pg = hooked(a, pw)
+        dismiss_notice(pg)
+        pg.page.evaluate("(p) => { window.__hook = async (m) => m === 'GET' ? { patch: p } : null; }", case['patch'])
+        pg.open_drawer('look')
+        pg.page.wait_for_selector('[data-testid=growth-bar]', timeout=8000)
+        out.append({'name': case['name'], **pg.page.evaluate("""() => { const n = document.querySelector('[data-testid=growth-next]');
+          return { next: n.textContent, hidden: n.hidden, visible: !!(n.offsetWidth || n.offsetHeight), line: document.querySelector('[data-testid=growth-line]').textContent,
+                   valuetext: document.querySelector('[data-testid=growth-bar]').getAttribute('aria-valuetext') }; }"""), 'errors': pg.errors})
+        pg.close()
+    return {'cases': out}
+
+
+READ_SAID = """() => { const c = document.querySelector('[data-testid=companion]'); const live = c.nextElementSibling;
+  const d = document.querySelector('[data-testid=drawer-announce]'); const g = document.querySelector('[data-testid=growth-said]');
+  const vis = (e) => !!e && !e.closest('[hidden]');
+  return { live: live ? { role: live.getAttribute('role'), aria: live.getAttribute('aria-live'), text: live.textContent } : null,
+    drawer: d ? d.textContent : null, growth: g && vis(g) ? g.textContent : null }; }"""
+
+
+def s_r2_fix_said(a, pw):  # Q-081 / Q-082 (FND-066, FND-067): who hears the stage-up; no tab: the drawer stays closed
+    pg = hooked(a, pw)
+    dismiss_notice(pg)
+    out = {'load': pg.page.evaluate(READ_SAID)}
+    if a.get('tab'):
+        pg.open_drawer(a['tab'])
+        pg.page.wait_for_selector('[data-testid=panel-%s] > *' % a['tab'], timeout=8000)
+        pg.settle(2600)  # the drawer's own motion is over
+        out['before'] = pg.page.evaluate(READ_SAID)
+        pg.page.evaluate("([sel, v]) => { const i = document.querySelector(sel); i.value = v; i.dispatchEvent(new Event('input', { bubbles: true })); i.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', keyCode: 13, bubbles: true })); }", [INPUT, a['line']])
+    else:
+        out['before'] = pg.page.evaluate(READ_SAID)
+        pg.page.fill(INPUT, a['line'])
+        pg.page.press(INPUT, 'Enter')
+    pg.page.wait_for_function("() => { const r = document.querySelector('[data-testid=reply]'); return !!r && r.textContent.length > 0; }", timeout=15000)
+    pg.settle(2000)
+    out['after'] = pg.page.evaluate(READ_SAID)
+    out['errors'] = pg.errors
+    pg.close()
+    return out
+
+
+def s_r2_fix_heads(a, pw):  # Q-065: the headings drawn from a seeded 关于你.md
+    pg = hooked(a, pw)
+    dismiss_notice(pg)
+    pg.open_drawer('about')
+    pg.page.wait_for_selector('[data-testid=about-box]', timeout=8000)
+    heads = pg.page.evaluate("[...document.querySelectorAll('[data-testid=about-box] .md__h')].map((e) => [e.localName, e.textContent])")
+    pg.close()
+    return {'heads': heads}
+
+
 SCEN = {k[2:]: v for k, v in globals().items() if k.startswith('s_')}
 
 if __name__ == '__main__':

@@ -22,7 +22,9 @@ export function createCompanion(root, caption, { preview = false, idPrefix = '' 
   let pokeWord = null; // function while a poke is on screen: its caption word
   let deferred = null; // a reply's mood that arrived during a poke; applied when it ends
   let breathing = false; // Q-029: the guide runs; the accessible name is breathName
-  let live = null;       // Q-029: sr-only status that hears the phase word once (created on first use)
+  // Q-029 / FND-067: sr-only status for the phase word and growth.upSaid. It exists, empty, from page load (same fix as R1 FND-045),
+  // because a live region inserted already holding its text may not be spoken. The phone preview has none.
+  let live = null;
   let char = 'honey';    // R2: the look on show
   let outfit = DEFAULT_OUTFIT();
   let stage = 1;
@@ -115,6 +117,13 @@ export function createCompanion(root, caption, { preview = false, idPrefix = '' 
   };
 
   render('neutral', false);
+  if (!preview) {
+    live = document.createElement('span');
+    live.className = 'sr-only';
+    live.setAttribute('role', 'status');
+    live.setAttribute('aria-live', 'polite');
+    root.after(live);
+  }
   return {
     get mood() { return current; },
     get shownMood() { return shown; },
@@ -232,16 +241,7 @@ export function createCompanion(root, caption, { preview = false, idPrefix = '' 
       if (!on && live) live.textContent = '';
     },
     // The phase word, announced once when it changes; the seconds are never announced.
-    announce(text) {
-      if (!live) {
-        live = document.createElement('span');
-        live.className = 'sr-only';
-        live.setAttribute('role', 'status');
-        live.setAttribute('aria-live', 'polite');
-        root.after(live);
-      }
-      live.textContent = text;
-    },
+    announce(text) { if (live) live.textContent = text; },
     setWaking(on) { if (on !== waking) { waking = on; setCaption(); } },
   };
 }

@@ -48,7 +48,7 @@ export function renderMarkdown(text, headings = (s) => s) {
   return box;
 }
 
-// look = the R2 tab's body (look-ui.js): { render(panel), stop() }.
+// look = the R2 tab's body (look-ui.js): { render(panel), refresh(panel), stop() }.
 export function createMemoryUi({ client, look, drawer, main, openers, noticeHost, privacyEl, showHint, clearHint, onNameSaved, onForgotten, onStartChat, onProfile }) {
   const tabs = {
     diary: drawer.querySelector('[data-tab="diary"]'),
@@ -606,8 +606,7 @@ export function createMemoryUi({ client, look, drawer, main, openers, noticeHost
       const words = t(memoryOn() ? 'forgotten' : 'forgottenOff');
       forgetHost.replaceChildren(h('p', 'forget__result', words, { 'data-testid': 'forget-result' })); // announced by the drawer's own live region
       closeBtn.focus();
-      announcer.textContent = '';
-      setTimeout(() => { announcer.textContent = words; }, 50); // written after the result is drawn, so it is spoken
+      announce(words);
     } catch (err) {
       renderForget(failed('forget', err).key); // the line replaces the question, 删掉 stays for another try
     }
@@ -637,6 +636,13 @@ export function createMemoryUi({ client, look, drawer, main, openers, noticeHost
     forgetHost.append(b, h('p', 'set__note', t('forgetNote')));
   }
 
+  // the drawer's own live region (FND-045); FND-066: also growth.upSaid when 成长 is not on screen. Emptied first and written
+  // after the change is drawn, so it is spoken.
+  function announce(text) {
+    announcer.textContent = '';
+    setTimeout(() => { announcer.textContent = text; }, 50);
+  }
+
   // a language switch: the notice, the privacy line, the stage-button names and (R2) the open drawer follow
   function refresh() {
     const scrollTop = scrollEl.scrollTop;
@@ -650,12 +656,12 @@ export function createMemoryUi({ client, look, drawer, main, openers, noticeHost
     asking = false;
     renderShell();
     scrollEl.scrollTop = scrollTop;
-    if (current === 'look') look.render(panels.look);
+    if (current === 'look') { look.refresh(panels.look); scrollEl.scrollTop = scrollTop; } // FND-063: redraw shown values, or read again
     else if (current === 'diary' && diaryData && !panels.diary.hasAttribute('aria-busy') && !panels.diary.querySelector('.panel__msg [role="alert"]')) renderDiary(panels.diary, diaryData);
     else if (current === 'about' && profile?.readable && !panels.about.hasAttribute('aria-busy') && panels.about.querySelector('.about__where')) renderAbout(panels.about);
     else select(current); // loading or failed: ask again, in the new words
   }
 
-  Object.assign(api, { start, refresh, open, close, select });
+  Object.assign(api, { start, refresh, open, close, select, announce });
   return api;
 }

@@ -3,6 +3,8 @@
 //   getLook()      GET  /api/profile .look   -> { character: 1|2|3, outfit: { head, clothes, shoes, accessory } }   slot value 'none' | 1..3
 //   getVoice()     GET  /api/profile .voice  -> one of VOICES (the service's default is serena)
 //   getGrowth()    GET  /api/profile .growth -> { days, stage, into, span, left }   computed by the service from the diary, never here
+//   getMemory()    GET  /api/profile .memoryOn/.readable -> { memoryOn, readable }   FND-065: 成长 says days are not counted while off;
+//                    unreadable files give memoryOn false and readable false (then nothing under the bar)
 //   setLook(patch) POST /api/profile { look: patch } -> the saved look; patch = { character } and/or { outfit: { <slot>: value } }
 //   setVoice(id)   POST /api/profile { voice: id }   -> the saved voice; the next part read aloud uses it (the service decides)
 //   preview(id, {lang, signal}) -> resolves when the offline sample audio/voices/<id>-<zh|en>.wav has played (Q-058, made by
@@ -64,6 +66,7 @@ export function createLookClient({ fetch: fetchImpl, createAudio = typeof Audio 
     async getLook() { return cleanLook((await profile()).look); },
     async getVoice() { return cleanVoice((await profile()).voice); },
     async getGrowth() { return cleanGrowth((await profile()).growth); },
+    async getMemory() { const p = await profile(); const readable = p.readable !== false; return { memoryOn: readable && p.memoryOn !== false, readable }; },
     async setLook(patch) { return cleanLook((await save({ look: patch })).look); },
     async setVoice(id) { return cleanVoice((await save({ voice: id })).voice); },
     preview(id, { lang, signal } = {}) {

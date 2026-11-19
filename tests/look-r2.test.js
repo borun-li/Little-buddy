@@ -139,7 +139,7 @@ test('Q-073 a 200 body that is not the seam shape is \'failed\' (look, voice, gr
 
 test('Q-073 Q-076 the prototype\'s fake layer is gone: no demo days, no remembered stage, no localStorage keys, no growth maths in the client', () => {
   const c = createLookClient({ fetch: async () => jres(200, PROFILE) });
-  assert.deepEqual(Object.keys(c).sort(), ['getGrowth', 'getLook', 'getVoice', 'preview', 'setLook', 'setVoice']);
+  assert.deepEqual(Object.keys(c).sort(), ['getGrowth', 'getLook', 'getMemory', 'getVoice', 'preview', 'setLook', 'setVoice']);
   assert.deepEqual(Object.keys(lookClientModule).filter((k) => /demo|seen|claim|growthOf|KEY/i.test(k)), []);
   const src = readFileSync(join(WEB, 'js/look-client.js'), 'utf8').split('\n').filter((l) => !l.trimStart().startsWith('//')).join('\n');
   assert.equal(/localStorage|sessionStorage|stageSeen|demoDays/.test(src), false);

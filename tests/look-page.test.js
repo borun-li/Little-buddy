@@ -385,3 +385,134 @@ test('Q-071 spark bands are told apart by shape: band 1, 2, 3 as built equal spa
   assert.deepEqual(r.ids, ['spark-glow-fill-1', 'spark-glow-fill-2'], 'one gradient id per band-3 copy');
   assert.deepEqual([r.dups, r.dangling], [[], []], 'no duplicate id in the page, every url(#id) has its target');
 });
+
+
+// ---- Q-065 and Q-077 .. Q-082 (review fixes; fe-tester #6, 2026-11-19). Page runs through page-driver.py r2_fix_* scenarios.
+// Words are read from 01-ux.md (the Words tables; the last row of a key wins, so a retired older row never counts), {name} = 团子 (R1_PROFILE).
+// Replies of /api/profile are changed in the browser only (HOOK in the driver): the gateway's data dir is never written by a hooked answer.
+function uxCell(key, lang) {
+  const doc = readFileSync(join(ROOT, 'docs/frontend/r2-personalise/01-ux.md'), 'utf8');
+  let hit = null;
+  for (const line of doc.split('\n')) {
+    const cells = line.split('|').map((c) => c.trim()).filter(Boolean);
+    if (cells.length === 4 && cells[1] === `\`${key}\``) hit = cells[lang === 'zh' ? 2 : 3];
+  }
+  assert.ok(hit, `01-ux.md has a Words row for ${key}`);
+  return hit.replace('{name}', '团子');
+}
+const W = (key) => ({ zh: uxCell(key, 'zh'), en: uxCell(key, 'en') });
+const OBJ = (o, keys) => Object.fromEntries(keys.map((k) => [k, o[k]]));
+const GROUPS = 6; // 角色 + 4 outfit slots + 声音
+
+test('Q-077 FND-062 a save refused after a later pick was saved says nothing (group and companion show the later pick); a refusal of the newest pick, or of the only one, restores the confirmed value and says lookSaveFailed; voice and character groups', opts, async () => {
+  const failed = W('lookSaveFailed').zh;
+  const R = await withGw(async (gw) => {
+    assert.equal((await postProfile(gw, { voice: 'ryan' })).status, 200);
+    const voice = await page('r2_fix_save', { base: gw.base, group: 'voice', cases: [
+      { name: 'older refused late, newer saved', picks: [{ value: 'aiden', status: 500, ms: 1500 }, { value: 'ono-anna', status: 200, ms: 200 }] },
+      { name: 'only pick refused', picks: [{ value: 'aiden', status: 500, ms: 300 }] },
+      { name: 'newer refused, older saved late', picks: [{ value: 'aiden', status: 200, ms: 1500 }, { value: 'ono-anna', status: 500, ms: 200 }] },
+    ] });
+    const character = await page('r2_fix_save', { base: gw.base, group: 'look-character', cases: [
+      { name: 'older refused late, newer saved', picks: [{ value: 2, status: 500, ms: 1500 }, { value: 3, status: 200, ms: 200 }] },
+      { name: 'only pick refused', picks: [{ value: 2, status: 500, ms: 300 }] },
+    ] });
+    return { voice, character };
+  });
+  const got = (r) => r.cases.map((c) => [c.name, c.checked, c.msg, c.errors]);
+  assert.deepEqual(got(R.voice), [
+    ['older refused late, newer saved', 'ono-anna', '', []],
+    ['only pick refused', 'ryan', failed, []],
+    ['newer refused, older saved late', 'aiden', failed, []],
+  ]);
+  assert.deepEqual(got(R.character), [['older refused late, newer saved', '3', '', []], ['only pick refused', '1', failed, []]]);
+  assert.deepEqual(R.character.cases.map((c) => c.companion), ['3', '1'], 'the companion wears what the service last confirmed');
+});
+
+test('Q-078 FND-063 a read that fails shows lookReadError and 再试一次 (alert, no groups, no preview box, focus stays on the tab), the retry draws the tab; no page error', opts, async () => {
+  const r = await withGw((gw) => page('r2_fix_read', { base: gw.base, kind: 'fail', width: 390, height: 844 }));
+  assert.deepEqual(OBJ(r.failed, ['busy', 'skeleton', 'status', 'alert', 'retry', 'groups', 'previewBox', 'previews']),
+    { busy: null, skeleton: false, status: null, alert: W('lookReadError').zh, retry: W('retry').zh, groups: 0, previewBox: 0, previews: 0 });
+  assert.equal(r.focus, 'tab-look');
+  assert.deepEqual(OBJ(r.afterRetry, ['busy', 'alert', 'retry', 'groups', 'previewBox', 'previews']), { busy: null, alert: null, retry: null, groups: GROUPS, previewBox: 1, previews: 1 });
+  assert.deepEqual(r.errors, []);
+});
+
+test('Q-078 FND-063 while the read is slow the tab shows placeholders (aria-busy, lookLoading as the status, nothing to choose, no phone preview) until the answer lands, at 1440 and 390', opts, async () => {
+  for (const [width, height, box] of [[1440, 900, 1], [390, 844, 1]]) {
+    const r = await withGw((gw) => page('r2_fix_read', { base: gw.base, kind: 'slow', width, height }));
+    assert.deepEqual(OBJ(r.loading, ['busy', 'skeleton', 'status', 'alert', 'retry', 'groups', 'previewBox', 'previews']),
+      { busy: 'true', skeleton: true, status: W('lookLoading').zh, alert: null, retry: null, groups: 0, previewBox: 0, previews: 0 }, `loading at ${width}`);
+    assert.deepEqual(OBJ(r.loaded, ['busy', 'skeleton', 'status', 'alert', 'groups', 'previewBox']), { busy: null, skeleton: false, status: '' /* the empty growth-said region, not lookLoading */, alert: null, groups: GROUPS, previewBox: box }, `loaded at ${width}`);
+    assert.deepEqual(r.errors, []);
+  }
+});
+
+test('Q-078 FND-063 EN pressed on a failed read reads again and draws the tab in English (one more GET)', opts, async () => {
+  const r = await withGw((gw) => page('r2_fix_read', { base: gw.base, kind: 'fail-switch' }));
+  assert.equal(r.before.alert, W('lookReadError').zh);
+  assert.deepEqual([r.after.gets - r.before.gets, r.after.groups, r.after.alert, r.after.note], [1, GROUPS, null, W('growthNote').en]);
+  assert.deepEqual(r.errors, []);
+});
+
+test('Q-078 FND-063 EN pressed with the tab drawn redraws it from the values on screen: 0 GETs, the 16 outfit tiles stay within 1 px, the note reads in English', opts, async () => {
+  const r = await withGw((gw) => page('r2_fix_read', { base: gw.base, kind: 'switch' }));
+  assert.deepEqual([r.tiles, r.moved, r.state.gets - r.getsBefore, r.state.note], [16, 0, 0, W('growthNote').en]);
+});
+
+test('Q-078 FND-063 a slow read overtaken by a tab change and a newer render draws the tab once, never again when it lands; one phone preview, none after close', opts, async () => {
+  const r = await withGw((gw) => page('r2_fix_read', { base: gw.base, kind: 'late', width: 390, height: 844 }));
+  assert.deepEqual([r.drawnFast, r.drawnLate, r.state.groups, r.state.previews, r.previewsAfterClose, r.errors], [1, 1, GROUPS, 1, 0, []]);
+});
+
+test('Q-079 FND-064 the forget question and the 成长 note read the 01-ux Review fixes words, in 中文 and in English', opts, async () => {
+  for (const lang of ['zh', 'en']) {
+    const r = await withGw((gw) => page('r2_fix_words', { base: gw.base, lang }));
+    assert.deepEqual([r.ask, r.note, r.errors], [W('forgetAsk')[lang], W('growthNote')[lang], []], lang);
+  }
+});
+
+test('Q-080 FND-065 under the bar: memory off gives growthOff (as the value text too, at stage 2 and at stage 3); memory on gives the countdown; unreadable files give nothing', opts, async () => {
+  const off = W('growthOff').zh;
+  const two = await withGw((gw) => page('r2_fix_mem', { base: gw.base, cases: [
+    { name: 'on', patch: { memoryOn: true, readable: true } }, { name: 'off', patch: { memoryOn: false } }, { name: 'unreadable', patch: { memoryOn: false, readable: false } }] }), { days: 2 });
+  const seven = await withGw((gw) => page('r2_fix_mem', { base: gw.base, cases: [{ name: 'off at stage 3', patch: { memoryOn: false } }] }), { days: 7 });
+  const row = (c) => [c.name, c.next, c.hidden, c.line, c.valuetext];
+  assert.deepEqual(two.cases.map(row), [
+    ['on', '再聊 1 天长大', false, '刚认识 · 一起聊过 2 天', '再聊 1 天长大'],
+    ['off', off, false, '刚认识 · 一起聊过 2 天', off],
+    ['unreadable', '', true, '刚认识 · 一起聊过 2 天', '刚认识 · 一起聊过 2 天'],
+  ]);
+  assert.deepEqual(seven.cases.map(row), [['off at stage 3', off, false, '老朋友 · 一起聊过 7 天', off]]);
+  assert.deepEqual([...two.cases, ...seven.cases].map((c) => c.errors), [[], [], [], []]);
+});
+
+const saidRun = (args, opt) => withGw((gw) => page('r2_fix_said', { base: gw.base, line: '今天过得还行', ...args }), { days: 2, ...opt });
+
+test('Q-081 FND-066 a stage-up reply while 日记 or 关于你 shows is heard through drawer-announce (empty before), not through the companion status or growth-said, at 1440 and 390', opts, async () => {
+  const want = ZH.upSaid(2);
+  for (const [width, height] of [[1440, 900], [390, 844]]) for (const tab of ['diary', 'about']) {
+    const r = await saidRun({ tab, width, height });
+    assert.deepEqual([r.before.drawer, r.after.drawer, r.after.live.text, r.after.growth, r.errors], ['', want, '', null, []], `${tab} at ${width}`);
+  }
+});
+
+test('Q-082 FND-067 the companion has a polite status region, empty, from load; with the drawer closed the stage-up reply fills it with growth.upSaid', opts, async () => {
+  const r = await saidRun({});
+  const empty = { role: 'status', aria: 'polite', text: '' };
+  assert.deepEqual([r.load.live, r.before.live, r.after.live, r.after.drawer, r.errors], [empty, empty, { ...empty, text: ZH.upSaid(2) }, '', []]);
+});
+
+test('Q-065 in EN the three 关于你 headings read as 01-ux "关于你 headings, EN" (最近在忙 · Lately ...); in 中文 they stay as written', opts, async () => {
+  const md = '# 关于你\n\n## 最近在忙\n- 在准备实习面试\n\n## 在意的人和事\n- 猫叫豆豆\n\n## 喜欢·不喜欢\n- 喜欢咖啡\n';
+  const dir = join(tmpDir(), 'LittleBuddy');
+  seed(dir, { 'profile.json': R1_PROFILE, '关于你.md': md });
+  const gw = await startGateway({ dir, script: { replies: [{ reply: '好的，我在听。' }] }, clock: NOON('2026-11-18'), ...NY });
+  try {
+    await gw.ready();
+    const en = (await page('r2_fix_heads', { base: gw.base, lang: 'en' })).heads;
+    const zh = (await page('r2_fix_heads', { base: gw.base, lang: 'zh' })).heads;
+    assert.deepEqual(en, [['h3', '关于你'], ...uxCell('aboutHead.busy/people/likes', 'en').split(' / ').map((t) => ['h4', t])]);
+    assert.deepEqual(zh, [['h3', '关于你'], ['h4', '最近在忙'], ['h4', '在意的人和事'], ['h4', '喜欢·不喜欢']]);
+  } finally { await gw.stop(); }
+});
