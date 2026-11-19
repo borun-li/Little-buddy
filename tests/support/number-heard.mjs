@@ -35,3 +35,12 @@ export function numberHeard(text, number, lang) {
   if (digitsOf(text ?? '').includes(number)) return true;
   return lang === 'zh' && syllableRun(text ?? '', number);
 }
+
+// Q36: a turn is heard when at least HEARD_MIN of the GENERATIONS transcripts score true under numberHeard (the Q34 per-transcript rule).
+export const GENERATIONS = 3;
+export const HEARD_MIN = 2;
+export function turnHeard(transcripts, number, lang) {
+  const scores = (transcripts ?? []).map((t) => numberHeard(t, number, lang));
+  const count = scores.filter(Boolean).length;
+  return { scores, count, heard: scores.length === GENERATIONS && count >= HEARD_MIN };
+}

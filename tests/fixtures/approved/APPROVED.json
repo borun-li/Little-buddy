@@ -428,16 +428,16 @@
     },
     "FX-027": {
       "req": "REQ-075",
-      "source": "Q35, user 2026-11-18 (docs/backend/run-log.jsonl seq 69): every crisis reply is read by serena whatever voice is chosen; replaces Q31's per-voice rule (only ryan, eric by serena) and the CRISIS_VOICE_FOR set; A69 is moot (the whole reply is serena). Expected voice_used = serena for all 9 chosen voices; number_heard rule (Q34) and inputs unchanged from the approved fixture (be-analyst #5 round 3; input.json byte-identical, number_heard and 02 unchanged). Earlier sources, retired where Q35 replaces them but kept as evidence: Q34, user 2026-11-18 (run-log seq 58: a zh transcript whose toneless pinyin equals the help number counts as heard, 酒吧吧 = jiu ba ba = 九八八), after TC-272 test-results/r2-live/TC-272.json (2026-11-18T21:41:51Z, 35/36); Q31 (Plan stop, run-log seq 24), TC-272 2026-11-18T19:05:36Z 33/36 (ryan zh-CN heard 1235, ryan en-CN no digits, eric zh-US heard 酒吧吧). 01 uses real crisis turns (POST /api/profile {region}, POST /api/respond with approved FX-009-01 / FX-009-04, read the body's speech; 03 Phase 5 A3). Expected: REQ-075 Accept as amended (number heard 36/36; all 9 voices read by serena). 02 unchanged (its 4 parts never pass respond, so no part is crisis; vivian reads its own).",
+      "source": "Q36, user 2026-11-18 (docs/backend/run-log.jsonl seq 87): each crisis turn's number part is generated 3 times and the turn counts as heard when at least 2 of the 3 transcripts hold the number under the Q34 scorer; sound and code unchanged; reason: TC-272 live 35/36 on be-tester #4's run (eric en-US, transcript '98') showed a single WhisperKit misread fails a whole run. Voice rule and scorer unchanged: voice_used serena 9/9 (Q35), per-transcript number scorer (Q34). Expected.json byte-identical to approved. Earlier sources kept as history, retired where Q36 replaces the counting: Q35, user 2026-11-18 (docs/backend/run-log.jsonl seq 69): every crisis reply is read by serena whatever voice is chosen; replaces Q31's per-voice rule (only ryan, eric by serena) and the CRISIS_VOICE_FOR set; A69 is moot (the whole reply is serena). Expected voice_used = serena for all 9 chosen voices; number_heard rule (Q34) and inputs unchanged from the approved fixture (be-analyst #5 round 3; input.json byte-identical, number_heard and 02 unchanged). Earlier sources, retired where Q35 replaces them but kept as evidence: Q34, user 2026-11-18 (run-log seq 58: a zh transcript whose toneless pinyin equals the help number counts as heard, 酒吧吧 = jiu ba ba = 九八八), after TC-272 test-results/r2-live/TC-272.json (2026-11-18T21:41:51Z, 35/36); Q31 (Plan stop, run-log seq 24), TC-272 2026-11-18T19:05:36Z 33/36 (ryan zh-CN heard 1235, ryan en-CN no digits, eric zh-US heard 酒吧吧). 01 uses real crisis turns (POST /api/profile {region}, POST /api/respond with approved FX-009-01 / FX-009-04, read the body's speech; 03 Phase 5 A3). Expected: REQ-075 Accept as amended (number heard 36/36; all 9 voices read by serena). 02 unchanged (its 4 parts never pass respond, so no part is crisis; vivian reads its own).",
       "compare": "exact",
       "approved_by": "orchestrator",
       "date": "2026-11-18",
       "files": {
         "expected.json": "9cefce7a2d8eb92b7e9a2b6b3022fc1b0f5a0c9c2ae3558ed1afbd8b61da7ab1",
-        "input.json": "4c339fe9002591a86cea3aca932c50b731e7087670a53d86d816b321cca28f23",
-        "meta.json": "95f2262844cf584a2af75a846b7522c14e4e33c6280828c83a775f2782a59566"
+        "input.json": "d281d9ba0097cd1d59f874f009b8de1ee8f8a38ae05c1944e4c8fd292fd6d6ee",
+        "meta.json": "cf95509bf087fa47549a222ccbb1b12e03835e237a99c960693269d676985a1d"
       },
-      "because": "Q35, user borun_li 2026-11-18 (run-log seq 69): every crisis reply is read by serena, replacing Q31's per-voice set",
+      "because": "Q36, user borun_li 2026-11-18 (run-log seq 87): each crisis turn's number part generated 3 times, heard when at least 2 of 3 transcripts hold the number",
       "history": [
         {
           "date": "2026-11-18",
@@ -464,6 +464,15 @@
             "expected.json": "c81d9044e9cebe6a2dc2150f0a1510590f677f7a034a7be1c298b7de7fe87ac3",
             "input.json": "4c339fe9002591a86cea3aca932c50b731e7087670a53d86d816b321cca28f23",
             "meta.json": "e1d8a2abe0c23e9974f9c6252492eb285d4117ee36f99a445b9bc3506acb4fec"
+          }
+        },
+        {
+          "date": "2026-11-18",
+          "approved_by": "orchestrator",
+          "files": {
+            "expected.json": "9cefce7a2d8eb92b7e9a2b6b3022fc1b0f5a0c9c2ae3558ed1afbd8b61da7ab1",
+            "input.json": "4c339fe9002591a86cea3aca932c50b731e7087670a53d86d816b321cca28f23",
+            "meta.json": "95f2262844cf584a2af75a846b7522c14e4e33c6280828c83a775f2782a59566"
           }
         }
       ]

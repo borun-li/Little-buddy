@@ -63,7 +63,7 @@ export async function captureLogs(fn) {
 
 // ---- ports >= 4450, never 4317
 const taken = new Set();
-const UNSAFE = new Set([5060, 5061, 5000, 7000]); // Chromium refuses 5060/5061 (net::ERR_UNSAFE_PORT, TC-211); 5000 and 7000 are held by macOS AirPlay (ControlCenter) on *:5000/*:7000 (TC-185 flake, be-developer #5 round 2)
+const UNSAFE = new Set([5060, 5061, 5000, 7000, 4460, 4461]); // Chromium refuses 5060/5061 (net::ERR_UNSAFE_PORT, TC-211); 5000 and 7000 are held by macOS AirPlay (ControlCenter) on *:5000/*:7000 (TC-185 flake, be-developer #5 round 2)
 // A port counts as free only when it binds on loopback AND on every address (a listener on *:PORT does not stop a 127.0.0.1 bind test on macOS).
 function bindOn(port, host) {
   return new Promise((res) => { const s = net.createServer(); s.once('error', () => res(false)); s.listen(port, host, () => s.close(() => res(true))); });
@@ -71,10 +71,27 @@ function bindOn(port, host) {
 async function canBind(port) {
   return (await bindOn(port, '127.0.0.1')) && (await bindOn(port, undefined)); // undefined = all addresses (dual-stack ::)
 }
+// Cross-process claim: node --test runs the files in parallel, and "bind, close, hand out" alone lets two files pick the same port before either gateway binds it
+// (TC-178/TC-259/TC-277 "Port N is in use"). A claim is an O_EXCL file named after the port; it is stale when its owner pid is dead. 4460/4461 are fixed in memory-perf.
+const CLAIMS = join(tmpdir(), 'lb-test-port-claims');
+function claim(p) {
+  mkdirSync(CLAIMS, { recursive: true });
+  const f = join(CLAIMS, String(p));
+  for (let t = 0; t < 2; t++) {
+    try { writeFileSync(f, String(process.pid), { flag: 'wx' }); return true; } catch { /* held? */ }
+    let owner = NaN;
+    try { owner = Number(readFileSync(f, 'utf8')); } catch { continue; }
+    let alive = owner > 0;
+    if (alive) { try { process.kill(owner, 0); } catch (e) { alive = e.code === 'EPERM'; } }
+    if (alive) return false;
+    try { rmSync(f, { force: true }); } catch { /* raced */ }
+  }
+  return false;
+}
 export async function port4450() {
   for (let i = 0; i < 400; i++) {
     const p = 4450 + Math.floor(Math.random() * 1500);
-    if (taken.has(p) || p === 4317 || UNSAFE.has(p) || !(await canBind(p))) continue;
+    if (taken.has(p) || p === 4317 || UNSAFE.has(p) || !claim(p) || !(await canBind(p))) continue;
     taken.add(p);
     return p;
   }

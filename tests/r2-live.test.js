@@ -10,7 +10,7 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { after, test } from 'node:test';
 import { CONFIG } from '../server/config.js';
-import { digitsOf, numberHeard, UNICODE_VERSION } from './support/number-heard.mjs';
+import { digitsOf, GENERATIONS, numberHeard, turnHeard, UNICODE_VERSION } from './support/number-heard.mjs';
 import { api, cleanupTmp, fcase, fx, imp, port4450, ROOT, seed, sleep, tmpDir, waitFor } from './r2-helpers.js';
 
 const ON = process.env.COMPANION_LIVE === '1';
@@ -217,9 +217,9 @@ T('TC-271 [FX-026-04] REQ-074 (Q33): after serena was warmed, saving dylan, 3 co
 });
 
 // ---------------------------------------------------------------- TC-272
-// FX-027-01 as re-locked under Q35 (voice_used serena 9/9) and Q34 (number heard): per voice, per turn: POST /api/profile {region}, POST /api/respond (FX-009-01 / -04), read the body's speech with lang;
+// FX-027-01 as re-locked under Q35 (voice_used serena 9/9), Q34 (per-transcript scorer) and Q36 (number part spoken 3 times before the next respond, heard when >= 2 of 3 transcripts score true; tests/support/number-heard.mjs turnHeard): per voice, per turn: POST /api/profile {region}, POST /api/respond (FX-009-01 / -04), read the body's speech with lang;
 // voice_used = the one voice of every part's tts_done (else the sorted distinct list); the number part = the LAST part holding the spelled number.
-T('TC-272 [FX-027-01] REQ-075 (Q35): real crisis turns in 9 voices (zh/en x US/CN): voice_used serena for all 9 (expected.json); the number part transcribed by WhisperKit holds the number, 36 of 36', async () => {
+T('TC-272 [FX-027-01] REQ-075 (Q35, Q36): real crisis turns in 9 voices (zh/en x US/CN): voice_used serena for all 9 (expected.json); the number part spoken 3 times per turn, at least 2 of 3 WhisperKit transcripts hold the number, 36 of 36 turns', async () => {
   const { input: cs, expected } = fcase('FX-027', 'FX-027-01');
   const gw = await boot({ 'profile.json': R1_PROFILE }, { needReady: true });
   const rows = [];
@@ -245,10 +245,26 @@ T('TC-272 [FX-027-01] REQ-075 (Q35): real crisis turns in 9 voices (zh/en x US/C
           row.voices = [...new Set(read.map((p) => p.voice))].sort();
           const num = read.findLast((p) => re.test(p.text));
           if (num && num.status === 200 && body.crisis === true && body.region === turn.region) {
-            const wavFile = join(OUT, 'r2-fx027', `${voice}-${turn.id}.wav`);
-            writeFileSync(wavFile, num.wav);
-            const tr = await transcribe(gw, to16k(num.wav, `${voice}-${turn.id}`));
-            row.transcript = tr.json?.text; row.digits = digitsOf(tr.json?.text ?? ''); row.heard = numberHeard(tr.json?.text ?? '', turn.number, body.lang); row.old_rule = row.digits.includes(turn.number); row.wav = wavFile; row.number_part = num.text;
+            // Q36: the number part is generated 3 times (the read above is generation 1, then 2 more speaks), all before the next respond (DES-049 keeps only the latest respond's parts)
+            const gens = [num];
+            while (gens.length < GENERATIONS) {
+              const n = gw.done().length;
+              const r = await speak(gw, num.text, body.lang);
+              await waitFor(() => gw.done().length > n || r.status !== 200, 3000, 'tts_done line');
+              gens.push({ text: num.text, status: r.status, wav: r.body, ms: r.ms, voice: gw.done()[n]?.voice ?? null, crisis: gw.done()[n]?.crisis ?? null });
+            }
+            row.generations = [];
+            for (const [g, p] of gens.entries()) {
+              const wavFile = join(OUT, 'r2-fx027', `${voice}-${turn.id}-g${g + 1}.wav`);
+              if (p.status === 200) writeFileSync(wavFile, p.wav);
+              const tr = p.status === 200 ? await transcribe(gw, to16k(p.wav, `${voice}-${turn.id}-g${g + 1}`)) : null;
+              const text = tr?.json?.text;
+              row.generations.push({ gen: g + 1, status: p.status, voice: p.voice, tts_done_crisis: p.crisis, transcript: text ?? null, digits: digitsOf(text ?? ''), heard: numberHeard(text ?? '', turn.number, body.lang), wav: p.status === 200 ? wavFile : null });
+            }
+            row.voices = [...new Set([...read, ...gens.slice(1)].map((p) => p.voice))].sort();
+            const th = turnHeard(row.generations.map((g) => g.transcript), turn.number, body.lang);
+            row.count = th.count; row.heard = th.heard; row.number_part = num.text;
+            row.transcript = row.generations.map((g) => g.transcript);
           }
         }
         rows.push(row);
@@ -257,13 +273,13 @@ T('TC-272 [FX-027-01] REQ-075 (Q35): real crisis turns in 9 voices (zh/en x US/C
   } finally { await gw.stop(); record('TC-272', { unicode_version: UNICODE_VERSION, rows }); }
   const heard = rows.filter((r) => r.heard).length;
   const voiceUsed = Object.fromEntries(cs.voices.map((v) => { const u = [...new Set(rows.filter((r) => r.voice === v).flatMap((r) => r.voices))].sort(); return [v, u.length === 1 ? u[0] : u]; }));
-  console.log(`TC-272 number heard ${heard}/${rows.length}; missed: ${JSON.stringify(rows.filter((r) => !r.heard).map((r) => [r.voice, r.turn, r.transcript ?? `respond ${r.respond_status}`]))}; voice_used ${JSON.stringify(voiceUsed)}`);
+  console.log(`TC-272 number heard ${heard}/${rows.length}; missed turns: ${JSON.stringify(rows.filter((r) => !r.heard).map((r) => [r.voice, r.turn, r.transcript ?? `respond ${r.respond_status}`]))}; per-generation misses: ${JSON.stringify(rows.flatMap((r) => (r.generations ?? []).filter((g) => !g.heard).map((g) => [r.voice, r.turn, g.gen, g.transcript])))}; voice_used ${JSON.stringify(voiceUsed)}`);
   assert.deepEqual(voiceUsed, expected.voice_used, 'voice_used per voice (Q35: serena for all 9)');
   const heardMap = {};
   for (const r of rows) (heardMap[r.voice] ??= {})[r.turn] = r.heard;
   for (const v of Object.keys(expected.number_heard)) for (const [rid, want] of Object.entries(expected.number_heard[v])) {
     const row = rows.find((r) => r.voice === v && r.turn === rid);
-    assert.equal(row.heard, want, `${v} ${rid}: number ${row.number} not heard in ${JSON.stringify(row.transcript)} (digits ${row.digits}, Unicode ${UNICODE_VERSION}; respond ${row.respond_status} crisis ${row.crisis} region ${row.region}; voices ${row.voices})`);
+    assert.equal(row.heard, want, `${v} ${rid}: number ${row.number} not heard by 2 of 3 (count ${row.count}) in ${JSON.stringify(row.transcript)} ( Unicode ${UNICODE_VERSION}; respond ${row.respond_status} crisis ${row.crisis} region ${row.region}; voices ${row.voices})`);
   }
   assert.deepEqual(heardMap, expected.number_heard);
   assert.equal(heard, 36);

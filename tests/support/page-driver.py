@@ -854,7 +854,7 @@ RECORDER = r"""(() => {
   if (window.top !== window) return;
   const R = window.__rec = { boot: Math.random(), t0: 0, samples: [], said: [], added: [], anims: new Set() };
   const now = () => Math.round(performance.now() - R.t0);
-  R.reset = () => { R.t0 = performance.now(); R.samples = []; R.said = []; R.added = []; R.anims = new Set(); };
+  R.reset = () => { R.t0 = performance.now(); R.samples = []; R.said = []; R.added = []; R.anims = new Set(); R.rid0 = rid(document.querySelector('[data-testid=reply]')); };  // rid0: the reply element before this turn, so a reply that lands before the first 40 ms sample still counts as arrived
   const txt = (sel) => { const e = document.querySelector(sel); return e ? e.textContent : null; };
   const box = (e) => { if (!e) return null; const r = e.getBoundingClientRect(); return [Math.round(r.width * 10) / 10, Math.round(r.height * 10) / 10]; };
   const cls = (e) => (e ? (typeof e.className === 'string' ? e.className : e.getAttribute('class')) : null);
@@ -910,7 +910,7 @@ RECORDER = r"""(() => {
 
 REC_READ = """(() => { const R = window.__rec; return { samples: R.samples, said: R.said, added: R.added, anims: R.animSigs(), stored: Object.keys(localStorage).sort(),
   line: (document.querySelector('[data-testid=growth-line]') || {}).textContent ?? null, stage: document.querySelector('[data-testid=companion]').dataset.stage,
-  character: document.querySelector('[data-testid=companion]').dataset.character, boot: window.__rec.boot,
+  character: document.querySelector('[data-testid=companion]').dataset.character, boot: window.__rec.boot, rid0: window.__rec.rid0,
   card: !!document.querySelector('.crisis-card'), bursts: document.querySelectorAll('.companion__burst').length }; })()"""
 
 
@@ -970,7 +970,7 @@ def s_r2_stageup(a, pw):  # Q-062/063/064/074/075, CMP-033: steps = [{open} | {r
         rec = pg.page.evaluate(REC_READ)
         if 'send' in st:  # t = ms after this turn's reply appeared (the moment starts with it, not with Enter)
             S = rec['samples']
-            at = next((x['t'] for x in S if x['rid'] != S[0]['rid']), None)
+            at = next((x['t'] for x in S if x['rid'] != rec['rid0']), None)
             rec['replyAt'] = at
             if at is not None:
                 for x in S: x['t'] -= at
