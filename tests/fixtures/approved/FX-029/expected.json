@@ -1,0 +1,94 @@
+{
+  "cases": [
+    {
+      "id": "FX-029-01",
+      "saves": [
+        {
+          "status": 500,
+          "error": "not_saved",
+          "page_says_not_saved": true,
+          "profile_after": {
+            "look": {
+              "character": 1,
+              "outfit": {
+                "head": "none",
+                "clothes": "none",
+                "shoes": "none",
+                "accessory": "none"
+              }
+            },
+            "voice": "serena"
+          }
+        },
+        {
+          "status": 500,
+          "error": "not_saved",
+          "page_says_not_saved": true,
+          "profile_after": {
+            "look": {
+              "character": 1,
+              "outfit": {
+                "head": "none",
+                "clothes": "none",
+                "shoes": "none",
+                "accessory": "none"
+              }
+            },
+            "voice": "serena"
+          }
+        }
+      ],
+      "files_unchanged": true,
+      "after_restart": {
+        "look": {
+          "character": 1,
+          "outfit": {
+            "head": "none",
+            "clothes": "none",
+            "shoes": "none",
+            "accessory": "none"
+          }
+        },
+        "voice": "serena",
+        "name": "团子"
+      }
+    },
+    {
+      "id": "FX-029-02",
+      "read": {
+        "readable": false,
+        "look": {
+          "character": 1,
+          "outfit": {
+            "head": "none",
+            "clothes": "none",
+            "shoes": "none",
+            "accessory": "none"
+          }
+        },
+        "voice": "serena",
+        "growth": {
+          "days": 0,
+          "stage": 1,
+          "into": 0,
+          "span": 3,
+          "left": 3
+        }
+      },
+      "page_days_shown": 0,
+      "save": {
+        "status": 409,
+        "error": "unreadable"
+      },
+      "respond_growth": {
+        "days": 0,
+        "stage": 1,
+        "into": 0,
+        "span": 3,
+        "left": 3,
+        "up": null
+      },
+      "files_unchanged": true
+    }
+  ]
+}

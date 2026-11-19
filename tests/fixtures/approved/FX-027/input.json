@@ -1,0 +1,92 @@
+{
+  "endpoint": "POST /api/profile, POST /api/respond, POST /api/speak, POST /api/transcribe, server stdout tts_done",
+  "setup": "Server clock: local date 2026-11-18 unless a step sets another (fixed time zone, e.g. TZ=America/New_York). LITTLEBUDDY_DATA_DIR = a new temp dir holding only the case's files; TTS_VOICE unset (03 §5, REQ-073: tests do not set it); Wi-Fi off; an isolated instance (own PORT and BONSAI_PORT, never the user's 4317). 'start' = npm start, then wait for GET /api/health tts true; 01 also waits for ready true (Bonsai answers respond; 03 Phase 5 A3). 'restart' = stop the server, npm start again. 'new browser' = a browser context with no localStorage for the site. 'open' = load the page and wait for GET /api/profile to answer. profile.json = FX-022's bytes (R1 file) at start.",
+  "parts_rule": "01: parts = the `speech` array of that case's POST /api/respond 200 body, read with POST /api/speak {text: part, lang: the body's lang}, in order, the next sent after the previous answered, the number part then 2 more times (Q36, number_rule), all before the next respond (DES-049 remembers only the latest respond's parts). 02: parts = speechParts(reply, lang) (server/tts.js, as FX-013), each -> POST /api/speak {text, lang} in order; 'queued' as the case says.",
+  "cases": [
+    {
+      "id": "FX-027-01",
+      "voices": [
+        "ryan",
+        "aiden",
+        "ono-anna",
+        "sohee",
+        "eric",
+        "dylan",
+        "serena",
+        "vivian",
+        "uncle-fu"
+      ],
+      "turns": [
+        {
+          "id": "zh-US",
+          "region": "US",
+          "line": "我不想活了。",
+          "line_from": "FX-009-01",
+          "number": "988"
+        },
+        {
+          "id": "en-US",
+          "region": "US",
+          "line": "I want to kill myself.",
+          "line_from": "FX-009-04",
+          "number": "988"
+        },
+        {
+          "id": "zh-CN",
+          "region": "CN",
+          "line": "我不想活了。",
+          "line_from": "FX-009-01",
+          "number": "12356"
+        },
+        {
+          "id": "en-CN",
+          "region": "CN",
+          "line": "I want to kill myself.",
+          "line_from": "FX-009-04",
+          "number": "12356"
+        }
+      ],
+      "steps": [
+        "start; wait for ready true and tts true",
+        "for each voice, in the order of voices: POST /api/profile {\"voice\": <voice>}; then for each turn, in order: POST /api/profile {\"region\": <region>}; POST /api/respond {\"line\": <line>, \"history\": []}; read every part of that body's speech (parts_rule)",
+        "number part = the last part whose text holds the spelled number (zh 九八八 / 幺二三五六, en 'nine eight eight' / 'one two three five six'): the region's help line, which the server puts last on a crisis reply; POST /api/speak for it 3 times (number_generations), each WAV -> afconvert -f WAVE -d LEI16@16000 -c 1 -> POST /api/transcribe (3 transcripts; 2 of 3 must hold the number, number_rule)"
+      ],
+      "note": "Replaces the round-2 input (crisisReply('') texts sent straight to /api/speak): such text never passes respond, so the server cannot know it is a crisis reply (03 Phase 5 A3, DES-049). The reply's first sentence now comes from Bonsai; the help line is still the region's (CRISIS_FALLBACK only when Bonsai has no first sentence). Lines: approved FX-009-01 and FX-009-04.",
+      "number_generations": 3,
+      "number_rule": "Q36: the number part is generated 3 times (POST /api/speak of that same part, 3 times in a row, each WAV transcribed on its own); number_heard[voice][turn] is true when at least 2 of the 3 transcripts are true under the Q34 scorer. Repeat speaks come before the next respond (parts_rule), count as extra tts_done lines for the same part, and are all read by serena."
+    },
+    {
+      "id": "FX-027-02",
+      "voice_before": "serena",
+      "parts": [
+        {
+          "n": 1,
+          "text": "太棒了！",
+          "lang": "zh"
+        },
+        {
+          "n": 2,
+          "text": "这真值得庆祝。",
+          "lang": "zh"
+        },
+        {
+          "n": 3,
+          "text": "你准备去庆祝吗？",
+          "lang": "zh"
+        },
+        {
+          "n": 4,
+          "text": "That is amazing news!",
+          "lang": "en"
+        }
+      ],
+      "steps": [
+        "start; wait for tts true; one warm-up POST /api/speak {\"text\": \"你好。\", \"lang\": \"zh\"} answered",
+        "queued: send the 4 POST /api/speak at once, in order n = 1..4",
+        "200 ms after the 4th is sent (part 1 written to the reader and still being read), POST /api/profile {\"voice\": \"vivian\"}",
+        "wait for all 4 responses"
+      ],
+      "note": "parts = speechParts of FX-013-01 (3 parts) + the first part of FX-013-02; 01 §7 said 'FX-013 zh 4 段' but that reply has 3 parts (amended in 01 §7)"
+    }
+  ]
+}

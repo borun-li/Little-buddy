@@ -205,7 +205,8 @@ test('TC-154 REQ-037/055 (A53): applyNotes is add-only, ordered, de-duplicated a
 test('TC-155 REQ-047/048/049: parseProfile and profileText', () => {
   const f22 = fx('FX-022').input.files['profile.json'];
   const a = parseProfile(f22);
-  assert.deepEqual(a.profile, { name: '团子', region: 'CN', memoryOn: true, noticeSeen: true });
+  // R2 (DES-042): an R1 file has no look or voice, so they read as the defaults (default look, serena); own copy of the defaults
+  assert.deepEqual(a.profile, { name: '团子', region: 'CN', memoryOn: true, noticeSeen: true, look: { character: 1, outfit: { head: 'none', clothes: 'none', shoes: 'none', accessory: 'none' } }, voice: 'serena' });
   assert.deepEqual(parseProfile('{}').profile, { ...PROFILE_DEFAULTS }, 'defaults: memory on, notice unseen');
   assert.deepEqual(parseProfile('{"memoryOn":"yes","name":5,"noticeSeen":1}').profile, { ...PROFILE_DEFAULTS }, 'wrong types fall back');
   assert.equal(parseProfile('{"region":"EU"}').profile.region, null);

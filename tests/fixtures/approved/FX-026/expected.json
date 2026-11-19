@@ -1,0 +1,67 @@
+{
+  "cases": [
+    {
+      "id": "FX-026-01",
+      "profile_voice": "uncle-fu",
+      "all_parts_audio": true,
+      "voice_used_all": "uncle-fu",
+      "control_voice_used_all": "serena",
+      "pitch_lower_than_serena": {
+        "zh": true,
+        "en": true
+      }
+    },
+    {
+      "id": "FX-026-02",
+      "profile_voice": "serena",
+      "all_parts_audio": true,
+      "voice_used_all": "serena"
+    },
+    {
+      "id": "FX-026-03",
+      "profile_voice": "serena",
+      "all_parts_audio": true,
+      "voice_used_all": "serena"
+    },
+    {
+      "id": "FX-026-04",
+      "save": {
+        "status": 200,
+        "voice": "dylan"
+      },
+      "timeouts": 0,
+      "replies": [
+        {
+          "reply": 1,
+          "voice_used_all": "dylan",
+          "first_sound_ok": true
+        },
+        {
+          "reply": 2,
+          "voice_used_all": "dylan",
+          "first_sound_ok": true
+        },
+        {
+          "reply": 3,
+          "voice_used_all": "dylan",
+          "first_sound_ok": true
+        }
+      ]
+    },
+    {
+      "id": "FX-026-05",
+      "voice_used": {
+        "ryan": "ryan",
+        "aiden": "aiden",
+        "ono-anna": "ono-anna",
+        "sohee": "sohee",
+        "eric": "eric",
+        "dylan": "dylan",
+        "serena": "serena",
+        "vivian": "vivian",
+        "uncle-fu": "uncle-fu"
+      },
+      "all_parts_audio": true
+    }
+  ]
+}

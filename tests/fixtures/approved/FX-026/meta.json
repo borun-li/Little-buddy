@@ -1,0 +1,27 @@
+{
+  "req": "REQ-073",
+  "reqs": [
+    "REQ-073",
+    "REQ-074"
+  ],
+  "source": "Round 4 (be-analyst #4): Q33, user 2026-11-18 (docs/backend/run-log.jsonl seq 46: REQ-074 '之后 <= 3 s' is judged by the median of 3 runs per reply; sound and code unchanged), a newer decision replacing the one-run, every-reply <= 3000 check of 04; reason: dylan's sampled silences put 2 of 16 quiet first parts of replies 2-3 over 3 s (03 Phase 5 A2; docs/backend/logs/be-architect-3-tc271-tc272.log § Reading). Test control from 03 Phase 5 A2. Only 04's compare rule, case_runs and control changed; input.json, expected.json and cases 01, 02, 03, 05 are byte-identical to approved. Round 1-2: inputs: 01 §7 FX-026 (be-analyst #1; replies = approved FX-013, verbatim; profile base = FX-022 profile.json bytes; voice ids server/config.js:11). Expected: REQ-073 as amended round 2 (the voice in the profile when the part starts being read; absent or invalid -> default serena, TTS_VOICE unset in tests, 03 §9 B-5) and its Accept (helper gets uncle-fu, pitch median below serena on the same sentence; 02/03 serena); A60 (uncle-fu male, serena female, Qwen3Models.swift:126-137). REQ-074 Accept (3/3 dylan, no timeout, first <= 8 s, the other two <= 3 s; A59 [unverified], Q32 default). 05: every VOICES id is accepted and read in that voice (contract § R2 seam voice row). Shape: contract § R2 seam (GET /api/profile .voice; POST /api/profile {voice}); voice_used from tts_done.voice (03 DES-041 step 4).",
+  "compare": "exact",
+  "compare_note": "parts = speechParts(reply, lang) (server/tts.js, the producer the page reads from, as FX-013); each part -> POST /api/speak {text, lang} in order, the next sent after the previous answered (unless the case says 'queued'). voice_used = the `voice` field of the server's tts_done log line for that part (03 DES-041 step 4: the voice the reader reports it used). all_parts_audio = every POST /api/speak of the case answered 200 audio/wav. voice_used_all = the one voice every part of the case (or reply) reported; any other or null value fails. profile_voice = GET /api/profile .voice. pitch_lower_than_serena[lang] = median F0 of the uncle-fu run < median F0 of the serena control run for that reply, F0 per 40 ms frame (10 ms hop) by normalised autocorrelation on the 24 kHz PCM, searched 60-400 Hz, a frame voiced when the peak >= 0.5, median over the voiced frames of all its parts. 04 (round 4, Q33): the case's steps run 3 times, each from a new LITTLEBUDDY_DATA_DIR and a new start (so reply 1 is a fresh switch from warm serena every time), under `control`; a run voided there is not one of the 3. save = the POST /api/profile response status and body .voice: 200/dylan when every run gives that, else the first run's value that differs. timeouts = parts answered 504 timeout or not answered, summed over the 3 runs. voice_used_all of a reply = the one voice every part of that reply reported in all 3 runs. first_sound_ok: reply 1 = first_sound_ms <= 8000 in every run (unchanged); replies 2 and 3 = the median of that reply's 3 first_sound_ms values <= 3000 (REQ-074 as amended by Q33).",
+  "runs": 1,
+  "pass": "REQ-073: 01, 02, 03, 05 whole object exact. REQ-074: 04 whole object exact, built from 3 counted runs as compare_note says.",
+  "manual": [
+    "REQ-073: on the page with the speaker on, a reply after choosing 大福 (uncle-fu) is heard in a low male voice, and after choosing serena in a female voice (human check)"
+  ],
+  "case_runs": {
+    "FX-026-04": 3
+  },
+  "control": {
+    "FX-026-04": [
+      "Quiet machine (03 Phase 5 A2): while the case runs, no other gateway, test, mutation run or benchmark started by the run is running; an idle process the run did not start (the user's preview) is left untouched (Constitution §4.6), as in the architect's quiet measurements (log line 3).",
+      "After each start wait for GET /api/health ready true, not only tts true, before step 1's serena warm-up (03 Phase 5 A2).",
+      "Record per part, with first_sound_ms: the tts_done line's ms, queued_ms and audio_ms (03 Phase 5 A2).",
+      "Load rule (03 Phase 5 A2): when a reply's first_sound_ms in a run is over its limit (8000 reply 1, 3000 replies 2 and 3) and its first part's tts_done has ms > audio_ms, the run is load: it is voided, kept in the report with its numbers, and a fresh run replaces it. Over the limit with ms <= audio_ms is generation length and counts.",
+      "Default [unverified], not in A2: after 3 voided runs the case reports blocked (machine not quiet), never pass."
+    ]
+  }
+}

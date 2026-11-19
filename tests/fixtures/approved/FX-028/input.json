@@ -1,0 +1,107 @@
+{
+  "endpoint": "page (形象和声音 tab) + GET/POST /api/profile",
+  "setup": "Server clock: local date 2026-11-18 unless a step sets another (fixed time zone, e.g. TZ=America/New_York). LITTLEBUDDY_DATA_DIR = a new temp dir holding only the case's files; TTS_VOICE unset (03 §5, REQ-073: tests do not set it); Wi-Fi off; an isolated instance (own PORT and BONSAI_PORT, never the user's 4317). 'restart' = stop the server, npm start again. 'new browser' = a browser context with no localStorage for the site. 'open' = load the page and wait for GET /api/profile to answer. Every case starts from its own files; memory on.",
+  "cases": [
+    {
+      "id": "FX-028-01",
+      "files": {
+        "profile.json": "{\n  \"version\": 1,\n  \"name\": \"团子\",\n  \"region\": \"CN\",\n  \"memoryOn\": true,\n  \"noticeSeen\": true\n}\n"
+      },
+      "note": "state written by R1 (no look, no voice key)",
+      "steps": [
+        "start, GET /api/profile",
+        "POST /api/profile {\"voice\": \"vivian\"}",
+        "read profile.json"
+      ]
+    },
+    {
+      "id": "FX-028-01a",
+      "files": {
+        "profile.json": "{\n  \"version\": 1,\n  \"name\": \"团子\",\n  \"region\": \"CN\",\n  \"memoryOn\": true,\n  \"noticeSeen\": true\n}\n"
+      },
+      "steps": [
+        "start, open the page in browser A, open 形象和声音",
+        "the page saves, one after the other: setLook({character: 2}) = POST /api/profile {\"look\": {\"character\": 2}}; setLook({outfit: {head: 3}}) = {\"look\": {\"outfit\": {\"head\": 3}}}; setVoice('uncle-fu') = {\"voice\": \"uncle-fu\"}; after each 200 read profile.json",
+        "restart; open the page in a new browser, open 形象和声音; GET /api/profile"
+      ]
+    },
+    {
+      "id": "FX-028-02",
+      "files": {
+        "profile.json": "{\n  \"version\": 1,\n  \"name\": \"团子\",\n  \"region\": \"CN\",\n  \"memoryOn\": true,\n  \"noticeSeen\": true\n}\n"
+      },
+      "body": {
+        "look": {
+          "character": 4
+        }
+      },
+      "note": "character out of range"
+    },
+    {
+      "id": "FX-028-03",
+      "files": {
+        "profile.json": "{\n  \"version\": 1,\n  \"name\": \"团子\",\n  \"region\": \"CN\",\n  \"memoryOn\": true,\n  \"noticeSeen\": true\n}\n"
+      },
+      "body": {
+        "look": {
+          "outfit": {
+            "hat": 1
+          }
+        }
+      },
+      "note": "unknown slot"
+    },
+    {
+      "id": "FX-028-04",
+      "files": {
+        "profile.json": "{\n  \"version\": 1,\n  \"name\": \"团子\",\n  \"region\": \"CN\",\n  \"memoryOn\": true,\n  \"noticeSeen\": true\n}\n"
+      },
+      "body": {
+        "look": {
+          "outfit": {
+            "head": 0
+          }
+        }
+      },
+      "note": "item out of range"
+    },
+    {
+      "id": "FX-028-05",
+      "files": {
+        "profile.json": "{\n  \"version\": 1,\n  \"name\": \"团子\",\n  \"region\": \"CN\",\n  \"memoryOn\": true,\n  \"noticeSeen\": true\n}\n"
+      },
+      "body": {
+        "voice": "bob"
+      },
+      "note": "unknown voice"
+    },
+    {
+      "id": "FX-028-06",
+      "files": {
+        "profile.json": "{\"version\": 1, \"name\": \"团子\", \"look\": {\"character\": \"2\", \"outfit\": {\"head\": 3, \"shoes\": 7}}, \"voice\": \"Serena\", \"theme\": \"dark\"}\n"
+      },
+      "note": "hand-edited bad values",
+      "steps": [
+        "start, GET /api/profile",
+        "POST /api/profile {\"voice\": \"vivian\"}",
+        "read profile.json"
+      ]
+    },
+    {
+      "id": "FX-028-07",
+      "files": {
+        "profile.json": "{\n  \"version\": 1,\n  \"name\": \"团子\",\n  \"region\": \"CN\",\n  \"memoryOn\": true,\n  \"noticeSeen\": true\n}\n",
+        "日志.md": "# 日志\n\n## 2026-11-16\n- 平常\n\n## 2026-11-17\n- 平常\n"
+      },
+      "note": "日志 = FX-030-02 (2 days) so a refused 9 is observable; added round 2 by be-analyst #2",
+      "body": {
+        "days": 9
+      },
+      "steps": [
+        "start, open the page, open 形象和声音, look for a field that sets the days",
+        "POST /api/profile with body",
+        "GET /api/profile"
+      ]
+    }
+  ]
+}

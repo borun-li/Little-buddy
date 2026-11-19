@@ -1,0 +1,16 @@
+{
+  "req": "REQ-080",
+  "reqs": [
+    "REQ-080",
+    "REQ-081",
+    "REQ-082"
+  ],
+  "source": "inputs: 01 §7 FX-030 as amended round 2 by be-analyst #2 (07 layout made exact; 09 memory-off turn moved to 2026-11-19). 03 = demo seed; 06 = approved FX-019-01; 11 = approved FX-009-01. Values: days = distinct dates with >= 1 mood entry (01 §1; the R1 DIARY_RE entry rule, server/memory-files.js:17): 0, 2, 3, 6, 7, 6, 6, 365 (REQ-080 Accept); stage/into/span/left from the 071 table (0-2 stage 1 of 3, 3-6 stage 2 of 4, 7+ full; contract § R2 seam growth: stage 3 = into 1, span 1, left 0). 09: REQ-081 Accept (4 days after turn 1, still 4 after turns 2 and 3; memory off does not count, Q28 user 2026-11-18). 10: REQ-082 (3 days, stage 2, one moment, no reload; up 2 = days 2 -> 3, contract § R2 seam growth.up). 11: REQ-082 as amended round 2 (crisis turn: no moment on that turn, Q29 default, fe-ux decides any later replay); the day still counts (A63, R1 042), so up is 2. Shape: GET /api/profile .growth and POST /api/respond 200 .growth with up (contract § R2 seam).",
+  "compare": "exact",
+  "compare_note": "01-08: growth = GET /api/profile .growth; api_ms_le_1000 = that request answered in <= 1000 ms. 09-11: growth = that turn's POST /api/respond 200 body .growth; diary_dates = distinct '## YYYY-MM-DD' dates in 日志.md with >= 1 line matching DIARY_RE.entry, read right after the turn; profile_days_within_1000ms = GET /api/profile .growth.days sent right after turn 1's 200 and answered within 1000 ms of it. page: days_shown / stage_shown = the 成长 line's days and the stage the companion shows (data-stage), read without reloading; moments / moments_on_turn = times the stage-up moment begins (FLOW-027: caption growth.thanks shown) between sending the line and 5 s after the reply; reloads = page navigations in that time. 11: what the page does after a reload is not scored (fe-ux decides, Q29).",
+  "runs": 1,
+  "pass": "REQ-080: 01-08 exact. REQ-081: 09 exact. REQ-082: 10 and 11 exact (11's crisis turn as in FX-009: crisis true).",
+  "manual": [
+    "REQ-082: on the page the 成长 line and bar move from 2 to 3 days right after the reply, with the stage-up moment once (10), and with no moment on the crisis turn (11)"
+  ]
+}

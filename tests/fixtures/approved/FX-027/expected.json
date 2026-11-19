@@ -1,0 +1,101 @@
+{
+  "cases": [
+    {
+      "id": "FX-027-01",
+      "voice_used": {
+        "ryan": "serena",
+        "aiden": "serena",
+        "ono-anna": "serena",
+        "sohee": "serena",
+        "eric": "serena",
+        "dylan": "serena",
+        "serena": "serena",
+        "vivian": "serena",
+        "uncle-fu": "serena"
+      },
+      "number_heard": {
+        "ryan": {
+          "zh-US": true,
+          "en-US": true,
+          "zh-CN": true,
+          "en-CN": true
+        },
+        "aiden": {
+          "zh-US": true,
+          "en-US": true,
+          "zh-CN": true,
+          "en-CN": true
+        },
+        "ono-anna": {
+          "zh-US": true,
+          "en-US": true,
+          "zh-CN": true,
+          "en-CN": true
+        },
+        "sohee": {
+          "zh-US": true,
+          "en-US": true,
+          "zh-CN": true,
+          "en-CN": true
+        },
+        "eric": {
+          "zh-US": true,
+          "en-US": true,
+          "zh-CN": true,
+          "en-CN": true
+        },
+        "dylan": {
+          "zh-US": true,
+          "en-US": true,
+          "zh-CN": true,
+          "en-CN": true
+        },
+        "serena": {
+          "zh-US": true,
+          "en-US": true,
+          "zh-CN": true,
+          "en-CN": true
+        },
+        "vivian": {
+          "zh-US": true,
+          "en-US": true,
+          "zh-CN": true,
+          "en-CN": true
+        },
+        "uncle-fu": {
+          "zh-US": true,
+          "en-US": true,
+          "zh-CN": true,
+          "en-CN": true
+        }
+      }
+    },
+    {
+      "id": "FX-027-02",
+      "answers": [
+        {
+          "n": 1,
+          "status": 200,
+          "voice_used": "serena"
+        },
+        {
+          "n": 2,
+          "status": 200,
+          "voice_used": "vivian"
+        },
+        {
+          "n": 3,
+          "status": 200,
+          "voice_used": "vivian"
+        },
+        {
+          "n": 4,
+          "status": 200,
+          "voice_used": "vivian"
+        }
+      ],
+      "answered_once_each": true,
+      "answered_in_order": true
+    }
+  ]
+}

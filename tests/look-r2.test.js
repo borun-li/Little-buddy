@@ -7,6 +7,7 @@ import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createLookClient } from '../web/js/look-client.js';
+import * as lookClientModule from '../web/js/look-client.js';
 
 const WEB = fileURLToPath(new URL('../web/', import.meta.url));
 const VOICES_DIR = join(WEB, 'audio/voices');
@@ -91,29 +92,55 @@ test('Q-058 Q-066 positive control: a sample that plays to the end resolves, fro
   assert.equal(held.made[0].paused, true);
 });
 
-// Q-062 / DFB-004 (fe-tester #2, 2026-11-17): the remembered stage behind "once per stage, not on refresh". Expected values:
-// look-client.js header contract (null = never asked; a lower result means the page plays), 03-queue Q-062 and DFB-004.
-const memStorage = (init = {}) => {
-  const m = new Map(Object.entries(init));
-  return { getItem: (k) => (m.has(k) ? m.get(k) : null), setItem: (k, v) => { m.set(k, String(v)); }, removeItem: (k) => m.delete(k), m };
-};
+// Q-073 / Q-076 (fe-tester #4, 2026-11-18): look-client over an injected fetch. Expected values: contract § R2 seam (look, voice, growth on
+// GET /api/profile; look / voice keys on POST /api/profile); 03-queue Q-073: no localStorage, no demo days, no remembered stage.
+const jres = (status, body) => ({ ok: status >= 200 && status < 300, status, json: async () => body });
+const LOOK = { character: 3, outfit: { head: 1, clothes: 'none', shoes: 2, accessory: 'none' } };
+const PROFILE = { look: LOOK, voice: 'ryan', growth: { days: 3, stage: 2, into: 0, span: 4, left: 4 } };
+function recorder(answer) {
+  const calls = [];
+  const fetch = async (url, init) => { calls.push({ url, method: init.method, body: init.body ? JSON.parse(init.body) : undefined }); return answer(url, init); };
+  return { fetch, calls };
+}
 
-test('Q-062 claimStageUp: the first call returns null and remembers; later calls return the remembered stage, which only a higher stage replaces; a refresh (new client) sees it', async () => {
-  const s = memStorage();
-  const c = createLookClient({ storage: s });
-  const got = [];
-  for (const n of [2, 2, 3, 1]) { got.push(await c.claimStageUp(n)); got.push(s.m.get('companion.stageSeen')); }
-  assert.deepEqual(got, [null, '2', 2, '2', 2, '3', 3, '3']);
-  assert.equal(await createLookClient({ storage: s }).claimStageUp(3), 3, 'after a refresh the stage on screen is not lower than the remembered one');
-  const refusing = { getItem: () => null, setItem: () => { throw new Error('quota'); } };
-  assert.equal(await createLookClient({ storage: refusing }).claimStageUp(2), null, 'a refused write is silent');
+test('Q-073 look-client reads look, voice and growth from GET /api/profile, one request for the three reads asked together, a new one for the next', async () => {
+  const r = recorder(async () => jres(200, PROFILE));
+  const c = createLookClient({ fetch: r.fetch });
+  assert.deepEqual(await Promise.all([c.getLook(), c.getVoice(), c.getGrowth()]), [LOOK, 'ryan', PROFILE.growth]);
+  assert.deepEqual(r.calls, [{ url: '/api/profile', method: 'GET', body: undefined }]);
+  await c.getGrowth();
+  assert.equal(r.calls.length, 2, 'nothing is cached between moments: growth is the service\'s answer each time');
 });
 
-test('Q-062 DFB-004 lowering the demo days lowers the remembered stage to the new stage (equal or higher days leave it); then one claim crossing two stages returns the lower one once', async () => {
-  const s = memStorage({ 'companion.demoDays': '7', 'companion.stageSeen': '3' });
-  const c = createLookClient({ storage: s });
-  const seen = [];
-  for (const d of [8, 4, 3, 6, 0]) { await c.setDemoDays(d); seen.push(s.m.get('companion.stageSeen')); }
-  assert.deepEqual(seen, ['3', '2', '2', '2', '1']);
-  assert.deepEqual([await c.claimStageUp(3), await c.claimStageUp(3)], [1, 3]);
+test('Q-073 setLook posts {look: patch} and returns the saved look; setVoice posts {voice} and returns the saved voice; a 409 / 500 rejects with the body\'s code', async () => {
+  const r = recorder(async (_u, init) => jres(200, JSON.parse(init.body).look ? { look: LOOK } : { voice: 'sohee' }));
+  const c = createLookClient({ fetch: r.fetch });
+  assert.deepEqual(await c.setLook({ character: 3, outfit: { head: 1 } }), LOOK);
+  assert.equal(await c.setVoice('sohee'), 'sohee');
+  assert.deepEqual(r.calls, [
+    { url: '/api/profile', method: 'POST', body: { look: { character: 3, outfit: { head: 1 } } } },
+    { url: '/api/profile', method: 'POST', body: { voice: 'sohee' } },
+  ]);
+  for (const [status, error] of [[409, 'not_saved'], [500, 'unreadable'], [400, 'bad_request'], [403, 'forbidden'], [500, 'weird']]) {
+    const e = createLookClient({ fetch: async () => jres(status, { error }) });
+    await assert.rejects(e.setLook({ character: 2 }), (x) => x.code === (error === 'weird' ? 'failed' : error), `${status} ${error}`);
+  }
+  await assert.rejects(createLookClient({ fetch: async () => { throw new TypeError('x'); } }).setVoice('ryan'), code('unavailable'));
+});
+
+test('Q-073 a 200 body that is not the seam shape is \'failed\' (look, voice, growth each), never a default', async () => {
+  const bad = (patch) => createLookClient({ fetch: async () => jres(200, { ...PROFILE, ...patch }) });
+  await assert.rejects(bad({ look: { character: 4, outfit: LOOK.outfit } }).getLook(), code('failed'));
+  await assert.rejects(bad({ look: { character: 1, outfit: { ...LOOK.outfit, head: 9 } } }).getLook(), code('failed'));
+  await assert.rejects(bad({ voice: 'nobody' }).getVoice(), code('failed'));
+  await assert.rejects(bad({ growth: { days: 3, stage: 5, into: 0, span: 4, left: 4 } }).getGrowth(), code('failed'));
+  await assert.rejects(bad({ growth: undefined }).getGrowth(), code('failed'));
+});
+
+test('Q-073 Q-076 the prototype\'s fake layer is gone: no demo days, no remembered stage, no localStorage keys, no growth maths in the client', () => {
+  const c = createLookClient({ fetch: async () => jres(200, PROFILE) });
+  assert.deepEqual(Object.keys(c).sort(), ['getGrowth', 'getLook', 'getMemory', 'getVoice', 'preview', 'setLook', 'setVoice']);
+  assert.deepEqual(Object.keys(lookClientModule).filter((k) => /demo|seen|claim|growthOf|KEY/i.test(k)), []);
+  const src = readFileSync(join(WEB, 'js/look-client.js'), 'utf8').split('\n').filter((l) => !l.trimStart().startsWith('//')).join('\n');
+  assert.equal(/localStorage|sessionStorage|stageSeen|demoDays/.test(src), false);
 });

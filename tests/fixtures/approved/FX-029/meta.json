@@ -1,0 +1,11 @@
+{
+  "req": "REQ-079",
+  "reqs": [
+    "REQ-079"
+  ],
+  "source": "inputs: 01 §7 FX-029 (be-analyst #1; read-only setup of approved FX-023, break of approved FX-024-02; base profile = FX-028-01). Expected: REQ-079 as amended round 2 (read-only: not_saved, value unchanged; unreadable: defaults, 0 days, nothing written, saving answers 409 unreadable as R1 054 and both design reviewers recommend, 03 §9 B-6). Defaults from contract § R2 seam (also when profile.json is unreadable). Read-only after restart: the server starts read-only when the folder is 0500 (R1 DM-2 fix, docs/codemap.md memory-store lock: any other failure -> read-only). Shape: 500 {\"error\":\"not_saved\"}, 409 {\"error\":\"unreadable\"} (R1 seam codes); respond 200 .growth with up (contract § R2 seam).",
+  "compare": "exact",
+  "compare_note": "saves / save = each POST /api/profile response (status, body.error); page_says_not_saved = the tab shows its save-failed words for that group (look-copy lookSaveFailed, hook <group>-msg); profile_after / after_restart / read = those keys of GET /api/profile right after. files_unchanged = bytes and mode of profile.json (and 日志.md in 02) equal to the copies taken after start. page_days_shown = the days number the 成长 line shows. respond_growth = POST /api/respond 200 body .growth.",
+  "runs": 1,
+  "pass": "REQ-079: 01 and 02 whole object exact."
+}

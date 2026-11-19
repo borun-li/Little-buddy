@@ -1,0 +1,234 @@
+{
+  "cases": [
+    {
+      "id": "FX-028-01",
+      "read": {
+        "look": {
+          "character": 1,
+          "outfit": {
+            "head": "none",
+            "clothes": "none",
+            "shoes": "none",
+            "accessory": "none"
+          }
+        },
+        "voice": "serena",
+        "name": "团子",
+        "region": "CN",
+        "memoryOn": true,
+        "noticeSeen": true
+      },
+      "save": {
+        "status": 200,
+        "body": {
+          "memoryOn": true,
+          "noticeSeen": true,
+          "name": "团子",
+          "region": "CN",
+          "look": {
+            "character": 1,
+            "outfit": {
+              "head": "none",
+              "clothes": "none",
+              "shoes": "none",
+              "accessory": "none"
+            }
+          },
+          "voice": "vivian"
+        }
+      },
+      "file_after": {
+        "version": 1,
+        "name": "团子",
+        "region": "CN",
+        "memoryOn": true,
+        "noticeSeen": true,
+        "voice": "vivian"
+      }
+    },
+    {
+      "id": "FX-028-01a",
+      "saves": [
+        {
+          "status": 200,
+          "look": {
+            "character": 2,
+            "outfit": {
+              "head": "none",
+              "clothes": "none",
+              "shoes": "none",
+              "accessory": "none"
+            }
+          },
+          "voice": "serena",
+          "in_file_within_1000ms": true
+        },
+        {
+          "status": 200,
+          "look": {
+            "character": 2,
+            "outfit": {
+              "head": 3,
+              "clothes": "none",
+              "shoes": "none",
+              "accessory": "none"
+            }
+          },
+          "voice": "serena",
+          "in_file_within_1000ms": true
+        },
+        {
+          "status": 200,
+          "look": {
+            "character": 2,
+            "outfit": {
+              "head": 3,
+              "clothes": "none",
+              "shoes": "none",
+              "accessory": "none"
+            }
+          },
+          "voice": "uncle-fu",
+          "in_file_within_1000ms": true
+        }
+      ],
+      "after_restart_new_browser": {
+        "profile": {
+          "look": {
+            "character": 2,
+            "outfit": {
+              "head": 3,
+              "clothes": "none",
+              "shoes": "none",
+              "accessory": "none"
+            }
+          },
+          "voice": "uncle-fu",
+          "name": "团子",
+          "region": "CN",
+          "memoryOn": true,
+          "noticeSeen": true
+        },
+        "page_selected": {
+          "character": 2,
+          "head": 3,
+          "clothes": "none",
+          "shoes": "none",
+          "accessory": "none",
+          "voice": "uncle-fu"
+        }
+      }
+    },
+    {
+      "id": "FX-028-02",
+      "status": 400,
+      "error": "bad_request",
+      "file_unchanged": true,
+      "profile_after": {
+        "look": {
+          "character": 1,
+          "outfit": {
+            "head": "none",
+            "clothes": "none",
+            "shoes": "none",
+            "accessory": "none"
+          }
+        },
+        "voice": "serena"
+      }
+    },
+    {
+      "id": "FX-028-03",
+      "status": 400,
+      "error": "bad_request",
+      "file_unchanged": true,
+      "profile_after": {
+        "look": {
+          "character": 1,
+          "outfit": {
+            "head": "none",
+            "clothes": "none",
+            "shoes": "none",
+            "accessory": "none"
+          }
+        },
+        "voice": "serena"
+      }
+    },
+    {
+      "id": "FX-028-04",
+      "status": 400,
+      "error": "bad_request",
+      "file_unchanged": true,
+      "profile_after": {
+        "look": {
+          "character": 1,
+          "outfit": {
+            "head": "none",
+            "clothes": "none",
+            "shoes": "none",
+            "accessory": "none"
+          }
+        },
+        "voice": "serena"
+      }
+    },
+    {
+      "id": "FX-028-05",
+      "status": 400,
+      "error": "bad_request",
+      "file_unchanged": true,
+      "profile_after": {
+        "look": {
+          "character": 1,
+          "outfit": {
+            "head": "none",
+            "clothes": "none",
+            "shoes": "none",
+            "accessory": "none"
+          }
+        },
+        "voice": "serena"
+      }
+    },
+    {
+      "id": "FX-028-06",
+      "read": {
+        "look": {
+          "character": 1,
+          "outfit": {
+            "head": 3,
+            "clothes": "none",
+            "shoes": "none",
+            "accessory": "none"
+          }
+        },
+        "voice": "serena",
+        "name": "团子"
+      },
+      "save": {
+        "status": 200,
+        "voice": "vivian"
+      },
+      "file_after": {
+        "name": "团子",
+        "voice": "vivian",
+        "theme": "dark"
+      }
+    },
+    {
+      "id": "FX-028-07",
+      "days_field_present": false,
+      "status": 400,
+      "error": "bad_request",
+      "file_unchanged": true,
+      "growth_after": {
+        "days": 2,
+        "stage": 1,
+        "into": 2,
+        "span": 3,
+        "left": 1
+      }
+    }
+  ]
+}

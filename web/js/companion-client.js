@@ -1,6 +1,8 @@
 // The one replaceable data layer (REQ-007), real since Q-010. Seam: contracts/FRONTEND_BACKEND_CONTRACT.md
 // "Seam for run companion-full-dev", docs/backend/03-detailed-design.md DES-013.
-//   respond(line, history, name) -> Promise<{ reply, mood, lang, crisis, region, speech }>   POST /api/respond, aborted at 16 s (Q-020; name null/absent is left out)
+//   respond(line, history, name) -> Promise<{ reply, mood, lang, crisis, region, speech, growth }>   POST /api/respond, aborted at 16 s (Q-020; name null/absent is left out)
+//                            growth (R2 Q-074, DES-048) = { days, stage, into, span, left, up } after this turn; up 2|3 = this turn first
+//                            reached that stage (the only stage-up trigger), else null; growth null when the body has no valid one
 //   speak(text, lang, signal, voice) -> Promise<Blob audio/wav>   POST /api/speak {text, lang, voice?} (R2 Q-060: the chosen voice id rides along; the gateway ignores it until C-013), aborted at 11 s -> timeout; a caller's abort stays the AbortError
 
 //   transcribe(audio)      -> Promise<{ text }>          POST /api/transcribe, aborted at 13 s (Q-014 sends audio)
@@ -16,6 +18,10 @@ export const HEALTH_TIMEOUT_MS = 5000;
 export const HISTORY_MAX = 40;
 
 const codeError = (code) => Object.assign(new Error(code), { code });
+const whole = (v) => Number.isInteger(v) && v >= 0;
+const cleanGrowth = (g) => (g && whole(g.days) && [1, 2, 3].includes(g.stage) && whole(g.into) && whole(g.span) && whole(g.left)
+  ? { days: g.days, stage: g.stage, into: g.into, span: g.span, left: g.left, up: g.up === 2 || g.up === 3 ? g.up : null }
+  : null);
 
 // fetchImpl and timers are injectable so tests need no network and no real clock.
 export function createClient({ fetch: fetchImpl, timers = { setTimeout: (fn, ms) => setTimeout(fn, ms), clearTimeout: (id) => clearTimeout(id) } } = {}) {
@@ -74,6 +80,7 @@ export function createClient({ fetch: fetchImpl, timers = { setTimeout: (fn, ms)
         crisis: body.crisis === true,
         region: body.region === 'CN' || body.region === 'US' ? body.region : null, // R0: help-line region; else the international lines
         speech: Array.isArray(body.speech) ? body.speech.filter((t) => typeof t === 'string') : [],
+        growth: cleanGrowth(body.growth),
       };
     },
     async speak(text, lang, signal, voice) {

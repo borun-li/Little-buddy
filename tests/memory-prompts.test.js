@@ -104,7 +104,7 @@ test('TC-158 [FX-016, FX-017] REQ-041/040: guards C and D inside the update path
 
 // ---------- TC-159 prompt text and schema, taken from the design's own DES-034 block
 function designPrompts() {
-  const doc = readFileSync(join(ROOT, 'docs/backend/03-detailed-design.md'), 'utf8');
+  const doc = readFileSync(join(ROOT, 'docs/backend/r1-memory/03-detailed-design.md'), 'utf8');
   const sec = doc.slice(doc.indexOf('### DES-034'));
   const code = /```js\n([\s\S]*?)```/.exec(sec)[1].replace(/^export /gm, '');
   const names = ['REPLY_SYSTEM', 'MEMORY_RULE', 'NO_NOTES', 'UPDATE_SYSTEM', 'UPDATE_LANG', 'updateUser', 'UPDATE_SCHEMA', 'UPDATE_SAMPLING', 'LANG_TAG'];

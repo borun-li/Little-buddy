@@ -1,5 +1,7 @@
 // Memory storage (03 DES-032): start-up read (finishing an interrupted forget first), unreadable check, single-writer
 // lock file, in-memory copy, one write lock, atomic writes, mood recording, update writes, forget me.
+// R2 (DES-043, DES-046): look and voice in profile.json (look merged under the write lock); growth from the diary's days, never
+// stored, so forget me (diary emptied) resets it; recordMood reports the stage this turn first reached.
 import { readFileSync, unlinkSync } from 'node:fs';
 import { chmod, mkdir, open, readdir, readFile, rename, stat, unlink } from 'node:fs/promises';
 import { isAbsolute, join } from 'node:path';
@@ -7,8 +9,8 @@ import { CONFIG, displayPath } from './config.js';
 import { ApiError } from './errors.js';
 import { log } from './log.js';
 import {
-  ABOUT_TEMPLATE, appendMood, applyNotes, DIARY_HEADER, DIARY_RE, isAboutEmpty, notesWithin, parseDiary, parseProfile, PROFILE_DEFAULTS,
-  profileText, UnreadableFile, weekOf,
+  ABOUT_TEMPLATE, appendMood, applyNotes, DIARY_HEADER, DIARY_RE, diaryDays, growthOf, isAboutEmpty, mergeLook, notesWithin, parseDiary,
+  parseProfile, PROFILE_DEFAULTS, profileText, stageUp, UnreadableFile, weekOf,
 } from './memory-files.js';
 
 export const FILES = { about: '关于你.md', diary: '日志.md', profile: 'profile.json', lock: '.lock', forget: '.forget' };
@@ -224,7 +226,9 @@ export function createStore({ dir, cfg = CONFIG.memory, say = (t) => process.std
   const readable = () => unreadable.length === 0;
   const aboutText = () => (readable() && about !== null ? about : ABOUT_TEMPLATE);
   const profile = () => (readable() ? { ...prof } : { ...PROFILE_DEFAULTS, memoryOn: false });
-  const settings = () => ({ memoryOn: prof.memoryOn, noticeSeen: prof.noticeSeen, name: prof.name, region: prof.region });
+  const settings = () => ({ memoryOn: prof.memoryOn, noticeSeen: prof.noticeSeen, name: prof.name, region: prof.region, look: prof.look, voice: prof.voice });
+  // Days only from the current diary: memory off, unreadable and read-only record nothing, so the count neither grows nor drops (Q28).
+  const growthDays = () => (readable() ? diaryDays(diary.entries) : 0);
 
   function refuseUnlessWritable() {
     if (!readable()) throw new ApiError('unreadable', 'memory');
@@ -341,7 +345,9 @@ export function createStore({ dir, cfg = CONFIG.memory, say = (t) => process.std
       profileExisted = ptext !== null || unreadable.includes('profile');
       if (ptext !== null) {
         try {
-          ({ profile: prof, extra } = parseProfile(ptext));
+          let defaulted;
+          ({ profile: prof, extra, defaulted } = parseProfile(ptext));
+          if (defaulted.length) log('warn', 'profile_value_default', { fields: defaulted });
         } catch (err) {
           if (!(err instanceof UnreadableFile)) throw err;
           unreadable.push('profile');
@@ -357,6 +363,15 @@ export function createStore({ dir, cfg = CONFIG.memory, say = (t) => process.std
 
     profile,
     aboutText,
+    growthDays,
+
+    voice() {
+      return profile().voice;
+    },
+
+    growth() {
+      return growthOf(growthDays());
+    },
 
     notes() {
       if (!readable() || !prof.memoryOn) return null;
@@ -378,6 +393,7 @@ export function createStore({ dir, cfg = CONFIG.memory, say = (t) => process.std
       return {
         readable: readable(), memoryOn: p.memoryOn, noticeSeen: p.noticeSeen, name: p.name, region: p.region, about: text, aboutEmpty,
         kept: readable() && (!aboutEmpty || diary.entries.length > 0), newProfile: !profileExisted && !profileWritten,
+        look: p.look, voice: p.voice, growth: growthOf(growthDays()),
       };
     },
 
@@ -386,10 +402,13 @@ export function createStore({ dir, cfg = CONFIG.memory, say = (t) => process.std
       return { readable: readable(), memoryOn: profile().memoryOn, hasAny: entries.length > 0, days: weekOf(entries, today) };
     },
 
+    // patch.look is a LookPatch: merged into the look saved at the moment the lock is held, so two close partial saves both stay (R-3).
     async setProfile(patch) {
       refuseUnlessWritable();
       return locked(async () => {
-        const next = { ...prof, ...patch };
+        const { look, ...rest } = patch;
+        const next = { ...prof, ...rest };
+        if (look !== undefined) next.look = mergeLook(prof.look, look);
         try {
           await writeAtomic(FILES.profile, profileText(next, extra));
         } catch (err) {
@@ -398,21 +417,23 @@ export function createStore({ dir, cfg = CONFIG.memory, say = (t) => process.std
         }
         prof = next;
         profileWritten = true;
-        log('info', 'profile_saved', { fields: Object.keys(patch) });
+        log('info', 'profile_saved', { fields: Object.keys(patch), ...('voice' in patch ? { voice: patch.voice } : {}) });
         return settings();
       });
     },
 
     // The mood of a 200 turn under today's section. Never throws: null when skipped or failed.
+    // up: the stage this mood's new date first reached (days 2 -> 3 gives 2, 6 -> 7 gives 3), else null; decided under the lock.
     async recordMood(day, mood, gen) {
       if (!writable) return null;
       try {
         const r = await locked(async () => {
           if (!readable() || !prof.memoryOn || gen !== generation) return null;
+          const before = diaryDays(diary.entries);
           const { lines, line } = appendMood(diary.lines, diary.lastDate, day, mood);
           await writeAtomic(FILES.diary, lines.join('\n'));
           diary = { lines, entries: [...diary.entries, { date: day, mood, point: null, line }], lastDate: day };
-          return { gen, line };
+          return { gen, line, up: stageUp(before, diaryDays(diary.entries)) };
         }, cfg.lockWaitMs);
         if (r === LOCK_TIMEOUT) {
           log('warn', 'memory_write_failed', { file: 'diary', err_code: 'lock_wait' });

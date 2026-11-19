@@ -22,6 +22,9 @@ const sameSnap = (a, b, msg) => assert.deepEqual(a, b, msg);
 const rejectsCode = (p, code) => assert.rejects(p, (e) => e.code === code, `rejects ${code}`);
 const names = (dir) => readdirSync(dir).sort();
 
+// R2 (03 DES-042/043): profile() and settings() also hold the look and the voice; the defaults, written here independently of server code.
+const R2_DEFAULTS = { look: { character: 1, outfit: { head: 'none', clothes: 'none', shoes: 'none', accessory: 'none' } }, voice: 'serena' };
+
 test('TC-161 [FX-021] REQ-036/051: first run creates the folder 0700 with the lock; start alone writes no profile.json; first setting makes it 0600', async () => {
   const base = tmpDir();
   const dir = join(base, 'LittleBuddy');
@@ -32,7 +35,7 @@ test('TC-161 [FX-021] REQ-036/051: first run creates the folder 0700 with the lo
   assert.equal(readFileSync(join(dir, '.lock'), 'utf8').trim(), String(process.pid));
   assert.equal(s.writable, true); assert.equal(s.readable, true);
   await s.load();
-  assert.deepEqual(s.profile(), { name: null, region: null, memoryOn: true, noticeSeen: false });
+  assert.deepEqual(s.profile(), { name: null, region: null, memoryOn: true, noticeSeen: false, ...R2_DEFAULTS });
   const v = s.view();
   assert.equal(v.newProfile, true); assert.equal(v.about, ABOUT_TEMPLATE); assert.equal(v.aboutEmpty, true); assert.equal(v.kept, false);
   assert.equal(existsSync(join(dir, 'profile.json')), false, 'start alone writes nothing');
@@ -166,7 +169,7 @@ test('TC-165 [FX-024] REQ-054: unreadable 关于你 (0000), 日志 (not UTF-8), 
     const s = await open(dir);
     const tag = `broken ${key}`;
     assert.equal(s.readable, false, tag); assert.ok(s.unreadable.includes(key), tag);
-    assert.deepEqual(s.profile(), { name: null, region: null, memoryOn: false, noticeSeen: false }, tag);
+    assert.deepEqual(s.profile(), { name: null, region: null, memoryOn: false, noticeSeen: false, ...R2_DEFAULTS }, tag);
     const v = s.view();
     assert.equal(v.aboutEmpty, true, tag); assert.equal(v.about, ABOUT_TEMPLATE, tag); assert.equal(v.kept, false, tag);
     const d = s.diary(today);
@@ -219,7 +222,7 @@ test('TC-167 [FX-022, FX-023] REQ-047/049/052: settings persist across a new sto
   const dir = tmpDir();
   seed(dir, f22());
   const steps = [{ name: 'Mochi' }, { region: 'US' }, { region: 'other' }, { memoryOn: false }, { memoryOn: true }, { noticeSeen: true }];
-  let expected = { memoryOn: true, noticeSeen: true, name: '团子', region: 'CN' };
+  let expected = { memoryOn: true, noticeSeen: true, name: '团子', region: 'CN', ...R2_DEFAULTS }; // R2: every save writes the look and voice keys too (defaults here)
   for (const patch of steps) {
     const s = await open(dir);
     const out = await s.setProfile(patch);

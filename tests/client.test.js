@@ -15,7 +15,7 @@ test('Q-010 respond posts line and history, parses 200', async () => {
   let seen;
   const c = createClient({ fetch: async (url, init) => { seen = { url, init }; return json(200, { reply: 'Hi!', mood: 'pleasant-high' }); } });
   const r = await c.respond('hello', [{ role: 'user', text: 'a', extra: 1 }]);
-  assert.deepEqual(r, { reply: 'Hi!', mood: 'pleasant-high', lang: undefined, crisis: false, region: null, speech: [] });
+  assert.deepEqual(r, { reply: 'Hi!', mood: 'pleasant-high', lang: undefined, crisis: false, region: null, speech: [], growth: null }); // Q-074: a body without growth gives null
   assert.equal(seen.url, '/api/respond');
   assert.equal(seen.init.method, 'POST');
   assert.equal(seen.init.headers['Content-Type'], 'application/json');
@@ -86,7 +86,7 @@ test('Q-020 respond sends name when set, leaves it out when null or absent; retu
   const bodies = [];
   const c = createClient({ fetch: async (_u, init) => { bodies.push(JSON.parse(init.body)); return json(200, { reply: 'Hi', mood: 'neutral', lang: 'en', crisis: true, speech: ['Hi', 'there'] }); } });
   const r = await c.respond('hello', [], 'Pip');
-  assert.deepEqual(r, { reply: 'Hi', mood: 'neutral', lang: 'en', crisis: true, region: null, speech: ['Hi', 'there'] });
+  assert.deepEqual(r, { reply: 'Hi', mood: 'neutral', lang: 'en', crisis: true, region: null, speech: ['Hi', 'there'], growth: null });
   await c.respond('hello', [], null);
   await c.respond('hello', []);
   assert.deepEqual(bodies[0], { line: 'hello', history: [], name: 'Pip' });
@@ -174,4 +174,24 @@ test('Q-020 health returns tts as given', async () => {
     assert.equal(h.tts, tts);
     assert.equal(h.ready, true);
   }
+});
+
+// ---- Q-074 / DES-048 (Full run): respond() hands on the service's growth with `up`; expected shapes from contract § R2 seam
+const G = { days: 3, stage: 2, into: 0, span: 4, left: 4 };
+const withGrowth = (growth) => createClient({ fetch: async () => json(200, { reply: 'ok', mood: 'neutral', growth }) }).respond('x');
+
+test('Q-074 respond returns growth {days, stage, into, span, left, up}: up 2 and 3 pass through, anything else (null, absent, 1, "2") is null', async () => {
+  assert.deepEqual((await withGrowth({ ...G, up: 2 })).growth, { ...G, up: 2 });
+  assert.deepEqual((await withGrowth({ days: 7, stage: 3, into: 1, span: 1, left: 0, up: 3 })).growth, { days: 7, stage: 3, into: 1, span: 1, left: 0, up: 3 });
+  for (const up of [null, undefined, 1, '2', 4, true]) assert.equal((await withGrowth({ ...G, up })).growth.up, null, `up ${JSON.stringify(up)}`);
+});
+
+test('Q-074 a growth that is not the seam shape reads as null and the reply still comes through; a crisis reply carries its growth too', async () => {
+  for (const bad of [null, 'x', {}, { ...G, days: -1 }, { ...G, days: 1.5 }, { ...G, stage: 4 }, { ...G, into: '0' }, { ...G, span: null }, { days: 3, stage: 2, into: 0, span: 4 }]) {
+    const r = await withGrowth(bad);
+    assert.equal(r.growth, null, JSON.stringify(bad));
+    assert.equal(r.reply, 'ok');
+  }
+  const crisis = await createClient({ fetch: async () => json(200, { reply: 'care', mood: 'unpleasant-low', crisis: true, growth: { ...G, up: 2 } }) }).respond('x');
+  assert.deepEqual([crisis.crisis, crisis.growth.up], [true, 2], 'the client passes up on; the page decides not to play it on a crisis turn');
 });

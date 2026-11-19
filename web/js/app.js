@@ -56,7 +56,7 @@ onClear(() => log.removeCard()); // Q-030: and the help card
 // Q-026 / DES-025: the toggle is on at every open (not remembered); a reading needs it on AND tts ready. A
 // speak that fails with not_ready / unavailable tells the watch (checks resume); the failure itself stays silent.
 let speakerOn = true;
-let voiceId = 'serena'; // R2 Q-060: the chosen voice id rides on every /api/speak (the sound stays serena until C-013)
+let voiceId = 'serena'; // R2 Q-060: the chosen voice id rides on every /api/speak (since C-013 the service reads in the profile's voice and ignores it)
 lookClient.getVoice().then((v) => { voiceId = v; }).catch(() => {});
 const speakerBtn = $('.speaker-toggle');
 const speakerTip = $('.speaker-tip');
@@ -272,6 +272,7 @@ async function send(raw, { voice = false, turn: standing = null } = {}) {
   // Q-028 / DES-028: the offer only after an unpleasant-high reply that is not a crisis turn (A21).
   if (shouldOfferBreath(mood, crisis)) log.showOffer((chip) => breathStart?.({ chip, mood }));
   if (crisis === true) log.showCrisisCard(() => input.focus(), region); // Q-030: the page only reads the flag (DES-026); R0: numbers by region
+  applyStage(result.growth, { up: result.growth?.up, crisis: crisis === true }); // R2 Q-074: days and stage after this turn, no reload
   setPending(false);
   speaker.say(speech, lang); // after the text and the mood; a new reply stops the old voice
   return true;
@@ -308,34 +309,30 @@ async function onProfile(p) {
 // R2: the saved look and stage are painted on the companion (companion.setLook / setStage, which also keep the data attributes
 // data-character, data-head ... data-stage; data-mood stays the 5 ids). Applied at open before anything is typed: no flash of the default.
 let shownStage = null;
-let stageSeq = 0;
 let waitingUp = null; // Q-062: a stage-up reached while breathing; its caption plays when the guide ends
 const stageHooks = [];
 // fn({ from, to, growth }) runs when the stage on screen rises or falls after open (Q-062 plays its moment in applyStage itself).
 export function onStageChange(fn) { stageHooks.push(fn); }
 function applyLook(l, { animate = true } = {}) { companion.setLook(l, { animate }); }
-// Q-062 / FLOW-027: the first time days reach 3 or 7 the stage-up plays once (look-client remembers the stage; DFB-004: a lower
-// demo value forgets it). At open it plays only when the remembered stage is lower than today's (days grew while closed), never
-// on a refresh. Several stages at once: one moment. While breathing the look changes at once and the caption waits.
-async function applyStage(g) {
+// Q-062 / FLOW-027, R2 Full Q-074 (DES-048, REQ-082/084): growth comes from the service at open, with every reply and after
+// forget me. The stage-up moment plays only for the reply whose growth.up is 2 or 3 (the turn that first reached 3 or 7 days);
+// open, refresh and every other value just set the stage (the service remembers nothing, so nothing replays). A crisis turn
+// changes the stage quietly, no moment then or later (Q29 default, REQ-082). While breathing the look changes and the caption waits.
+function applyStage(g, { up = null, crisis = false } = {}) {
+  if (!g) return; // no valid growth in the body: the stage on screen stays
   const from = shownStage;
   shownStage = g.stage;
-  const seq = ++stageSeq;
-  let seen = null;
-  if (from === null || g.stage > from) seen = await lookClient.claimStageUp(g.stage).catch(() => null);
-  if (seq !== stageSeq) return; // a newer value won meanwhile
-  const play = seen !== null && g.stage > seen;
-  if (!play) { companion.setStage(g.stage); waitingUp = null; } else {
-    if (from === null) companion.setStage(seen); // at open: start from the remembered look
-    if (breath.active) { companion.setStage(g.stage); waitingUp = g.stage; } else stageUp(g.stage);
-  }
+  const play = (up === 2 || up === 3) && !crisis;
+  lookUi.showGrowth(g, { rise: play }); // the 成长 block, when the tab is on screen
+  if (!play) { companion.setStage(g.stage); waitingUp = null; } else if (breath.active) { companion.setStage(g.stage); waitingUp = g.stage; } else stageUp(g.stage);
   if (from !== null && from !== g.stage) stageHooks.forEach((fn) => fn({ from, to: g.stage, growth: g }));
 }
 function stageUp(to, { captionOnly = false } = {}) {
   companion.stageUp(to, { thanks: () => lt('thanks'), band: to, captionOnly });
-  // growth.upSaid once: the drawer makes the page inert, so then the drawer's own status says it (lookUi.say)
+  // growth.upSaid once: the drawer makes the page inert, so then 成长's status says it when 成长 is on screen, else the drawer's
+  // own live region (FND-066: 日记, 关于你, or the look tab loading or failed)
   const said = lt('upSaid')(lt('stage')[to]);
-  if ($('main.page').inert) lookUi.say(said); else companion.announce(said);
+  if (!$('main.page').inert) companion.announce(said); else if (!lookUi.say(said)) memoryUi.announce(said);
 }
 Promise.all([lookClient.getLook(), lookClient.getGrowth()]).then(([l, g]) => { applyLook(l, { animate: false }); applyStage(g); }).catch(() => { /* unreadable: the default look stays (A14) */ });
 // Q-064: the phone sheet's preview is a second companion that mirrors the stage one (no caption, ids prefixed pv-).
@@ -349,7 +346,7 @@ function createPreview(host) {
   companion.addMirror(mirror);
   return { destroy() { companion.removeMirror(mirror); el.remove(); } };
 }
-const lookUi = createLookUi({ client: lookClient, onLook: (l) => applyLook(l), onGrowth: applyStage, onVoice: (v) => { voiceId = v; }, createPreview });
+const lookUi = createLookUi({ client: lookClient, onLook: (l) => applyLook(l), onVoice: (v) => { voiceId = v; }, createPreview });
 const memoryUi = createMemoryUi({
   client: memory,
   look: lookUi,
@@ -361,7 +358,10 @@ const memoryUi = createMemoryUi({
   showHint,
   clearHint: (...keys) => { if (keys.includes(hint.key)) hint.clear(); }, // only the named failure hints; any other line stays
   onNameSaved: applyName,
-  onForgotten: () => { clearChat(); },
+  onForgotten: () => { // the chat on screen goes too; Q-075: the diary is empty now, so growth reads 0 days at once (Q26)
+    clearChat();
+    lookClient.getGrowth().then((g) => applyStage(g)).catch(() => { /* no answer: the stage on screen stays until the next reply */ });
+  },
   onStartChat: () => input.focus(),
   onProfile,
 });

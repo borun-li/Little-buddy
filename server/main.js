@@ -1,13 +1,15 @@
 // Entry: file check, port checks, HTTP routes, request checks, start and stop (03 DES-001, DES-022);
 // R1: local-origin check, /api/profile, /api/diary, /api/forget, per-turn mood record, update queue and help region (DES-036).
+// R2: look and voice on /api/profile (DES-044); read-aloud voice from the profile, growth with up on every respond 200 (DES-045).
+// Phase 5 (DES-049): the parts of the latest crisis reply are remembered so /api/speak can pass crisis to the reader (DES-050).
 // node server/main.js [--warm-only]
 import { createServer } from 'node:http';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createBonsai } from './bonsai.js';
-import { CONFIG, missingFiles, missingHints, missingTtsFiles, TTS_HINT } from './config.js';
+import { CONFIG, missingFiles, missingHints, missingTtsFiles, TTS_HINT, VOICES } from './config.js';
 import { createMemory } from './memory.js';
-import { localDay } from './memory-files.js';
+import { CHARACTERS, ITEMS, localDay, LOOK_SLOTS } from './memory-files.js';
 import { createStore, FILES, FolderInUse } from './memory-store.js';
 import { ApiError, sendError } from './errors.js';
 import { log } from './log.js';
@@ -20,15 +22,25 @@ import { pcmFromWav } from './wav.js';
 import { helpRegion, PROFILE_REGIONS, systemRegion } from './region.js';
 
 const WEB = join(CONFIG.repo, 'web');
+// Human-readable lines go to stderr; stdout carries only the JSON log (03 §6).
+const say = (text) => process.stderr.write(`${text}\n`);
 // R0: the help-line region, decided once at start on this Mac (macOS region, then time zone; COMPANION_REGION overrides).
 // R1: the profile's choice overrides it per turn (helpRegion).
 const SYSTEM_REGION = systemRegion();
-const children = { stt: createStt(), bonsai: createBonsai(CONFIG, SYSTEM_REGION), tts: createTts() };
-let ttsStarted = false;
 // Memory: set by main() (never under --warm-only); attachMemory also lets a test drive route() with its own temp-dir store.
 let store = null;
+// The read-aloud voice is the profile's, asked when each part is handed to the reader; no store (--warm-only) → the default.
+const children = {
+  stt: createStt(), bonsai: createBonsai(CONFIG, SYSTEM_REGION), tts: createTts(CONFIG, { voiceOf: () => store?.voice() ?? CONFIG.tts.voice, say }),
+};
+let ttsStarted = false;
 let memory = null;
 let replyNotes = null; // per run: the notes one chat keeps, so the reply's prompt prefix stays cached
+// The speech-part keys of the last CRISIS_KEEP crisis replies whose page was still there (DES-049, FND-075): their parts are
+// read by serena. Normal and abandoned 200s leave them alone; memory only, never logged.
+const partKey = (text, lang) => `${lang}\n${text}`;
+const CRISIS_KEEP = 3; // FND-075: crisis replies whose parts stay serena; = Bonsai -np 3 (server/bonsai.js:240)
+let crisisSpeech = []; // one Set of partKeys per crisis reply, oldest first, length <= CRISIS_KEEP
 
 export function attachMemory(s, m) {
   store = s;
@@ -42,9 +54,6 @@ export function notesFor(history) {
   if (live === null || history.length === 0 || replyNotes === null) replyNotes = live;
   return replyNotes;
 }
-
-// Human-readable lines go to stderr; stdout carries only the JSON log (03 §6).
-const say = (text) => process.stderr.write(`${text}\n`);
 
 export async function readBody(req, limit) {
   const declared = Number(req.headers['content-length']);
@@ -98,9 +107,36 @@ export function parseTurn(body, limits = CONFIG.limits) {
 }
 
 const isObject = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
-const PATCH_KEYS = ['noticeSeen', 'memoryOn', 'name', 'region'];
+const PATCH_KEYS = ['noticeSeen', 'memoryOn', 'name', 'region', 'look', 'voice'];
+const LOOK_KEYS = ['character', 'outfit'];
 
-// POST /api/profile body: 1-4 known keys; booleans; region one of PROFILE_REGIONS (null refused); name string|null, cleaned.
+// R2 look patch: an object with character and/or outfit; character one of CHARACTERS; outfit 1-4 of LOOK_SLOTS, each 'none' or one
+// of ITEMS (a string "2" is refused). Returns a fresh copy.
+export function parseLookPatch(v) {
+  if (!isObject(v)) throw new ApiError('bad_request');
+  const keys = Object.keys(v);
+  if (!keys.length || keys.some((k) => !LOOK_KEYS.includes(k))) throw new ApiError('bad_request');
+  const patch = {};
+  if ('character' in v) {
+    if (!CHARACTERS.includes(v.character)) throw new ApiError('bad_request');
+    patch.character = v.character;
+  }
+  if ('outfit' in v) {
+    if (!isObject(v.outfit)) throw new ApiError('bad_request');
+    const slots = Object.keys(v.outfit);
+    if (!slots.length || slots.some((s) => !LOOK_SLOTS.includes(s))) throw new ApiError('bad_request');
+    patch.outfit = {};
+    for (const s of slots) {
+      const item = v.outfit[s];
+      if (item !== 'none' && !ITEMS.includes(item)) throw new ApiError('bad_request');
+      patch.outfit[s] = item;
+    }
+  }
+  return patch;
+}
+
+// POST /api/profile body: 1-6 known keys (any other, e.g. days, refused); booleans; region one of PROFILE_REGIONS (null refused);
+// name string|null, cleaned; look a look patch; voice one of VOICES, exact case. The whole body is checked before anything is saved.
 export function parseProfilePatch(body) {
   const data = parseJson(body);
   if (!isObject(data)) throw new ApiError('bad_request');
@@ -120,6 +156,11 @@ export function parseProfilePatch(body) {
   if ('name' in data) {
     if (data.name !== null && typeof data.name !== 'string') throw new ApiError('bad_request');
     patch.name = cleanName(data.name);
+  }
+  if ('look' in data) patch.look = parseLookPatch(data.look);
+  if ('voice' in data) {
+    if (!VOICES.includes(data.voice)) throw new ApiError('bad_request');
+    patch.voice = data.voice;
   }
   return patch;
 }
@@ -177,10 +218,18 @@ async function handleApi(req, res, path) {
       const turn = await children.bonsai.respond(line, history, name, { region, notes: notesFor(history) });
       const { ref, skip } = await recordTurn(turn, at);
       // region: the turn's effective help-line region; the page's crisis card picks its numbers from it.
-      sendJson(res, 200, { ...turn, region, speech: speechParts(turn.reply, turn.lang) });
+      // growth: after this turn's mood is recorded (the day's first turn already counts); up only from this turn's record.
+      const up = ref?.up ?? null;
+      const speech = speechParts(turn.reply, turn.lang);
+      // A crisis turn the page still waits for adds its parts; past CRISIS_KEEP the oldest crisis reply drops out.
+      if (turn.crisis && !at.gone()) {
+        crisisSpeech.push(new Set(speech.map((p) => partKey(p, turn.lang))));
+        if (crisisSpeech.length > CRISIS_KEEP) crisisSpeech.shift();
+      }
+      sendJson(res, 200, { ...turn, region, speech, growth: { ...store.growth(), up } });
       const queued = skip === null && !turn.crisis;
       if (queued) memory.enqueue({ gen: at.gen, ref, line, lang: turn.lang });
-      log('info', 'memory_turn', { mood_written: ref !== null, queued, skip });
+      log('info', 'memory_turn', { mood_written: ref !== null, queued, skip, up });
       return;
     } finally {
       memory.turnEnded();
@@ -212,7 +261,8 @@ async function handleApi(req, res, path) {
     res.on('close', () => {
       if (!res.writableFinished) ac.abort();
     });
-    const wav = await children.tts.speak(text, lang, ac.signal);
+    // text is trimmed by parseSpeak, the same shape as a speechParts part.
+    const wav = await children.tts.speak(text, lang, ac.signal, crisisSpeech.some((s) => s.has(partKey(text, lang))));
     res.writeHead(200, { 'Content-Type': 'audio/wav', 'Content-Length': wav.length, 'Cache-Control': 'no-store' });
     return res.end(wav);
   }
@@ -306,7 +356,7 @@ export async function main(argv) {
     attachMemory(s, createMemory({ store: s, bonsai: children.bonsai }));
     say(`记忆文件夹 Memory folder: ${CONFIG.memory.displayPath}`);
     for (const key of s.unreadable) {
-      say(`读不出 Cannot read: ${CONFIG.memory.displayPath}${FILES[key]} — 这次按全新开始、不写入；修好后重启  Starting fresh and writing nothing this run; fix it and restart`);
+      say(`读不出 Cannot read: ${CONFIG.memory.displayPath}${FILES[key]} — 这次按全新开始、不写入，形象、声音、成长也按默认；修好后重启  Starting fresh and writing nothing this run; look, voice and growth use defaults too; fix it and restart`);
     }
     server = createServer(route);
     try {

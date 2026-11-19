@@ -1,0 +1,121 @@
+{
+  "cases": [
+    {
+      "id": "FX-031-01",
+      "moments_total": 0,
+      "stage_shown_each_open": [
+        3,
+        3,
+        3,
+        3
+      ]
+    },
+    {
+      "id": "FX-031-02",
+      "moments_total": 0,
+      "stage_shown_each_open": [
+        3
+      ]
+    },
+    {
+      "id": "FX-031-03",
+      "forget": {
+        "status": 200
+      },
+      "after_forget": {
+        "growth": {
+          "days": 0,
+          "stage": 1,
+          "into": 0,
+          "span": 3,
+          "left": 3
+        },
+        "look": {
+          "character": 2,
+          "outfit": {
+            "head": 3,
+            "clothes": "none",
+            "shoes": "none",
+            "accessory": "none"
+          }
+        },
+        "voice": "dylan",
+        "name": "团子"
+      },
+      "after_restart": {
+        "growth": {
+          "days": 0,
+          "stage": 1,
+          "into": 0,
+          "span": 3,
+          "left": 3
+        },
+        "look": {
+          "character": 2,
+          "outfit": {
+            "head": 3,
+            "clothes": "none",
+            "shoes": "none",
+            "accessory": "none"
+          }
+        },
+        "voice": "dylan",
+        "name": "团子"
+      },
+      "turns": [
+        {
+          "date": "2026-11-18",
+          "growth": {
+            "days": 1,
+            "stage": 1,
+            "into": 1,
+            "span": 3,
+            "left": 2,
+            "up": null
+          }
+        },
+        {
+          "date": "2026-11-19",
+          "growth": {
+            "days": 2,
+            "stage": 1,
+            "into": 2,
+            "span": 3,
+            "left": 1,
+            "up": null
+          }
+        },
+        {
+          "date": "2026-11-20",
+          "growth": {
+            "days": 3,
+            "stage": 2,
+            "into": 0,
+            "span": 4,
+            "left": 4,
+            "up": 2
+          }
+        }
+      ],
+      "moments_total": 1
+    },
+    {
+      "id": "FX-031-04",
+      "turn_growth": {
+        "days": 3,
+        "stage": 2,
+        "into": 0,
+        "span": 4,
+        "left": 4,
+        "up": 2
+      },
+      "moments_on_turn": 1,
+      "moments_after_turn": 0,
+      "stage_shown_each_open": [
+        2,
+        2,
+        2
+      ]
+    }
+  ]
+}

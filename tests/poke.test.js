@@ -89,7 +89,7 @@ function dom() {
   const layers = el(); layers.children = [];
   layers.append = function (n) { this.children.push(n); };
   Object.defineProperty(layers, 'children', { value: [], writable: true });
-  const root = Object.assign(el(), { querySelector: () => layers });
+  const root = Object.assign(el(), { querySelector: () => layers, after() {} }); // after(): the companion's live region is inserted at load (Q-082)
   const nameButton = el(); const phrase = el();
   const caption = { querySelector: (s) => (s === '.caption__name' ? nameButton : phrase) };
   return { root, layers, phrase };
